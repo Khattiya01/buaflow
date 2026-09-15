@@ -43,7 +43,7 @@
 
 เพิ่มจาก DoD กลาง:
 - [ ] **ตอบคำถาม component ครบก่อนสร้าง** (มี shared แล้วไหม / มีใน shadcn ไหม / มี design ไหม)
-- [ ] ใช้ **shadcn/ui + Radix** เท่านั้น ไม่ดึง UI library อื่นเข้ามา
+- [ ] ใช้ UI library ที่ล็อกในธรรมนูญมาตรา 9 (ค่าเริ่มต้น React: shadcn/ui + Radix) ไม่ดึงตัวอื่นเข้ามาโดยไม่มี ADR
 - [ ] **ไม่มีข้อความ hardcode** — ทุกข้อความผ่าน i18n key และมีครบทั้ง `th` และ `en`
       (รวม placeholder, aria-label, ข้อความ error, toast, empty state)
 - [ ] **ไม่มีสี/ขนาดดิบ** — ใช้ theme token เท่านั้น

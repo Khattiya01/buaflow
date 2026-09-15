@@ -11,6 +11,7 @@ claude-setup/rules/*.md          →  .claude/rules/*.md
 claude-setup/agents/*.md         →  .claude/agents/*.md
 claude-setup/hooks/*.js          →  .claude/hooks/*.js
 claude-setup/check-config.js     →  .claude/check-config.js
+claude-setup/protected-paths.json →  .claude/protected-paths.json
 claude-setup/settings.json.tpl   →  .claude/settings.json
 claude-setup/evals/*.md          →  docs/evals/*.md
 ```
@@ -19,6 +20,7 @@ claude-setup/evals/*.md          →  docs/evals/*.md
 - `paths:` ใน rules ต้องตรงกับโครงโฟลเดอร์จริง (ไม่งั้น rule จะเงียบไปเลยโดยไม่มี error)
 - คำสั่งใน skills และ `settings.json` ต้องเป็นคำสั่งที่มีจริงใน `package.json`
 - ตัดส่วนที่ไม่เกี่ยวกับ stack ที่เลือกออก — เช่น ใช้ App Router ก็ลบ pattern `**/pages/**` ทิ้ง
+- `protected-paths.json` ต้องเป็นรายการโฟลเดอร์ที่ generate อัตโนมัติ**ของโปรเจกต์นี้** — ไม่ได้ใช้ shadcn ก็ลบ `components/ui/**` ทิ้ง
 
 **แล้วรัน `node .claude/check-config.js`** — มันจะบอกว่า pattern ไหนไม่ match อะไรเลย,
 rule ไหนตายเงียบ, ไฟล์โค้ดกลุ่มไหนไม่มี rule คุ้มครอง, hook ผูกครบและคืน exit code ถูกไหม

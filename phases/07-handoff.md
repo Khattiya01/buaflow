@@ -1,6 +1,7 @@
 # Phase 7 — ส่งมอบ (Handoff) และเปิดใช้ระบบจริง
 
 > เป้าหมาย: แปลงทุกอย่างที่วางแผนไว้ให้กลายเป็น **config ที่ทำงานจริง** ไม่ใช่แค่เอกสารที่หวังว่าจะมีคนอ่าน
+> ใช้ได้ทั้งโปรเจกต์ใหม่ (มาจาก Phase 6) และโปรเจกต์เดิม (มาจาก Phase A) — โปรเจกต์เดิมให้ยึด `docs/planning/A1-inventory.md` เป็นแหล่งข้อมูลแทน Phase 1-6
 > หลังจบ Phase นี้ โปรเจกต์จะเดินด้วยตัวเองผ่าน `intent → spec → plan → code → review → done`
 
 ## ของที่ต้องคายออกมา (แบ่งเป็น 4 ชั้น)
@@ -59,6 +60,7 @@ project-kit/claude-setup/rules/*         →  .claude/rules/
 project-kit/claude-setup/agents/*        →  .claude/agents/
 project-kit/claude-setup/hooks/*         →  .claude/hooks/
 project-kit/claude-setup/check-config.js →  .claude/check-config.js
+project-kit/claude-setup/protected-paths.json →  .claude/protected-paths.json
 project-kit/claude-setup/settings.json.tpl  →  .claude/settings.json
 ```
 
@@ -69,7 +71,7 @@ project-kit/claude-setup/settings.json.tpl  →  .claude/settings.json
 | `rules/*.md` | `paths:` ต้องตรงกับโครงโฟลเดอร์จริงที่ scaffold ไว้ |
 | `skills/*/SKILL.md` | คำสั่งต้องเป็นคำสั่งที่มีจริงใน `package.json` |
 | `settings.json` | `permissions.allow` ตามคำสั่งจริง, `deny` ตามไฟล์ลับจริง |
-| `hooks/guard-edit.js` | path ของ shadcn generated ถ้าไม่ได้อยู่ที่ `components/ui/` |
+| `protected-paths.json` | รายการโฟลเดอร์ที่ generate อัตโนมัติของโปรเจกต์นี้ — ถ้าไม่ได้ใช้ shadcn ให้ลบ `components/ui/**` ออก (ไม่ต้องแก้สคริปต์ hook) |
 
 **แล้วรันตัวตรวจ** — ห้ามข้าม:
 

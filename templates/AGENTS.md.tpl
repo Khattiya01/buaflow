@@ -12,7 +12,7 @@
 - Frontend: {{...}}
 - Backend: {{...}}
 - DB/ORM: {{PostgreSQL + Prisma}}
-- UI: **shadcn/ui + Radix + Tailwind** (ห้ามใช้ UI library อื่น)
+- UI: {{ตามธรรมนูญมาตรา 9 — ค่าเริ่มต้น React: shadcn/ui + Radix + Tailwind}} (จะเพิ่มตัวอื่นต้องผ่าน intent + ADR)
 - i18n: {{next-intl}} — **th (default) + en**
 - Test: {{Vitest + Testing Library + Playwright}}
 - Docker สำหรับ dev และ deploy
@@ -45,7 +45,7 @@ Test Files  12 passed (12)   Tests  84 passed (84)}}
 {{ผังจริง พร้อมคำอธิบายสั้นๆ ว่าอะไรวางตรงไหน}}
 ```
 
-- `components/ui/` = shadcn generated — **ห้ามแก้มือ** (มี hook กันไว้)
+- `components/ui/` = ของที่ registry generate — **ห้ามแก้มือ** (hook กันไว้ตาม `.claude/protected-paths.json`)
 - `components/shared/` = component กลางของเรา
 - `components/<feature>/` = เฉพาะ feature
 - ห้าม feature หนึ่ง import component ของอีก feature — ถ้าต้องใช้ร่วมให้ยกขึ้น `shared/`
@@ -69,7 +69,7 @@ intent -> spec (feature ใหญ่) -> plan -> code -> verify -> review -> don
 
 - ข้อความ hardcode — ทุกข้อความผ่าน i18n ครบทั้ง th และ en (รวม placeholder, aria-label, error, toast, empty state)
 - สี/ขนาดดิบ — ใช้ theme token เท่านั้น
-- ติดตั้ง UI library อื่นนอกจาก shadcn/Radix
+- ติดตั้ง UI library นอกเหนือจากที่ล็อกในธรรมนูญมาตรา 9
 - แก้ไฟล์เทสเพื่อให้เทสผ่าน ตอนที่กำลังแก้บั๊ก
 - `git commit --no-verify`
 - รัน SonarQube scan เอง (ผู้ใช้รันเอง แล้วเอาผลมาให้แก้)

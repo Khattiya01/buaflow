@@ -1,0 +1,27 @@
+{
+  "$comment": [
+    "รายการไฟล์ที่ hook guard-edit.js ห้าม AI แก้ — ปรับที่นี่ ไม่ต้องแก้สคริปต์",
+    "pattern ใช้ glob ง่าย ๆ: ** = ข้ามกี่โฟลเดอร์ก็ได้, * = ในโฟลเดอร์เดียว",
+    "reason จะถูกส่งให้ Claude อ่านตอนถูกบล็อก — ต้องบอกทางที่ถูก ไม่ใช่แค่ว่าห้าม",
+    "โปรเจกต์เดิม (โหมด EXTEND): ลบ/แก้ค่าเริ่มต้นให้ตรงของจริง เช่น ถ้าไม่ได้ใช้ shadcn ก็ลบข้อแรกทิ้ง",
+    "ตัวอย่างที่มักเพิ่ม: ไฟล์ที่ generate จาก OpenAPI, migration ที่รันไปแล้ว, ไฟล์ lockfile"
+  ],
+
+  "protected": [
+    {
+      "pattern": "**/components/ui/**",
+      "reason": "ไฟล์นี้อยู่ใน components/ui/ ซึ่งเป็นของที่ shadcn generate มา ห้ามแก้มือ\nทางที่ถูก: ติดตั้ง/อัปเดตผ่าน shadcn CLI หรือสร้าง wrapper ใน components/shared/ แทน"
+    },
+    {
+      "pattern": "**/*.generated.*",
+      "reason": "ไฟล์นี้ถูก generate อัตโนมัติ แก้มือแล้วจะถูกทับตอน generate รอบหน้า\nทางที่ถูก: แก้ที่ต้นทาง (schema / spec) แล้วรัน generate ใหม่"
+    },
+    {
+      "pattern": "pnpm-lock.yaml",
+      "reason": "lockfile ต้องเปลี่ยนผ่าน pnpm เท่านั้น (pnpm add / pnpm install) ห้ามแก้มือ"
+    }
+  ],
+
+  "testFilePattern": "\\.(spec|test)\\.[jt]sx?$|(^|/)(tests?|__tests__|e2e)/",
+  "bugfixBranchPattern": "^(fix|hotfix)/"
+}

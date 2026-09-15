@@ -86,7 +86,7 @@ components/
 | ข้อความ hardcode (`"บันทึก"`) | `t('common.save')` |
 | สี hex ดิบ (`#1e40af`, `bg-blue-600`) | token (`bg-primary`, `text-muted-foreground`) |
 | `style={{...}}` ค่าคงที่ | Tailwind class ที่อิง token |
-| ติดตั้ง UI library อื่น (MUI, Antd, Chakra, Mantine) | shadcn/ui + Radix เท่านั้น |
+| ติดตั้ง UI library ตัวใหม่โดยไม่มี ADR | ใช้ตัวที่ล็อกในธรรมนูญมาตรา 9 (ค่าเริ่มต้น React: shadcn/ui + Radix — ผ่านเกณฑ์ 5 ข้อใน Phase 2 รอบ B0) |
 | `px` ดิบนอก scale | spacing scale ของ Tailwind |
 | `dangerouslySetInnerHTML` | render ปกติ หรือ sanitize ถ้าจำเป็นจริง |
 | ก๊อป component ไปแก้เป็นเวอร์ชัน 2 | เพิ่ม prop/variant ในตัวเดิม |

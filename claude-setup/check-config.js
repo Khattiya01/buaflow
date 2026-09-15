@@ -193,6 +193,28 @@ if (settings?.hooks) {
   warn('settings.json ไม่มี hooks เลย — กฎทั้งหมดเป็นแค่คำแนะนำ ไม่มีอะไรบังคับ');
 }
 
+if (exists('.claude/protected-paths.json')) {
+  try {
+    const pp = JSON.parse(read('.claude/protected-paths.json'));
+    const list = Array.isArray(pp.protected) ? pp.protected : [];
+    const noReason = list.filter((r) => !r.reason);
+    if (!list.length) warn('protected-paths.json ไม่มีรายการ protected เลย');
+    else if (noReason.length) warn(`protected-paths.json: ${noReason.length} รายการไม่มี reason — Claude จะไม่รู้ทางที่ถูกตอนถูกบล็อก`);
+    else ok(`protected-paths.json: ${list.length} รายการ มี reason ครบ`);
+    // pattern ที่ไม่ match อะไรเลย = อาจคัดลอกมาดิบ ๆ จากโปรเจกต์อื่น
+    for (const r of list) {
+      if (!r.pattern) continue;
+      let hits = 0;
+      try { hits = fs.globSync(r.pattern, { cwd: ROOT }).length; } catch { /* pattern แปลก ๆ ให้ hook ตัดสินเอง */ }
+      if (!hits) warn(`protected-paths.json: "${r.pattern}" ไม่ match ไฟล์ไหนในโปรเจกต์ (ยังไม่มี หรือคัดลอกมาจาก stack อื่น)`);
+    }
+  } catch (e) {
+    bad(`protected-paths.json ไม่ใช่ JSON ที่ถูกต้อง: ${e.message} (hook จะถอยไปใช้ค่าเริ่มต้นเงียบ ๆ)`);
+  }
+} else {
+  warn('ไม่มี .claude/protected-paths.json — guard-edit จะใช้ค่าเริ่มต้น (components/ui/** เท่านั้น)');
+}
+
 // ── 7. hooks ทำงานจริงไหม ─────────────────────────────────────────────
 head('7. hooks ทำงานจริงไหม (รันด้วย input จำลอง)');
 const TEST_FILE = /\.(spec|test)\.[jt]sx?$|(^|\/)(tests?|__tests__|e2e)\//;

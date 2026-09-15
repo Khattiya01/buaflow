@@ -44,6 +44,17 @@
 - `templates/AGENTS.md.tpl` เป็นแกน (มาตรฐานกลางที่ Codex/Cursor/Copilot/Gemini อ่านได้)
 - `CLAUDE.md` เหลือเป็นชั้นบางที่ `@AGENTS.md` แล้วต่อด้วยของเฉพาะ Claude Code
 
+**ใช้กับโปรเจกต์ที่มีโค้ดอยู่แล้ว**
+- `phases/A-adopt-existing.md` — โหมด `EXTEND` มีตัวเลือกอยู่ใน Phase 0 ตั้งแต่ v1 แต่ไม่มี Phase ไหนรองรับ
+  ตอนนี้แทน Phase 1–6 ด้วยขั้นเดียว: สำรวจไม่ตัดสิน → ตั้ง `verify` ให้ผ่านก่อน → ADR ย้อนหลัง →
+  ธรรมนูญแบบ "ของใหม่ vs ของเก่า" → ปรับ config ให้ตรงของจริง → ตัดสิน source of truth ของงาน
+- ธรรมนูญมาตรา 9.1 — กฎของใหม่/ของเก่า กัน AI refactor ทั้งระบบเพราะเห็นว่าโค้ดเดิมขัดมาตรฐาน
+- `claude-setup/protected-paths.json` — `guard-edit.js` อ่านรายการไฟล์ที่ห้ามแก้จาก config
+  แทน hardcode `components/ui/` (โปรเจกต์เดิมอาจไม่มี path นี้เลย) ถ้าไฟล์หายหรือพัง hook ถอยไปใช้ค่าเริ่มต้น
+- START-HERE §5 แยกเป็น "นโยบาย" (ใช้ทุกโปรเจกต์) กับ "ค่าเริ่มต้นทางเทคนิค" (ของจริงชนะ)
+  และ **UI library เปลี่ยนจากล็อกยี่ห้อเป็นเกณฑ์ 5 ข้อ** (ซอร์สในโปรเจกต์ / registry / a11y / token / training data)
+  เพราะการล็อก shadcn ก่อน Phase 2 = แอบตัดสินว่าเป็น React และ AI ไม่รู้เหตุผล — Phase 2 รอบ B0 ประเมินตามเกณฑ์นี้
+
 ### เปลี่ยน
 
 - **`claude-setup/commands/` → `claude-setup/skills/`** ตามที่ Claude Code รวม custom command
