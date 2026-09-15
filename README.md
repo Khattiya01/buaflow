@@ -37,6 +37,10 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
 
 ## วิธีใช้
 
+### โปรเจกต์ที่มีโค้ดอยู่แล้ว
+ตอบ Phase 0 ว่าโหมด `EXTEND` แล้ว kit จะพาไป **Phase A** (สำรวจของเดิม ตั้ง verify ธรรมนูญแบบของใหม่/ของเก่า)
+แทน Phase 1–6 จากนั้นติดตั้ง config ที่ Phase 7 เหมือนกัน — จากนั้นเพิ่ม feature ใหม่ผ่าน `/intent` ได้เลย
+
 ### โปรเจกต์ใหม่ — ครั้งแรก
 เปิด Claude Code ที่ root ของโปรเจกต์ แล้วพิมพ์:
 
@@ -88,7 +92,8 @@ project-kit/
 │   ├── 05-backlog-and-roadmap.md    แตก Epic/Feature/Task + board
 │   ├── 06-scaffold.md               สร้างโปรเจกต์จริงด้วย CLI
 │   ├── 07-handoff.md                ติดตั้ง config ทั้งชุด + รัน eval baseline
-│   └── 08-tune-and-evolve.md        ♻️ ทบทวนและปรับ config (ทำซ้ำ)
+│   ├── 08-tune-and-evolve.md        ♻️ ทบทวนและปรับ config (ทำซ้ำ)
+│   └── A-adopt-existing.md          🔁 โปรเจกต์ที่มีโค้ดอยู่แล้ว — แทน Phase 1-6
 │
 ├── standards/                  ← ความรู้ที่จะถูก compile ลงเป็น rules/skills
 │   ├── agent-config.md              ⭐ กฎข้อไหนควรไปอยู่ชั้นไหน
@@ -121,6 +126,7 @@ project-kit/
     ├── agents/                      code-reviewer, test-writer, legacy-explorer
     ├── hooks/                       ⭐ ชั้นที่บังคับได้จริง (Node ล้วน ไม่มี dependency)
     ├── check-config.js              ⭐ ตรวจว่า config ทำงานจริง (paths match ไหม / hook คืน exit code ถูกไหม)
+    ├── protected-paths.json         ไฟล์ที่ห้าม AI แก้ — ปรับได้โดยไม่แตะ hook
     ├── settings.json.tpl            permissions + การผูก hooks
     └── evals/                       ชุดเคสทดสอบ config
 ```
@@ -138,6 +144,7 @@ CONTRIBUTING.md
 ├── agents/*.md                ← 3 subagents
 ├── hooks/*.js                 ← ชั้นบังคับ
 ├── check-config.js            ← ตรวจสุขภาพ config (รันทุกครั้งที่ปรับ)
+├── protected-paths.json       ← ไฟล์ที่ห้าม AI แก้
 └── settings.json              ← permissions + hooks
 docs/
 ├── constitution.md            ← ธรรมนูญโปรเจกต์

@@ -16,9 +16,11 @@ hook ต่างออกไป: มันคือสคริปต์ที�
 | ไฟล์ | event | ทำอะไร |
 |---|---|---|
 | `session-context.js` | `SessionStart` | ฉีด branch ปัจจุบัน + งานที่ค้างจาก board เข้า context ตั้งแต่ข้อความแรก |
-| `guard-edit.js` | `PreToolUse` (Edit/Write) | บล็อกการแก้ `components/ui/**` และบล็อกการแก้ไฟล์เทสขณะอยู่บน branch `fix/` `hotfix/` |
+| `guard-edit.js` | `PreToolUse` (Edit/Write) | บล็อกการแก้ไฟล์ตามรายการใน **`.claude/protected-paths.json`** (ค่าเริ่มต้น: `components/ui/**`, `*.generated.*`, lockfile) และบล็อกการแก้ไฟล์เทสขณะอยู่บน branch `fix/` `hotfix/` |
 | `guard-bash.js` | `PreToolUse` (Bash) | บล็อก `--no-verify`, การรัน sonar เอง, force push main, `git checkout .` |
 | `format-changed.js` | `PostToolUse` (Edit/Write) | format + lint เฉพาะไฟล์ที่เพิ่งแก้ และส่ง error ที่ autofix ไม่ได้กลับเข้า context |
+
+**ปรับรายการไฟล์ที่ห้ามแก้ที่ `protected-paths.json` ไม่ต้องแก้สคริปต์** — ถ้าไฟล์นั้นหายหรือ JSON พัง hook จะถอยไปใช้ค่าเริ่มต้นเงียบ ๆ (ตั้งใจ: hook เสียต้องไม่ทำให้ทำงานไม่ได้) และ `check-config.js` จะเตือน
 
 ทุกตัวเขียนด้วย **Node ล้วน ไม่มี dependency** เพราะโปรเจกต์มี Node อยู่แล้ว
 และรันได้เหมือนกันทั้ง Windows, macOS, Linux, และใน container

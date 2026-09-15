@@ -3,32 +3,65 @@
  * PreToolUse hook — กันการแก้ไฟล์ที่ห้ามแก้
  *
  * บล็อก 2 กรณี:
- *   1. ไฟล์ที่ shadcn generate (components/ui/**) — ต้องแก้ผ่าน registry หรือห่อใหม่ใน shared/
- *   2. ไฟล์เทส ขณะที่อยู่บน branch fix/ หรือ hotfix/
+ *   1. ไฟล์ที่อยู่ในรายการ protected (อ่านจาก .claude/protected-paths.json)
+ *      ค่าเริ่มต้น: components/ui/** ที่ shadcn generate
+ *   2. ไฟล์เทส ขณะที่อยู่บน branch แก้บั๊ก (fix/ หรือ hotfix/)
  *      เหตุผล: ตอนแก้บั๊ก เทสคือหลักฐานว่าบั๊กมีจริง ถ้าแก้เทสได้ = แก้หลักฐาน
+ *
+ * ปรับรายการได้ที่ .claude/protected-paths.json โดยไม่ต้องแก้สคริปต์นี้
+ * (โปรเจกต์เดิมที่ไม่มี components/ui/ ให้แก้ที่นั่น)
  *
  * exit 2 = บล็อก (ข้อความใน stderr จะถูกส่งให้ Claude อ่าน)
  * exit 0 = ปล่อยผ่าน
  */
+const fs = require('node:fs');
+const path = require('node:path');
 const { execSync } = require('node:child_process');
 
-const PROTECTED = [
-  {
-    // shadcn generated
-    test: (p) => /(^|\/)components\/ui\//.test(p),
-    reason: [
-      'ไฟล์นี้อยู่ใน components/ui/ ซึ่งเป็นของที่ shadcn generate มา ห้ามแก้มือ',
-      'ทางที่ถูก: ติดตั้ง/อัปเดตผ่าน shadcn CLI หรือสร้าง wrapper ใน components/shared/ แทน',
-      'ถ้าคิดว่าจำเป็นต้องแก้จริง ให้หยุดแล้วบอกผู้ใช้ว่าติดอะไรและทำไม',
-    ].join('\n'),
-  },
-];
+const ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
-const TEST_FILE = /\.(spec|test)\.[jt]sx?$|(^|\/)(tests?|__tests__|e2e)\//;
+const DEFAULTS = {
+  protected: [
+    {
+      pattern: '**/components/ui/**',
+      reason:
+        'ไฟล์นี้อยู่ใน components/ui/ ซึ่งเป็นของที่ shadcn generate มา ห้ามแก้มือ\n' +
+        'ทางที่ถูก: ติดตั้ง/อัปเดตผ่าน shadcn CLI หรือสร้าง wrapper ใน components/shared/ แทน',
+    },
+  ],
+  testFilePattern: '\\.(spec|test)\\.[jt]sx?$|(^|/)(tests?|__tests__|e2e)/',
+  bugfixBranchPattern: '^(fix|hotfix)/',
+};
+
+function loadConfig() {
+  try {
+    const raw = fs.readFileSync(path.join(ROOT, '.claude', 'protected-paths.json'), 'utf8');
+    const cfg = JSON.parse(raw);
+    return {
+      protected: Array.isArray(cfg.protected) ? cfg.protected : DEFAULTS.protected,
+      testFilePattern: cfg.testFilePattern || DEFAULTS.testFilePattern,
+      bugfixBranchPattern: cfg.bugfixBranchPattern || DEFAULTS.bugfixBranchPattern,
+    };
+  } catch {
+    return DEFAULTS; // ไม่มีไฟล์ หรือ parse ไม่ได้ → ใช้ค่าเริ่มต้น อย่าขวางงาน
+  }
+}
+
+/** แปลง glob ง่าย ๆ เป็น regex: ** = ข้ามกี่โฟลเดอร์ก็ได้, * = ในโฟลเดอร์เดียว */
+function globToRegex(glob) {
+  const esc = glob.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  const body = esc
+    .replace(/\*\*\//g, '(?:.*/)?')
+    .replace(/\/\*\*/g, '(?:/.*)?')
+    .replace(/\*\*/g, '.*')
+    .replace(/\*/g, '[^/]*');
+  return new RegExp(`(^|/)${body}$`);
+}
 
 function currentBranch() {
   try {
     return execSync('git rev-parse --abbrev-ref HEAD', {
+      cwd: ROOT,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
@@ -48,18 +81,23 @@ process.stdin.on('end', () => {
   }
   if (!filePath) process.exit(0);
 
-  const p = filePath.replace(/\\/g, '/');
+  const cfg = loadConfig();
+  const p = path.relative(ROOT, path.resolve(ROOT, filePath)).replace(/\\/g, '/');
 
-  for (const rule of PROTECTED) {
-    if (rule.test(p)) {
-      process.stderr.write(`[hook: guard-edit] ${rule.reason}\n`);
+  for (const rule of cfg.protected) {
+    if (!rule?.pattern) continue;
+    if (globToRegex(rule.pattern).test(p)) {
+      process.stderr.write(
+        `[hook: guard-edit] ${rule.reason || `ไฟล์นี้ตรงกับ pattern ที่ห้ามแก้: ${rule.pattern}`}\n` +
+          'ถ้าคิดว่าจำเป็นต้องแก้จริง ให้หยุดแล้วบอกผู้ใช้ว่าติดอะไรและทำไม อย่าหาทางอ้อม\n'
+      );
       process.exit(2);
     }
   }
 
-  if (TEST_FILE.test(p)) {
+  if (new RegExp(cfg.testFilePattern).test(p)) {
     const branch = currentBranch();
-    if (/^(fix|hotfix)\//.test(branch)) {
+    if (new RegExp(cfg.bugfixBranchPattern).test(branch)) {
       process.stderr.write(
         [
           `[hook: guard-edit] อยู่บน branch "${branch}" ซึ่งเป็นงานแก้บั๊ก จึงห้ามแก้ไฟล์เทส`,

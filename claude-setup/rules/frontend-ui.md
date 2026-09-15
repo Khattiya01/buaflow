@@ -22,8 +22,8 @@ paths:
 | ข้อความ hardcode | i18n key ครบ th + en |
 | สี hex ดิบ / `bg-blue-600` | token: `bg-primary`, `text-muted-foreground` |
 | `style={{...}}` ค่าคงที่ | Tailwind class ที่อิง token |
-| ติดตั้ง MUI / Antd / Chakra / Mantine | shadcn/ui + Radix เท่านั้น |
-| แก้ไฟล์ใน `components/ui/**` | เป็น shadcn generated — มี hook บล็อกไว้ |
+| ติดตั้ง UI library ตัวใหม่ | ใช้ตัวที่ล็อกในธรรมนูญมาตรา 9 (ค่าเริ่มต้น: shadcn/ui + Radix) — จะเพิ่มตัวอื่นต้องเปิด intent + ADR ก่อน |
+| แก้ไฟล์ที่ registry/generator สร้าง (`components/ui/**`) | มี hook บล็อกไว้ตาม `.claude/protected-paths.json` — ติดตั้งใหม่ผ่าน CLI หรือห่อใน `shared/` |
 | feature หนึ่ง import component ของอีก feature | ยกขึ้น `components/shared/` |
 
 ## ตอนเขียน
