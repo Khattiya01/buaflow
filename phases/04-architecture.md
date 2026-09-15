@@ -166,10 +166,24 @@ docker/
 
 ---
 
+## 4.11 ร่างธรรมนูญโปรเจกต์
+
+ใช้ `project-kit/templates/constitution.tpl.md` สร้าง `docs/constitution.md`
+
+มาตรา 1-8 เป็นหลักการกลางที่ใช้ได้ทุกโปรเจกต์ — **อ่านแล้วปรับถ้อยคำให้ตรงบริบท แต่อย่าตัดทิ้ง**
+ส่วนที่ต้องเติมเองคือ:
+
+- **มาตรา 3** — เติม `{{VERIFY_COMMAND}}` และเวลาที่ยอมรับได้ (จาก Phase 2 รอบ B2)
+- **มาตรา 9** — สรุปข้อกำหนดที่ล็อกแล้วจาก Phase 1-4 (UI library, i18n, theme, backlog, docker, CI/CD)
+
+ไฟล์นี้จะกลายเป็นเกณฑ์ที่ `/spec`, `/plan`, `/review` และ subagent `code-reviewer` ใช้ตัดสินจริง
+ไม่ใช่เอกสารประดับ — เขียนเฉพาะข้อที่ **ตั้งใจจะบังคับจริง**
+
 ## ผลลัพธ์ที่ต้องเขียน
 1. `docs/planning/04-architecture.md` — รวมทุกหัวข้อข้างบน
 2. `docs/adr/` — ADR เพิ่มสำหรับการตัดสินใจใน Phase นี้ (error format, auth flow, soft delete, pagination, ฯลฯ)
 3. `docs/api/README.md` — กติกา API contract ฉบับย่อสำหรับเปิดดูเร็ว
+4. `docs/constitution.md` — ธรรมนูญโปรเจกต์ (ร่างแรก จะถูกตรวจซ้ำอีกครั้งใน Phase 7)
 
 ## ก่อนจบ Phase
 อัปเดต `_state.md` → สรุปการตัดสินใจสถาปัตยกรรม + ความเสี่ยงทางเทคนิค

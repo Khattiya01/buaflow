@@ -35,7 +35,14 @@
 - husky + lint-staged + commitlint (`@commitlint/config-conventional`)
 - npm scripts มาตรฐาน:
   `dev` `build` `start` `lint` `format` `typecheck` `test` `test:cov` `db:migrate` `db:seed` `docker:dev` `sonar`
+- **`verify` — คำสั่งตรวจมาตรฐานตัวเดียว** (ตามที่ตัดสินใน Phase 2 รอบ B2):
+  ```json
+  "verify": "pnpm typecheck && pnpm lint && pnpm test"
+  ```
+  ต้อง exit non-zero เมื่อมีอะไรพัง และรันจบในเวลาที่ตกลงไว้
 - verify: ลอง commit ที่ผิดรูปแบบแล้วต้องถูกปฏิเสธ
+- verify: รัน `pnpm verify` แล้ว **เก็บ output ตอนที่ทุกอย่างเขียวไว้** — จะเอาไปใส่ `AGENTS.md` ใน Phase 7
+  (AI ต้องรู้ว่า "ผ่าน" หน้าตาเป็นยังไง ไม่งั้นมันเดาเอง)
 
 ### ขั้น 4 — UI foundation
 - `shadcn init` (เลือก base primitive ตาม ADR ซึ่งล็อกไว้ที่ Radix)
@@ -77,7 +84,14 @@
 - Postman collection เริ่มต้น
 - verify: เปิด `/docs` เห็น endpoint และยิงทดสอบได้
 
-### ขั้น 10 — Commit และปิด M0
+### ขั้น 10 — โครงโฟลเดอร์เอกสาร
+สร้างโฟลเดอร์เปล่าพร้อม `.gitkeep` ให้พร้อมรับของใน Phase 7:
+```
+docs/intents/  docs/plans/  docs/evals/  docs/incidents/  docs/releases/
+docs/specs/    docs/adr/    docs/design/ docs/standards/  docs/templates/
+```
+
+### ขั้น 11 — Commit และปิด M0
 - commit ตาม Conventional Commits ทีละขั้น
 - อัปเดตสถานะ task ของ M0 ใน `board.md` เป็น `done`
 
@@ -85,4 +99,5 @@
 
 ## ก่อนจบ Phase
 รายงานผล verify ทุกขั้นตามจริง — **ขั้นไหนไม่ผ่านต้องบอก อย่ารายงานว่าเสร็จถ้ายังไม่ผ่าน**
+และ **แปะ output จริงของ `pnpm verify` ตอนที่ผ่านทั้งหมด** เก็บไว้ใช้ใน Phase 7
 อัปเดต `_state.md` → บอกให้พิมพ์ `ทำ Phase ต่อไป` เพื่อส่งมอบ → **หยุด**

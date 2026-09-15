@@ -9,7 +9,9 @@ status: backlog | todo | in-progress | review | done | blocked
 priority: P0 | P1 | P2 | P3
 estimate: 0.5 | 1 | 2 | 3   # หน่วยเป็น session ของ AI
 depends_on: [T-000]
-spec: docs/specs/<feature>/   # ถ้ามี
+intent: docs/intents/I-000-....md   # ถ้ามี
+spec: docs/specs/<feature>/         # ถ้ามี
+plan: docs/plans/T-000.md           # เติมเมื่อทำ plan แล้ว
 branch: feat/T-000-xxx
 assignee: <คน หรือ AI>
 ---
@@ -42,7 +44,15 @@ assignee: <คน หรือ AI>
 - ข้อควรระวัง / pattern ที่ต้องตาม / ของเดิมที่เกี่ยวข้อง
 - ถ้าเป็น UI: ระบุ component ที่จะใช้ และตอบแล้วหรือยังว่าเป็น shared หรือไม่
 
-## วิธีทดสอบ
+## Proof — อะไรพิสูจน์ว่าเสร็จ
+> ห้ามเว้นว่าง ถ้าเขียนไม่ได้แปลว่ายังไม่เข้าใจงานดีพอ
+> ตอนปิดงานต้อง **แปะผลลัพธ์จริง** ของข้อเหล่านี้ ไม่ใช่แค่ติ๊ก
+
+- [ ] `pnpm verify` ผ่าน
+- [ ] เทส `<ไฟล์เทส>` ครอบ AC-x (backend: มาพร้อม task นี้ / frontend: อยู่ใน task `-test`)
+- [ ] ยิงจริง: `<คำสั่ง / endpoint / หน้าจอ>` → ได้ `<ผลลัพธ์ที่คาด>`
+
+## วิธีทดสอบด้วยมือ
 1. <ขั้นตอนที่ทำแล้วเห็นว่าใช้ได้จริง>
 2. ...
 

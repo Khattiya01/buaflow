@@ -31,11 +31,25 @@
    commit message โค้ด คำศัพท์ framework และ i18n key
 7. **ผู้ใช้เปลี่ยนใจได้ตลอด** ถ้าผู้ใช้ขอแก้สิ่งที่ตัดสินใจไปแล้วใน Phase ก่อนหน้า
    ให้แก้เอกสารเดิม + อัปเดต `_state.md` + บอกว่ากระทบ Phase ไหนบ้าง อย่าบ่น อย่าเริ่มใหม่ทั้งหมด
-8. **ยังไม่ต้องทำ CI/CD** ทีมยังไม่ตัดสินใจเรื่อง Git host/pipeline — ให้ใช้
-   **script ในเครื่อง + Docker** แทน และเขียนไว้ว่า "รอตัดสินใจ" ใน ADR
-9. **ไม่ต้องสร้าง agent ตามตำแหน่งงาน** (full-stack / QA / PM / devops)
-   แนวปฏิบัติปี 2026 คือใช้ **Skill + slash command เป็นหลัก** และมี subagent เฉพาะที่ต้องแยก context จริงๆ
-   รายการ subagent ที่จะสร้างถูกกำหนดไว้แล้วใน `claude-setup/agents/`
+8. **ยังไม่ต่อ CI/CD แต่ต้องออกแบบให้ "CI-ready"** ทีมยังไม่ตัดสินใจเรื่อง Git host/pipeline
+   ให้ใช้ **script ในเครื่อง + Docker** ไปก่อน แต่ทุกอย่างที่ต้องตรวจต้องเป็น
+   **คำสั่งเดียวที่รันแบบ non-interactive ได้** วันที่ต่อ pipeline จะได้ไม่ต้องรื้อวิธีทำงาน
+   เขียนไว้ว่า "รอตัดสินใจ" ใน ADR
+9. **ห้ามเดาแทนผู้ใช้ — ใช้เครื่องหมายแทน** ทุกจุดที่ไม่ชัดและมีผลต่อผลลัพธ์ ให้เขียน
+   `[NEEDS CLARIFICATION: <คำถาม>]` ไว้ในเอกสารตรงนั้น **ห้ามเติมค่าที่ดูสมเหตุสมผลเอาเอง**
+   เอกสารที่ยังเหลือ marker จะผ่านไปขั้นถัดไปไม่ได้
+10. **ไม่ต้องสร้าง agent ตามตำแหน่งงาน** (full-stack / QA / PM / devops)
+    Claude ตัวหลักทำได้หมดอยู่แล้ว การแยกเป็น "ตำแหน่ง" มีแต่ทำให้ context กระจัดกระจาย
+    ให้เลือกเครื่องมือตาม **4 ชั้น** นี้แทน:
+
+    | ต้องการอะไร | ใช้อะไร | ความแข็ง |
+    |---|---|---|
+    | ความรู้ที่ต้องรู้ตลอด | `AGENTS.md` (Claude อ่านผ่าน `CLAUDE.md`) | แนะนำ |
+    | ข้อบังคับเฉพาะโซนไฟล์ | `.claude/rules/*.md` + `paths:` | แนะนำ ตรงจุด |
+    | ขั้นตอนที่ทำซ้ำ | `.claude/skills/*/SKILL.md` | แนะนำ เรียกได้ |
+    | **กฎที่ห้ามพัง** | `.claude/hooks/` + `settings.json` | **บังคับจริง** |
+
+    subagent ใช้เฉพาะตอนที่ต้อง **แยก context** จริง ๆ — มี 3 ตัวกำหนดไว้แล้วใน `claude-setup/agents/`
 
 ---
 
@@ -89,10 +103,11 @@
 | 1 Discovery | ⬜ ยังไม่ทำ | docs/planning/01-requirements.md |
 | 2 Tech Stack | ⬜ ยังไม่ทำ | docs/planning/02-tech-stack.md |
 | 3 UI & Design | ⬜ ยังไม่ทำ | docs/planning/03-ui-design.md |
-| 4 Architecture | ⬜ ยังไม่ทำ | docs/planning/04-architecture.md |
+| 4 Architecture | ⬜ ยังไม่ทำ | docs/planning/04-architecture.md, docs/constitution.md |
 | 5 Backlog | ⬜ ยังไม่ทำ | docs/backlog/board.md |
-| 6 Scaffold | ⬜ ยังไม่ทำ | โค้ดจริง |
-| 7 Handoff | ⬜ ยังไม่ทำ | CLAUDE.md, .claude/ |
+| 6 Scaffold | ⬜ ยังไม่ทำ | โค้ดจริง + `pnpm verify` |
+| 7 Handoff | ⬜ ยังไม่ทำ | AGENTS.md, CLAUDE.md, REVIEW.md, .claude/ |
+| 8 Tune | ♻️ ทำซ้ำเรื่อยๆ | อัปเดต config หลังใช้งานจริง |
 
 ## การตัดสินใจที่ล็อกแล้ว
 (เติมเรื่อยๆ ทุก Phase — ระบุ "ตัดสินใจอะไร / เพราะอะไร / เมื่อไหร่")
@@ -115,10 +130,25 @@
 | 3 | `project-kit/phases/03-ui-and-design-intake.md` | theme, design token, inventory หน้า/component |
 | 4 | `project-kit/phases/04-architecture.md` | โครงสร้าง, security, API contract, docker |
 | 5 | `project-kit/phases/05-backlog-and-roadmap.md` | Epic/Feature/Task + board + roadmap |
-| 6 | `project-kit/phases/06-scaffold.md` | โปรเจกต์จริงที่ build ผ่าน |
-| 7 | `project-kit/phases/07-handoff.md` | CLAUDE.md + .claude/ + เลิกใช้ kit |
+| 6 | `project-kit/phases/06-scaffold.md` | โปรเจกต์จริงที่ build ผ่าน + `pnpm verify` |
+| 7 | `project-kit/phases/07-handoff.md` | AGENTS.md + CLAUDE.md + `.claude/` ทั้งชุด + ธรรมนูญ + eval |
+| 8 | `project-kit/phases/08-tune-and-evolve.md` | **ทำซ้ำเรื่อย ๆ** — ทบทวนและปรับ config |
 
 **วิธีเริ่มแต่ละ Phase:** อ่านไฟล์ prompt ของ Phase นั้น → อ่าน `_state.md` → ทำตาม → อัปเดต `_state.md` → หยุด
+
+### หลังจบ Phase 7 งานเดินยังไง
+
+```
+intent  →  spec (feature ใหญ่)  →  plan  →  code  →  verify  →  review  →  done
+  ↑                                                                          ↓
+  └─────────── postmortem / งานนอก scope / finding จาก Sonar ─────────────────┘
+```
+
+แต่ละขั้นคายไฟล์ที่ขั้นถัดไปอ่านได้ ทั้งสายอยู่ใน git = ตรวจย้อนได้ว่า
+ใครขออะไร ตกลงอะไรไว้ วางแผนยังไง ทำอะไรไป และใครอนุมัติ
+
+Phase 8 คือรอบที่เอาบทเรียนจากการทำงานจริงย้อนกลับเข้า config
+**kit นี้จึงไม่ใช่ของใช้แล้วทิ้ง** — เก็บไว้เพื่อกลับมาปรับ
 
 ---
 
@@ -159,7 +189,10 @@
 | Spec | feature ใหญ่ต้องมี spec 3 ส่วนก่อนโค้ด, task ย่อย/hotfix ใช้ template สั้น |
 | Coverage | Backend: เขียน unit test พร้อม module ทุกครั้ง / Frontend: เขียนทีหลังเมื่อ UI นิ่ง |
 | API docs | ต้องมี OpenAPI เสมอเมื่อมี API |
-| CI/CD | **ยังไม่ทำ** |
+| คำสั่งตรวจ | ต้องมี **`pnpm verify` คำสั่งเดียว** ที่รันจบใน ~30 วินาที และ exit non-zero เมื่อพัง |
+| Artifact chain | งานใหม่เข้าทาง `docs/intents/` เสมอ → spec → plan → code → review → done |
+| กติกา AI | คาย `AGENTS.md` (มาตรฐานกลาง) + `CLAUDE.md` ที่ import เข้าไป ไม่เขียนซ้ำ 2 ที่ |
+| CI/CD | **ยังไม่ต่อ แต่ต้อง CI-ready** (ทุกอย่างเป็น one-command non-interactive) |
 | Deploy target | **ยังไม่ตัดสินใจ** → ออกแบบให้เป็น container-first ไม่ผูก vendor |
 | Git host | **ยังไม่ตัดสินใจ** → ใช้ convention ที่ย้ายไป host ไหนก็ได้ |
 
