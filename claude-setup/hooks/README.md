@@ -36,6 +36,10 @@ hook ต่างออกไป: มันคือสคริปต์ที�
 
 ## ทดสอบ hook
 
+วิธีปกติ — `node .claude/check-config.js` รันเทสชุดนี้ให้อยู่แล้วพร้อมเช็ก exit code
+
+ถ้าอยากยิงทีละตัวตอน debug:
+
 ```bash
 # จำลอง input ที่ Claude Code ส่งให้
 echo '{"tool_input":{"file_path":"src/components/ui/button.tsx"}}' | node .claude/hooks/guard-edit.js
@@ -45,6 +49,15 @@ echo '{"tool_input":{"command":"git commit --no-verify -m test"}}' | node .claud
 echo $?   # ต้องได้ 2
 
 echo '{}' | node .claude/hooks/session-context.js   # ต้องได้ JSON ที่มี additionalContext
+```
+
+**เส้นที่ต้องทดสอบด้วยมือ** (ตัวตรวจทำแทนไม่ได้เพราะต้องสลับ branch):
+
+```bash
+git switch -c fix/T-000-ทดสอบ
+echo '{"tool_input":{"file_path":"src/foo.spec.ts"}}' | node .claude/hooks/guard-edit.js
+echo $?   # ต้องได้ 2 — บล็อกการแก้เทสระหว่างแก้บั๊ก
+git switch - && git branch -D fix/T-000-ทดสอบ
 ```
 
 ดูว่า hook ไหนโหลดอยู่จริงใน session: `/hooks`

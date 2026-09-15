@@ -54,10 +54,11 @@
 ## 7.4 ติดตั้ง `.claude/` ทั้งชุด
 
 ```
-project-kit/claude-setup/skills/*     →  .claude/skills/
-project-kit/claude-setup/rules/*      →  .claude/rules/
-project-kit/claude-setup/agents/*     →  .claude/agents/
-project-kit/claude-setup/hooks/*      →  .claude/hooks/
+project-kit/claude-setup/skills/*        →  .claude/skills/
+project-kit/claude-setup/rules/*         →  .claude/rules/
+project-kit/claude-setup/agents/*        →  .claude/agents/
+project-kit/claude-setup/hooks/*         →  .claude/hooks/
+project-kit/claude-setup/check-config.js →  .claude/check-config.js
 project-kit/claude-setup/settings.json.tpl  →  .claude/settings.json
 ```
 
@@ -70,15 +71,30 @@ project-kit/claude-setup/settings.json.tpl  →  .claude/settings.json
 | `settings.json` | `permissions.allow` ตามคำสั่งจริง, `deny` ตามไฟล์ลับจริง |
 | `hooks/guard-edit.js` | path ของ shadcn generated ถ้าไม่ได้อยู่ที่ `components/ui/` |
 
-**แล้วทดสอบว่า hook ทำงานจริง** (ดู `claude-setup/hooks/README.md`):
+**แล้วรันตัวตรวจ** — ห้ามข้าม:
 
 ```bash
-echo '{"tool_input":{"file_path":"src/components/ui/button.tsx"}}' | node .claude/hooks/guard-edit.js; echo $?   # ต้องได้ 2
-echo '{"tool_input":{"command":"git commit --no-verify -m x"}}' | node .claude/hooks/guard-bash.js; echo $?      # ต้องได้ 2
-echo '{}' | node .claude/hooks/session-context.js                                                                # ต้องได้ JSON
+node .claude/check-config.js
 ```
 
-ถ้าข้อไหนไม่ได้ผลตามนี้ **หยุดแก้ก่อน** — hook ที่ไม่ทำงานอันตรายกว่าไม่มี hook เพราะทำให้เข้าใจผิดว่ามีการป้องกันอยู่
+มันตรวจให้ 8 หมวด: โครงสร้างครบไหม / `AGENTS.md` ยาวเกินหรือมี placeholder ค้างไหม /
+**`paths:` ของแต่ละ rule match ไฟล์จริงกี่ไฟล์** / ไฟล์โค้ดที่ไม่มี rule คุ้มครอง /
+skills มี description และความยาวโอเคไหม / hook ผูกใน `settings.json` และมีไฟล์จริงไหม /
+**รัน hook ด้วย input จำลองแล้วเช็ก exit code จริง** / โฟลเดอร์ artifact chain ครบไหม
+
+ต้องได้ `ต้องแก้: 0` ก่อนไปต่อ ส่วน `ควรดู:` ไล่ให้หมดเท่าที่ทำได้
+
+**สิ่งที่มันจะจับได้แน่ ๆ ตอนติดตั้งครั้งแรก:**
+
+| จะเห็น | แปลว่า | ทำ |
+|---|---|---|
+| `AGENTS.md ยังมี placeholder {{...}}` | ยังไม่ได้เติมค่าจริง | เติมให้ครบ |
+| `rule ... มี pattern ที่ไม่ match อะไรเลย` | คัดลอกมาดิบ ๆ โดยไม่ปรับให้ตรงโครง | **ลบ pattern ที่ไม่ใช้ออก** (เช่น ใช้ App Router ก็ไม่ต้องมี `**/pages/**`) |
+| `rule ... ไม่ match ไฟล์ไหนเลย` | **rule ตายเงียบ** — อันตรายที่สุด | แก้ `paths:` ให้ตรงโครงจริง |
+| `ไฟล์โค้ด ... ไม่มี rule ไหนคุ้มครอง` | มักเจอกับ `packages/*` ใน monorepo | ตัดสินว่าต้องมี rule ไหม แล้วเพิ่ม pattern |
+
+> hook ที่ไม่ทำงาน **อันตรายกว่าไม่มี hook** เพราะทำให้เข้าใจผิดว่ามีการป้องกันอยู่
+> rule ที่ `paths:` ไม่ตรงก็เหมือนกัน — มันเงียบไปเลยโดยไม่มี error บอก
 
 ## 7.5 `REVIEW.md` — นโยบายการรีวิว
 
@@ -130,11 +146,15 @@ project-kit/claude-setup/evals/*.md        →  docs/evals/
 **ชั้น config — ต้องทดสอบจริง ไม่ใช่ติ๊ก**
 | ข้อ | ผ่าน |
 |---|---|
+| `node .claude/check-config.js` ได้ `ต้องแก้: 0` (แปะผลจริง) | ⬜ |
 | เปิด session ใหม่แล้ว `/context` เห็น `CLAUDE.md` และ `AGENTS.md` โหลดจริง | ⬜ |
 | พิมพ์ `/` แล้วเห็น skills ทั้ง 9 ตัว | ⬜ |
 | เปิดไฟล์ใน `components/` แล้ว rule `frontend-ui` โหลดเข้ามาจริง | ⬜ |
-| hook ทั้ง 3 ตัวทดสอบผ่านตามข้อ 7.4 | ⬜ |
 | เปิด session ใหม่แล้วเห็นสถานะ board ถูกฉีดเข้ามาอัตโนมัติ | ⬜ |
+| แตก branch `fix/...` แล้วลองให้ Claude แก้ไฟล์เทส → ต้องถูกบล็อก | ⬜ |
+
+> 3 ข้อล่างต้องทดสอบด้วยมือใน session จริง เพราะ `check-config.js` ตรวจได้แค่ว่า
+> ไฟล์ถูกที่และ hook คืน exit code ถูก แต่ตรวจไม่ได้ว่า Claude Code **โหลด**มันเข้า context จริงไหม
 
 **ชั้นโค้ด**
 | ข้อ | ผ่าน |

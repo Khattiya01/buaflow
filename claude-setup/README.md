@@ -10,6 +10,7 @@ claude-setup/skills/*/SKILL.md   →  .claude/skills/*/SKILL.md
 claude-setup/rules/*.md          →  .claude/rules/*.md
 claude-setup/agents/*.md         →  .claude/agents/*.md
 claude-setup/hooks/*.js          →  .claude/hooks/*.js
+claude-setup/check-config.js     →  .claude/check-config.js
 claude-setup/settings.json.tpl   →  .claude/settings.json
 claude-setup/evals/*.md          →  docs/evals/*.md
 ```
@@ -17,7 +18,13 @@ claude-setup/evals/*.md          →  docs/evals/*.md
 **ระหว่างคัดลอกต้องปรับให้ตรง stack จริง** อย่าคัดลอกดิบ ๆ:
 - `paths:` ใน rules ต้องตรงกับโครงโฟลเดอร์จริง (ไม่งั้น rule จะเงียบไปเลยโดยไม่มี error)
 - คำสั่งใน skills และ `settings.json` ต้องเป็นคำสั่งที่มีจริงใน `package.json`
-- ตัดส่วนที่ไม่เกี่ยวกับ stack ที่เลือกออก
+- ตัดส่วนที่ไม่เกี่ยวกับ stack ที่เลือกออก — เช่น ใช้ App Router ก็ลบ pattern `**/pages/**` ทิ้ง
+
+**แล้วรัน `node .claude/check-config.js`** — มันจะบอกว่า pattern ไหนไม่ match อะไรเลย,
+rule ไหนตายเงียบ, ไฟล์โค้ดกลุ่มไหนไม่มี rule คุ้มครอง, hook ผูกครบและคืน exit code ถูกไหม
+และ `AGENTS.md` ยังมี placeholder ค้างอยู่ไหม
+
+ต้องได้ `ต้องแก้: 0` ก่อนถือว่าติดตั้งเสร็จ รันซ้ำทุกครั้งที่ปรับ config (Phase 8)
 
 ## 4 ชั้น ต่างกันยังไง
 

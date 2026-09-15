@@ -24,6 +24,10 @@
   - `format-changed.js` format + lint เฉพาะไฟล์ที่แก้ แล้วส่ง error กลับเข้า context
 - `claude-setup/settings.json.tpl` — permissions allow/deny + การผูก hooks
 - `claude-setup/rules/` — 6 rules ที่โหลดเฉพาะตอนแตะไฟล์ที่ตรง `paths:`
+- **`claude-setup/check-config.js`** — ตรวจสุขภาพ config 8 หมวด ที่สำคัญที่สุดคือ
+  **`paths:` ของแต่ละ rule match ไฟล์จริงกี่ไฟล์** และ **รัน hook ด้วย input จำลองแล้วเช็ก exit code**
+  เพราะ config ของ AI พังแบบเงียบได้ ต่างจากโค้ดที่พังแล้วมี error
+  ใช้ใน Phase 7 (ตอนติดตั้ง) และ Phase 8 (ทุกรอบทบทวน)
 
 **เกณฑ์การตัดสินที่เป็นไฟล์ ไม่ใช่ความทรงจำ**
 - `templates/constitution.tpl.md` — ธรรมนูญ 9 มาตราที่ `/spec` `/plan` `/review` ใช้ตัดสิน

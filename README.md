@@ -120,6 +120,7 @@ project-kit/
     ├── rules/                       กฎที่โหลดตาม paths ของไฟล์ที่แตะ
     ├── agents/                      code-reviewer, test-writer, legacy-explorer
     ├── hooks/                       ⭐ ชั้นที่บังคับได้จริง (Node ล้วน ไม่มี dependency)
+    ├── check-config.js              ⭐ ตรวจว่า config ทำงานจริง (paths match ไหม / hook คืน exit code ถูกไหม)
     ├── settings.json.tpl            permissions + การผูก hooks
     └── evals/                       ชุดเคสทดสอบ config
 ```
@@ -136,6 +137,7 @@ CONTRIBUTING.md
 ├── rules/*.md                 ← กฎที่โหลดตามไฟล์ที่แตะ
 ├── agents/*.md                ← 3 subagents
 ├── hooks/*.js                 ← ชั้นบังคับ
+├── check-config.js            ← ตรวจสุขภาพ config (รันทุกครั้งที่ปรับ)
 └── settings.json              ← permissions + hooks
 docs/
 ├── constitution.md            ← ธรรมนูญโปรเจกต์
