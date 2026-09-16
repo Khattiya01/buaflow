@@ -51,6 +51,16 @@
 - ติดตั้ง component พื้นฐานที่ใช้แน่ๆ (button, input, form, dialog, table, sonner)
 - สร้างโครง `components/shared/` พร้อม README อธิบายกติกา
 - verify: หน้า demo แสดง component + สลับ light/dark ได้
+- **ถ้า Phase 3 ใช้เส้นทาง D (`CLAUDE_DESIGN`)**: หลัง component ชุดแรกผ่าน verify แล้ว
+  ทำไฟล์ preview HTML ต่อ component (มี marker `<!-- @dsCard group="..." -->` บรรทัดแรก ระบุกลุ่มตาม
+  หมวดใน `docs/design/components.md`) แล้วใช้ `design-sync` push ขึ้น Design System project บน
+  claude.ai/design ครั้งแรก (สร้าง project ใหม่ถ้ายังไม่มี) — นี่คือจุดตั้งต้นของ storybook ที่จะใช้เทียบ
+  ความสอดคล้องใน Phase 8 ต่อไป บันทึก `projectId` ไว้ใน `_state.md`
+- **ถ้า Phase 3 ใช้เส้นทาง D**: ติดตั้ง Playwright เป็น dev dependency
+  (`pnpm add -D @playwright/test && pnpm exec playwright install chromium --with-deps`)
+  ไว้สำหรับ render + screenshot ตอนเทียบ canvas กับหน้า local ใน Phase 8.8 — แค่ใช้ render ภาพเทียบ
+  ไม่ต้องตั้ง test suite เต็มรูปแบบ ไม่ต้องเขียนไฟล์ `.spec.ts` ตอนนี้
+  verify: `pnpm exec playwright --version` รันได้
 
 ### ขั้น 5 — i18n
 - ติดตั้ง next-intl (หรือตามที่เลือก) + routing `/th` `/en`

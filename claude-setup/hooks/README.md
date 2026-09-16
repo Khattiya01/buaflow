@@ -18,6 +18,7 @@ hook ต่างออกไป: มันคือสคริปต์ที�
 | `session-context.js` | `SessionStart` | ฉีด branch ปัจจุบัน + งานที่ค้างจาก board เข้า context ตั้งแต่ข้อความแรก |
 | `guard-edit.js` | `PreToolUse` (Edit/Write) | บล็อกการแก้ไฟล์ตามรายการใน **`.claude/protected-paths.json`** (ค่าเริ่มต้น: `components/ui/**`, `*.generated.*`, lockfile) และบล็อกการแก้ไฟล์เทสขณะอยู่บน branch `fix/` `hotfix/` |
 | `guard-bash.js` | `PreToolUse` (Bash) | บล็อก `--no-verify`, การรัน sonar เอง, force push main, `git checkout .` |
+| `guard-new-component.js` | `PreToolUse` (Write/Edit/MultiEdit) | บล็อกการเขียน/แก้ไฟล์ component ใต้ `components/**` (ยกเว้น `components/ui/**`) ที่เนื้อหาที่กำลังเขียนมีสี hex ดิบ/arbitrary value (`bg-[#...]`) และชื่อไฟล์ไม่ตรงกับแถวไหนใน `docs/design/components.md` แบบเป๊ะ — คือกรณี "คิด design ใหม่เอง" (ข้อ 4-5 ใน `standards/ui-component-rules.md`) เท่านั้น ครอบคลุมทั้งตอนสร้างไฟล์ใหม่และตอนแก้ไฟล์เดิม การประกอบจาก shared/shadcn/primitive เดิมล้วน ๆ (ข้อ 1-3) ผ่านได้เลยไม่ต้องรอ registry — match แบบ exact ต่อแถวตาราง ไม่ใช่ substring (กัน false positive เช่น "Tab" ไป match ติด "DataTable") |
 | `format-changed.js` | `PostToolUse` (Edit/Write) | format + lint เฉพาะไฟล์ที่เพิ่งแก้ และส่ง error ที่ autofix ไม่ได้กลับเข้า context |
 
 **ปรับรายการไฟล์ที่ห้ามแก้ที่ `protected-paths.json` ไม่ต้องแก้สคริปต์** — ถ้าไฟล์นั้นหายหรือ JSON พัง hook จะถอยไปใช้ค่าเริ่มต้นเงียบ ๆ (ตั้งใจ: hook เสียต้องไม่ทำให้ทำงานไม่ได้) และ `check-config.js` จะเตือน
@@ -49,6 +50,15 @@ echo $?   # ต้องได้ 2
 
 echo '{"tool_input":{"command":"git commit --no-verify -m test"}}' | node .claude/hooks/guard-bash.js
 echo $?   # ต้องได้ 2
+
+echo '{"tool_input":{"file_path":"src/components/shared/NewWidget.tsx","content":"<div className=\"bg-[#1e40af]\">x</div>"}}' | node .claude/hooks/guard-new-component.js
+echo $?   # ต้องได้ 2 — มี arbitrary color ดิบ และ docs/design/components.md ยังไม่มีแถวของ NewWidget
+
+echo '{"tool_input":{"file_path":"src/components/shared/NewWidget.tsx","content":"<Button variant=\"outline\">x</Button>"}}' | node .claude/hooks/guard-new-component.js
+echo $?   # ต้องได้ 0 — ประกอบจาก primitive เดิม ไม่มีสี/ค่าดิบ ถือเป็น self-serve
+
+echo '{"tool_input":{"file_path":"src/components/shared/OldWidget.tsx","old_string":"x","new_string":"<div className=\"bg-[#00ff00]\">x</div>"}}' | node .claude/hooks/guard-new-component.js
+echo $?   # ต้องได้ 2 — Edit เข้า component เดิมที่ยังไม่ลงทะเบียน แล้วเติมสีดิบเข้าไป ก็ถูกจับเหมือนกัน
 
 echo '{}' | node .claude/hooks/session-context.js   # ต้องได้ JSON ที่มี additionalContext
 ```

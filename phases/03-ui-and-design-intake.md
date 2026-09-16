@@ -43,8 +43,9 @@
 5. เสนอ **wireframe เป็นข้อความ** (ลำดับ section ของแต่ละหน้า) ให้ยืนยันก่อน
    ยังไม่ต้อง render จริง
 
-> ถ้าผู้ใช้อยากเห็นภาพก่อนตัดสินใจ — เสนอให้ใช้ skill `design` ทำ mockup หลายหน้าจอ
-> บน canvas เดียวให้ดู แล้วค่อยยึดอันที่เลือกเป็น design ต้นทาง
+> ถ้าผู้ใช้อยากเห็นภาพก่อนตัดสินใจ (และมี claude.ai design access) — เสนอเปลี่ยนไปทำตาม **เส้นทาง D**
+> (`CLAUDE_DESIGN`) ด้านล่างแทน จะได้ mockup หลายหน้าจอบน canvas เดียวที่ยืนยันเป็นภาพจริง
+> ไม่ใช่ wireframe เป็นข้อความ
 
 ---
 
@@ -107,6 +108,30 @@
 2. "feature ใหม่ที่ของเดิมไม่มี มีอะไรบ้าง"
 3. "ข้อมูลเดิมต้อง migrate มาไหม หรือเริ่มใหม่"
 4. "ของเดิมมีบั๊ก/ข้อจำกัดอะไรที่ห้ามติดมาด้วย"
+
+---
+
+## เส้นทาง D — `CLAUDE_DESIGN` (ออกแบบผ่าน claude.ai/design ก่อน แบบ hybrid, ตัวเลือกเสริม)
+
+> ใช้แทนข้อ 5 ของเส้นทาง B เมื่อผู้ใช้อยากได้หน้าตาที่ **confirm เป็นภาพจริงก่อนลงมือ** ไม่ใช่แค่ wireframe เป็นข้อความ
+> และมี claude.ai login ที่มี design scope (ต้องเปิด `/design-login` ถ้ายังไม่เคย)
+> **ไม่ใช่ default** — ถ้าไม่มี access ตรงนี้ ให้กลับไปใช้เส้นทาง B ข้อ 5 ตามปกติ
+
+### D.0 หลักคิดที่ต้องยึด
+
+Canvas (`.dc.html` artboard) เป็น mockup ภาพ/HTML ไม่ใช่ component จริง — **ห้าม copy โค้ด/สไตล์จาก canvas มาวางตรงๆ**
+ต้องแปลงเป็น shadcn + theme token + i18n เสมอ เหมือนกติกาการหยิบ UI จากโปรเจกต์เก่า
+(ดู `standards/ui-component-rules.md` ข้อ 6) — canvas ให้แค่ "หน้าตาที่ยืนยันแล้ว" ไม่ใช่ source code
+
+### D.1 ขั้นตอน
+
+1. ทำข้อ 1–4 ของเส้นทาง B ตามปกติ (ตัวอย่างเว็บที่ชอบ, โทนแบรนด์, logo, dark mode)
+2. แทนที่จะเสนอ wireframe เป็นข้อความ → ใช้ skill `design` สร้าง canvas มาตามข้อมูลที่ได้ วาง artboard ตามจำนวนหน้าที่คุยกันไว้
+3. ส่ง URL canvas ให้ผู้ใช้ (หรือ UX/UI) ไปแก้เองที่เว็บ (click-to-select, properties panel) จนพอใจ แล้ว publish
+4. อ่าน canvas เวอร์ชันที่ confirm แล้วกลับมา สกัด token + ทำ inventory หน้าจอ/component เหมือนเส้นทาง A ข้อ 2–6
+5. บันทึก source HTML ของแต่ละ artboard ที่ confirm แล้วลง `docs/design/canvas/<screen-name>.dc.html` แล้ว commit เข้า repo —
+   นี่คือ baseline ตั้งต้นที่ Phase 8.8 จะ diff ด้วยทุกครั้งที่มีการแก้ canvas ต่อไป
+6. บันทึก URL canvas + เวอร์ชันล่าสุดที่ sync แล้วไว้ใน `_state.md` — จะใช้เป็นจุดอ้างอิงตอนวน loop ปรับ UI ใน Phase 8 (ข้อ "UI drift sync ผ่าน Claude Design")
 
 ---
 

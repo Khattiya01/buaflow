@@ -12,6 +12,7 @@
 | **เปลี่ยนโมเดล** | รัน eval ทั้งชุด (ข้อ 8.4) |
 | **AI พลาดเรื่องเดิม 2 ครั้ง** | ทำข้อ 8.1 ทันที ไม่ต้องรอรอบ |
 | **ทุกเดือน** | ข้อ 8.5 (เก็บกวาด) |
+| **ผู้ใช้แจ้งว่าแก้ canvas บน claude.ai/design แล้ว** (โปรเจกต์ที่ใช้เส้นทาง D — ไม่มีระบบแจ้งอัตโนมัติ ต้องรอผู้ใช้บอก) | ทำข้อ 8.8 ทันที |
 
 ---
 
@@ -128,3 +129,41 @@ rule จะเงียบไปเลยโดยไม่มี error บอ�
 
 นี่คือกลไกที่ทำให้ kit ดีขึ้นเรื่อย ๆ แทนที่จะแข็งค้างอยู่ที่วันที่เขียน —
 **บทเรียนที่ไม่ถูกย้อนกลับไปที่ต้นทาง จะต้องเรียนใหม่ในโปรเจกต์หน้า**
+
+## 8.8 UI drift sync ผ่าน Claude Design (เฉพาะโปรเจกต์ที่ใช้เส้นทาง D ใน Phase 3)
+
+> วนได้เรื่อย ๆ ทุกครั้งที่มีคนแก้ canvas บน claude.ai/design — **ห้าม default ไปสร้าง component ใหม่ทั้งดุ้นทุกครั้งที่ sync**
+> ต้องจัดประเภทการเปลี่ยนแปลงก่อนเสมอ แล้วแก้ตามขอบเขตจริงของมัน
+> ไม่มีการ poll/notify อัตโนมัติจาก claude.ai/design — ต้องรอผู้ใช้บอกว่าแก้ canvas แล้วเสมอ
+>
+> **ถ้าระหว่างทาง access claude.ai/design หรือ `/design-sync` หลุด** (login หมดอายุ, ไม่มี design scope):
+> แจ้งผู้ใช้ทันที แล้วถอยไปทำงานแบบเส้นทาง B ชั่วคราว (ถามตรงๆ ว่าจะปรับ UI ยังไง ไม่ใช่เดาจาก canvas เก่า)
+> จนกว่าจะต่อ access กลับมาได้
+
+1. **เช็คว่ามีของใหม่จริงไหม** — อ่าน canvas เวอร์ชันปัจจุบันกลับมา (Artifact read) เทียบกับเวอร์ชันล่าสุด
+   ที่บันทึกไว้ใน `_state.md` ถ้าไม่มีเวอร์ชันใหม่ → จบ ไม่ต้องทำอะไรต่อ
+2. **กรอง scope ก่อนด้วย `git diff`** — เขียน HTML ที่อ่านมาทับไฟล์ baseline เดิมที่
+   `docs/design/canvas/<screen-name>.dc.html` (ที่ commit ไว้ตั้งแต่ Phase 3/รอบ sync ก่อนหน้า)
+   แล้วรัน `git diff --stat` + `git diff` กับไฟล์นั้นเพื่อดูคร่าวๆ ว่าโซน/artboard ไหนถูกแตะ
+   (diff นี้ใช้แค่ลด scope ห้ามใช้ตัดสินความหมายของการเปลี่ยนแปลง เพราะ markup diff ดิบ noisy เกินไป
+   — ยังไม่ commit ทับในขั้นนี้ รอ verify ผ่านก่อนถึงจะ commit เป็น baseline ใหม่ในข้อ 6)
+3. **ยืนยันความหมายด้วยภาพ** — ใช้ Playwright (ติดตั้งไว้แล้วใน Phase 6) render ทั้ง canvas baseline เดิม
+   และ canvas ใหม่ (หรือหน้า local dev ที่เกี่ยวข้อง) เป็น PNG เก็บไว้ใน scratchpad ชั่วคราว **ห้าม commit
+   รูปพวกนี้เข้า repo** (ทำให้ repo บวมโดยไม่จำเป็น) เทียบเฉพาะโซนที่ diff ในข้อ 2 ชี้ไว้ แล้วจัดประเภท:
+
+   | ประเภท | ตัวอย่าง | ขอบเขตที่ต้องแก้ |
+   |---|---|---|
+   | **Token-level** | สี/spacing/typography เปลี่ยนทั้งระบบ (อ้าง token เดิม) | แก้ที่เดียวใน `docs/design/theme.md` + `globals.css` เท่านั้น ห้ามแตะไฟล์ component |
+   | **Component-level จุดเดียว** | element ตัวเดียวเปลี่ยนสี/ขนาด ไม่กระทบตัวอื่น | แก้ `variant` ใน `cva` หรือ className เฉพาะจุดที่เรียกใช้ตัวนั้น |
+   | **Structural** | เพิ่ม/ลด element, เปลี่ยน layout, เปลี่ยน state ใหม่ | เข้า flow เต็ม: เทียบทั้งหน้ากับ canvas เหมือนตอนสกัด design ครั้งแรกใน Phase 3 |
+
+4. **ก่อนสร้างไฟล์ component ใหม่ (กรณี structural ที่เป็นของใหม่จริง)** — ต้องผ่านลำดับใน
+   `standards/ui-component-rules.md` ข้อ 1 (shared → shadcn → ประกอบ → design → ถาม) เหมือนเดิมทุกครั้ง
+   ห้ามข้ามเพราะรีบ sync — hook `guard-new-component.js` จะบล็อกถ้าลืมบันทึกใน `docs/design/components.md`
+5. แก้ตามขอบเขตที่จัดประเภทไว้ → **verify ด้วย screenshot จนภาพตรงกับ canvas จริง** อย่าเดาว่าเหมือนแล้ว
+   (หลักการเดียวกับ `claude-setup/skills/ui/SKILL.md`)
+6. Push component ที่แก้ขึ้น `design-sync` เพื่อให้ storybook บน claude.ai/design ตรงกับโค้ดปัจจุบัน
+   (ต้องมีไฟล์ preview HTML ต่อ component พร้อม marker `<!-- @dsCard group="..." -->` บรรทัดแรก
+   ไม่ใช่ push ไฟล์ `.tsx` ตรงๆ — Design System pane อ่านการ์ดจาก marker นี้)
+   อัปเดต `docs/design/components.md`, commit ไฟล์ `docs/design/canvas/<screen-name>.dc.html` ที่เขียน
+   ทับในข้อ 2 เป็น baseline ใหม่ (ตอนนี้ verify ผ่านแล้ว) และบันทึกเวอร์ชัน canvas ล่าสุดที่ sync แล้วลง `_state.md`

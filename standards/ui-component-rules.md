@@ -18,13 +18,19 @@
   ├─ 3. ประกอบจาก primitive ที่มีอยู่ได้ไหม?
   │      ใช่ → ประกอบ แล้วถามว่าควรเก็บเป็น shared ไหม
   │
-  ├─ 4. มี design ของ component นี้ไหม? (รูป / HTML / โปรเจกต์เก่า)
+  ├─ 4. มี design ของ component นี้ไหม? (รูป / HTML / โปรเจกต์เก่า / canvas ที่ sync จาก claude.ai/design)
   │      ใช่ → ทำตาม design
   │
   └─ 5. ไม่มีทั้งหมด → ❗ หยุด แล้วถามผู้ใช้ก่อน
          "component นี้ยังไม่มีทั้งใน shared และ shadcn และไม่มี design
           ต้องการให้ผมออกแบบเองไหม หรือคุณมี reference จะส่งมา?"
 ```
+
+> ข้อ 1-3 (ใช้ของเดิม/ประกอบจาก primitive) เป็น self-serve ทำได้เลยไม่ต้องรอ
+> เฉพาะข้อ 4-5 (มีสี hex ดิบ/arbitrary value ที่ไม่ใช่ token เดิม = คิด design ใหม่เอง) ที่ถูกบังคับจริง
+> ด้วย hook `guard-new-component.js` — ครอบคลุมทั้งตอนสร้างไฟล์ใหม่ (Write) และตอนแก้ไฟล์เดิม
+> (Edit/MultiEdit) ที่เข้าเงื่อนไขนี้และชื่อยังไม่มีแถวใน `docs/design/components.md` จะถูกบล็อก
+> (ดู `claude-setup/hooks/README.md`)
 
 **เทมเพลตคำถามที่ AI ต้องถามทุกครั้งที่จะสร้าง component ใหม่:**
 
