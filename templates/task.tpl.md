@@ -6,6 +6,7 @@ epic: E-01
 feature: F-01
 milestone: M1
 status: backlog | todo | in-progress | review | done | blocked
+track: full | trivial          # trivial = อธิบาย diff ได้ใน 1 ประโยค ไม่ต้อง intent/plan (ดู /intent ขั้น 0)
 priority: P0 | P1 | P2 | P3
 estimate: 0.5 | 1 | 2 | 3   # หน่วยเป็น session ของ AI
 depends_on: [T-000]
@@ -14,7 +15,13 @@ spec: docs/specs/<feature>/         # ถ้ามี
 plan: docs/plans/T-000.md           # เติมเมื่อทำ plan แล้ว
 branch: feat/T-000-xxx
 assignee: <คน หรือ AI>
+started: YYYY-MM-DD                 # /task เติมตอนเริ่ม
+closed: YYYY-MM-DD                  # /done เติมตอน PR merge
+commit: <hash บน main>              # /done เติม — docs-lint บังคับเมื่อ done
+blocked_reason: <ติดอะไร>            # เฉพาะ status: blocked
 ---
+
+<!-- ไฟล์นี้คือ source of truth — board.md generate จากตรงนี้ด้วย node .claude/board.js ห้ามแก้ board มือ -->
 
 ## ทำอะไร
 <2-4 บรรทัด ให้คนที่ไม่เคยเห็นงานนี้อ่านแล้วเข้าใจ>
@@ -48,7 +55,7 @@ assignee: <คน หรือ AI>
 > ห้ามเว้นว่าง ถ้าเขียนไม่ได้แปลว่ายังไม่เข้าใจงานดีพอ
 > ตอนปิดงานต้อง **แปะผลลัพธ์จริง** ของข้อเหล่านี้ ไม่ใช่แค่ติ๊ก
 
-- [ ] `pnpm verify` ผ่าน
+- [ ] `pnpm verify` ผ่าน (แปะบรรทัดสรุป)
 - [ ] เทส `<ไฟล์เทส>` ครอบ AC-x (backend: มาพร้อม task นี้ / frontend: อยู่ใน task `-test`)
 - [ ] ยิงจริง: `<คำสั่ง / endpoint / หน้าจอ>` → ได้ `<ผลลัพธ์ที่คาด>`
 
@@ -57,12 +64,8 @@ assignee: <คน หรือ AI>
 2. ...
 
 ## Definition of Done
-ดู `docs/standards/definition-of-done.md` — ใช้หมวด: <backend | frontend | hotfix>
-
-- [ ] typecheck / lint / test ผ่าน
-- [ ] ผ่าน review และคนอนุมัติแล้ว
-- [ ] เอกสารที่เกี่ยวข้องอัปเดตแล้ว
-- [ ] board อัปเดตแล้ว
+DoD กลาง: `docs/standards/definition-of-done.md` · DoD ประเภทงาน: โหลดเองจาก `.claude/rules/` ตอนแตะไฟล์
+`/check` รายงานเฉพาะข้อที่ไม่ผ่าน — ไม่ต้องคัดลอกรายการมาไว้ที่นี่
 
 ## บันทึกระหว่างทำ
 <!-- AI เขียนที่นี่: ตัดสินใจอะไร ทำไม เจออะไรที่ไม่คาดคิด -->

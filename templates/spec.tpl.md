@@ -108,6 +108,12 @@ spec ที่ไม่ตรงกับโค้ดอันตรายกว
 - [ ] dependency ใหม่ที่ต้องเพิ่ม: <ไม่มี / ชื่อ + เหตุผลว่าทำไมของเดิมไม่พอ>
 
 ## การเปลี่ยนแปลงฐานข้อมูล
+
+เขียนเป็น **diff เทียบ `prisma/schema.prisma` ปัจจุบัน** (schema คือ source of truth ของ data model — ดู `docs/planning/04-architecture.md` § 4.4b):
+```prisma
+// + model / field ที่เพิ่ม   // ~ ที่แก้   // - ที่ลบ (destructive → expand/contract)
+```
+- ตรวจแล้วว่าไม่ซ้ำกับ entity เดิมภายใต้ชื่อใหม่: ✅ / อ้าง model เดิม `...`
 - model/field ที่เพิ่มหรือแก้
 - migration ต้องทำอะไร / **rollback ยังไง**
 - ถ้าเป็น destructive change → ทำแบบ expand/contract ยังไง

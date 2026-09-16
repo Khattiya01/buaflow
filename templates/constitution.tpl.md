@@ -53,7 +53,8 @@ intent.md → spec (requirements → design → tasks) → plan.md → diff → 
 - breaking change ต้องประกาศและคุยเรื่อง version ก่อนทำ
 
 ## มาตรา 7 — คนเป็นคนอนุมัติ (Separation of duties)
-- **AI ไม่อนุมัติงานของตัวเอง** ไม่ว่ากรณีใด
+- **AI ไม่อนุมัติงานของตัวเอง** ไม่ว่ากรณีใด — ในทางปฏิบัติคือ **AI ไม่ merge เข้า main** `/done` เปิด PR ให้คนกด (hook บล็อก merge/push เข้า main)
+- main รับของผ่าน PR ที่ gate (verify + check-config + docs-lint) ผ่านแล้วเท่านั้น — ทำงานคนเดียวก็ยังกด merge เองใน UI
 - AI ทำงานที่ไม่ต้องใช้วิจารณญาณ (เขียน ตรวจ รัน format สรุป)
 - คนตัดสินสิ่งที่ต้องใช้วิจารณญาณ (ยอมรับความเสี่ยงไหม ขึ้น prd ไหม นโยบายชนกันเอาทางไหน)
 
@@ -64,7 +65,8 @@ intent.md → spec (requirements → design → tasks) → plan.md → diff → 
 |---|---|---|
 | ความรู้ที่ต้องรู้ตลอด | `AGENTS.md` / `CLAUDE.md` | แนะนำ (AI อาจพลาด) |
 | ข้อบังคับเฉพาะโซนไฟล์ | `.claude/rules/*.md` + `paths:` | แนะนำ แต่ตรงจุดกว่า |
-| **กฎที่ห้ามพัง** | `.claude/hooks/` + `settings.json` | **บังคับจริง** |
+| **กฎที่ห้ามพัง** | `.claude/hooks/` + `settings.json` | **บังคับจริง** (ใน session ของ Claude) |
+| **กฎที่ต้องอยู่นอก session** | `.claude/gate.js` ใน pre-push + CI + branch protection | **บังคับจริง** (คน / AI ตัวอื่น ก็ข้ามไม่ได้) |
 
 ## มาตรา 9 — ข้อกำหนดที่ล็อกของโปรเจกต์นี้
 <!-- เติมจากผลการตัดสินใจใน Phase 1-5 (โปรเจกต์ใหม่) หรือ Phase A (โปรเจกต์เดิม) ตัดข้อที่ไม่เกี่ยวออก -->

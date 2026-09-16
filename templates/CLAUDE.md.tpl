@@ -2,29 +2,34 @@
 
 # Claude Code — {{PROJECT_NAME}}
 
-> กติกาหลักทั้งหมดอยู่ใน `AGENTS.md` (import ด้านบนแล้ว — บรรทัดแรกของไฟล์ห้ามลบ)
-> ไฟล์นี้เก็บเฉพาะเรื่องที่เป็นของ Claude Code โดยเฉพาะ **อย่าเขียนกติกาซ้ำที่นี่**
+<!-- ภาษาอังกฤษโดยตั้งใจ — AI อ่านทุก session (ดูหมวด Language ใน AGENTS.md) -->
 
-## Skills ที่มีในโปรเจกต์นี้
+> All core rules are in `AGENTS.md` (imported above — never remove the first line).
+> This file holds only Claude Code-specific things. **Do not duplicate rules here.**
+
+## Skills in this project
 
 ```
-/intent  <เรื่อง>   เปิดงานใหม่ — จับ "ทำไม" ก่อนจะรู้ว่าทำอะไร
-/spec    <F-xx>     ทำ spec ของ feature ใหญ่ (requirements -> design -> tasks)
-/plan    <T-xxx>    วางแผนการลงมือ แล้ว commit plan.md ก่อนแตะโค้ด
-/task    [T-xxx]    หยิบ task จาก board มาทำ
-/ui      <ชื่อ>      เริ่มสร้าง UI component (จะถามก่อนเสมอ)
-/review             รีวิวงานที่ทำ (ได้ diff มาให้ในตัว)
-/done    <T-xxx>    ปิด task และอัปเดต board
-/hotfix  <อาการ>    ขั้นตอน hotfix บน production
-/release <env>      ปล่อยของขึ้น uat / prd
+/intent  <topic>    Open new work — capture "why" before "what"
+/spec    <F-xx>     Spec a large feature (requirements -> design -> tasks)
+/plan    <T-xxx>    Plan before touching code; commits plan.md first
+/task    [T-xxx]    Pick a task from the board and work it
+/ui      <name>     Start a UI component (always asks first)
+/check   [T-xxx]    Check the work: verify + compare to plan + /code-review + /security-review (not named /review — that is an alias of the built-in)
+/done    <T-xxx>    Open a PR + update the task file + regenerate the board (never merges)
+/hotfix  <symptom>  Production hotfix procedure
+/release <env> <M>  Release to uat / prd (runs gate --release first)
 ```
 
-## Rules ที่โหลดอัตโนมัติตามไฟล์ที่แตะ
+**Built-ins used alongside:** `/code-review [level]` `/security-review` `/simplify` (called from `/check`) ·
+`/doctor` `/insights` `/context` `/usage` (Phase 8) · `/rewind` when heading the wrong way
 
-ไฟล์ใน `.claude/rules/` จะเข้า context เองเมื่อ Claude อ่านไฟล์ที่ตรงกับ `paths:` ของมัน
-ไม่ต้องสั่งให้อ่าน และไม่กิน context ตอนที่ไม่เกี่ยว
+## Rules loaded automatically by file path
 
-| ไฟล์ | โหลดเมื่อแตะ |
+Files in `.claude/rules/` enter context on their own when Claude reads a file matching their `paths:`.
+No need to ask for them, and they cost nothing when not relevant.
+
+| File | Loads when touching |
 |---|---|
 | `frontend-ui.md` | `components/**`, `app/**/*.tsx` |
 | `backend-api.md` | `src/api/**`, `src/modules/**` |
@@ -33,31 +38,50 @@
 | `testing.md` | `**/*.spec.ts`, `**/*.test.tsx` |
 | `docs-sync.md` | `docs/**` |
 
-## Hooks ที่ทำงานอยู่ (บังคับจริง แก้ไม่ได้ด้วยการพูด)
+## Active hooks (enforced — cannot be talked around)
 
-| เมื่อ | ทำอะไร |
+| When | What |
 |---|---|
-| เปิด session | ฉีดสถานะ board + task ที่ค้างเข้า context ให้อัตโนมัติ |
-| จะแก้ `components/ui/**` | **บล็อก** (เป็นไฟล์ที่ shadcn generate) |
-| จะแก้ไฟล์เทสตอนที่ task เป็นประเภท `fix` | **บล็อก** (กันการแก้เทสให้ผ่านแทนการแก้บั๊ก) |
-| `git commit --no-verify` หรือสั่งรัน sonar | **บล็อก** |
-| หลังแก้ไฟล์ | format + lint เฉพาะไฟล์นั้น |
+| Session start | Injects board status + in-progress tasks into context |
+| Editing `components/ui/**` | **Blocked** (shadcn-generated) |
+| Editing a test file while on a `fix/` branch | **Blocked** (prevents fixing the test instead of the bug) |
+| `git commit --no-verify` or running sonar | **Blocked** |
+| `git merge` / `git push` into main, `push --no-verify` | **Blocked** — open a PR for a human |
+| Editing `docs/backlog/board.md` | **Blocked** — generated from task files |
+| After editing a file | format + lint that file only |
 
-ถ้า hook บล็อกแล้วคิดว่าเป็นกรณีที่ควรยกเว้นจริง → **บอกผู้ใช้ว่าติดอะไรและทำไม อย่าหาทางอ้อม**
+If a hook blocks you and you believe this is a legitimate exception → **tell the user what blocked you and why. Do not look for a workaround.**
 
-## การจัดการ context
+## Context management
 
-- ทำทีละ task — งานคนละเรื่องให้ `/clear` ก่อน
-- **แก้จุดเดิมไม่ผ่าน 2 ครั้งติด → หยุด `/clear` แล้วเริ่มใหม่ด้วยโจทย์ที่ชัดกว่า** อย่าไล่แก้ซ้ำในเทิร์นเดิม เพราะ context จะเต็มไปด้วยทางที่ล้มเหลว
-- งานที่ต้องอ่านไฟล์เยอะ (สำรวจโค้ดเก่า, ไล่หา pattern ทั้งระบบ) → ใช้ subagent อย่าอ่านใน context หลัก
-- ทุกครั้งที่ผู้ใช้ต้องแก้คำเดิมเป็นครั้งที่ 2 → เขียนลง `AGENTS.md` หมวด "สิ่งที่ AI ในโปรเจกต์นี้เคยทำผิด"
+- **After `/done`, always `/clear`** before the next task — old context does not help the new task but is billed every turn (`/usage` flag "long context" = this rule was skipped)
+- One task at a time — unrelated work gets a `/clear` first
+- Read `plan.md` alone during implementation/check — do not re-read spec / constitution / DoD (already distilled)
+- Paste the **summary line** of verify, not the full log
+- **Same spot fails twice in a row → stop, `/clear`, restart with a sharper prompt.** Do not keep retrying in the same turn — the context fills with failed attempts
+- Work that reads many files (exploring legacy code, hunting a pattern across the repo) → use a subagent, not the main context
+- Every time the user has to repeat the same correction a 2nd time → add it to `AGENTS.md` under "Things the AI gets wrong in this project"
+
+## Reply style (fewer output tokens without losing clarity)
+
+- No preamble, no restating the question, no recap of what was just done, no narrating tool calls
+- Bullets / short tables — prose only where a reason needs explaining
+- Don't paste logs/diffs the user can see themselves (verify → summary line; diff → in the PR)
+- **Three cases that must be written in full:** security warnings · confirmation of irreversible actions (merge / migration / delete) · multi-step sequences where order matters
+- Code, commit messages, PRs, error messages are always verbatim — never abbreviated
+- **Artifact files (intent / spec / plan / ADR / task) are always written in full Thai** — terse style applies to chat replies only; those files are re-read many times by humans and other sessions, and ambiguity costs more than tokens
+
+## Compact instructions
+
+On `/compact` keep: current task id + branch, ACs not yet passing, latest verify result, decisions the user made in this session.
+Safe to drop: contents of files already read (can be re-read), logs of verify runs that passed, approaches that failed (keep a one-line conclusion only).
 
 ## Subagents
 
-| agent | ใช้เมื่อ |
+| Agent | Use when |
 |---|---|
-| `code-reviewer` | ตรวจ diff แบบไม่มีอคติจากการที่เพิ่งเขียนเอง (เรียกโดย `/review`) |
-| `test-writer` | เขียนเทสที่ต้องอ่านโค้ดเดิมเยอะแต่คายไฟล์ไม่กี่ไฟล์ |
-| `legacy-explorer` | ขุดโปรเจกต์เก่า — กัน context หลักบวม |
+| `code-reviewer` (sonnet) | Checks what the built-ins cannot know: matches the plan / project rules (called by `/check`, given plan + diff only) |
+| `test-writer` (sonnet) | Writing tests that need reading a lot of existing code but produce few files |
+| `legacy-explorer` (haiku) | Digging through an old project — keeps the main context small |
 
-งานค้นหาทั่วไปใช้ `Explore` ที่มีมาให้อยู่แล้ว ไม่ต้องเขียนเอง
+General search uses the built-in `Explore`; no need to write your own.

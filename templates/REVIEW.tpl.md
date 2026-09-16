@@ -1,65 +1,67 @@
-# นโยบายการรีวิว — {{PROJECT_NAME}}
+# Review policy — {{PROJECT_NAME}}
 
-> ไฟล์นี้คือ "กฎการตัดสิน" ของการรีวิว แยกจาก "วิธีรีวิว" (อยู่ใน skill `/review`)
-> เก็บที่ราก repo ในชื่อ `REVIEW.md` — version-controlled และแก้แบบ review เหมือนโค้ด
-> เจ้าของไฟล์: {{tech lead / เจ้าของโปรเจกต์}}
-> อ่านโดย: skill `/review` และ subagent `code-reviewer`
+<!-- ภาษาอังกฤษโดยตั้งใจ — อ่านโดย skill /check และ subagent code-reviewer เท่านั้น -->
 
-## รอบการตรวจ (ตรวจครบทุกรอบ ทุก PR เหมือนกันหมด)
+> This file is the **decision rules** of review, separate from the **procedure** (which lives in the `/check` skill + built-in `/code-review`).
+> Lives at the repo root as `REVIEW.md` — version-controlled and changed through review like code.
+> Owner: {{tech lead / project owner}}
+> Read by: the `/check` skill and the `code-reviewer` subagent
 
-| รอบ | ดูอะไร |
+## Passes (every pass, every PR, no exceptions)
+
+| Pass | Looks for |
 |---|---|
-| **1. ความถูกต้อง** | ตรรกะผิด, off-by-one, เงื่อนไขกลับด้าน, กรณีขอบ (null / ว่าง / 0 / ติดลบ / array ว่าง), async ที่ไม่ได้ await, error ที่ถูกกลืน, race condition, กดปุ่มรัว, **ทำครบ AC ของ task ไหม** |
-| **2. ความปลอดภัย** | input ที่ไม่ validate, ตรวจสิทธิ์ที่ server และ **ownership ของ record (IDOR)**, ข้อมูลอ่อนไหวหลุดใน response หรือ log, secret hardcode, raw query ที่ไม่ parameterized, การ render HTML ดิบ |
-| **3. ตรงตามที่ตกลง** | ตรงกับ `plan.md` ไหม (มีอะไรทำเกิน / ขาด), ตรงกับ spec ไหม, ละเมิดมาตราไหนใน `docs/constitution.md` ไหม |
-| **4. มาตรฐานโปรเจกต์** | i18n ครบ th+en, ใช้ token ไม่มีสีดิบ, ไม่มี UI library อื่น, ไฟล์วางถูกที่, component ที่ควรเป็น shared, logic ที่ซ้ำกับของเดิม |
-| **5. เทส** | backend มี unit test มาด้วยไหม ครอบ error path ไหม / frontend สร้าง task `-test` แล้วไหม / มีเทสที่ไม่ assert อะไรจริงไหม |
+| **1. Correctness** | wrong logic, off-by-one, inverted conditions, edge cases (null / empty / 0 / negative / empty array), un-awaited async, swallowed errors, race conditions, double-click, **all task ACs met?** |
+| **2. Security** | unvalidated input, server-side authorization and **record ownership (IDOR)**, sensitive data leaking in responses or logs, hardcoded secrets, non-parameterized raw queries, raw HTML rendering |
+| **3. Matches what was agreed** | matches `plan.md`? (anything extra / missing), matches the spec?, violates any article of `docs/constitution.md`? |
+| **4. Project standards** | i18n complete th+en, tokens not raw colors, no other UI library, files in the right place, components that should be shared, logic duplicating existing code |
+| **5. Tests** | backend: unit tests included, error paths covered? / frontend: `-test` task created? / any test that asserts nothing real? |
 
-## ระดับความรุนแรง
+## Severity
 
-| ระดับ | นิยาม | ผลต่อการ merge |
+| Level | Definition | Effect on merge |
 |---|---|---|
-| **ต้องแก้ก่อน merge** | พฤติกรรมพัง / ข้อมูลรั่ว / ละเมิดธรรมนูญ / ไม่ครบ AC | **บล็อก** |
-| **ควรแก้** | คุณภาพ อ่านยาก ซ้ำซ้อน จะกลายเป็นหนี้ | ไม่บล็อก แต่ต้องตอบว่าจะแก้เลยหรือเปิด task |
-| **ข้อสังเกต** | ความเห็น ทางเลือกอื่น | ไม่บล็อก |
+| **Must fix before merge** | broken behavior / data leak / constitution violation / AC not met | **Blocks** |
+| **Should fix** | quality, readability, duplication, will become debt | Does not block, but must be answered: fix now or open a task |
+| **Observation** | opinion, alternative | Does not block |
 
-**เพดานข้อสังเกต: ไม่เกิน 5 ข้อต่อรอบ** เกินกว่านั้นให้เลือกเฉพาะที่สำคัญที่สุด
+**Cap on observations: at most 5 per review.** Beyond that, keep only the most important.
 
-## ไม่ต้องรายงาน
+## Do not report
 
-- เรื่อง format ที่ linter / prettier จับได้อยู่แล้ว
-- ไฟล์ที่ generate มา: `components/ui/**`, `*.generated.*`, migration, lockfile
-- เรื่องที่ hook บังคับอยู่แล้ว
-- การเสนอ refactor ใหญ่ที่อยู่นอก scope ของ task → ให้เสนอเป็น **task ใหม่** แทน
+- Formatting the linter / prettier already catches
+- Generated files: `components/ui/**`, `*.generated.*`, migrations, lockfiles
+- Anything a hook already enforces
+- Large refactors outside the task scope → propose a **new task** instead
 
-## กฎกันการรีวิวเกินจำเป็น
+## Anti-over-review rules
 
-> reviewer ที่ถูกสั่งให้ "หาปัญหา" จะหาเจอเสมอ แม้งานจะดีอยู่แล้ว เพราะถูกสั่งมาแบบนั้น
-> การไล่แก้ทุกข้อที่เจอนำไปสู่ over-engineering: abstraction เกินจำเป็น, defensive code, เทสสำหรับเคสที่เกิดขึ้นไม่ได้
+> A reviewer told to "find problems" will always find some, even when the work is fine, because that is what it was told.
+> Fixing everything found leads to over-engineering: unnecessary abstractions, defensive code, tests for cases that cannot happen.
 
-- รายงานเฉพาะสิ่งที่กระทบ **ความถูกต้อง** หรือ **requirement ที่ระบุไว้** ที่เหลือถือเป็นทางเลือก
-- **ห้ามเสนอให้เพิ่ม abstraction เพราะ "เผื่ออนาคต"** (ขัดมาตรา 4 และ 5 ของธรรมนูญ)
-- ถ้าตรวจแล้วไม่เจออะไรที่ถึงระดับ "ต้องแก้" ให้พูดตรง ๆ ว่าไม่เจอ **อย่าหาเรื่องมาเติมให้ดูขยัน**
+- Report only what affects **correctness** or a **stated requirement**; everything else is optional
+- **Never propose adding an abstraction "for the future"** (violates constitution art. 4 and 5)
+- If nothing reaches "must fix", say so plainly — **do not pad the report to look diligent**
 
-## รูปแบบการรายงาน
+## Report format
 
-แต่ละข้อต้องมีครบ 4 อย่าง:
+Every item has all four parts:
 
 ```
-[ระดับ] path/to/file.ts:42
-ปัญหา: <คืออะไร>
-จะพังยังไง: <สถานการณ์จริงที่ทำให้พัง / input อะไรทำให้ผิด>
-แก้ยังไง: <ข้อเสนอที่ลงมือได้เลย>
+[level] path/to/file.ts:42
+Problem: <what>
+How it breaks: <the real scenario / input that makes it wrong>
+Fix: <an actionable suggestion>
 ```
 
-## หลังรีวิว
+## After review
 
-- เรื่องที่เจอ **ซ้ำเป็นครั้งที่ 2** → เขียนลง `AGENTS.md` หมวด "สิ่งที่ AI ในโปรเจกต์นี้เคยทำผิด"
-- เรื่องที่เจอซ้ำและเป็นกฎที่ห้ามพัง → เลื่อนชั้นเป็น rule ใน `.claude/rules/` หรือ hook
-- เรื่องที่เคยหลุดไปถึง production → เขียนเป็น eval ใน `docs/evals/`
-- **AI ไม่อนุมัติงานตัวเอง** ผลรีวิวคือข้อมูลให้คนตัดสิน ไม่ใช่การอนุมัติ
+- Something found for the **2nd time** → add to `AGENTS.md` under "Things the AI gets wrong in this project"
+- Something repeated that is a must-not-break rule → promote to a rule in `.claude/rules/` or a hook
+- Something that once reached production → write an eval in `docs/evals/`
+- **The AI does not approve its own work.** The review result is input for a human decision, not an approval.
 
-## ทบทวนนโยบายนี้
+## Revisit this policy
 
-ทุกเดือน หรือเมื่อรู้สึกว่ารีวิวเริ่มไร้ประโยชน์ ให้ถาม 3 ข้อ:
-รายงานเยอะเกินจนไม่มีใครอ่านไหม / มีเรื่องสำคัญที่หลุดไป production ไหม / ข้อสังเกตกินเวลามากกว่าประเด็นจริงไหม
+Monthly, or whenever review starts feeling useless, ask three questions:
+Is the report too long for anyone to read? / Did something important reach production anyway? / Are observations taking more time than real issues?

@@ -57,12 +57,12 @@ const parts = [];
 const branch = git('rev-parse --abbrev-ref HEAD');
 const dirtyLines = git('status --short').split('\n').filter(Boolean);
 if (branch) {
-  let dirtyBlock = '\nworking tree สะอาด';
+  let dirtyBlock = '\nworking tree clean';
   if (dirtyLines.length) {
     // ตัดไม่ให้ยาวเกิน — repo ที่รกอยู่แล้วไม่ควรกิน context ทั้งก้อน
     const shown = dirtyLines.slice(0, 15).join('\n');
-    const more = dirtyLines.length > 15 ? `\n... และอีก ${dirtyLines.length - 15} ไฟล์` : '';
-    dirtyBlock = `\nไฟล์ที่ยังไม่ commit (${dirtyLines.length}):\n\`\`\`\n${shown}${more}\n\`\`\``;
+    const more = dirtyLines.length > 15 ? `\n... and ${dirtyLines.length - 15} more` : '';
+    dirtyBlock = `\nUncommitted files (${dirtyLines.length}):\n\`\`\`\n${shown}${more}\n\`\`\``;
   }
   parts.push(`## Git\nbranch: \`${branch}\`${dirtyBlock}`);
 }
@@ -76,29 +76,30 @@ if (board) {
 
   const bits = [inProgress, review, blocked, intents].filter(Boolean);
   if (bits.length) {
-    parts.push(`## สถานะจาก docs/backlog/board.md\n\n${bits.join('\n\n')}`);
+    parts.push(`## Status from docs/backlog/board.md\n\n${bits.join('\n\n')}`);
   } else {
-    parts.push('## สถานะจาก docs/backlog/board.md\nไม่มีงานค้างในหมวด in-progress / review / blocked');
+    parts.push('## Status from docs/backlog/board.md\nNothing pending in in-progress / review / blocked');
   }
 } else {
-  parts.push('_ยังไม่มี docs/backlog/board.md ในโปรเจกต์นี้_');
+  parts.push('_No docs/backlog/board.md in this project yet_');
 }
 
 const state = read('docs/planning/_state.md');
 if (state) {
   const pending = state.split('\n').filter((l) => l.includes('⬜')).length;
   if (pending > 0) {
-    parts.push(`## Planning\nยังมี Phase ที่ยังไม่เสร็จอีก ${pending} ขั้น — ดู docs/planning/_state.md`);
+    parts.push(`## Planning\n${pending} phase(s) still unfinished — see docs/planning/_state.md`);
   }
 }
 
 const context = [
-  '# สถานะโปรเจกต์ ณ ตอนเปิด session (ฉีดโดย hook อัตโนมัติ)',
+  '# Project status at session start (injected by hook)',
   '',
   ...parts,
   '',
-  '> ใช้ข้อมูลนี้ตั้งต้นได้เลย ไม่ต้องไปอ่าน board ซ้ำถ้าไม่ต้องการรายละเอียดเพิ่ม',
-  '> ถ้ามี task ค้างที่ `in-progress` อยู่ ให้เตือนผู้ใช้ก่อนเริ่มงานใหม่ (กฎคือทำทีละ 1)',
+  '> Start from this; do not re-read the board unless you need more detail.',
+  '> If a task is already `in-progress`, warn the user before starting new work (rule: one at a time).',
+  '> Reply to the user in Thai.',
 ].join('\n');
 
 process.stdout.write(

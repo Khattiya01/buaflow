@@ -100,12 +100,12 @@ process.stdin.on('end', () => {
   if (registryNames(registry).has(name)) process.exit(0); // มีแถวตรงชื่อในทะเบียนแล้ว ถือว่าเช็คมาแล้ว
 
   process.stderr.write(
-    `[hook: guard-new-component] "${p}" มีสี hex ดิบ หรือ arbitrary value (เช่น bg-[#...]) ที่ไม่ใช่ token เดิม\n` +
-      'นี่คือการตัดสินใจ design ใหม่ (ข้อ 4-5 ใน standards/ui-component-rules.md) ไม่ใช่แค่ประกอบจาก primitive เดิม\n' +
-      'ก่อนแก้/สร้าง ต้องเช็คก่อนว่า:\n' +
-      '  4) มี design/reference อยู่แล้วไหม (เช่น canvas ที่ sync จาก claude.ai/design หรือ docs/design/) — ใช้ค่าจาก token เดิม ไม่ใช่ hex ดิบ\n' +
-      '  5) ไม่มีทั้งหมด → หยุดแล้วถามผู้ใช้ก่อน จะเสนอ token/สีใหม่เองไม่ได้\n' +
-      'ทำครบแล้ว: เพิ่มแถวของ component นี้ใน docs/design/components.md ก่อน แล้วค่อยลองใหม่อีกครั้ง\n'
+    `[hook: guard-new-component] "${p}" contains a raw hex color or arbitrary value (e.g. bg-[#...]) that is not an existing token.\n` +
+      'That is a new design decision (steps 4-5 in standards/ui-component-rules.md), not just composing existing primitives.\n' +
+      'Before creating/editing, check:\n' +
+      '  4) Is there a design/reference already (e.g. a canvas synced from claude.ai/design, or docs/design/)? Use values from existing tokens, not raw hex.\n' +
+      '  5) None → stop and ask the user first. You may not propose new tokens/colors on your own.\n' +
+      'Once done: add a row for this component to docs/design/components.md first, then try again.\n'
   );
   process.exit(2);
 });

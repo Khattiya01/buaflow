@@ -1,62 +1,64 @@
 ---
 name: ui
-description: เริ่มสร้าง UI component โดยถามก่อนเสมอ ไม่ออกแบบเอง ใช้ทุกครั้งก่อนสร้าง component หรือหน้าจอใหม่
-argument-hint: "<ชื่อ component หรือหน้าจอ>"
-allowed-tools: Read Glob Grep
+description: Start building a UI component by asking first, never designing on your own. Use every time before creating a component or screen.
+argument-hint: "<component or screen name>"
+allowed-tools: Read Glob Grep Bash(pnpm dev*) Bash(pnpm exec playwright*)
 ---
 
-จะทำ UI: $ARGUMENTS
+Building UI: $ARGUMENTS
 
-## ห้ามเขียนโค้ดก่อนตอบ 4 ข้อนี้
+Talk to the user in Thai.
 
-### 1. มีของเดิมใช้ได้ไหม
-- ค้น `components/shared/` และ `components/ui/` หาของที่ใกล้เคียง
-- ค้น `docs/design/components.md` ดูทะเบียน component
-- **รายงานสิ่งที่เจอ** เช่น "เจอ DataTable ใน shared ที่น่าจะใช้แทนได้"
-- ถ้าของเดิมเกือบพอ → **เพิ่ม prop/variant ในตัวเดิม อย่าก๊อปไปทำเวอร์ชัน 2**
+## No code until these four are answered
 
-### 2. shadcn มีไหม
-- ตรวจว่ามี component นี้ใน shadcn/ui registry ไหม
-- ถ้ามี → **ติดตั้งจาก registry ห้ามเขียนเอง**
-- ถ้าประกอบจาก primitive ที่มีได้ → บอกว่าจะประกอบจากอะไร
+### 1. Does something existing work?
+- Search `components/shared/` and `components/ui/` for anything close
+- Check the registry in `docs/design/components.md`
+- **Report what you found**, e.g. "found DataTable in shared that should cover this"
+- Existing one is almost enough → **add a prop/variant to it; never copy into a version 2**
 
-### 3. มี design ไหม
-- ดู `docs/design/` และ design ที่ผู้ใช้แนบไว้ตอน planning
-- ถ้าเป็นโหมด rebuild → ดูของเดิมในโปรเจกต์เก่า **แล้วถามว่าเอาแบบเดิมไหม หรืออยากแก้ตรงไหน**
+### 2. Is it in shadcn?
+- Check the shadcn/ui registry
+- Yes → **install from the registry; never hand-write it**
+- Composable from existing primitives → say what you will compose it from
 
-### 4. ถ้าไม่มีทั้งหมด — หยุดถามผู้ใช้
+### 3. Is there a design?
+- Look in `docs/design/` and any design the user attached during planning
+- Rebuild mode → look at the legacy project **and ask whether to keep it as-is or what to change**
 
-> `<ชื่อ component>` ยังไม่มีทั้งใน shared และ shadcn และผมไม่เห็น design
-> - ให้ผมออกแบบเองไหม (จะเสนอ 2 แบบให้เลือกก่อนลงมือ)
-> - หรือคุณมี reference จะส่งมา
+### 4. None of the above — stop and ask the user
 
-**ห้ามออกแบบเองโดยไม่ได้รับอนุญาต**
+> `<component>` is not in shared or shadcn, and I see no design.
+> - Should I design it? (I will propose 2 options before building)
+> - Or do you have a reference to send?
+
+**Never design on your own without permission.**
 
 ---
 
-## เมื่อได้คำตอบครบแล้ว
+## Once everything is answered
 
-### ก่อนเขียน — ตอบคำถามเรื่อง shared
-"component นี้มีโอกาสใช้ซ้ำที่อื่นไหม"
-- ใช้ตั้งแต่ 2 ที่ หรือเป็น pattern ที่เห็นซ้ำในระบบ → **สร้างใน `components/shared/` ตั้งแต่แรก**
-- ผูกกับหน้าเดียวจริง ๆ → อยู่ใน `components/<feature>/`
-- ยังไม่รู้ว่าจะใช้ที่อื่นยังไง → **อย่าเพิ่งยก** การ abstract เร็วเกินไปแย่กว่า duplicate 2 ครั้ง
-- **บันทึกผลการตัดสินใจลง `docs/design/components.md` เสมอ**
+### Before writing — answer the shared question
+"Could this component be reused elsewhere?"
+- Used in ≥ 2 places, or a pattern seen repeatedly → **create it in `components/shared/` from the start**
+- Truly bound to one page → `components/<feature>/`
+- Not yet clear how it would be reused → **don't promote yet**; premature abstraction is worse than duplicating twice
+- **Always record the decision in `docs/design/components.md`**
 
-### ตอนเขียน
-- Server Component เป็นค่าเริ่มต้น ใส่ directive ของ client ที่ขอบเล็กที่สุด
-- ทุกข้อความผ่าน i18n ครบ th + en (รวม placeholder, aria-label, error, empty state)
-- ใช้ theme token เท่านั้น ห้ามสีดิบ
-- ใช้ `cva` สำหรับ variant, รับ `className` และ merge ด้วย `cn()`
-- ทำครบ: loading / empty / error / disabled
+### While writing
+- Server Component by default; client directive at the smallest boundary
+- Every string through i18n, complete for th + en (including placeholders, aria-labels, errors, empty states)
+- Theme tokens only; no raw colors
+- `cva` for variants; accept `className` and merge with `cn()`
+- Cover: loading / empty / error / disabled
 
-### หลังเขียน — พิสูจน์ด้วยของจริง ไม่ใช่ติ๊ก
-- [ ] ทดสอบที่ ~390px และ 1280px
-- [ ] ทดสอบ light และ dark
-- [ ] ทดสอบสลับ th/en แล้ว layout ไม่พัง (ความยาวข้อความต่างกัน)
-- [ ] a11y: label ครบ, Tab ไล่ได้, focus เห็นชัด
-- [ ] อัปเดต `docs/design/components.md`
-- [ ] สร้าง task `T-xxx-test` สำหรับ unit test (blocked ไว้ก่อน)
+### After writing — prove it with the real thing, not checkboxes
+- [ ] Tested at ~390px and 1280px
+- [ ] Tested light and dark
+- [ ] Switched th/en and the layout holds (text lengths differ)
+- [ ] a11y: labels complete, Tab order works, focus visible
+- [ ] Updated `docs/design/components.md`
+- [ ] Created the `T-xxx-test` task for unit tests (blocked for now)
 
-> ถ้ามี design/ภาพต้นแบบให้เทียบ: ถ่าย screenshot ผลลัพธ์ เทียบกับต้นแบบ
-> **ไล่ความต่างออกมาเป็นข้อ ๆ แล้วแก้จนตรง** อย่าเดาว่าเหมือนแล้ว
+> If there is a design/reference to compare against: use the `run` skill to open the app and take screenshots (or Playwright), compare with the reference,
+> **list the differences one by one and fix until they match**. Do not assume it matches.

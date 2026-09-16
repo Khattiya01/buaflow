@@ -1,66 +1,76 @@
 ---
 name: release
-description: ปล่อยของขึ้น uat หรือ prd ไล่ checklist ก่อนปล่อย เตรียม release note และแผน rollback ใช้ตอนปิด milestone ไม่ใช่ปล่อยทีละ task
-argument-hint: "uat | prd"
+description: Release to uat or prd — run the milestone gate, build the image once, tag, prepare the release note and rollback plan. Use when closing a milestone, not per task. Works before a deploy target exists.
+argument-hint: "<uat | prd> <M1>"
 disable-model-invocation: true
-allowed-tools: Read Glob Grep Bash(git *) Bash(pnpm *) Bash(docker *)
+allowed-tools: Read Glob Grep Write Bash(git *) Bash(pnpm *) Bash(docker *) Bash(node .claude/*)
 ---
 
-ปล่อยของขึ้น: $ARGUMENTS
+Release to: $ARGUMENTS
 
-## หลักการ
+Talk to the user in Thai. The release note is written in full Thai for the testers.
 
-- **artifact เดียวกันไหลผ่านทุก env** build image ครั้งเดียว เปลี่ยนแค่ env var
-  ห้าม build ใหม่ตอนขึ้น prd — ของที่เทสบน uat จะไม่ใช่ของที่ขึ้นจริง
-- ปล่อยเป็น **รอบตาม milestone** ไม่ใช่ปล่อยทีละ task
-- **AI เตรียมและตรวจ แต่คนเป็นคนสั่งปล่อย** ทุกครั้ง
+## Principles
 
-## ก่อนขึ้น uat — ไล่ให้ครบ แล้วแปะผลจริง
+- **One artifact flows through every env** — build the image once at uat, change only env vars. Never rebuild for prd.
+- Release in **milestone rounds**, not per task
+- **The AI prepares and checks; a human triggers the release** every time
+- Without a deploy target you can still get as far as "image + tag + release note + rollback plan" — the rest is **a human placing the image** wherever it goes
 
-- [ ] ทุก task ในรอบเป็น `done`
-- [ ] `pnpm verify` ผ่าน (แปะผล)
-- [ ] `pnpm test:cov` — coverage ถึงเป้า (แปะตัวเลข)
-- [ ] รัน SonarQube local แล้วผ่าน quality gate — **ผู้ใช้รันเอง** AI แค่เตือนและรอผล
-- [ ] รัน Postman collection ผ่านทั้งชุด (`pnpm test:api`)
-- [ ] migration รันบน DB สำเนาของ uat ได้ และมีแผน rollback
-- [ ] อัปเดต `docs/api/openapi.json` แล้ว
-- [ ] `.env.example` ตรงกับตัวแปรที่ใช้จริง
+## Step 1 — Milestone gate (run for real, paste results)
 
-**เขียน release note** ที่ `docs/releases/<version>.md`:
-- มีอะไรใหม่ (เขียนให้คนทดสอบอ่านรู้เรื่อง ไม่ใช่ commit log)
-- แก้อะไรไปบ้าง
-- **ต้องทดสอบอะไรเป็นพิเศษ** — ระบุเป็นข้อ ๆ ให้คนไล่ได้
-- อะไรที่เปลี่ยนแล้วอาจกระทบของเดิม
+```bash
+node .claude/gate.js --release <M>
+```
+Runs verify + check-config + docs-lint + release conditions: every task in the milestone is `done`, **no `-test` tasks open**, no spec markers left.
+Fails → stop and say what blocks — **never release over test debt**
 
-## บน uat ทำอะไร
-ให้คนทดสอบจริงตาม release note, เก็บ bug เป็น task ใหม่,
-ทดสอบ i18n ทั้งสองภาษา, ทดสอบบนมือถือจริง
+Additional checks the gate cannot know:
+- [ ] `pnpm test:cov` — coverage at target (paste the number)
+- [ ] `pnpm test:api` (Postman/newman) passes, if there is an API
+- [ ] SonarQube local passes the quality gate — **the user runs it**; the AI only reminds and waits
+- [ ] `docs/api/openapi.json` re-exported / `.env.example` matches the variables actually used
+- [ ] This round's migrations ran on a DB copy, and you can answer **whether they roll back**
 
-## ก่อนขึ้น prd — ทุกข้อของ uat บวกเพิ่ม
+## Step 2 — Build the artifact once (uat only)
 
-- [ ] UAT อนุมัติแล้วเป็นลายลักษณ์อักษร
-- [ ] `docs/standards/security-checklist.md` ผ่านทั้งชุด
-- [ ] `pnpm audit` ไม่มีช่องโหว่ระดับสูง
-- [ ] **backup ฐานข้อมูลก่อนรัน migration** และซ้อม restore มาแล้ว
-- [ ] env var ของ prd ครบ และ secret ไม่ได้อยู่ใน git
-- [ ] มี **แผน rollback** ที่ทำได้จริง — ระบุว่ากี่นาที
-- [ ] `/health` และ `/ready` ตอบถูกต้อง
-- [ ] ปิดหรือป้องกันหน้า `/docs` และ debug endpoint
-- [ ] ตกลงเวลาปล่อย + ใครเฝ้าหลังปล่อย
+```bash
+VERSION=v<x.y.z>                                  # semver: minor = normal milestone, patch = hotfix
+docker build -t <app>:$VERSION -t <app>:uat .
+docker image inspect <app>:$VERSION --format '{{.Id}}'   # paste the digest into the release note
+```
+No registry yet → `docker save <app>:$VERSION | gzip > dist/<app>-$VERSION.tar.gz` for a human to place
 
-**แล้วหยุด รอผู้ใช้สั่งปล่อย** — AI ไม่ปล่อยของขึ้น prd เอง
+## Step 3 — Release note `docs/releases/<VERSION>.md`
 
-## หลังปล่อย
-- เฝ้า log/error 30-60 นาที
-- ทดสอบ flow หลักด้วยตัวเอง
-- ติด **tag** เวอร์ชัน (`v1.2.0`) และอัปเดต CHANGELOG
-- อัปเดต board + ปิด milestone
+Written for **the testers**, not a commit log:
+- What is new (from the milestone's intents/specs) · what was fixed
+- **What to test specifically** — an itemized list they can walk through (from the risky ACs)
+- What changed that may affect existing behavior
+- Migrations: yes/no · reversible/not · backup required?
+- Image: tag + digest · new env vars to set
 
-## Rollback — เตรียมคำตอบไว้ล่วงหน้า 2 ข้อ
+## Step 4 — Rollback plan (answer before releasing)
 
-1. **โค้ด** — กลับไป image tag ก่อนหน้าได้ภายในกี่นาที
-2. **ฐานข้อมูล** — migration รอบนี้ย้อนกลับได้ไหม
-   ถ้าย้อนไม่ได้ (เช่น drop column) → **ต้องทำแบบ expand/contract**:
-   รอบที่ 1 เพิ่มของใหม่โดยของเก่ายังอยู่ → ปล่อย → รอบถัดไปค่อยลบของเก่า
+1. **Code** — back to the previous image tag (`<app>:v<previous>`) in how many minutes, with which command
+2. **Database** — can this round's migration be reverted · if not (drop column etc.) → **it must be expand/contract**: add the new alongside the old this round → remove the old next round
 
-> ถ้าตอบ 2 ข้อนี้ไม่ได้ **ยังไม่ต้องปล่อย**
+> Can't answer both → **not ready to release**
+
+## Step 5 — prd only (everything from uat plus)
+
+- [ ] UAT approved in writing (link/name/date in the release note)
+- [ ] `/security-review` on the diff since the previous tag (`git diff v<previous>...HEAD`) with no high findings open
+- [ ] `docs/standards/security-checklist.md` passes · `pnpm audit` has no high/critical
+- [ ] **DB backup before running migrations**, and a restore has been rehearsed
+- [ ] prd env vars complete, no secrets in git · `/health` `/ready` respond correctly · `/docs` disabled or behind auth
+- [ ] Release time agreed + who is on watch
+- **Use the same image tag from uat** — never rebuild
+
+**Then stop and wait for the user to trigger the release** — the AI never releases to prd
+
+## After release
+
+- Watch logs/errors for 30–60 minutes + walk the main flow by hand
+- `git tag -a $VERSION -m "<milestone>"` + `git push origin $VERSION` · update CHANGELOG
+- Close the milestone: `node .claude/board.js`, then remind the user to do **Phase 8** (config review)

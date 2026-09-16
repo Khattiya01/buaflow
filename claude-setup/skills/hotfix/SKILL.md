@@ -1,67 +1,70 @@
 ---
 name: hotfix
-description: ขั้นตอนแก้ปัญหาด่วนบน production ตั้งแต่บันทึกอาการ หาสาเหตุ เลือกวิธี แก้ ปล่อย จนถึง postmortem และป้อนกลับเข้าระบบ
-argument-hint: "<อาการที่เกิด>"
+description: Urgent production fix procedure — record the symptom, find the cause, choose the approach, fix, release, then postmortem and feed back into the system.
+argument-hint: "<symptom>"
 disable-model-invocation: true
-allowed-tools: Read Glob Grep Bash(git *) Bash(pnpm *) Bash(docker *)
+allowed-tools: Read Glob Grep Edit Write Bash(git *) Bash(pnpm *) Bash(docker *) Bash(gh pr *) Bash(glab mr *) Bash(node .claude/*)
 ---
 
 Hotfix: $ARGUMENTS
 
-## กฎของ hotfix
-- แก้ **เล็กที่สุดเท่าที่หยุดเลือดได้**
-- **ห้าม refactor ปนมา** เด็ดขาด
-- ห้ามเพิ่ม feature ระหว่างทาง
+Talk to the user in Thai. The incident file and postmortem are written in full Thai.
 
-## ขั้นที่ 1 — บันทึกก่อนแก้ (อย่ารีบกระโดดเข้าโค้ด)
+## Hotfix rules
+- The **smallest change that stops the bleeding**
+- **No refactoring mixed in**, ever
+- No features along the way
 
-สร้าง `docs/incidents/YYYY-MM-DD-<ชื่อสั้น>.md`:
-- อาการที่เห็น + ข้อความ error จริง
-- เริ่มเมื่อไหร่ / ใครแจ้ง
-- กระทบใครบ้าง รุนแรงแค่ไหน
-- มี workaround ชั่วคราวไหม
+## Step 1 — Record before fixing (do not jump into code)
 
-## ขั้นที่ 2 — หาสาเหตุ
-- ดู log / error ล่าสุด
-- หา commit หรือการเปลี่ยนแปลงที่น่าจะเป็นต้นเหตุ
-- **ยืนยันสาเหตุก่อนแก้** อย่าเดาแล้วยิงมั่ว
-- รายงานสาเหตุให้ผู้ใช้ก่อน
+Create `docs/incidents/YYYY-MM-DD-<short-name>.md`:
+- Observed symptom + the actual error message
+- When it started / who reported it
+- Who is affected, how severe
+- Any temporary workaround
 
-## ขั้นที่ 3 — เลือกวิธี
+## Step 2 — Find the cause
+- Latest logs / errors
+- The commit or change most likely responsible
+- **Confirm the cause before fixing** — no guess-and-shoot
+- Report the cause to the user first
 
-เสนอให้ผู้ใช้เลือก:
+## Step 3 — Choose the approach
 
-| ทางเลือก | เมื่อไหร่ควรใช้ |
+Offer the user:
+
+| Option | When |
 |---|---|
-| **rollback** ไปเวอร์ชันก่อนหน้า | ของเพิ่งขึ้นแล้วพัง และ rollback ปลอดภัย เร็วที่สุด |
-| **hotfix** แก้เฉพาะจุด | rollback ไม่ได้ (เช่น migration ไปแล้ว) หรือของเสียมานาน |
-| **ปิด feature ชั่วคราว** | มี flag ปิดได้ และปิดแล้วระบบที่เหลือยังใช้ได้ |
+| **Rollback** to the previous version | just shipped and broke, and rollback is safe — fastest |
+| **Hotfix** the specific spot | rollback impossible (e.g. migration already ran) or the bug is old |
+| **Disable the feature** temporarily | a flag exists and the rest keeps working with it off |
 
-## ขั้นที่ 4 — แก้
-- แตก branch จาก **tag ที่อยู่บน prd ตอนนี้** ไม่ใช่จาก `main`
-  (main อาจมีของใหม่ที่ยังไม่ได้เทส)
-- `hotfix/T-xxx-<คำอธิบายสั้น>`
-- **เขียน test ที่ fail ก่อน** เพื่อพิสูจน์ว่าจับบั๊กถูกตัว แล้วค่อยแก้ให้ผ่าน
-- แก้เท่าที่จำเป็น
+## Step 4 — Fix
+- Branch from **the tag currently on prd**, not from `main` (main may contain untested work)
+- `hotfix/T-xxx-<short-description>`
+- **Write the failing test first** to prove you caught the right bug, then make it pass
+- Change only what is necessary
 
-## ขั้นที่ 5 — ทดสอบ
-- รัน `pnpm verify` ทั้งชุด แล้วแปะผล
-- ทดสอบ flow ที่พังบน local ด้วยสภาพใกล้เคียง prd ที่สุด
-- ถ้าเวลาพอ ขึ้น uat ก่อน
+## Step 5 — Test
+- Run `pnpm verify`; paste the summary line
+- `/code-review high` + `/security-review` on the diff (the hotfix is the most rushed diff — the easiest to get wrong)
+- Test the broken flow locally in conditions as close to prd as possible
+- If time allows, go through uat first
 
-## ขั้นที่ 6 — ปล่อย
-- ปล่อยขึ้น prd
-- **เฝ้า log 30 นาที** ยืนยันว่าหายจริง
-- ติด tag เวอร์ชัน patch
+## Step 6 — Release
+- Open a PR into the branch that is on prd (a human merges — the hook blocks merging yourself), then build a patch-tagged image per `/release`
+- Release to prd (the human triggers it)
+- **Watch logs for 30 minutes** to confirm it is really fixed
+- Tag a patch version
 
-## ขั้นที่ 7 — ปิดงาน (ห้ามลืม)
+## Step 7 — Close out (do not forget)
 
-- [ ] **merge กลับ `main`** — ไม่งั้นบั๊กจะกลับมาในรอบถัดไป
-- [ ] เขียน postmortem ต่อท้ายไฟล์ incident:
-      สาเหตุที่แท้จริง / ทำไมหลุดออกไปได้ / จะกันยังไงไม่ให้เกิดอีก
-- [ ] **เปิด `intent` ใหม่** ถ้า hotfix เป็นแค่พลาสเตอร์ — อย่าเปิดเป็น task ลอย ๆ
-      เพราะการแก้รากของปัญหาต้องผ่านการตัดสินใจเหมือนงานอื่น
-- [ ] เพิ่ม test ที่จะจับเคสนี้ได้ในอนาคต
-- [ ] **เขียน eval** ใน `docs/evals/` ถ้าสาเหตุคือ AI ทำพลาดเรื่องที่ควรรู้
-- [ ] ถ้าเป็นเรื่องที่ห้ามพังอีก → เสนอทำเป็น rule หรือ hook
-- [ ] อัปเดต board
+- [ ] **Open a PR to merge back into `main`** — otherwise the bug returns next release
+- [ ] Append a postmortem to the incident file:
+      root cause / why it escaped / how to prevent it
+- [ ] **Open a new `intent`** if the hotfix is only a band-aid — not a floating task,
+      because fixing the root cause must go through a decision like any other work
+- [ ] Add a test that will catch this case in the future
+- [ ] **Write an eval** in `docs/evals/` if the cause was the AI doing something it should have known not to
+- [ ] If it must never happen again → propose a rule or a hook
+- [ ] Task file → `status: done` + `commit:` then `node .claude/board.js`

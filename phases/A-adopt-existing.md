@@ -21,7 +21,19 @@
 
 ## A.1 สำรวจ — ให้ subagent อ่าน อย่าอ่านเองใน context หลัก
 
-ใช้ subagent `legacy-explorer` (หรือ `Explore`) ทำ inventory แล้วเอา**เฉพาะข้อสรุป**กลับมา
+**เริ่มด้วย built-in ก่อน** — 2 คำสั่งนี้ทำงานครึ่งหนึ่งของ A.1 ให้ฟรี:
+
+```bash
+CLAUDE_CODE_NEW_INIT=1 claude      # แล้วพิมพ์ /init — flow interactive ที่ใช้ subagent สำรวจโค้ด
+                                   # ถามช่องว่าง แล้วเสนอ CLAUDE.md + skills + hooks ให้ดูก่อนเขียน
+/import                            # ถ้ามี AGENTS.md / .cursor/rules / copilot-instructions / MCP อยู่แล้ว
+                                   # ดูดเข้า CLAUDE.md + config ของ Claude Code ทีเดียว
+```
+
+ผลจาก `/init` คือ **ร่าง** — อย่ารับทั้งดุ้น เอาไปเทียบกับตารางข้างล่างแล้วเติมส่วนที่มันไม่รู้
+(convention ที่ใช้อยู่จริง, สิ่งที่ generate อัตโนมัติ, เอกสารที่โกหก)
+
+ส่วนที่เหลือใช้ subagent `legacy-explorer` (haiku — ตั้งไว้แล้ว) ทำ inventory แล้วเอา**เฉพาะข้อสรุป**กลับมา
 โปรเจกต์ที่มีอยู่แล้วมักใหญ่พอที่จะทำให้ context หลักบวมจนงานที่เหลือเสียคุณภาพ
 
 สิ่งที่ต้องได้กลับมา เขียนลง `docs/planning/A1-inventory.md`:
@@ -45,7 +57,7 @@
 
 นี่คือขั้นที่**สำคัญที่สุด**และมักถูกข้าม
 
-ทั้ง loop ของ kit (`/task` → `/review` → `/done`, hook, DoD) ยึดอยู่กับคำสั่งเดียว
+ทั้ง loop ของ kit (`/task` → `/check` → `/done`, hook, gate, DoD) ยึดอยู่กับคำสั่งเดียว
 ที่บอกได้ว่างานพังหรือไม่ ถ้าโค้ดเดิม typecheck ไม่ผ่านอยู่แล้ว 40 จุด AI จะแยกไม่ออกว่า
 จุดไหนเป็นของเดิม จุดไหนตัวเองเพิ่งทำพัง — และจะเริ่ม "มองข้าม error" เป็นนิสัย
 
@@ -107,7 +119,9 @@ AI ที่ไม่รู้ว่า "ทำไมถึงเป็นแบ
 | `.claude/skills/*/SKILL.md` | คำสั่งที่อ้าง (`pnpm verify`, `pnpm test:api`) ต้องมีจริง / ตัดขั้นตอนที่ไม่เกี่ยว (เช่น Postman ถ้าไม่มี API) | A.1 คำสั่ง |
 | `.claude/settings.json` | `permissions.allow` ตามคำสั่งจริง / `deny` ตามไฟล์ลับจริงของโปรเจกต์ | A.1 |
 | `.claude/hooks/format-changed.js` | ตรวจว่า formatter/linter ที่มันมองหา ตรงกับที่โปรเจกต์ใช้ | A.1 |
-| `AGENTS.md` | เขียนจาก A.1 ทั้งหมด **โดยเฉพาะ "โครงโฟลเดอร์" และ "convention ที่ใช้อยู่จริง"** | A.1 |
+| `AGENTS.md` | เขียนจาก A.1 ทั้งหมด **โดยเฉพาะ "โครงโฟลเดอร์" และ "convention ที่ใช้อยู่จริง"** — เอาร่างจาก `/init` มาตัดด้วย `/doctor` (มันตัดของที่ AI derive จากโค้ดได้เอง) | A.1 |
+| `scripts/verify.mjs` | ถ้าโปรเจกต์เดิมมี `verify` เป็น `&&` ยาว ๆ → ครอบด้วย `templates/verify.mjs.tpl` ให้พิมพ์สรุปสั้น (A.2) | A.2 |
+| `.husky/pre-push` + `.claude/gate.js` | ติดตั้ง gate — **ถ้ามี CI เดิมอยู่แล้ว อย่าแทน** ให้เพิ่ม `node .claude/gate.js` เป็น job ใหม่ข้าง ๆ | A.1 CI/CD |
 
 **เกณฑ์:** `node .claude/check-config.js` ต้องได้ `ต้องแก้: 0` และ `ควรดู:` ต้องไม่มี "pattern ที่ไม่ match" เหลืออยู่
 

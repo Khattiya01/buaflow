@@ -64,7 +64,7 @@ process.stdin.on('end', () => {
         hookSpecificOutput: {
           hookEventName: 'PostToolUse',
           additionalContext:
-            `lint ยังเหลือปัญหาในไฟล์ ${rel} ที่แก้อัตโนมัติไม่ได้ — แก้ให้เรียบร้อยก่อนไปต่อ:\n\n${messages.join('\n')}`,
+            `Lint issues remain in ${rel} that autofix could not resolve — fix them before continuing:\n\n${messages.join('\n')}`,
         },
       })
     );

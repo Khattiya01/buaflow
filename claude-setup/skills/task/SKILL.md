@@ -1,77 +1,75 @@
 ---
 name: task
-description: หยิบ task จาก backlog มาทำ ระบุ ID ได้หรือปล่อยว่างให้เลือกให้ ครอบคลุมตั้งแต่เลือกงาน ยืนยันความเข้าใจ จนถึงตรวจตัวเองก่อนขอรีวิว
+description: Pick a task from the backlog and work it. Pass an ID or leave empty to get suggestions. Covers choosing the task, confirming understanding, implementing, and self-checking before /check.
 argument-hint: "[T-xxx]"
-allowed-tools: Read Glob Grep Bash(git *) Bash(pnpm *)
+allowed-tools: Read Glob Grep Edit Write Bash(git *) Bash(pnpm *) Bash(node .claude/*)
 ---
 
-หยิบงานมาทำ: $ARGUMENTS
+Work on: $ARGUMENTS
 
-## สถานะปัจจุบัน
+Talk to the user in Thai. Notes written into the task file are in Thai.
 
-!`git status --short`
+## Current state
+
+!`git status --short || true`
 
 ---
 
-## 1. เลือกงาน
+## 1. Choose the task
 
-- อ่าน `docs/backlog/board.md`
-- ถ้าผู้ใช้ระบุ ID มา → ใช้อันนั้น
-- ถ้าไม่ระบุ → เลือก task สถานะ `todo` ลำดับบนสุดที่ **dependency ครบแล้ว**
-  แล้วเสนอ 2-3 ตัวเลือกให้ผู้ใช้เลือก พร้อมบอกว่าทำไมเรียงแบบนี้
-- ถ้ามี task ค้างสถานะ `in-progress` อยู่แล้ว → **เตือนก่อน** (กฎคือทำทีละ 1)
+- Read `docs/backlog/board.md`, Todo section (already sorted; has a "deps met" column)
+- ID given → use it / none → offer the top 2–3 with deps met, with a one-line reason each
+- A task is already `in-progress` → **warn first** (rule: one at a time — `docs-lint` will flag it)
 
-## 2. ทำความเข้าใจ
+## 2. Read enough, not the whole chain
 
-อ่าน:
-- `docs/backlog/tasks/<ID>.md`
-- `docs/plans/<ID>.md` ถ้ามีแผนอยู่แล้ว
-- spec ของ feature แม่ (ถ้ามี) และ intent ต้นทาง
-- โค้ดเดิมที่เกี่ยวข้อง — **ถ้าเป็นการแก้ของเดิม ต้องอ่านของเดิมก่อนเสมอ**
-- `docs/standards/definition-of-done.md` หมวดที่ตรงกับประเภทงาน
-
-## 3. ต้องทำ plan ก่อนไหม
-
-| สถานการณ์ | ทำ |
+| Situation | Read |
 |---|---|
-| มี `docs/plans/<ID>.md` อยู่แล้ว | อ่านแล้วทำตามแผนนั้น |
-| แตะเกิน 3 ไฟล์ / แตะ DB / แตะ auth / แก้ของเดิมที่มีคนใช้อยู่ / ไม่คุ้นโค้ดส่วนนั้น | **หยุด บอกผู้ใช้ให้รัน `/plan <ID>` ก่อน** |
-| อธิบาย diff ได้จบใน 1 ประโยค | ข้ามไปข้อ 4 ได้เลย |
+| `docs/plans/<ID>.md` exists | **plan.md only** — it already distilled the ACs, constitution articles, and files to touch. Do not reopen spec/constitution |
+| No plan | The task file + the parent spec's ACs (only the ones this task covers) |
+| Modifying existing code | **The code you will touch** — always read it first; never guess what is inside |
 
-## 4. ยืนยันความเข้าใจ (ห้ามข้ามไปเขียนโค้ดเลย)
+Per-type DoD loads on its own via `.claude/rules/` when you touch the files — do not open `definition-of-done.md`.
 
-สรุปให้ผู้ใช้ฟัง:
-- งานนี้ทำอะไร และ **ไม่ทำ**อะไร
-- จะแตะไฟล์ไหนบ้าง
-- **Proof: อะไรจะพิสูจน์ว่าเสร็จ** (คำสั่ง/เทส/หน้าจอ)
-- ถ้าเป็น UI: component ที่จะใช้ และคำถามตาม `ui-component-rules.md`
-- ถ้าเป็น API: endpoint, request/response, error code
-- สิ่งที่ยังไม่ชัดและอยากถาม
+## 3. Which track / is a plan required?
 
-**รอผู้ใช้ยืนยันก่อนเริ่มเขียน**
+| Situation | Do |
+|---|---|
+| `track: trivial` in the task file (typo / copy / log / chore describable in one sentence) | skip step 4 → do it → `/check` (low level) |
+| plan.md exists | follow it |
+| More than 3 files / DB / auth / existing behavior in use / unfamiliar code | **stop and tell the user to run `/plan <ID>` first** |
+| Anything else describable in one sentence | short step 4, then go |
 
-## 5. เริ่มทำ
+## 4. Confirm understanding (never skip — 300 tokens here prevent 50k tokens in the wrong direction)
 
-- สร้าง branch: `<type>/<ID>-<คำอธิบายสั้นภาษาอังกฤษ>`
-- อัปเดต `board.md` ย้าย task ไป `in-progress`
-- ทำตาม acceptance criteria ทีละข้อ ตามลำดับในแผน
-- **ถ้าเป็นการแก้บั๊ก: เขียนเทสที่ fail ก่อน** แล้วค่อยแก้ให้ผ่าน
-  (hook จะบล็อกการแก้ไฟล์เทสระหว่างแก้บั๊ก — นั่นตั้งใจไว้แบบนั้น)
-- commit ย่อยระหว่างทางตาม Conventional Commits
-- ถ้าเจอสิ่งนอก scope → **หยุดถาม** แล้วเสนอเปิด task ใหม่ ห้ามทำเผื่อ
-- ถ้าแผนใช้ไม่ได้ → **หยุด กลับไปแก้ `plan.md` ก่อน** อย่าเบี่ยงเงียบ ๆ
+Briefly:
+- What it does / what it **does not** do
+- Files to touch
+- **Proof**: which command/test/screen proves it is done
+- UI → components to use (went through `/ui`?) / API → endpoints + error codes
+- What is still unclear
 
-## 6. ตรวจตัวเองก่อนจบ
+**Wait for the user to confirm before writing.**
 
-รันจริง แล้ว **แปะผลลัพธ์จริง** — ห้ามรายงานว่าผ่านถ้ายังไม่ได้รัน:
+## 5. Implement
+
+- Branch `<type>/<ID>-<short-english-description>`
+- Task file: `status: in-progress`, `started: <date>`, `branch:` → `node .claude/board.js`
+- Work the ACs one by one in the plan's order — **write one step, run verify, next step**; not everything at once and verify at the end
+- Bug fix: **write the failing test first**, then fix (the hook blocks editing test files on `fix/` branches — that is intended)
+- Small Conventional Commits referencing the task id
+- Anything out of scope → **stop and ask**; propose a new task; never do it "while you're there"
+- Plan no longer works → **stop, fix plan.md first**; never drift silently
+- **Same spot fails twice in a row → stop.** Tell the user; consider `/clear` and a sharper restart — do not keep retrying in the same turn
+
+## 6. Self-check before finishing
 
 ```
 pnpm verify
 ```
+Paste the **summary line** it prints (full log is in `.verify.log`) — never claim it passed without running it.
+Complete every Proof in the plan and show the result.
 
-แล้วไล่ Definition of Done ทีละข้อ ข้อไหนยังไม่ผ่านให้บอกตรง ๆ
-ทำ Proof ที่ระบุไว้ในแผน/ไฟล์ task ให้ครบและแสดงผล
+## 7. Next
 
-## 7. ต่อไป
-
-เสนอให้ผู้ใช้รัน `/review`
+Suggest `/check <ID>`
