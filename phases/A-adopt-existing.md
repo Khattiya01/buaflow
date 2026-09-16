@@ -5,6 +5,10 @@
 >
 > หลักคิดต่างจากโปรเจกต์ใหม่โดยสิ้นเชิง: **ไม่ตัดสินใจอะไรใหม่ ค้นว่ามีอะไรอยู่แล้วบันทึกให้ AI รู้**
 > ทุกอย่างหลังจากนี้ต้องยึดของจริงในโค้ด ไม่ใช่ค่าเริ่มต้นที่ kit สมมติไว้
+>
+> **stack ที่ไม่ใช่ JS/TS** (Laravel, .NET, Python, Go): ใช้ได้ — hooks / gate / docs-lint / board เป็น Node ล้วนไม่ผูกกับ stack ของแอป
+> แต่ต้อง (1) ตั้ง `VERIFY_COMMAND` env หรือ script `verify` ใน `package.json` เปล่า ๆ ให้ `gate.js` เจอ (2) เขียน `.claude/rules/` ใหม่ตาม convention ของ stack นั้นใน A.5
+> (rules ที่มากับ kit อ้าง shadcn / Prisma / next-intl) (3) `format-changed.js` ให้ชี้ formatter ของ stack นั้นหรือปิดไป — งาน A.5 จะหนักกว่าโปรเจกต์ TS ประมาณเท่าตัว
 
 ---
 
@@ -45,6 +49,7 @@ CLAUDE_CODE_NEW_INIT=1 claude      # แล้วพิมพ์ /init — flow 
 | **คำสั่ง** | ทุก script ใน `package.json` และอันไหน**รันผ่านจริง** (ลองรัน อย่าเชื่อชื่อ) |
 | **Convention ที่ใช้อยู่จริง** | ตั้งชื่อไฟล์, error handling, การ validate, การเรียก API, state management — ดูจากโค้ดที่เขียนซ้ำ ๆ ไม่ใช่จาก README |
 | **สิ่งที่ generate อัตโนมัติ** | โฟลเดอร์ไหนห้ามแก้มือ (shadcn ui/, OpenAPI client, Prisma client, migration ที่รันแล้ว) → จะไปเป็น `protected-paths.json` |
+| **Data model** | schema ที่มีอยู่ (`schema.prisma` / entities / migrations / SQL) — **ไฟล์นั้นคือ source of truth ของ data model ตั้งแต่วันนี้** ถ้าไม่มีไฟล์ schema เลย (DB ถูกแก้มือ) → `prisma db pull` หรือ dump DDL ลง `docs/data-model.md` ก่อน ไม่งั้น feature ใหม่จะสร้างตารางซ้ำกับของเดิม (เทียบ Phase 4.4b) |
 | **เทส** | มีไหม ครอบแค่ไหน รันผ่านไหม ใช้อะไร |
 | **CI/CD ที่มีอยู่** | มี pipeline อยู่แล้วไหม รันอะไร — ถ้ามี **อย่าไปแตะ** แค่บันทึก |
 | **ระบบติดตามงานเดิม** | Jira / Trello / GitHub Issues / ไม่มี — มีงานค้างกี่ชิ้น |
@@ -141,6 +146,22 @@ playbook เตือนไว้ชัด: **ห้ามมี 2 sources of tr
   ให้ผู้ใช้ไล่ตัดสิน ทำ/เลื่อน/ไม่ทำ ทีละอัน (ตัดทิ้งได้เยอะกว่าที่คิดเสมอ)
 - สร้าง `board.md` จาก `docs/templates/backlog-board.tpl.md` เริ่มจากว่าง + intent ที่รอตัดสิน
 - **task แรกของ backlog** = สิ่งที่ค้างจาก A.2 (ทำให้ verify ผ่าน) ถ้ามี
+- **งานที่กำลังทำค้างอยู่จริง (branch/PR เปิดอยู่)** → สร้างไฟล์ task ให้ทันที `status: in-progress|review` + `branch:` + ลิงก์ PR
+  แล้ว `node .claude/board.js` — AI จะได้เห็นตั้งแต่ session แรกและไม่หยิบงานซ้อน (กฎ WIP = 1 ยังใช้: 1 branch ค้างต่อคน ที่เหลือปิดหรือ park เป็น intent ก่อน)
+- **โปรเจกต์ที่ไม่มีระบบ task เลย** → เริ่มจาก board ว่าง ไม่ต้องย้อนสร้างประวัติ งานเข้าทาง `/intent` ตั้งแต่ชิ้นแรกหลัง Phase 7
+
+## A.6b requirement ใหม่ที่เข้ามาพร้อมกับการ adopt
+
+กรณีที่พบบ่อยที่สุด: รับโปรเจกต์เก่ามา **พร้อมกับ** ของใหม่ที่ต้องทำเลย
+
+| ขนาดของใหม่ | ทำ |
+|---|---|
+| feature เดียว / bug | รอจบ Phase 7 แล้ว `/intent` → `/spec` หรือ task ตรง — flow ปกติ |
+| module ใหม่ทั้งก้อน (หลาย feature) | `/intent` **1 ใบต่อ epic** แล้ว `/spec` ทีละ feature · ตอนถาม requirement ให้ยืมกลุ่มคำถาม B (ขอบเขต) และ C (ข้อมูล/สิทธิ์) จาก `phases/01-discovery.md` มาใช้ในขั้น requirements.md ได้ — ไม่ต้องรัน Phase 1 ทั้งขั้น |
+| ของใหม่ต้องแตะ data model เดิม | `design.md` เขียน DB change เป็น diff เทียบ schema ที่ล็อกไว้ใน A.1 — ห้าม migration แบบ destructive ต่อตารางเดิมโดยไม่ expand/contract (`rules/db-migration.md`) |
+| ของใหม่ขัดกับ convention เดิม | มาตรา 9.1 ตัดสิน: ของใหม่ตามธรรมนูญ ของเก่าแตะเฉพาะไฟล์ที่กำลังแก้ — ถ้าอยากยกทั้งระบบ = intent แยก |
+
+**ห้ามเริ่มของใหม่ก่อน A.2 ผ่าน** — verify ที่พังตั้งแต่ก่อนแตะอะไร คือสาเหตุอันดับหนึ่งที่ AI เริ่มมองข้าม error ในโปรเจกต์เก่า
 
 ## A.7 สิ่งที่อยากเปลี่ยนแต่ยังไม่เปลี่ยน
 
