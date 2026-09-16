@@ -61,7 +61,9 @@ function frontmatter(text) {
 }
 
 /** ค่าที่ยังเป็น placeholder ของ template ถือว่า "ไม่ได้กรอก" */
-const isPlaceholder = (v) => !v || /^<|T-000|I-000|F-xx|xxx|\.\.\./.test(String(v));
+const isPlaceholder = (v) => !v || /^<|T-000|I-000|F-xx|xxx|\.\.\./.test(String(v)) || isLegacy(v);
+/** `intent: legacy` = งานที่เกิดก่อนมีระบบ intent (โปรเจกต์ที่อัปเกรดจาก v1.0 — UPGRADE.md ข้อ 7) ไม่ต้องย้อนเขียน */
+const isLegacy = (v) => String(v ?? '').trim() === 'legacy';
 
 /** path ที่อ้างในไฟล์ task/intent อาจเป็นไฟล์หรือโฟลเดอร์ (spec เป็นโฟลเดอร์) */
 function refExists(p) {
@@ -97,7 +99,7 @@ if (!exists(TASKS_DIR)) {
     if (active) {
       if (!isPlaceholder(fm.intent) && !refExists(fm.intent)) bad(`${id}: intent: ชี้ไป ${fm.intent} แต่ไม่มีไฟล์`);
       if (!isPlaceholder(fm.spec) && !refExists(fm.spec)) bad(`${id}: spec: ชี้ไป ${fm.spec} แต่ไม่มีโฟลเดอร์`);
-      if (isPlaceholder(fm.intent) && !/^(chore|docs|test)$/.test(fm.type || '') && !/^T-\d+-test$/.test(id) && fm.track !== 'trivial')
+      if (isPlaceholder(fm.intent) && !isLegacy(fm.intent) && !/^(chore|docs|test)$/.test(fm.type || '') && !/^T-\d+-test$/.test(id) && fm.track !== 'trivial')
         warn(`${id}: ไม่มี intent: ต้นทาง — งานลอยที่ไม่มีใครรู้ว่าทำไมถึงทำ (ยกเว้น track: trivial)`);
     }
 

@@ -5,6 +5,8 @@
 
 ## v2.1 — 2026-09-17
 
+> โปรเจกต์ที่ใช้ v1.0 อยู่ → **[UPGRADE.md](UPGRADE.md)** (ไม่ต้องรัน Phase ใหม่ ~1 session)
+
 ปิดวงจรให้ใช้ production ได้จริง + ลด token ที่ซ้ำ ~30-40% ต่อ task cycle
 จากการ audit ทั้ง kit เทียบกับ Claude Code official docs (memory/rules, skills, hooks, costs, commands)
 **ทุกฟีเจอร์ที่ v2.0 อ้างว่ามีในเอกสารทางการ ตรวจแล้วมีจริงทั้งหมด** — ที่เปลี่ยนคือส่วนที่ยังเป็นกฎอ่อนหรือซ้ำซ้อน
