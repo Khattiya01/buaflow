@@ -178,6 +178,9 @@ if (fs.existsSync(skillsDir)) {
   }
 }
 
+if (fs.existsSync(path.join(CLAUDE, 'commands')))
+  bad('.claude/commands/ ยังอยู่ (ของ kit v1.0) — ลบทิ้ง: /review เดิมชนกับ built-in และ /check ใหม่ (ดู UPGRADE.md ข้อ 3)');
+
 // ── 5b. Agents ────────────────────────────────────────────────────────
 head('5b. Agents');
 const agentsDir = path.join(CLAUDE, 'agents');
