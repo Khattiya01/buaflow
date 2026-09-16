@@ -25,8 +25,8 @@ const DEFAULTS = {
     {
       pattern: '**/components/ui/**',
       reason:
-        'ไฟล์นี้อยู่ใน components/ui/ ซึ่งเป็นของที่ shadcn generate มา ห้ามแก้มือ\n' +
-        'ทางที่ถูก: ติดตั้ง/อัปเดตผ่าน shadcn CLI หรือสร้าง wrapper ใน components/shared/ แทน',
+        'This file is under components/ui/, which shadcn generates. Do not hand-edit it.\n' +
+        'Correct path: install/update through the shadcn CLI, or create a wrapper in components/shared/ instead.',
     },
   ],
   testFilePattern: '\\.(spec|test)\\.[jt]sx?$|(^|/)(tests?|__tests__|e2e)/',
@@ -88,8 +88,8 @@ process.stdin.on('end', () => {
     if (!rule?.pattern) continue;
     if (globToRegex(rule.pattern).test(p)) {
       process.stderr.write(
-        `[hook: guard-edit] ${rule.reason || `ไฟล์นี้ตรงกับ pattern ที่ห้ามแก้: ${rule.pattern}`}\n` +
-          'ถ้าคิดว่าจำเป็นต้องแก้จริง ให้หยุดแล้วบอกผู้ใช้ว่าติดอะไรและทำไม อย่าหาทางอ้อม\n'
+        `[hook: guard-edit] ${rule.reason || `This file matches a protected pattern: ${rule.pattern}`}\n` +
+          'If you believe the edit is truly necessary, stop and tell the user what is blocked and why. Do not look for a workaround.\n'
       );
       process.exit(2);
     }
@@ -100,10 +100,10 @@ process.stdin.on('end', () => {
     if (new RegExp(cfg.bugfixBranchPattern).test(branch)) {
       process.stderr.write(
         [
-          `[hook: guard-edit] อยู่บน branch "${branch}" ซึ่งเป็นงานแก้บั๊ก จึงห้ามแก้ไฟล์เทส`,
-          'เทสคือหลักฐานว่าบั๊กมีจริง การแก้เทสให้ผ่านไม่ใช่การแก้บั๊ก',
-          'ถ้าเทสเดิมผิดจริง: หยุด แล้วอธิบายให้ผู้ใช้ฟังว่าเทสเดิมผิดตรงไหนเพราะอะไร แล้วรอการตัดสินใจ',
-          'ถ้าต้องการ "เพิ่ม" เทสใหม่ที่จับบั๊กนี้: สร้างไฟล์เทสใหม่แยก แล้วบอกผู้ใช้',
+          `[hook: guard-edit] You are on branch "${branch}", a bug-fix branch, so editing test files is blocked.`,
+          'The test is the evidence that the bug exists. Making the test pass is not fixing the bug.',
+          'If the existing test really is wrong: stop, explain to the user where and why it is wrong, and wait for their decision.',
+          'If you need to ADD a new test that catches this bug: create a separate new test file and tell the user.',
         ].join('\n') + '\n'
       );
       process.exit(2);

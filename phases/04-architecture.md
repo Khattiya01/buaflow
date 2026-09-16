@@ -91,7 +91,7 @@ docker/
 
 ---
 
-## 4.4 Data & Prisma
+## 4.4 Data & Prisma — convention
 - naming convention ของ model/field
 - ทุกตารางมี `id`, `createdAt`, `updatedAt` และพิจารณา `deletedAt` (soft delete) เป็นนโยบายเดียวทั้งระบบ
 - index ที่ต้องมีตั้งแต่แรก (foreign key, field ที่ค้นบ่อย, unique constraint)
@@ -99,10 +99,33 @@ docker/
 - **seed** — ต้องมีข้อมูลตั้งต้นสำหรับ dev/test ที่รันซ้ำได้ (idempotent)
 - แผน backup/restore (แม้ยังไม่รู้ว่า deploy ที่ไหน ก็ระบุว่าต้องมี)
 
+## 4.4b Data model v1 — ล็อกก่อน scaffold (ห้ามข้าม)
+
+> **ทำไมต้องมี:** Phase 1 ให้แค่ "entity + ความสัมพันธ์ ยังไม่ต้องเป็น schema จริง" และ `/spec` ตัดสิน DB ราย feature
+> ถ้าไม่มีโมเดลกลาง feature ที่ 7 จะสร้างตารางที่ซ้ำกับของ feature ที่ 3 ภายใต้ชื่อใหม่ และ reviewer ไม่มีอะไรให้เทียบ
+> **AI อ่านตัวหนังสือ ไม่ได้อ่านรูป** — ของที่ต้องมีคือ schema ที่เป็น text ใน git ไม่ใช่ diagram ที่วาดมือ
+
+เอา "โมเดลข้อมูลเบื้องต้น" จาก `01-requirements.md` §4 มาล็อกเป็นของจริง เขียนลง `docs/planning/04-architecture.md` § Data model:
+
+1. **Core entities** — ตาราง: entity / หน้าที่ 1 บรรทัด / field สำคัญ (ไม่ต้องครบ) / owner (ใครเป็นเจ้าของ record) / soft delete ไหม
+2. **ความสัมพันธ์** — เขียนเป็น `mermaid erDiagram` **ไม่เกิน ~30 บรรทัด** เฉพาะ core (ตัวที่ feature ส่วนใหญ่แตะ) ตัวรองไม่ต้องใส่
+3. **การตัดสินใจระดับระบบ** (ต้องเลือกครั้งเดียวและใช้ทั้งระบบ — แต่ละข้อเป็น ADR):
+   - ID strategy: cuid / uuid v7 / bigint autoincrement
+   - multi-tenancy: ไม่มี / column `orgId` ทุกตาราง / schema แยก
+   - soft delete: ทุกตาราง / เฉพาะที่ระบุ / ไม่ใช้
+   - audit: `createdBy`/`updatedBy` ไหม, audit log table ไหม
+   - timezone/locale ของ timestamp และ money (decimal ไม่ใช่ float)
+4. **สิ่งที่ยังไม่รู้** → `[NEEDS CLARIFICATION]` ห้ามเดา
+
+หลัง Phase 6 ขั้น 6 → **`prisma/schema.prisma` คือ source of truth ตัวเดียว** ของ data model
+- `/spec` design.md เขียนการเปลี่ยน DB เป็น **diff เทียบ schema.prisma** และต้องตรวจว่าไม่ซ้ำ entity เดิม
+- erDiagram ในเอกสารนี้ **ไม่ต้อง maintain มือ** — ถ้าอยากได้ภาพให้คนดู ใช้ `prisma-erd-generator` generate ตอน release
+- เอกสารกับ schema ไม่ตรงกัน → schema ถูก (ธรรมนูญมาตรา 1 + Phase A หลักคิด)
+
 ---
 
 ## 4.5 Auth & Authorization
-- flow login/logout/refresh เป็น sequence
+- flow login/logout/refresh เป็น **`mermaid sequenceDiagram` ~20 บรรทัด** (ตรงนี้ diagram คุ้ม — token/refresh/logout คือจุดที่ AI ชอบคิดท่าของตัวเองมากที่สุด)
 - session เก็บที่ไหน (cookie httpOnly + secure + sameSite แนะนำ) อายุเท่าไหร่
 - **RBAC matrix** — ตาราง role × action:
   | Action | Guest | User | Admin |
@@ -138,7 +161,19 @@ docker/
 
 ---
 
-## 4.8 Docker และ Environment
+## 4.8 Docker, Environment และ Runtime topology
+
+**Runtime topology — เป็นตาราง ไม่ใช่รูป** (การตัดสินใจเรื่อง CORS allowlist / cookie domain / CSP / secret ขึ้นกับตรงนี้):
+
+| component | รันที่ไหน (local / uat / prd) | คุยกับอะไร | ผ่าน network ไหน | secret ที่ถือ |
+|---|---|---|---|---|
+| web (Next.js) | container | api, CDN | public | ไม่มี (public env เท่านั้น) |
+| api (NestJS) | container | postgres, redis, mail, S3-compatible | private | DATABASE_URL, JWT_SECRET, … |
+| postgres | container / managed | — | private | — |
+
+เกิน 5 กล่องค่อยเพิ่ม `mermaid flowchart` **ยังไม่เลือก deploy target = ยังไม่วาด infra diagram** (วาดไปคือเดา)
+สิ่งที่ล็อกได้ตอนนี้: ขอบเขต private/public, อะไรต้องมี TLS, อะไรห้าม expose
+
 - `docker-compose.dev.yml` — app, postgres, **sonarqube + sonar db**, adminer/pgadmin, mailpit (ทดสอบอีเมล)
 - `Dockerfile` แบบ multi-stage (deps → build → runtime slim, non-root user)
 - ตาราง env var ต่อ environment:
@@ -184,6 +219,10 @@ docker/
 2. `docs/adr/` — ADR เพิ่มสำหรับการตัดสินใจใน Phase นี้ (error format, auth flow, soft delete, pagination, ฯลฯ)
 3. `docs/api/README.md` — กติกา API contract ฉบับย่อสำหรับเปิดดูเร็ว
 4. `docs/constitution.md` — ธรรมนูญโปรเจกต์ (ร่างแรก จะถูกตรวจซ้ำอีกครั้งใน Phase 7)
+5. § Data model v1 (4.4b) + ADR ของ ID / tenancy / soft delete / audit — **ไม่มีข้อนี้ห้ามไป Phase 5**
+
+> **diagram อะไรที่คุ้ม:** (ก) เป็น text ใน git (ข) generate ได้ หรือสั้นกว่า ~30 บรรทัด (ค) AI เดาผิดแล้วเจ็บกว่าค่าดูแล
+> ผ่านทั้ง 3: ERD core (4.4b), auth sequence (4.5), topology table (4.8) · ไม่ผ่าน: C4 ครบชั้น, UML class, infra poster — อย่าทำ
 
 ## ก่อนจบ Phase
 อัปเดต `_state.md` → สรุปการตัดสินใจสถาปัตยกรรม + ความเสี่ยงทางเทคนิค

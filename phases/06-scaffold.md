@@ -36,10 +36,14 @@
 - npm scripts มาตรฐาน:
   `dev` `build` `start` `lint` `format` `typecheck` `test` `test:cov` `db:migrate` `db:seed` `docker:dev` `sonar`
 - **`verify` — คำสั่งตรวจมาตรฐานตัวเดียว** (ตามที่ตัดสินใน Phase 2 รอบ B2):
+  คัดลอก `project-kit/templates/verify.mjs.tpl` → `scripts/verify.mjs` ปรับ `STEPS` ให้ตรง stack แล้ว
   ```json
-  "verify": "pnpm typecheck && pnpm lint && pnpm test"
+  "verify": "node scripts/verify.mjs"
   ```
-  ต้อง exit non-zero เมื่อมีอะไรพัง และรันจบในเวลาที่ตกลงไว้
+  เพิ่ม `.verify.log` ลง `.gitignore` · ต้อง exit non-zero เมื่อพัง และรันจบในเวลาที่ตกลงไว้
+- **gate + pre-push** — คัดลอก `project-kit/claude-setup/{gate,docs-lint,board,check-config}.js` → `.claude/` (Phase 7 จะทำซ้ำอยู่แล้ว แต่ต้องมีตั้งแต่ตอนนี้เพื่อให้ pre-push ทำงาน)
+  และ `project-kit/claude-setup/ci/pre-push.tpl` → `.husky/pre-push`
+  verify: แก้ไฟล์ให้ lint พังแล้วลอง `git push` → ต้องถูกปฏิเสธ
 - verify: ลอง commit ที่ผิดรูปแบบแล้วต้องถูกปฏิเสธ
 - verify: รัน `pnpm verify` แล้ว **เก็บ output ตอนที่ทุกอย่างเขียวไว้** — จะเอาไปใส่ `AGENTS.md` ใน Phase 7
   (AI ต้องรู้ว่า "ผ่าน" หน้าตาเป็นยังไง ไม่งั้นมันเดาเอง)
@@ -69,7 +73,8 @@
 - verify: สลับภาษาแล้วข้อความเปลี่ยนจริงทั้งสองภาษา
 
 ### ขั้น 6 — Database
-- `prisma init`, เขียน schema ตั้งต้น, migration แรก, `seed.ts`
+- `prisma init`, เขียน schema **จาก Data model v1 ใน `04-architecture.md` § 4.4b** (ไม่ใช่คิดใหม่ตรงนี้), migration แรก, `seed.ts`
+- ตั้งแต่บรรทัดนี้ `prisma/schema.prisma` คือ source of truth ของ data model — spec ทุกตัวหลังจากนี้เขียน DB change เป็น diff เทียบไฟล์นี้
 - verify: `pnpm db:migrate` และ `pnpm db:seed` ผ่าน และเปิด adminer เห็นตาราง
 
 ### ขั้น 7 — Docker
@@ -94,16 +99,19 @@
 - Postman collection เริ่มต้น
 - verify: เปิด `/docs` เห็น endpoint และยิงทดสอบได้
 
-### ขั้น 10 — โครงโฟลเดอร์เอกสาร
+### ขั้น 10 — โครงโฟลเดอร์เอกสาร + CI templates
 สร้างโฟลเดอร์เปล่าพร้อม `.gitkeep` ให้พร้อมรับของใน Phase 7:
 ```
 docs/intents/  docs/plans/  docs/evals/  docs/incidents/  docs/releases/
 docs/specs/    docs/adr/    docs/design/ docs/standards/  docs/templates/
 ```
+วาง CI ไว้ทั้งสองแบบ (ยังไม่เลือก host — เลือกแล้วลบอีกอัน): `claude-setup/ci/github-actions.yml.tpl` → `.github/workflows/gate.yml`,
+`claude-setup/ci/gitlab-ci.yml.tpl` → `.gitlab-ci.yml` เติม `{{PNPM_VERSION}}` `{{NODE_MAJOR}}` จาก `.nvmrc` / `packageManager`
 
 ### ขั้น 11 — Commit และปิด M0
 - commit ตาม Conventional Commits ทีละขั้น
-- อัปเดตสถานะ task ของ M0 ใน `board.md` เป็น `done`
+- ไฟล์ task ของ M0 → `status: done` + `commit:` แล้ว `node .claude/board.js`
+- `node .claude/gate.js` ต้องผ่าน (แปะผล)
 
 ---
 

@@ -15,15 +15,17 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
 
 1. **Artifact ต่อกันเป็นทอด** — ทุกขั้นคายไฟล์ที่ขั้นถัดไปอ่านได้ และทุกไฟล์อยู่ใน git
    ```
-   intent → spec (requirements/design/tasks) → plan → code → verify → review → done
+   intent → spec (requirements/design/tasks) → plan → code → verify → check → PR → done
    ```
    ผลคือตรวจย้อนได้ว่า *ใครขออะไร → ตกลงอะไรไว้ → วางแผนยังไง → ทำอะไรไป → ใครอนุมัติ*
+   และ **แต่ละขั้นบีบ ไม่ส่งต่อ** — `plan.md` คัดทุกอย่างที่ต้องใช้ไว้ ขั้นถัดไปอ่านไฟล์เดียว
 
 2. **Config เป็นการควบคุม ไม่ใช่แค่เอกสาร** — กฎแบ่งเป็น 4 ชั้นตามความแข็ง
-   กฎที่ห้ามพังต้องมี hook ไม่ใช่แค่ข้อความว่า "ห้าม..."
+   กฎที่ห้ามพังต้องมี hook ไม่ใช่แค่ข้อความว่า "ห้าม..." และกฎที่ต้องอยู่**นอก session ของ Claude** ต้องอยู่ใน gate
+   (`gate.js` = verify + check-config + docs-lint รันจาก pre-push และ CI — main รับของผ่าน PR เท่านั้น)
 
 3. **AI ต้องตรวจงานตัวเองได้ก่อนคนเห็น** — ทุกโปรเจกต์ต้องมี `pnpm verify` คำสั่งเดียว
-   ที่รันเร็วพอให้ AI วนซ้ำได้ และทุกงานต้องระบุ **Proof** ว่าอะไรพิสูจน์ว่าเสร็จ
+   ที่รันเร็วพอให้ AI วนซ้ำได้ **พิมพ์สรุปสั้นพอที่จะแปะได้ทุกครั้ง** (log เต็มแยกไฟล์) และทุกงานต้องระบุ **Proof** ว่าอะไรพิสูจน์ว่าเสร็จ
 
 4. **ห้ามเดา** — จุดที่ไม่ชัดต้องเขียน `[NEEDS CLARIFICATION: ...]` ไม่ใช่เติมค่าที่ดูสมเหตุสมผล
    เอกสารที่ยังเหลือ marker ผ่าน gate ไม่ได้
@@ -32,6 +34,9 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
    คนตัดสินเรื่องที่ต้องใช้ (รับความเสี่ยงไหม ขึ้น prd ไหม) และ **AI ไม่อนุมัติงานตัวเอง**
 
 6. **ไม่ยิงทีเดียวจบ** — แบ่งเป็น Phase สั่งทีละอัน เพื่อให้ context ไม่บวมและแก้ทิศได้ตลอด
+
+7. **ใช้ของที่ Claude Code มีให้ก่อนเขียนเอง** — `/code-review` `/security-review` `/simplify` `/doctor` `/insights` `/init` `/import`
+   เป็น built-in ที่ kit เรียกใช้ (ดู `standards/context-budget.md` และ Phase 8) — เขียนเองเฉพาะส่วนที่รู้กติกาโปรเจกต์
 
 ---
 
@@ -62,10 +67,10 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
 ```
 /intent <เรื่องที่อยากทำ>    เปิดงานใหม่
 /spec F-01                  ทำ spec ของ feature ใหญ่
-/plan T-001                 วางแผนก่อนลงมือ
+/plan T-001                 วางแผนก่อนลงมือ (plan.md คัดทุกอย่างที่ต้องใช้ไว้)
 /task T-001                 ลงมือ
-/review                     รีวิว
-/done T-001                 ปิดงาน
+/check T-001                ตรวจ (verify + เทียบ plan + /code-review + /security-review)
+/done T-001                 เปิด PR + ปิดงาน (คนกด merge)
 ```
 
 ### ทบทวนและปรับ config
@@ -105,7 +110,8 @@ project-kit/
 │   ├── i18n-and-theme.md
 │   ├── commit-and-branch.md
 │   ├── docker-and-envs.md
-│   └── sonarqube-local.md
+│   ├── sonarqube-local.md
+│   └── context-budget.md            ⭐ งบ token: ขั้นไหนอ่านอะไร โมเดลไหน อะไรตัดไปแล้วเพราะอะไร
 │
 ├── templates/                  ← แม่แบบเอกสาร
 │   ├── constitution.tpl.md          ธรรมนูญโปรเจกต์ (หลักการที่ห้ามละเมิด)
@@ -118,14 +124,19 @@ project-kit/
 │   ├── eval-case.tpl.md
 │   ├── AGENTS.md.tpl                กติกาหลัก (มาตรฐานกลาง)
 │   ├── CLAUDE.md.tpl                ชั้นบางเฉพาะ Claude Code
-│   └── REVIEW.tpl.md                นโยบายการรีวิว
+│   ├── REVIEW.tpl.md                นโยบายการรีวิว
+│   └── verify.mjs.tpl               ⭐ verify ที่พิมพ์สรุปสั้น log เต็มลง .verify.log
 │
 └── claude-setup/               ← จะถูกคัดลอกไป .claude/ ตอน Phase 7
-    ├── skills/                      /intent /spec /plan /task /ui /review /done /hotfix /release
+    ├── skills/                      /intent /spec /plan /task /ui /check /done /hotfix /release
     ├── rules/                       กฎที่โหลดตาม paths ของไฟล์ที่แตะ
     ├── agents/                      code-reviewer, test-writer, legacy-explorer
     ├── hooks/                       ⭐ ชั้นที่บังคับได้จริง (Node ล้วน ไม่มี dependency)
-    ├── check-config.js              ⭐ ตรวจว่า config ทำงานจริง (paths match ไหม / hook คืน exit code ถูกไหม)
+    ├── check-config.js              ⭐ ตรวจว่า config ทำงานจริง (paths match ไหม / hook คืน exit code ถูกไหม / ชื่อ skill ชน built-in ไหม)
+    ├── docs-lint.js                 ⭐ ตรวจว่า artifact chain ยังตรงกัน (spec โกหก / task ลอย / WIP / หนี้เทส)
+    ├── board.js                     generate board.md จากไฟล์ task
+    ├── gate.js                      ⭐ ด่านเดียว: verify + check-config + docs-lint — pre-push และ CI รันตัวเดียวกัน
+    ├── ci/                          pre-push + GitHub Actions + GitLab CI templates
     ├── protected-paths.json         ไฟล์ที่ห้าม AI แก้ — ปรับได้โดยไม่แตะ hook
     ├── settings.json.tpl            permissions + การผูก hooks
     └── evals/                       ชุดเคสทดสอบ config
@@ -144,8 +155,12 @@ CONTRIBUTING.md
 ├── agents/*.md                ← 3 subagents
 ├── hooks/*.js                 ← ชั้นบังคับ
 ├── check-config.js            ← ตรวจสุขภาพ config (รันทุกครั้งที่ปรับ)
+├── docs-lint.js  board.js  gate.js
 ├── protected-paths.json       ← ไฟล์ที่ห้าม AI แก้
 └── settings.json              ← permissions + hooks
+.husky/pre-push                ← node .claude/gate.js
+.github/workflows/gate.yml | .gitlab-ci.yml
+scripts/verify.mjs             ← verify ที่พิมพ์สรุปสั้น
 docs/
 ├── constitution.md            ← ธรรมนูญโปรเจกต์
 ├── intents/                   ← ประตูเข้าของงานใหม่
@@ -154,7 +169,7 @@ docs/
 ├── evals/                     ← regression test ของ config
 ├── planning/                  ← ผลลัพธ์ Phase 1-5 (แช่แข็งไว้อ้างอิง)
 ├── adr/                       ← Architecture Decision Records
-├── backlog/board.md           ← กระดานงาน (source of truth)
+├── backlog/tasks/*.md         ← source of truth ของงาน (board.md generate จากตรงนี้)
 ├── standards/                 ← มาตรฐานฉบับเต็ม
 ├── incidents/  releases/  design/  api/  templates/
 docker-compose.dev.yml

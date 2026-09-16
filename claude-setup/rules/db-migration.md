@@ -6,39 +6,43 @@ paths:
   - "**/schema.prisma"
 ---
 
-# กติกาฐานข้อมูลและ Migration (โหลดอัตโนมัติเมื่อแตะ schema หรือ migration)
+# Database & migration rules (auto-loaded when touching schema or migrations)
 
-## ก่อนแก้ schema — หยุดคิด 3 ข้อ
+## Before changing the schema — stop and answer three things
 
-1. **ย้อนกลับได้ไหม** ถ้าย้อนไม่ได้ต้องออกแบบใหม่
-2. **ข้อมูลเดิมจะเป็นยังไง** มี record ที่ค่าใหม่เป็น null ไม่ได้ไหม ต้อง backfill ไหม
-3. **ใครใช้ field นี้อยู่บ้าง** ค้นทั้งโปรเจกต์ก่อน อย่าเดา
+1. **Can it be rolled back?** If not, redesign.
+2. **What happens to existing data?** Any rows where the new value cannot be null? Backfill needed?
+3. **Who uses this field?** Search the whole project first; don't guess.
 
-## Destructive change ต้องทำแบบ expand / contract เสมอ
+## Destructive changes always use expand / contract
 
-การลบ column, เปลี่ยนชนิด, เปลี่ยนชื่อ = destructive **ห้ามทำในรอบเดียว**
+Dropping a column, changing a type, renaming = destructive. **Never in one release.**
 
 ```
-รอบที่ 1 (expand)   เพิ่มของใหม่ ของเก่ายังอยู่ เขียนลงทั้งคู่ → ปล่อย → ยืนยันว่าใช้ได้
-รอบที่ 2 (contract) ย้ายอ่านมาที่ของใหม่ → ปล่อย
-รอบที่ 3            ลบของเก่า → ปล่อย
+Release 1 (expand)   add the new thing, keep the old, write to both → ship → confirm it works
+Release 2 (contract) move reads to the new thing → ship
+Release 3            drop the old thing → ship
 ```
 
-## ทุก migration ต้องมี
+## DoD: DB / Migration (this is the DoD for this work type — `/check` reports **only failing items**)
 
-- [ ] รันขึ้นได้จริงบน DB สำเนา (ไม่ใช่แค่ generate ผ่าน)
-- [ ] **แผน rollback ที่เขียนไว้ชัด** ว่าถ้าพังทำยังไง กี่นาที
-- [ ] อัปเดต `seed.ts` ถ้าโครงเปลี่ยน
-- [ ] index สำหรับ field ที่จะถูก query หรือ join
-- [ ] ระบุใน `design.md` ของ feature ว่า migration นี้ทำอะไร
+Schema changes must first be written in the feature's `design.md` as a **diff against the current `schema.prisma`** — the schema is the single source of truth for the data model. Never create an entity that duplicates an existing one under a new name.
 
-## ห้าม
+Every migration must have:
 
-- แก้ไฟล์ migration ที่รันไปแล้วบน env ใดก็ตาม → สร้าง migration ใหม่แทน
-- รัน migration บน prd โดยไม่ backup ก่อน
-- ใส่ข้อมูลจริงหรือ secret ลงใน seed หรือ migration
+- [ ] Actually run on a copy of the DB (not just "generate passed")
+- [ ] **A written rollback plan**: what to do if it fails, how many minutes
+- [ ] `seed.ts` updated if the structure changed
+- [ ] Indexes for fields that will be queried or joined
+- [ ] The feature's `design.md` states what this migration does
 
-## ก่อนปล่อย
+## Never
 
-ถ้า migration นี้ย้อนกลับไม่ได้ **ต้องบอกผู้ใช้ตรง ๆ ก่อนปล่อย** ว่าปล่อยแล้วกลับไม่ได้
-และ rollback จะต้องใช้ backup เท่านั้น
+- Edit a migration that has already run on any environment → create a new migration
+- Run a migration on prd without a backup first
+- Put real data or secrets in seeds or migrations
+
+## Before release
+
+If this migration cannot be rolled back, **tell the user plainly before release** that once shipped there is no way back
+and rollback will require restoring from backup.

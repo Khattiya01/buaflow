@@ -40,19 +40,20 @@ Milestone  (M0-M3)     ก้อนที่ส่งมอบได้ / demo �
 
 ## 5.3 รูปแบบไฟล์ backlog
 
-### `docs/backlog/board.md` — กระดานหลัก
-ใช้ template `project-kit/templates/backlog-board.tpl.md`
-สถานะ: `backlog` → `todo` → `in-progress` → `review` → `done` (+ `blocked`)
+### `docs/backlog/tasks/T-001.md` — **source of truth ตัวเดียว**
+ใช้ template `project-kit/templates/task.tpl.md` — frontmatter ต้องครบ: `id status type milestone priority estimate depends_on` (board ใช้เรียง)
+สถานะ: `backlog` → `todo` → `in-progress` → `review` → `done` (+ `blocked` ต้องมี `blocked_reason:`)
 
-### `docs/backlog/tasks/T-001.md` — รายละเอียดต่อ task
-ใช้ template `project-kit/templates/task.tpl.md`
+### `docs/backlog/board.md` — view ที่ generate
+```bash
+node .claude/board.js
+```
+สร้างจากไฟล์ task + intent ทุกครั้งที่สถานะเปลี่ยน **ห้ามแก้มือ** (hook บล็อก) — โครงเหมือน `templates/backlog-board.tpl.md`
+`session-context.js` ยังอ่าน board ตอนเปิด session เหมือนเดิม
 
-### `docs/backlog/import.csv` — สำหรับ import เข้า dashboard จริงทีหลัง
-คอลัมน์: `id,title,type,epic,feature,milestone,estimate,priority,status,depends_on,acceptance_criteria`
-
-> ทีมใช้ไฟล์ใน repo เป็น source of truth
-> ถ้าวันหนึ่งย้ายไป Jira / GitHub Projects ก็ export จาก CSV นี้ได้เลย
-> และถ้ามี task เกิดใหม่ที่ dashboard → **ต้องสร้างไฟล์ task กลับเข้า repo ด้วย** ไม่งั้น AI มองไม่เห็น
+> **ทำไมเปลี่ยน:** v2.0 ให้ `/done` เขียนข้อเท็จจริงเดียวกัน 3 ที่ (board / task / import.csv) ทุกครั้ง = token ซ้ำ 3 เท่าและ drift ตลอด
+> `import.csv` ตัดทิ้ง — ถ้าวันหนึ่งย้ายไป Jira/GitHub Projects ให้เขียน exporter จาก frontmatter ของ task (20 บรรทัด) ตอนนั้น
+> task ที่เกิดจาก tracker ภายนอก → **ต้องสร้างไฟล์ task กลับเข้า repo** ไม่งั้น AI มองไม่เห็น
 
 ---
 
@@ -109,11 +110,10 @@ F-01 สมัครสมาชิก
 - frontend task ต้องมีคู่ `-test` เสมอ (สถานะ blocked)
 
 ## ผลลัพธ์ที่ต้องเขียน
-1. `docs/backlog/board.md` (รวมตาราง "Intent รอตัดสิน")
-2. `docs/backlog/tasks/*.md` — **อย่างน้อยต้องเขียนละเอียดครบทุก task ของ M0 และ M1**
+1. `docs/backlog/tasks/*.md` — **อย่างน้อยต้องเขียนละเอียดครบทุก task ของ M0 และ M1**
    ส่วน M2/M3 เขียนเป็นหัวข้อไว้ก่อนได้ แล้วค่อยลงรายละเอียดเมื่อใกล้ถึง
-3. `docs/backlog/import.csv`
-4. `docs/planning/05-roadmap.md` — milestone, ลำดับ, dependency graph, ความเสี่ยงเรื่องเวลา
+2. `docs/backlog/board.md` — จาก `node project-kit/claude-setup/board.js` (Phase 7 จะย้ายสคริปต์ไป `.claude/`)
+3. `docs/planning/05-roadmap.md` — milestone, ลำดับ, dependency graph, ความเสี่ยงเรื่องเวลา
 
 ## ก่อนจบ Phase
 อัปเดต `_state.md` → สรุปจำนวน epic/feature/task ต่อ milestone และ task แรกที่ควรทำ

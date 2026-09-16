@@ -26,15 +26,17 @@
 4. **ถามทีละกลุ่ม ไม่เกิน 4 คำถามต่อรอบ** ถ้าเหลือให้ถามรอบถัดไป
 5. **บันทึกทุกการตัดสินใจลง `docs/planning/_state.md` ทันทีที่ตัดสินใจเสร็จ**
    ห้ามเก็บไว้ใน context เฉยๆ เพราะ session อาจหลุด
-6. **ภาษา** — เอกสารและบทสนทนาทั้งหมดเป็น **ภาษาไทย**
+6. **ภาษา** — บทสนทนาและเอกสารใน `docs/` ทั้งหมดเป็น **ภาษาไทย**
    ยกเว้นสิ่งที่เป็นเทคนิคโดยธรรมชาติให้คงภาษาอังกฤษ: ชื่อไฟล์ ชื่อตัวแปร ชื่อ branch
    commit message โค้ด คำศัพท์ framework และ i18n key
+   **ข้อยกเว้นเดียว: ไฟล์ที่ AI อ่านอย่างเดียว** (`AGENTS.md`, `CLAUDE.md`, `REVIEW.md`, `.claude/rules/`, `.claude/skills/`, `.claude/agents/`, ข้อความจาก hook)
+   เป็น**ภาษาอังกฤษ** เพราะภาษาไทย tokenize แพงกว่า ~2 เท่าและไฟล์พวกนี้ถูกโหลดทุก session — ทุกไฟล์ในกลุ่มนี้สั่งให้ AI ตอบผู้ใช้เป็นไทยและเขียน artifact เป็นไทยเสมอ
 7. **ผู้ใช้เปลี่ยนใจได้ตลอด** ถ้าผู้ใช้ขอแก้สิ่งที่ตัดสินใจไปแล้วใน Phase ก่อนหน้า
    ให้แก้เอกสารเดิม + อัปเดต `_state.md` + บอกว่ากระทบ Phase ไหนบ้าง อย่าบ่น อย่าเริ่มใหม่ทั้งหมด
-8. **ยังไม่ต่อ CI/CD แต่ต้องออกแบบให้ "CI-ready"** ทีมยังไม่ตัดสินใจเรื่อง Git host/pipeline
-   ให้ใช้ **script ในเครื่อง + Docker** ไปก่อน แต่ทุกอย่างที่ต้องตรวจต้องเป็น
-   **คำสั่งเดียวที่รันแบบ non-interactive ได้** วันที่ต่อ pipeline จะได้ไม่ต้องรื้อวิธีทำงาน
-   เขียนไว้ว่า "รอตัดสินใจ" ใน ADR
+8. **gate ต้องมีตั้งแต่ Phase 6 แม้ยังไม่เลือก git host** — `node .claude/gate.js` (verify + check-config + docs-lint)
+   รันจาก `.husky/pre-push` และมีไฟล์ CI เตรียมไว้ทั้ง GitHub/GitLab (`claude-setup/ci/`)
+   วันที่เลือก host เหลือแค่เปิด branch protection — **นี่คือสิ่งเดียวที่ทำให้กฎของ kit เป็นกฎแข็งนอก session ของ Claude**
+   deploy target ยังไม่ตัดสิน → container-first, เขียน "รอตัดสินใจ" ใน ADR
 9. **ห้ามเดาแทนผู้ใช้ — ใช้เครื่องหมายแทน** ทุกจุดที่ไม่ชัดและมีผลต่อผลลัพธ์ ให้เขียน
    `[NEEDS CLARIFICATION: <คำถาม>]` ไว้ในเอกสารตรงนั้น **ห้ามเติมค่าที่ดูสมเหตุสมผลเอาเอง**
    เอกสารที่ยังเหลือ marker จะผ่านไปขั้นถัดไปไม่ได้
@@ -49,7 +51,13 @@
     | ขั้นตอนที่ทำซ้ำ | `.claude/skills/*/SKILL.md` | แนะนำ เรียกได้ |
     | **กฎที่ห้ามพัง** | `.claude/hooks/` + `settings.json` | **บังคับจริง** |
 
-    subagent ใช้เฉพาะตอนที่ต้อง **แยก context** จริง ๆ — มี 3 ตัวกำหนดไว้แล้วใน `claude-setup/agents/`
+    subagent ใช้เฉพาะตอนที่ต้อง **แยก context** จริง ๆ — มี 3 ตัวกำหนดไว้แล้วใน `claude-setup/agents/` (ตั้ง `model:` haiku/sonnet ไว้แล้ว)
+
+11. **AI ไม่ merge เข้า main และไม่แก้ `board.md` มือ** — `/done` เปิด PR ให้คนกด (hook บล็อก merge/push เข้า main)
+    board generate จากไฟล์ task ด้วย `node .claude/board.js` (ไฟล์ task คือ source of truth ตัวเดียว)
+12. **artifact แต่ละขั้นต้องบีบ ไม่ใช่ส่งต่อ** — `/plan` คัด AC + มาตราธรรมนูญ + กติกา design ลง plan.md
+    แล้ว `/task` `/check` อ่าน plan.md ไฟล์เดียว · `verify` พิมพ์สรุปสั้น log เต็มลง `.verify.log` · รายงานเฉพาะข้อที่ไม่ผ่าน
+    (รายละเอียดและตารางโมเดลต่อขั้นใน `standards/context-budget.md`)
 
 ---
 
@@ -147,9 +155,10 @@
 ### หลังจบ Phase 7 งานเดินยังไง
 
 ```
-intent  →  spec (feature ใหญ่)  →  plan  →  code  →  verify  →  review  →  done
-  ↑                                                                          ↓
-  └─────────── postmortem / งานนอก scope / finding จาก Sonar ─────────────────┘
+intent  →  spec (feature ใหญ่)  →  plan  →  code  →  verify  →  check  →  PR (คนกด merge)  →  done
+  ↑            trivial track: task → code → check low → PR                                    ↓
+  └─────────── postmortem / งานนอก scope / finding จาก Sonar / /insights ───────────────────────┘
+                              gate = verify + check-config + docs-lint  (pre-push + CI)
 ```
 
 แต่ละขั้นคายไฟล์ที่ขั้นถัดไปอ่านได้ ทั้งสายอยู่ใน git = ตรวจย้อนได้ว่า
@@ -190,16 +199,18 @@ Phase 8 คือรอบที่เอาบทเรียนจากกา
 
 | หัวข้อ | ค่าที่ล็อก |
 |---|---|
-| Backlog | เก็บเป็นไฟล์ `.md` ใน repo เป็น source of truth (โปรเจกต์เดิมที่มี tracker อยู่แล้ว → ตัดสินใน Phase A.6) |
+| Backlog | ไฟล์ task (`docs/backlog/tasks/*.md`) = source of truth · `board.md` generate ด้วย `board.js` ห้ามแก้มือ · ไม่มี `import.csv` (โปรเจกต์เดิมที่มี tracker อยู่แล้ว → ตัดสินใน Phase A.6) |
 | SonarQube | รัน **local manual เท่านั้น** AI เตรียม config ให้ แต่ **AI ไม่รัน scan** |
 | Docker | ใช้ทั้ง dev และ deploy |
 | Spec | feature ใหญ่ต้องมี spec 3 ส่วนก่อนโค้ด, task ย่อย/hotfix ใช้ template สั้น |
 | Coverage | Backend: เขียน unit test พร้อม module ทุกครั้ง / Frontend: เขียนทีหลังเมื่อ UI นิ่ง |
 | API docs | ต้องมี OpenAPI เสมอเมื่อมี API |
-| คำสั่งตรวจ | ต้องมี **`pnpm verify` คำสั่งเดียว** ที่รันจบใน ~30 วินาที และ exit non-zero เมื่อพัง |
-| Artifact chain | งานใหม่เข้าทาง `docs/intents/` เสมอ → spec → plan → code → review → done |
+| คำสั่งตรวจ | ต้องมี **`pnpm verify` คำสั่งเดียว** (`scripts/verify.mjs` จาก template) รันจบใน ~30 วินาที exit non-zero เมื่อพัง **พิมพ์สรุปสั้น** log เต็มลง `.verify.log` |
+| Gate | `node .claude/gate.js` = verify + check-config + docs-lint — รันจาก pre-push และ CI ตัวเดียวกัน main รับของผ่าน PR เท่านั้น |
+| Data model | `prisma/schema.prisma` เป็น source of truth ตัวเดียว ล็อก core entities ที่ Phase 4.4b ก่อน scaffold |
+| Artifact chain | งานใหม่เข้าทาง `docs/intents/` เสมอ → spec → plan → code → check → PR → done (งานจิ๋ว: trivial track ไม่ต้อง intent/plan) |
 | กติกา AI | คาย `AGENTS.md` (มาตรฐานกลาง) + `CLAUDE.md` ที่ import เข้าไป ไม่เขียนซ้ำ 2 ที่ |
-| CI/CD | **ยังไม่ต่อ แต่ต้อง CI-ready** (ทุกอย่างเป็น one-command non-interactive) |
+| CI/CD | gate มีตั้งแต่ Phase 6 (pre-push) + ไฟล์ CI เตรียมไว้ทั้ง GitHub/GitLab — เลือก host แล้วเปิด branch protection |
 | Deploy target | **ยังไม่ตัดสินใจ** → ออกแบบให้เป็น container-first ไม่ผูก vendor |
 | Git host | **ยังไม่ตัดสินใจ** → ใช้ convention ที่ย้ายไป host ไหนก็ได้ |
 

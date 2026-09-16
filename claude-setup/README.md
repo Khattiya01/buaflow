@@ -11,6 +11,11 @@ claude-setup/rules/*.md          →  .claude/rules/*.md
 claude-setup/agents/*.md         →  .claude/agents/*.md
 claude-setup/hooks/*.js          →  .claude/hooks/*.js
 claude-setup/check-config.js     →  .claude/check-config.js
+claude-setup/docs-lint.js        →  .claude/docs-lint.js       artifact chain ตรงกันไหม (CI รันได้)
+claude-setup/board.js            →  .claude/board.js           generate board.md จากไฟล์ task
+claude-setup/gate.js             →  .claude/gate.js            ด่านเดียว: verify + check-config + docs-lint
+claude-setup/ci/pre-push.tpl     →  .husky/pre-push
+claude-setup/ci/*.yml.tpl        →  .github/workflows/gate.yml | .gitlab-ci.yml
 claude-setup/protected-paths.json →  .claude/protected-paths.json
 claude-setup/settings.json.tpl   →  .claude/settings.json
 claude-setup/evals/*.md          →  docs/evals/*.md
@@ -22,7 +27,7 @@ claude-setup/evals/*.md          →  docs/evals/*.md
 - ตัดส่วนที่ไม่เกี่ยวกับ stack ที่เลือกออก — เช่น ใช้ App Router ก็ลบ pattern `**/pages/**` ทิ้ง
 - `protected-paths.json` ต้องเป็นรายการโฟลเดอร์ที่ generate อัตโนมัติ**ของโปรเจกต์นี้** — ไม่ได้ใช้ shadcn ก็ลบ `components/ui/**` ทิ้ง
 
-**แล้วรัน `node .claude/check-config.js`** — มันจะบอกว่า pattern ไหนไม่ match อะไรเลย,
+**แล้วรัน `node .claude/gate.js`** (= verify + `check-config.js` + `docs-lint.js` + `board.js --check`) — ส่วน `check-config.js` จะบอกว่า pattern ไหนไม่ match อะไรเลย,
 rule ไหนตายเงียบ, ไฟล์โค้ดกลุ่มไหนไม่มี rule คุ้มครอง, hook ผูกครบและคืน exit code ถูกไหม
 และ `AGENTS.md` ยังมี placeholder ค้างอยู่ไหม
 
@@ -33,7 +38,7 @@ rule ไหนตายเงียบ, ไฟล์โค้ดกลุ่ม�
 | ชั้น | โหลดเมื่อ | กิน context | ใช้กับ |
 |---|---|---|---|
 | **rules** | เมื่อ Claude แตะไฟล์ที่ match `paths:` | เฉพาะตอนที่เกี่ยว | ข้อบังคับเฉพาะโซน (UI, API, migration, เทส) |
-| **skills** | เมื่อถูกเรียก `/ชื่อ` หรือเมื่อ Claude เห็นว่าเกี่ยวจาก `description` | description ทุก session, เนื้อเต็มตอนใช้ | ขั้นตอนที่ทำซ้ำ (`/task`, `/review`, `/done`) |
+| **skills** | เมื่อถูกเรียก `/ชื่อ` หรือเมื่อ Claude เห็นว่าเกี่ยวจาก `description` | description ทุก session, เนื้อเต็มตอนใช้ | ขั้นตอนที่ทำซ้ำ (`/task`, `/check`, `/done`) |
 | **agents** | เมื่อถูก delegate | แยก context ของตัวเอง | งานที่อ่านเยอะแต่คายนิดเดียว |
 | **hooks** | ทุกครั้งที่ event ตรง | 0 (รันนอก context) | **กฎที่ห้ามพัง** |
 
@@ -46,8 +51,8 @@ rule ไหนตายเงียบ, ไฟล์โค้ดกลุ่ม�
 | `/plan` | คน + Claude | วางแผนใน plan mode แล้ว commit ก่อนแตะโค้ด |
 | `/task` | คน + Claude | หยิบงานมาทำ |
 | `/ui` | คน + Claude | สร้าง component (ถามก่อนเสมอ) |
-| `/review` | คน + Claude | รีวิวงาน (ดึง git diff มาให้ในตัว) |
-| `/done` | **คนเท่านั้น** | ปิดงาน merge อัปเดต board |
+| `/check` | คน + Claude | ตรวจงาน: verify + เทียบ plan + เรียก built-in `/code-review` `/security-review` + subagent ตรวจกติกาโปรเจกต์ (ชื่อไม่ใช่ `/review` เพราะชนกับ alias ของ built-in) |
+| `/done` | **คนเท่านั้น** | เปิด PR (ไม่ merge เอง) อัปเดตไฟล์ task แล้ว generate board |
 | `/hotfix` | **คนเท่านั้น** | ขั้นตอน hotfix |
 | `/release` | **คนเท่านั้น** | ปล่อยของขึ้น uat/prd |
 

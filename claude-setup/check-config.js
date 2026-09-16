@@ -143,6 +143,9 @@ else {
 // ── 5. Skills ─────────────────────────────────────────────────────────
 head('5. Skills');
 const SIDE_EFFECT = ['done', 'hotfix', 'release'];
+// ชื่อที่ชนกับ built-in ของ Claude Code (คำสั่งหรือ alias) — custom skill ชื่อเดียวกันจะกำกวมว่าเรียกตัวไหน
+const BUILTIN_NAMES = ['review', 'code-review', 'security-review', 'simplify', 'init', 'doctor', 'checkup', 'insights',
+  'context', 'usage', 'cost', 'memory', 'compact', 'clear', 'rewind', 'model', 'config', 'help', 'import', 'loop', 'schedule', 'run'];
 const skillsDir = path.join(CLAUDE, 'skills');
 if (fs.existsSync(skillsDir)) {
   const descs = new Map();
@@ -156,15 +159,50 @@ if (fs.existsSync(skillsDir)) {
     else if (fm.fields.description.length < 30) issues.push('description สั้นเกินจนไม่บอกเงื่อนไขที่ควรใช้');
     else descs.set(dir, fm.fields.description);
 
-    const lines = fs.readFileSync(f, 'utf8').split('\n').length;
+    const text = fs.readFileSync(f, 'utf8');
+    const lines = text.split('\n').length;
     if (lines > 150) issues.push(`ยาว ${lines} บรรทัด — แยกรายละเอียดไปไฟล์ประกอบในโฟลเดอร์เดียวกัน`);
 
     if (SIDE_EFFECT.includes(dir) && fm.fields['disable-model-invocation'] !== 'true')
       issues.push('มี side effect แต่ไม่ได้ตั้ง disable-model-invocation: true');
 
+    if (BUILTIN_NAMES.includes((fm.fields.name || dir).toLowerCase()))
+      bad(`skills/${dir}: ชื่อ "${fm.fields.name || dir}" ชนกับคำสั่ง/alias built-in ของ Claude Code — เปลี่ยนชื่อ (เช่น review → check)`);
+
+    // !`cmd` ที่ fail จะ abort ทั้ง skill (docs) — git diff HEAD บน repo ที่ยังไม่มี commit พังได้
+    const injections = [...text.matchAll(/!`([^`]+)`/g)].map((m) => m[1]);
+    const fragile = injections.filter((c) => !/\|\|\s*true\s*$/.test(c.trim()));
+    if (fragile.length) issues.push(`มี !\`…\` ที่ไม่มี "|| true" ${fragile.length} ตัว — ถ้าคำสั่ง fail ทั้ง skill จะ abort: ${fragile.map((c) => c.slice(0, 30)).join(' / ')}`);
+
     issues.length ? issues.forEach((i) => warn(`skills/${dir}: ${i}`)) : ok(`skills/${dir} (${lines} บรรทัด)`);
   }
 }
+
+// ── 5b. Agents ────────────────────────────────────────────────────────
+head('5b. Agents');
+const agentsDir = path.join(CLAUDE, 'agents');
+if (fs.existsSync(agentsDir)) {
+  for (const af of fs.readdirSync(agentsDir).filter((f) => f.endsWith('.md') && f.toLowerCase() !== 'readme.md')) {
+    const fm = frontmatter(path.join(agentsDir, af));
+    if (!fm) { bad(`agents/${af}: ไม่มี frontmatter`); continue; }
+    if (!fm.fields.description) warn(`agents/${af}: ไม่มี description`);
+    if (!fm.fields.model) warn(`agents/${af}: ไม่มี model: — จะใช้โมเดลหลัก (แพงสุด) กับงานที่ไม่ต้องคิด ดู standards/context-budget.md §4`);
+    else ok(`agents/${af} (model: ${fm.fields.model})`);
+  }
+} else {
+  warn('ไม่มี .claude/agents/');
+}
+
+// ── 5c. สคริปต์ของ gate ───────────────────────────────────────────────
+head('5c. สคริปต์ gate');
+for (const s of ['docs-lint.js', 'board.js', 'gate.js']) {
+  exists(`.claude/${s}`) ? ok(`.claude/${s}`) : warn(`ไม่มี .claude/${s} — กฎเรื่อง artifact chain / board / ด่านก่อน main จะเป็นแค่ข้อความ`);
+}
+exists('.husky/pre-push')
+  ? (/gate\.js/.test(read('.husky/pre-push')) ? ok('.husky/pre-push เรียก gate.js') : warn('.husky/pre-push มีอยู่แต่ไม่ได้เรียก gate.js'))
+  : warn('ไม่มี .husky/pre-push — gate จะรันแค่ใน CI (ถ้ามี) คนที่ push จากเครื่องข้ามได้');
+const ciFiles = ['.github/workflows/gate.yml', '.gitlab-ci.yml'].filter(exists);
+ciFiles.length ? ok(`CI: ${ciFiles.join(', ')}`) : warn('ยังไม่มีไฟล์ CI (gate.yml / .gitlab-ci.yml) — วางจาก claude-setup/ci/ ได้เลยแม้ยังไม่เลือก host');
 
 // ── 6. settings.json + hooks ──────────────────────────────────────────
 head('6. settings.json และ hooks');
@@ -236,7 +274,14 @@ const cases = [
   ['guard-bash.js', { tool_input: { command: 'git commit --no-verify -m x' } }, 2, 'บล็อก --no-verify'],
   ['guard-bash.js', { tool_input: { command: 'pnpm sonar' } }, 2, 'บล็อกการรัน sonar เอง'],
   ['guard-bash.js', { tool_input: { command: 'pnpm verify' } }, 0, 'ปล่อยผ่าน pnpm verify'],
+  ['guard-bash.js', { tool_input: { command: 'git push origin HEAD:main' } }, 2, 'บล็อก push ตรงเข้า main'],
+  ['guard-bash.js', { tool_input: { command: 'git push --no-verify' } }, 2, 'บล็อก push --no-verify'],
+  ['guard-bash.js', { tool_input: { command: 'git push -u origin feat/x' } }, 0, 'ปล่อยผ่าน push branch feature'],
+  ['guard-edit.js', { tool_input: { file_path: 'docs/backlog/board.md' } }, exists('.claude/protected-paths.json') && /board\.md/.test(read('.claude/protected-paths.json')) ? 2 : 0, 'board.md (generate) ถูกกันตาม protected-paths'],
 ];
+// merge บน main ขึ้นกับ branch ที่ยืนอยู่ — ตรวจให้ตรงกับที่ควรเป็น
+cases.push(['guard-bash.js', { tool_input: { command: 'git merge feat/x' } }, /^(main|master)$/.test(branch) ? 2 : 0,
+  /^(main|master)$/.test(branch) ? 'บล็อก merge ขณะยืนบน main' : `ปล่อย merge เพราะยืนบน ${branch || '?'} (บน main ต้องถูกบล็อก)`]);
 // การกันแก้ไฟล์เทสขึ้นกับ branch — ตรวจให้ตรงกับที่ควรเป็นบน branch ที่ยืนอยู่จริง
 if (testFile) {
   cases.push([

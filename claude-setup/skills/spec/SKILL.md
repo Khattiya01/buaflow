@@ -1,87 +1,72 @@
 ---
 name: spec
-description: ทำ spec ของ feature ใหญ่ แยกเป็น requirements design tasks พร้อม gate อนุมัติระหว่างขั้น ใช้เมื่อ intent ถูกอนุมัติแล้วและงานใหญ่พอที่จะต้องมี spec
-argument-hint: "<F-xx หรือชื่อ feature>"
-allowed-tools: Read Glob Grep Write
+description: Spec a large feature as requirements, design, and tasks with an approval gate between each. Use when an intent has been accepted and the work is big enough to need a spec.
+argument-hint: "<F-xx or feature name>"
+allowed-tools: Read Glob Grep Write Bash(node .claude/board.js*)
 ---
 
-ทำ spec สำหรับ: $ARGUMENTS
+Spec for: $ARGUMENTS
 
-ใช้โครงจาก `docs/templates/spec.tpl.md` เก็บที่ `docs/specs/<F-xx>-<ชื่อ>/`
+Use `docs/templates/spec.tpl.md`; store in `docs/specs/<F-xx>-<name>/`.
+Talk to the user in Thai. All three spec files are written in full Thai (EARS keywords stay English).
 
-## กฎเหล็กของขั้นนี้
+## Hard rules for this step
 
-- **ทำทีละไฟล์ และให้ผู้ใช้อนุมัติก่อนไปไฟล์ถัดไป** ห้ามเขียนรวด 3 ไฟล์
-- **ห้ามเขียนโค้ดจนกว่าจะอนุมัติครบทั้ง 3 ไฟล์**
-- **ห้ามเดา** จุดไหนไม่ชัดให้ใส่ `[NEEDS CLARIFICATION: <คำถาม>]` แล้วรวมไว้ท้ายไฟล์
-  ไฟล์ที่ยังเหลือ marker **ผ่าน gate ไม่ได้**
-- ทุกครั้งที่เสนอทางเลือก ต้องแนะนำ 1 ทางพร้อมเหตุผลและ trade-off
+- **One file at a time; the user approves before the next file.** Never write all three at once.
+- **No code until all three files are approved.**
+- **No guessing** — `[NEEDS CLARIFICATION: <question>]`, collected at the end of the file. A file with markers left **cannot pass the gate** (`docs-lint` catches it).
+- Whenever you offer options, recommend one with the trade-off.
 
-## ก่อนเริ่ม
+## Before starting — read only what is needed
 
-อ่านให้ครบ:
-- `docs/intents/I-0xx-*.md` ที่เป็นต้นทางของ feature นี้ (ถ้าไม่มี intent → กลับไปทำ `/intent` ก่อน)
-- `docs/constitution.md`
-- `docs/planning/01-requirements.md` และ `04-architecture.md`
-- spec ของ feature ที่ใกล้เคียงที่ทำไปแล้ว — **ทำตาม pattern เดิม**
+- The source intent `docs/intents/I-0xx-*.md` — **it already answers "why / how measured / what must not break". Do not re-ask the user.** Write the requirements from it.
+  (no intent → go back to `/intent` first)
+- `docs/constitution.md` art. 4, 5, 6 (used in design)
+- `docs/planning/04-architecture.md` **only the relevant sections** (API contract, auth, data)
+- `prisma/schema.prisma` if the feature touches data — this is the source of truth for the data model
+- One spec of a similar feature — **follow the existing pattern**
 
-## ขั้นที่ 1 — requirements.md
+## Step 1 — requirements.md
 
-เขียน user story, กติกาธุรกิจ, **acceptance criteria แบบ EARS**, กรณีขอบ, สิทธิ์การเข้าถึง,
-non-functional ที่วัดได้, และ **สิ่งที่ไม่ทำในรอบนี้**
+User stories, business rules, **ACs in EARS**, edge cases, permissions, measurable non-functionals, **out of scope this round**.
 
-EARS ใช้ 4 รูปประโยคนี้เท่านั้น:
-
+EARS, four sentence forms only:
 ```
-WHEN <เหตุการณ์> THE SYSTEM SHALL <ทำอะไร>
-WHILE <สถานะ> THE SYSTEM SHALL <ทำอะไร>
-IF <เงื่อนไข> THEN THE SYSTEM SHALL <ทำอะไร>
-THE SYSTEM SHALL <ทำอะไร>
+WHEN <event> THE SYSTEM SHALL <behavior>
+WHILE <state> THE SYSTEM SHALL <behavior>
+IF <condition> THEN THE SYSTEM SHALL <behavior>
+THE SYSTEM SHALL <behavior>
 ```
+> "Handle errors well" is untestable — every AC must translate directly into a test name.
 
-> ห้ามเขียน "จัดการ error ให้ดี" หรือ "ใช้งานลื่นไหล" เพราะเทสไม่ได้
-> ทุก AC ต้องแปลงเป็นชื่อเทสได้ตรง ๆ
+Short gate report: markers left / all ACs in EARS / measurable success criteria.
+Ask "Are the ACs complete? Any case I missed?" → **stop and wait for approval**
 
-จบแล้วรายงาน gate:
-- ไม่เหลือ [NEEDS CLARIFICATION] กี่ข้อ (ถ้าเหลือ ต้องถามให้ครบก่อน)
-- AC ทุกข้อเป็น EARS แล้ว
-- มีเกณฑ์วัดความสำเร็จที่เป็นรูปธรรม
+## Step 2 — design.md (only after Step 1 is approved)
 
-แล้วถาม: "AC ครบไหม มีกรณีไหนที่ผมมองข้าม" → **หยุดรออนุมัติ**
+1. **Check against the constitution first** — art. 4 (small first), 5 (no needless wrapping), 6 (contract first). A new dependency must explain why the existing ones are not enough.
+2. **DB changes — written as a diff against the current `schema.prisma`** (models/fields added/changed/removed) + migration + **rollback**.
+   Destructive → expand/contract · confirm you are not creating an entity that duplicates an existing one under a new name.
+3. API contract: path, request, response, error codes, permissions
+4. UI: affected screens, components (**existing / shadcn / new**), i18n keys, loading/empty/error states
+5. Impact on existing behavior / breaking changes
+6. Security
+7. **Test plan mapped to each AC** — an AC with no way to prove it is a badly written AC
+8. Alternatives considered and rejected
 
-## ขั้นที่ 2 — design.md
+A new component with no design → **ask the user per `ui-component-rules.md`**
+Gate report → **stop and wait for approval**
 
-หลังอนุมัติขั้น 1 แล้วเท่านั้น
+## Step 3 — tasks.md (only after Step 2 is approved)
 
-1. **ตรวจกับธรรมนูญก่อนออกแบบ** — มาตรา 4 (เล็กก่อน), 5 (ไม่ห่อเกิน), 6 (สัญญามาก่อน)
-   ถ้าจะเพิ่ม dependency ใหม่ ต้องอธิบายว่าของเดิมทำไมไม่พอ
-2. การเปลี่ยน DB + migration + **rollback** (destructive change ต้องเป็น expand/contract)
-3. API contract (path, request, response, error code, สิทธิ์)
-4. UI: หน้าที่กระทบ, component ที่ใช้ (**ระบุว่ามีแล้ว / จาก shadcn / ต้องสร้างใหม่**),
-   i18n key ที่ต้องเพิ่ม, สถานะ loading/empty/error
-5. ผลกระทบต่อของเดิม, breaking change ไหม
-6. ความปลอดภัย
-7. **แผนการทดสอบที่ map กับ AC ทีละข้อ** — AC ไหนไม่มีวิธีพิสูจน์ แปลว่า AC ข้อนั้นเขียนไม่ดีพอ
-8. ทางเลือกที่พิจารณาแล้วไม่เอา
+- Tasks that **finish within one session**, with dependencies and the ACs they cover
+- Backend tasks include their unit tests / frontend tasks get a paired `-test` (blocked)
+- `[P]` on tasks whose order can be swapped
+- A task for OpenAPI / Postman updates
+- The table "ACs with no covering task" **must be empty**
 
-ถ้ามี component ใหม่ที่ยังไม่มี design → **ถามผู้ใช้ตาม `ui-component-rules.md`**
-
-จบแล้วรายงาน gate แล้ว **หยุดรออนุมัติ**
-
-## ขั้นที่ 3 — tasks.md
-
-หลังอนุมัติขั้น 2 แล้วเท่านั้น
-
-- แตกเป็น task ที่ **ทำจบได้ใน 1 session** พร้อม dependency และ AC ที่ครอบ
-- backend task รวม unit test ในตัว
-- frontend task ต้องมี task `-test` คู่ (สถานะ blocked)
-- ใส่ `[P]` กับ task ที่สลับลำดับกันได้
-- อย่าลืม task อัปเดต OpenAPI / Postman
-- **ตรวจว่าทุก AC มี task รองรับ** — ตาราง "AC ที่ยังไม่มี task รองรับ" ต้องว่าง
-
-แล้ว:
-1. สร้างไฟล์ `docs/backlog/tasks/T-xxx.md` ทุกตัว (เติม `intent:` และ `spec:` ให้ครบ)
-2. เพิ่มลง `docs/backlog/board.md`
-3. อัปเดต `docs/backlog/import.csv`
-4. อัปเดต intent ต้นทางเป็น `status: accepted` พร้อมลิงก์มาที่ spec นี้
-5. เสนอ task แรกที่ควรทำ พร้อมบอกว่าควรทำ `/plan` ก่อนไหม
+Then:
+1. Create `docs/backlog/tasks/T-xxx.md` for every task — fill `intent:`, `spec:`, `milestone:`, `priority:`, `depends_on:` (the board sorts on these)
+2. Source intent → `status: accepted` + link to this spec
+3. `node .claude/board.js` (**do not hand-edit board.md; there is no import.csv anymore** — task files are the source of truth)
+4. Propose the first task and whether it should go through `/plan` first

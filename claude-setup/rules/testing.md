@@ -6,52 +6,52 @@ paths:
   - "**/e2e/**"
 ---
 
-# กติกาการเขียนเทส (โหลดอัตโนมัติเมื่อแตะไฟล์เทส)
+# Testing rules (auto-loaded when touching test files)
 
-## เกณฑ์ว่าเทสมีประโยชน์จริงไหม
+## Is this test worth anything?
 
-> **"ถ้าลบ logic บรรทัดนี้ทิ้ง มีเทสตัวไหน fail ไหม"**
+> **"If I deleted this line of logic, would any test fail?"**
 
-ถ้าคำตอบคือไม่ แปลว่าเทสนั้นทำให้เลข coverage สวยเฉย ๆ — นั่นคือหนี้ ไม่ใช่ทรัพย์สิน
+If the answer is no, the test only makes the coverage number look good — that is debt, not an asset.
 
-## ต้องเทส
+## Must test
 
-- business logic ทุกกิ่ง (เงื่อนไข, การคำนวณ, กติกาอนุมัติ)
-- edge case: ค่าว่าง, null, 0, ติดลบ, string ยาวเกิน, วันที่ข้ามเดือน/ปี, timezone
-- error path และ `error.code` ที่ถูกต้อง
-- สิทธิ์: role ที่ไม่มีสิทธิ์ต้องถูกปฏิเสธจริง
-- **บั๊กทุกตัวที่เคยเจอ** (regression test)
+- Every branch of business logic (conditions, calculations, approval rules)
+- Edge cases: empty, null, 0, negative, overly long strings, dates crossing month/year, timezones
+- Error paths and the correct `error.code`
+- Authorization: an unauthorized role is actually rejected
+- **Every bug ever found** (regression test)
 
-## ไม่ต้องเทส
+## Don't test
 
-library ของคนอื่น / getter-setter ที่ไม่มี logic / โค้ดที่ generate มา
+Third-party libraries / getters-setters with no logic / generated code
 
-## รูปแบบ
+## Shape
 
-- ตั้งชื่อเทสเป็นประโยคที่อ่านแล้วรู้ว่าพังอะไร — แปลงตรงจาก AC ได้ยิ่งดี
-  `it('ปฏิเสธการสมัครเมื่ออีเมลซ้ำ และตอบ code EMAIL_TAKEN')`
-- โครง Arrange → Act → Assert
-- 1 เทส 1 เรื่อง
-- ห้ามเทสพึ่งลำดับการรัน หรือพึ่ง state จากเทสก่อนหน้า
-- ใช้ factory/builder สร้างข้อมูลทดสอบ แทน fixture ยักษ์
-- frontend: ใช้ query แบบ accessible (`getByRole`, `getByLabelText`) ไม่ใช่ `getByTestId` ทุกที่
+- Name tests as sentences that say what broke — best when translated straight from an AC
+  `it('rejects registration when the email is taken and returns code EMAIL_TAKEN')`
+- Arrange → Act → Assert
+- One test, one thing
+- Tests must not depend on run order or state from previous tests
+- Use factories/builders for test data instead of giant fixtures
+- Frontend: accessible queries (`getByRole`, `getByLabelText`), not `getByTestId` everywhere
 
-## ห้ามเด็ดขาด
+## Forbidden
 
-- **ห้ามแก้เทสให้ผ่าน ตอนที่กำลังแก้บั๊ก** — มี hook บล็อกไว้แล้ว
-  ถ้าเทสเดิมผิดจริง ต้อง **หยุดบอกผู้ใช้ก่อน** พร้อมอธิบายว่าทำไมเทสเดิมผิด
-- ห้ามเขียนเทสที่ไม่ assert อะไรจริง
-- ห้าม skip เทสทิ้งไว้โดยไม่มี task ตาม
+- **Never edit a test to make it pass while fixing a bug** — a hook blocks this.
+  If the existing test really is wrong, **stop and tell the user first**, explaining why the test is wrong
+- Never write a test that asserts nothing real
+- Never leave a skipped test without a follow-up task
 
-## จังหวะการเขียน
+## When tests are written
 
-| ชั้น | เขียนเมื่อไหร่ |
+| Layer | When |
 |---|---|
-| Backend unit | **พร้อมกับ module เสมอ** อยู่ใน DoD |
-| Frontend unit | หลัง UI นิ่ง ผ่าน task `T-xxx-test` |
-| Integration (API) | เมื่อ endpoint เสร็จ — Postman collection |
-| E2E | ตอนปิด feature ใหญ่ เฉพาะ critical path |
+| Backend unit | **Together with the module, always** — part of DoD |
+| Frontend unit | After the UI is stable, via the `T-xxx-test` task |
+| Integration (API) | When the endpoint is done — Postman collection |
+| E2E | When closing a large feature, critical path only |
 
-**แก้บั๊ก: เขียนเทสที่ fail ก่อนเสมอ** แล้วค่อยแก้ให้ผ่าน
+**Bug fixes: always write the failing test first**, then make it pass.
 
-รายละเอียดเต็ม: `docs/standards/testing-and-coverage.md`
+Full detail: `docs/standards/testing-and-coverage.md`

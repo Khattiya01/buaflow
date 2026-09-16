@@ -28,6 +28,10 @@
 
 ใช้ `project-kit/templates/AGENTS.md.tpl` เติมค่าจริงจาก Phase 1-6
 
+**ภาษา:** ไฟล์นี้ (และ `CLAUDE.md`, `REVIEW.md`, `.claude/rules/`, `.claude/skills/`, `.claude/agents/`) เป็น**ภาษาอังกฤษ** — AI อ่านทุก session และภาษาไทย tokenize แพงกว่า ~2 เท่า
+ค่าที่เติม (ชื่อโปรเจกต์, คำอธิบาย, โครงโฟลเดอร์) เขียนอังกฤษให้สอดคล้อง หมวด "Language" ในไฟล์สั่งให้ AI ตอบผู้ใช้และเขียน `docs/` เป็นไทยอยู่แล้ว
+หมวด "สิ่งที่ AI ในโปรเจกต์นี้เคยทำผิด" ในไฟล์ชื่อ **"Things the AI gets wrong in this project"** — เวลา Phase 8 / `/done` บอกให้เขียนลงหมวดนี้ หมายถึงหมวดนั้น
+
 **กติกาการเขียน:**
 - **สั้นและเป็นคำสั่ง** ไม่ใช่เอกสารอ้างอิง
 - ยาวไม่เกิน **~200 บรรทัด** รายละเอียดให้ลิงก์ไป `docs/`
@@ -60,9 +64,16 @@ project-kit/claude-setup/rules/*         →  .claude/rules/
 project-kit/claude-setup/agents/*        →  .claude/agents/
 project-kit/claude-setup/hooks/*         →  .claude/hooks/
 project-kit/claude-setup/check-config.js →  .claude/check-config.js
+project-kit/claude-setup/docs-lint.js    →  .claude/docs-lint.js      ตรวจว่า artifact chain ยังตรงกัน
+project-kit/claude-setup/board.js        →  .claude/board.js          generate board.md จากไฟล์ task
+project-kit/claude-setup/gate.js         →  .claude/gate.js           ด่านเดียว: verify + check-config + docs-lint
+project-kit/claude-setup/ci/pre-push.tpl →  .husky/pre-push
+project-kit/claude-setup/ci/*.yml.tpl    →  .github/workflows/gate.yml และ/หรือ .gitlab-ci.yml
 project-kit/claude-setup/protected-paths.json →  .claude/protected-paths.json
 project-kit/claude-setup/settings.json.tpl  →  .claude/settings.json
 ```
+
+> ถ้าทำ Phase 6 ขั้น 3 แล้ว 4 สคริปต์แรกกับ pre-push จะมีอยู่แล้ว — ตรวจว่าเป็นเวอร์ชันเดียวกับ kit
 
 **ต้องปรับระหว่างคัดลอก (ห้ามคัดดิบ):**
 
@@ -70,7 +81,8 @@ project-kit/claude-setup/settings.json.tpl  →  .claude/settings.json
 |---|---|
 | `rules/*.md` | `paths:` ต้องตรงกับโครงโฟลเดอร์จริงที่ scaffold ไว้ |
 | `skills/*/SKILL.md` | คำสั่งต้องเป็นคำสั่งที่มีจริงใน `package.json` |
-| `settings.json` | `permissions.allow` ตามคำสั่งจริง, `deny` ตามไฟล์ลับจริง |
+| `settings.json` | `permissions.allow` ตามคำสั่งจริง, `deny` ตามไฟล์ลับจริง — **อย่านั่งเดา**: หลังใช้ 1-2 สัปดาห์รัน skill `fewer-permission-prompts` มันสแกน transcript แล้วเสนอ allowlist ให้ / แก้ hook หรือ settings ทีหลังใช้ skill `update-config` |
+| `skills/check/` | ชื่อคือ `/check` **ไม่ใช่ `/review`** — `/review` เป็น alias ของ built-in `/code-review` ที่ `/check` เรียกใช้ข้างใน |
 | `protected-paths.json` | รายการโฟลเดอร์ที่ generate อัตโนมัติของโปรเจกต์นี้ — ถ้าไม่ได้ใช้ shadcn ให้ลบ `components/ui/**` ออก (ไม่ต้องแก้สคริปต์ hook) |
 
 **แล้วรันตัวตรวจ** — ห้ามข้าม:
@@ -79,12 +91,20 @@ project-kit/claude-setup/settings.json.tpl  →  .claude/settings.json
 node .claude/check-config.js
 ```
 
-มันตรวจให้ 8 หมวด: โครงสร้างครบไหม / `AGENTS.md` ยาวเกินหรือมี placeholder ค้างไหม /
+มันตรวจให้ ~10 หมวด: โครงสร้างครบไหม / `AGENTS.md` ยาวเกินหรือมี placeholder ค้างไหม / ชื่อ skill ชน built-in ไหม / agents มี `model:` ไหม / มี gate scripts + pre-push + CI ไหม /
 **`paths:` ของแต่ละ rule match ไฟล์จริงกี่ไฟล์** / ไฟล์โค้ดที่ไม่มี rule คุ้มครอง /
 skills มี description และความยาวโอเคไหม / hook ผูกใน `settings.json` และมีไฟล์จริงไหม /
 **รัน hook ด้วย input จำลองแล้วเช็ก exit code จริง** / โฟลเดอร์ artifact chain ครบไหม
 
 ต้องได้ `ต้องแก้: 0` ก่อนไปต่อ ส่วน `ควรดู:` ไล่ให้หมดเท่าที่ทำได้
+
+**แล้วรัน gate ทั้งด่าน** — นี่คือคำสั่งเดียวกับที่ pre-push และ CI จะรัน:
+
+```bash
+node .claude/gate.js
+```
+
+ถ้าผ่านที่นี่แต่ CI ไม่ผ่าน = env ต่างกัน (DB, node version) ไม่ใช่กฎต่างกัน
 
 **สิ่งที่มันจะจับได้แน่ ๆ ตอนติดตั้งครั้งแรก:**
 
@@ -154,6 +174,10 @@ project-kit/claude-setup/evals/*.md        →  docs/evals/
 | เปิดไฟล์ใน `components/` แล้ว rule `frontend-ui` โหลดเข้ามาจริง | ⬜ |
 | เปิด session ใหม่แล้วเห็นสถานะ board ถูกฉีดเข้ามาอัตโนมัติ | ⬜ |
 | แตก branch `fix/...` แล้วลองให้ Claude แก้ไฟล์เทส → ต้องถูกบล็อก | ⬜ |
+| ยืนบน main แล้วสั่ง `git merge <branch>` → ต้องถูกบล็อก (hook) | ⬜ |
+| แก้ไฟล์ให้ lint พังแล้ว `git push` → pre-push ปฏิเสธ | ⬜ |
+| `node .claude/gate.js` ผ่านทุกด่าน (แปะผล) | ⬜ |
+| `node .claude/board.js --check` ตรงกับไฟล์ task | ⬜ |
 
 > 3 ข้อล่างต้องทดสอบด้วยมือใน session จริง เพราะ `check-config.js` ตรวจได้แค่ว่า
 > ไฟล์ถูกที่และ hook คืน exit code ถูก แต่ตรวจไม่ได้ว่า Claude Code **โหลด**มันเข้า context จริงไหม
@@ -170,8 +194,10 @@ project-kit/claude-setup/evals/*.md        →  docs/evals/
 
 ## 7.11 รัน eval ชุดแรก
 
-รัน `docs/evals/EV-001` ถึง `EV-003` ใน session ใหม่ที่สะอาด แล้วบันทึกผล
+รัน `docs/evals/EV-001` ถึง `EV-004` ใน session ใหม่ที่สะอาด แล้วบันทึกผล
 **นี่คือ baseline** ที่จะใช้เทียบทุกครั้งที่แก้ config ในอนาคต
+
+ถ้าอยากให้รันซ้ำได้โดยไม่ต้องนั่งวาง prompt เอง: ใช้ skill `skill-creator` แปลงเคสเป็น eval suite แล้วรันด้วย `claude plugin eval` (ดู `docs/evals/README.md`)
 
 ถ้าเคสไหนไม่ผ่านตั้งแต่วันแรก แปลว่า config ยังไม่ดีพอ — แก้ก่อนปิด Phase
 
@@ -179,12 +205,14 @@ project-kit/claude-setup/evals/*.md        →  docs/evals/
 
 1. commit ทั้งหมด
 2. บอกผู้ใช้ว่า **จากนี้ทำงานผ่าน skills ไม่ต้องเปิด `project-kit/` อีก**
+   และ **ทุก merge เข้า main ผ่าน PR** — hook บล็อก merge ในเครื่องแล้ว เหลือแค่เปิด branch protection บน git host ตอนเลือกได้
    แต่ **อย่าลบ kit** — Phase 8 จะกลับมาใช้ทุกครั้งที่ปรับ config
    (ถ้าไม่อยากให้เกะกะ ย้ายไป `docs/_archive/project-kit/` ได้)
 3. แสดง **3 คำสั่งแรกที่ควรใช้ในวันถัดไป**:
    ```
-   /intent <เรื่องที่อยากทำ>    เปิดงานใหม่
+   /intent <เรื่องที่อยากทำ>    เปิดงานใหม่ (งานจิ๋ว → trivial track ไม่ต้อง intent)
    /task                       หยิบ task ถัดไปจาก board
    /plan T-xxx                 วางแผนก่อนลงมือ
    ```
+   และ 3 คำสั่งที่ **ไม่ต้องทำเอง** เพราะ built-in มีให้: `/code-review` `/security-review` (ถูกเรียกจาก `/check`), `/doctor` (Phase 8)
 4. บอกว่าเมื่อไหร่ควรกลับมาทำ **Phase 8** (ทบทวนและปรับ config)

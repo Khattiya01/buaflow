@@ -1,62 +1,68 @@
 ---
 name: intent
-description: เปิดงานใหม่โดยจับ "ทำไม" ก่อนจะรู้ว่าทำอะไร ใช้เมื่อมีไอเดีย ปัญหา คำขอจากผู้ใช้ ผลจาก postmortem หรือ finding จาก Sonar ที่ยังไม่รู้ว่าจะทำหรือไม่ทำ
-argument-hint: "<เรื่องที่อยากเปิด>"
-allowed-tools: Read Glob Grep Write
+description: Open new work by capturing "why" before "what". Use for an idea, a problem, a user request, a postmortem outcome, or a Sonar finding that has not yet been decided on. Tiny work (typo/copy/log) uses the trivial track instead.
+argument-hint: "<topic to open>"
+allowed-tools: Read Glob Grep Write Bash(node .claude/board.js*)
 ---
 
-เปิด intent สำหรับ: $ARGUMENTS
+Open an intent for: $ARGUMENTS
 
-## ทำไมต้องมีขั้นนี้
+Talk to the user in Thai. The intent file is written in full Thai.
 
-งานทุกชิ้นเข้าระบบทางเดียวคือ `docs/intents/` — **ห้ามข้ามไปเขียนโค้ดหรือสร้าง task ตรง ๆ**
-เหตุผล: ถ้าเริ่มที่ "ทำอะไร" บริบทว่า "ทำไม" จะหายตั้งแต่ก้าวแรก
-พอถึงเวลา trade-off กลางทางจะไม่มีใครรู้ว่าอะไรสำคัญกว่าอะไร
+## Step 0 — Does this need an intent at all?
 
-ถ้าเรื่องมันชัดมากจนรู้สึกว่าเสียเวลา — เขียนเสร็จใน 3 นาที และได้ประวัติว่าทำไมถึงทำ
+**Trivial track** — if **all** of the following hold, skip the intent:
+- The whole diff can be described in one sentence (typo, copy, a log line, a patch version bump, a chore)
+- No user-visible behavior change; does not touch DB / auth / API contract
+- Nobody has to decide anything
 
-## ขั้นที่ 1 — ฟังก่อน อย่าเพิ่งเสนอทางแก้
+→ Create `docs/backlog/tasks/T-xxx.md` directly with `track: trivial`, `type: chore|docs`, and a **one-line** "why".
+Then `/task T-xxx` (it still goes through `/check` at low level and a PR like everything else).
 
-อ่านสิ่งที่ผู้ใช้เล่ามา แล้วแยกให้ออกว่าอะไรคือ **อาการ** อะไรคือ **ทางแก้ที่เขาคิดไว้แล้ว**
+> Why this track exists: if fixing a typo needs intent + plan + task + check + done = 5 skills and 5 round-trips,
+> people stop using the system entirely — that is how processes actually die.
 
-> ผู้ใช้มักเล่ามาเป็นทางแก้ เช่น "อยากได้ปุ่ม export Excel"
-> หน้าที่ของคุณคือถามกลับว่า **เอาไปทำอะไรต่อ** เพราะบางทีคำตอบที่ถูกคือรายงานในระบบ ไม่ใช่ไฟล์ Excel
+Otherwise continue.
 
-## ขั้นที่ 2 — ถามให้ครบ (ไม่เกิน 4 ข้อต่อรอบ)
+## Why this step exists
 
-ถามเท่าที่ยังไม่รู้ พร้อมเสนอคำตอบที่เดาไว้ให้ยืนยัน:
+All work enters through `docs/intents/` — if you start from "what", the "why" is lost from the first step,
+and at the first mid-way trade-off nobody knows what matters more. If it is obvious, this takes 3 minutes.
 
-1. **ปัญหาจริงคืออะไร** — วันนี้ทำอะไรไม่ได้ / อะไรพัง / ต้องทำมือกี่นาทีต่อครั้ง
-2. **หลักฐาน** — ใครบ่น กี่คน บ่อยแค่ไหน มี error log ไหม มีตัวเลขไหม
-3. **ถ้าแก้แล้วดีขึ้นยังไง** — วัดยังไงว่าแก้สำเร็จ
-4. **อะไรห้ามพัง** — ของเดิมที่ต้องใช้ได้อยู่ / deadline / ข้อจำกัดทางธุรกิจ
+## Step 1 — Listen first; do not propose a solution yet
 
-ทุกข้อที่ยังไม่ได้คำตอบให้เขียนเป็น `[NEEDS CLARIFICATION: <คำถาม>]` **ห้ามเติมเอาเอง**
+Separate the **symptom** from the **solution the user already has in mind**.
+> Users usually describe a solution ("I want an Excel export button") — ask **what they will do with it**.
 
-## ขั้นที่ 3 — เช็กก่อนว่าซ้ำไหม
+## Step 2 — Ask what you still don't know (max 4 questions per round)
 
-- ค้น `docs/intents/` ว่ามีเรื่องนี้อยู่แล้วหรือยัง (รวมที่ `status: rejected` — เรื่องที่เคยตีตกมักกลับมา)
-- ค้น `docs/backlog/` ว่ามี task ที่ครอบเรื่องนี้แล้วไหม
+1. **What is the actual problem** — what can't be done today / what breaks / how many minutes of manual work per occurrence
+2. **Evidence** — who complains, how many, how often, any logs/numbers
+3. **What "better" looks like** — how success is measured
+4. **What must not break** — existing behavior / deadline / business constraints
 
-ถ้าซ้ำ → บอกผู้ใช้ว่าเจออันเดิมที่ไหน แล้วถามว่าจะอัปเดตอันเดิมหรือเปิดใหม่
+Anything unanswered → `[NEEDS CLARIFICATION: <question>]` **never fill it in yourself**
 
-## ขั้นที่ 4 — เขียนไฟล์
+## Step 3 — Check for duplicates
 
-ใช้โครงจาก `docs/templates/intent.tpl.md` เก็บที่ `docs/intents/I-0xx-<slug>.md`
-รันเลข I- ต่อจากไฟล์ล่าสุดในโฟลเดอร์
+Search `docs/intents/` (including `status: rejected` — rejected topics come back) and `docs/backlog/tasks/`.
+Duplicate → tell the user where, ask whether to update the existing one or open a new one.
 
-**เขียนด้วยคำของผู้ใช้ ไม่ใช่คำของ engineer** — ไฟล์นี้จะถูกอ่านตอนตัดสินใจ ไม่ใช่ตอนลงมือ
+## Step 4 — Write the file
 
-## ขั้นที่ 5 — เสนอเส้นทางต่อ แล้วหยุด
+`docs/templates/intent.tpl.md` → `docs/intents/I-0xx-<slug>.md` (next number after the latest).
+**Write in the user's words**, not engineer words — this file is read when deciding, not when implementing.
+Put the answers from Step 2 into the file — `/spec` will **read** them there and must not re-ask.
 
-บอกผู้ใช้ว่าตัดสินได้ 3 แบบ และแนะนำว่าควรเลือกอะไรเพราะอะไร:
+Then `node .claude/board.js` (the intent appears in the "awaiting decision" table automatically).
 
-| ตัดสิน | ทำต่อยังไง |
+## Step 5 — Offer the paths, then stop
+
+| Decision | Next |
 |---|---|
-| **ทำ** — เป็น feature ใหญ่ | `/spec <F-xx>` |
-| **ทำ** — งานเล็ก มี spec แม่อยู่แล้ว หรือเป็น bug | สร้าง task ตรงใน `docs/backlog/tasks/` |
-| **ยังไม่ทำ** | `status: deferred` + เขียนว่าเงื่อนไขอะไรถึงจะกลับมาดู |
-| **ไม่ทำ** | `status: rejected` + เหตุผล **อย่าลบไฟล์** |
+| **Do it** — large feature | `/spec <F-xx>` |
+| **Do it** — small, has a parent spec, or is a bug | create a task directly in `docs/backlog/tasks/` with `intent:` set |
+| **Not now** | `status: deferred` + the condition for revisiting |
+| **No** | `status: rejected` + reason — **never delete the file** |
 
-อัปเดตตาราง "Intent รอตัดสิน" ใน `docs/backlog/board.md` แล้ว **หยุดรอผู้ใช้ตัดสิน**
-ห้ามเดินหน้าไปทำ spec เองโดยที่ผู้ใช้ยังไม่ได้บอกว่าเอา
+Recommend one path with a reason, then **stop and wait for the user's decision**. Never proceed to spec on your own.

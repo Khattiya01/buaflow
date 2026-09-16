@@ -1,60 +1,85 @@
 ---
 name: done
-description: ปิด task ที่ผ่าน review และผู้ใช้อนุมัติแล้ว merge อัปเดตกระดาน ปลดล็อกงานที่รออยู่ และป้อนบทเรียนกลับเข้า config
+description: Close a task that passed /check and was approved by the user. Opens a PR (never merges), updates the task file, regenerates the board, unblocks waiting tasks, and feeds lessons back into config.
 argument-hint: "[T-xxx]"
 disable-model-invocation: true
-allowed-tools: Read Glob Grep Bash(git *) Bash(pnpm *)
+allowed-tools: Read Glob Grep Edit Bash(git *) Bash(gh pr *) Bash(glab mr *) Bash(pnpm verify*) Bash(node .claude/*)
 ---
 
-ปิดงาน: $ARGUMENTS
+Close: $ARGUMENTS
 
-## เช็กก่อนปิด
+Talk to the user in Thai. The task file notes are in Thai; commit messages and PR titles are English (Conventional Commits); the PR body is Thai.
 
-- [ ] ผ่าน `/review` แล้ว และ **ผู้ใช้อนุมัติแล้ว**
-- [ ] `pnpm verify` ผ่าน (รันซ้ำอีกครั้งให้แน่ใจ แล้วแปะผล)
-- [ ] Proof ที่ระบุไว้ใน plan/task ทำครบและแสดงผลแล้ว
-- [ ] Definition of Done ครบทุกข้อ
+## Pre-close checks
 
-ถ้ายังไม่ครบ → บอกว่าขาดอะไร แล้วหยุด **อย่าปิดงานที่ยังไม่เสร็จ**
+- [ ] Passed `/check` and **the user approved**
+- [ ] `pnpm verify` passes (run it again; paste the summary line)
+- [ ] Every Proof in the plan/task is done and shown
+- [ ] `node .claude/docs-lint.js` passes
 
-## ขั้นตอน
+Anything missing → say what, then stop. **Never close unfinished work.**
 
-### 1. Merge
-- squash merge เข้า `main`
-- ข้อความ commit เป็น Conventional Commit และอ้าง task id
-- ลบ branch
+## Steps
 
-### 2. อัปเดต backlog
-- `docs/backlog/board.md`: ย้าย task ไปหมวด Done พร้อมวันที่และ commit hash
-- `docs/backlog/tasks/<ID>.md`: เปลี่ยน `status: done` และเติมส่วน "บันทึกระหว่างทำ"
-- `docs/backlog/import.csv`: อัปเดตสถานะ
+### 1. Update the task file (one place — this is the source of truth)
 
-### 3. ปลดล็อกงานที่รออยู่
-- หา task ที่ `depends_on` ตัวนี้ แล้วย้ายจาก `blocked` เป็น `todo`
-- **ถ้าเป็น frontend task → ปลดล็อก task `T-xxx-test`** ให้เขียน unit test ได้แล้ว
-  (UI นิ่งแล้ว) แล้วบอกผู้ใช้ว่ามี task test รออยู่
+Edit the frontmatter of `docs/backlog/tasks/<ID>.md`:
+```yaml
+status: review          # not done yet — done when the PR is merged
+branch: <branch>
+```
+Add to the "notes while working" section anything the next person should know.
 
-### 4. ตรวจเอกสาร
-- spec / OpenAPI / README / `docs/design/components.md` อัปเดตแล้วหรือยัง
-- ถ้ามีการตัดสินใจเชิงสถาปัตยกรรมระหว่างทาง → เขียน ADR
-- ถ้า diff ต่างจาก `plan.md` อย่างมีนัย → อัปเดต plan.md ให้ตรงกับของจริงก่อนปิด
-  (plan ที่โกหกจะทำให้รอบหน้าประเมินผิด)
-- ถ้า intent ต้นทางปิดครบแล้ว → อัปเดตสถานะ intent ด้วย
+If the diff differs materially from `plan.md` → update plan.md to match reality (a plan that lies makes the next estimate wrong).
 
-### 5. ป้อนกลับเข้า config (ห้ามข้าม)
+### 2. Open a PR — **never merge yourself**
 
-ถามตัวเอง 3 ข้อ แล้วเสนอผู้ใช้:
+```bash
+git push -u origin <branch>
+gh pr create --base main --fill      # or glab mr create
+```
 
-| เจออะไรระหว่างทำ | ควรไปอยู่ที่ไหน |
+PR body: the summary from `/check` step 5 (short) + link to plan.md + the verify summary line.
+**A human merges** after the gate (CI) passes — even solo: it takes 10 seconds and leaves a record of who approved.
+
+> `guard-bash.js` already blocks `git merge` / `git push` into main — if you are blocked, you are doing it wrong; do not look for a way around.
+
+### 3. After the PR is merged (the user says so, or `gh pr view` shows merged)
+
+- Task file: `status: done`, `closed: <date>`, `commit: <hash on main>`
+- Tasks with `depends_on` this one → change `blocked` to `todo`
+- **Frontend task** → unblock `T-xxx-test` to `todo` and tell the user there is test debt waiting
+  (`docs-lint --release` refuses to release while it is open)
+- Source intent fully done → `status: done` on the intent
+- `git switch main && git pull && git branch -d <branch>`
+
+### 4. Regenerate the board
+
+```bash
+node .claude/board.js
+```
+board.md is generated — **never hand-edit** (a hook blocks it). Commit it together with the task file.
+
+### 5. Docs that may need to follow
+
+Ask only about what the diff actually touched:
+- API changed → is `docs/api/openapi.json` re-exported?
+- New component → `docs/design/components.md`
+- Architecture decision made mid-way → ADR
+
+### 6. Feed back into config (only here — `/check` does not ask)
+
+| Found during the work | Where it goes |
 |---|---|
-| AI พลาดเรื่องเดิม **เป็นครั้งที่ 2** | `AGENTS.md` หมวด "สิ่งที่ AI ในโปรเจกต์นี้เคยทำผิด" |
-| กฎที่ห้ามพังและเคยพังแล้ว | rule ใน `.claude/rules/` หรือ hook |
-| เรื่องที่ถ้าหลุดไป prd จะเจ็บ | eval ใน `docs/evals/` |
+| The AI made the same mistake for the **2nd time** | `AGENTS.md` under "Things the AI gets wrong in this project" |
+| A must-not-break rule that has now broken | a rule in `.claude/rules/` or a hook |
+| Something that would hurt if it reached prd | an eval in `docs/evals/` |
 
-ถ้าไม่มีอะไรเข้าเกณฑ์ ให้บอกตรง ๆ ว่าไม่มี อย่าหาเรื่องมาเติม
+Nothing qualifies → say so plainly. **Do not invent something to fill the section.**
+(To judge "2nd time", look at `docs/evals/` and the "gets wrong" section in AGENTS.md — unsure → defer to Phase 8)
 
-### 6. สรุปและเสนอถัดไป
-- สรุปสั้น ๆ ว่าปิดอะไรไป
-- ความคืบหน้าของ milestone (เสร็จกี่ task จากทั้งหมด)
-- เสนอ task ถัดไปที่ควรทำ 2-3 ตัว พร้อมเหตุผล
-- ถ้าปิด milestone ครบแล้ว → เตือนให้รัน SonarQube และตรวจ DoD ของ milestone แล้วดู `/release`
+### 7. Close the context
+
+Three lines: what was closed / tasks left in the milestone / 1–2 next tasks.
+Then tell the user to **`/clear`** before the next task — old context does not help the new task but is billed every turn.
+Milestone complete → remind them to run SonarQube and look at `/release`.

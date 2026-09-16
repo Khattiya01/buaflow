@@ -120,8 +120,16 @@ UI library เป็นข้อที่กระทบ AI มากที่�
 ต้องได้คำสั่ง **เดียว** ที่รันแล้วบอกได้ว่างานใช้ได้หรือไม่ ปกติคือ:
 
 ```json
-"verify": "pnpm typecheck && pnpm lint && pnpm test"
+"verify": "node scripts/verify.mjs"
 ```
+
+ใช้ `project-kit/templates/verify.mjs.tpl` (ปรับ STEPS ให้ตรง stack) — มันรัน typecheck → lint → test เหมือน `&&` แต่:
+- **ผ่าน**: พิมพ์ ~3 บรรทัด (นี่คือ "หน้าตาของผ่าน" ที่จะไปอยู่ใน AGENTS.md)
+- **พัง**: พิมพ์เฉพาะบรรทัด error ≤ 25 บรรทัด + บอกว่า log เต็มอยู่ `.verify.log`
+- หยุดที่ขั้นแรกที่พัง (ขั้นถัดไปมักพังตามและกิน context เปล่า)
+
+> ทำไมไม่ใช้ `&&` เฉย ๆ: กฎ "แปะผลลัพธ์จริง" ถูก แต่ tsc + eslint + vitest ที่พังพร้อมกันคือหลายพันบรรทัดเข้า context ทุกรอบ
+> `verify.mjs` ทำให้แปะผลจริงได้ในราคา 1/10 โดยความน่าเชื่อถือไม่ลด (ดู `standards/context-budget.md`)
 
 เกณฑ์ที่ต้องคุมให้ได้:
 
@@ -129,17 +137,17 @@ UI library เป็นข้อที่กระทบ AI มากที่�
 |---|---|---|
 | เวลารันทั้งชุด | **ไม่เกิน ~30 วินาที** ตอนโปรเจกต์ยังเล็ก | ถ้าช้ากว่านี้ AI จะไม่วนรันซ้ำระหว่างแก้ = feedback loop ตาย |
 | exit code | ต้อง non-zero เมื่อมีอะไรพัง | ไม่งั้น AI อ่านไม่ออกว่าผ่านหรือไม่ |
-| output | ต้องอ่านออกว่าอะไรพัง | |
+| output | สรุปสั้น อ่านออกว่าอะไรพัง log เต็มแยกไฟล์ | ผลจริงต้องแปะได้โดยไม่กิน context |
 
 **บันทึกไว้ใน ADR ว่าถ้าเทสเริ่มช้าเกินเกณฑ์จะทำยังไง** (เช่น แยก `verify` เร็วกับ `verify:full`)
 
 ## รอบ C — ยืนยันสิ่งที่ "ยังไม่ตัดสินใจ"
 
 ย้ำกับผู้ใช้และบันทึกเป็น ADR สถานะ `Proposed`:
-- **CI/CD** — ยังไม่ต่อ pipeline **แต่ต้องออกแบบให้ "CI-ready"**:
-  ทุกอย่างที่ต้องตรวจต้องเป็น **คำสั่งเดียวที่รันแบบ non-interactive ได้**
-  (`pnpm verify`, `pnpm test:api`, `pnpm build`) วันที่มี git host แล้วต่อ pipeline
-  จะเหลือแค่เขียนไฟล์ config ไม่ต้องรื้อวิธีทำงาน
+- **CI/CD** — ยังไม่เลือก git host **แต่ gate ต้องมีตั้งแต่วันแรก** (ไม่ใช่แค่ "CI-ready"):
+  `node .claude/gate.js` = verify + check-config + docs-lint รันจาก `.husky/pre-push` ตั้งแต่ Phase 6
+  และมี `.github/workflows/gate.yml` + `.gitlab-ci.yml` เตรียมไว้ทั้งคู่ (`project-kit/claude-setup/ci/`)
+  วันที่เลือก host เหลือแค่เปิด branch protection — **นี่คือสิ่งเดียวที่ทำให้กฎของ kit เป็นกฎแข็งนอก session ของ Claude**
 - **Deploy target** — ยังไม่ตัดสินใจ ⇒ ออกแบบให้เป็น **container-first**:
   แอปต้องอ่าน config จาก env ล้วน, ไม่เขียนไฟล์ลง local disk แบบถาวร, มี `/health`
   ทำแบบนี้แล้วย้ายไป VPS / K8s / Cloud Run ทีหลังได้โดยไม่ต้องรื้อ
