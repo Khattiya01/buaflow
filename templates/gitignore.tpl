@@ -1,11 +1,20 @@
-# ── ของ kit / Claude Code ─────────────────────────────────────────────
-.verify.log                 # log เต็มของ scripts/verify.mjs (สรุปสั้นอยู่ใน terminal)
-.claude/settings.local.json # permissions/hook ส่วนตัว — settings.json ของทีม commit ปกติ
-CLAUDE.local.md             # กติกาส่วนตัวต่อเครื่อง (import ~/.claude/... ได้)
+# .gitignore ที่ kit ต้องการ — วางที่ root ของโปรเจกต์ (ไม่ต้องมีใน project-kit/)
+# หมายเหตุ: ใน .gitignore เครื่องหมาย # เป็น comment เฉพาะต้นบรรทัด ห้ามเขียน comment ท้าย pattern
+
+# ── ของ kit / Claude Code ──────────────────────────────────────────────
+# log เต็มของ scripts/verify.mjs (สรุปสั้นอยู่ใน terminal)
+.verify.log
+# permissions/hook ส่วนตัว — .claude/settings.json ของทีม commit ปกติ
+.claude/settings.local.json
+# กติกาส่วนตัวต่อเครื่อง
+CLAUDE.local.md
 .claude/*.tmp
-.husky/_/                   # ที่ husky generate — .husky/pre-push commit ปกติ
-.scannerwork/               # SonarQube scanner (ผู้ใช้รันเอง)
-dist/*.tar.gz               # docker save จาก /release เมื่อยังไม่มี registry
+# ที่ husky generate — .husky/pre-push commit ปกติ
+.husky/_/
+# SonarQube scanner (ผู้ใช้รันเอง)
+.scannerwork/
+# docker save จาก /release ตอนยังไม่มี registry
+dist/*.tar.gz
 
 # ── ห้ามหลุดเด็ดขาด (settings.json deny ไว้ด้วย แต่ gitignore คือชั้นแรก) ──
 .env
@@ -14,7 +23,7 @@ dist/*.tar.gz               # docker save จาก /release เมื่อย�
 *.pem
 *.key
 
-# ── ทั่วไป (ปรับตาม stack) ────────────────────────────────────────────
+# ── ทั่วไป (ปรับตาม stack) ─────────────────────────────────────────────
 node_modules/
 dist/
 build/
@@ -27,10 +36,7 @@ coverage/
 .DS_Store
 Thumbs.db
 *.log
-!.verify.log.example
 
-# ── ถ้า project-kit/ เป็น git clone ซ้อนอยู่ในโปรเจกต์ ─────────────────
-# ห้ามมี .git ซ้อน — เลือกอย่างใดอย่างหนึ่ง:
-#   (ก) คัดลอกเฉพาะไฟล์ (ไม่มี project-kit/.git)  → commit project-kit/ ทั้งโฟลเดอร์ปกติ (Phase 8 ใช้)
-#   (ข) git submodule add <url> project-kit           → git จัดการเอง ไม่ต้อง ignore
-# ไม่ ignore project-kit/ — มันคือเอกสารของโปรเจกต์ ไม่ใช่ build output
+# ── project-kit/ ───────────────────────────────────────────────────────
+# ไม่ ignore project-kit/ — เป็นเอกสารของโปรเจกต์ commit ทั้งโฟลเดอร์ (Phase 8 ใช้)
+# ถ้าได้มาด้วย git clone ให้ลบ project-kit/.git ทิ้งก่อน ไม่งั้น git จะไม่ track ไฟล์ข้างใน
