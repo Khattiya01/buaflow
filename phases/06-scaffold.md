@@ -19,7 +19,7 @@
 ## ลำดับขั้น
 
 ### ขั้น 1 — รากฐาน repo
-- `git init` (ถ้ายังไม่มี), `.gitignore`, `.editorconfig`, `.nvmrc`
+- `git init` (ถ้ายังไม่มี), `.gitignore` จาก `project-kit/templates/gitignore.tpl` (มี `.verify.log`, `settings.local.json`, `.env*` ครบ), `.editorconfig`, `.nvmrc`
 - `.gitattributes` ตั้ง `* text=auto eol=lf` กันปัญหา CRLF บน Windows
 - README ตั้งต้น
 - verify: `git status` สะอาด

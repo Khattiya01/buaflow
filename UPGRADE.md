@@ -46,6 +46,7 @@ Claude จะทำข้อ 1–10 ให้ โดยหยุดถามค�
 
 ```bash
 git switch -c chore/kit-v2.1
+cat project-kit/templates/gitignore.tpl >> .gitignore   # แล้วลบบรรทัดที่ซ้ำกับของเดิม — ต้องมี .verify.log และ .claude/settings.local.json
 # เอา project-kit เวอร์ชันล่าสุดมาวางข้าง ๆ (หรือ git pull ถ้าเป็น submodule / โฟลเดอร์ใน repo)
 node project-kit/claude-setup/check-config.js   # ดู baseline ก่อนแก้ — จะ FAIL หลายข้อ ปกติ
 ```

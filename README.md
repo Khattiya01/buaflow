@@ -135,6 +135,7 @@ project-kit/
 │   ├── AGENTS.md.tpl                กติกาหลัก (มาตรฐานกลาง)
 │   ├── CLAUDE.md.tpl                ชั้นบางเฉพาะ Claude Code
 │   ├── REVIEW.tpl.md                นโยบายการรีวิว
+│   ├── gitignore.tpl                .gitignore ที่ kit ต้องการ (.verify.log, settings.local.json, .env*)
 │   └── verify.mjs.tpl               ⭐ verify ที่พิมพ์สรุปสั้น log เต็มลง .verify.log
 │
 └── claude-setup/               ← จะถูกคัดลอกไป .claude/ ตอน Phase 7
