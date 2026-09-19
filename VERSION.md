@@ -19,6 +19,14 @@
   ทุก skill ที่เกี่ยวมี `Bash(node .claude/*)` อยู่แล้ว เรียกผ่านไฟล์นี้จึงผ่าน permission โดยไม่ต้องแก้ frontmatter
 - **`claude-setup/run.js`** — คำสั่งรองตามชื่อ (`coverage`, `audit`, `apiTest`) อ่านจาก `commands` ใน `stack.json`
   เหตุผลเดียวกับ verify.js: `/release` มี `Bash(pnpm *)` ซึ่งใช้ไม่ได้กับ stack อื่น · คำสั่งที่ไม่ได้ตั้ง = บอกตรง ๆ แล้ว exit 1 ไม่ใช่เงียบแล้วผ่าน
+- **`ciMode` — CI เป็น "ระดับ" ไม่ใช่มี/ไม่มี** (`required` / `pr-only` / `local-only`)
+  เดิม kit สมมติว่ามี CI เสมอ แต่นาที Actions มีจำกัด (ฟรีไม่จำกัดเฉพาะ repo public) และบางโปรเจกต์ไม่มี remote เลย
+  `local-only` = ไม่มี CI โดยตั้งใจ → `check-config` เลิกเตือนเรื่องไฟล์ CI แต่**เปลี่ยน pre-push ที่หายไปจาก warn เป็น FAIL**
+  เพราะเมื่อไม่มี CI แล้ว hook ตัวนั้นคือด่านเดียวที่เหลือนอก session ของ Claude
+- **ลดนาที CI ใน template** — `github-actions.yml.tpl` เดิมรัน 2 รอบต่องาน (`pull_request` + `push: main`)
+  ทั้งที่ merge ทุกครั้งผ่าน PR ที่เพิ่งตรวจไปแล้ว · ตัด `push` ออก และเพิ่มการตรวจว่าแตะแต่ `docs/` `*.md` ไหม
+  ถ้าใช่ข้าม `pnpm install` แล้วรัน `gate.js --docs-only` (โหมดที่ `gate.js` มีอยู่แล้วแต่ CI ไม่เคยเรียก)
+  ไม่ใช้ `paths-ignore` เพราะ required check ที่ไม่เคยรัน = PR ค้าง merge ไม่ได้ตลอดไป · `.gitlab-ci.yml.tpl` ตัด rule ซ้ำเหมือนกัน
 - **`check-config.js` เลิกรายงานผ่านทั้งที่ไม่ได้ทดสอบ** — เดิมใช้ path สมมติ (`src/components/ui/button.tsx`)
   เป็น fixture ตอนทดสอบ hook ซึ่ง hook ตัดสินจาก pattern ล้วน จึงได้ exit ตามที่คาดเสมอแล้วขึ้น `ok`
   ตอนนี้ใช้เฉพาะไฟล์ที่มีอยู่จริง ไม่มีก็ `warn` ว่าข้ามเทส · เพิ่มการตรวจว่า `format-changed.js` มี formatter ที่ match จริงไหม

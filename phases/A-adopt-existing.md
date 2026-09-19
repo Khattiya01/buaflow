@@ -132,7 +132,7 @@ AI ที่ไม่รู้ว่า "ทำไมถึงเป็นแบ
 | `AGENTS.md` | เขียนจาก A.1 ทั้งหมด **โดยเฉพาะ "โครงโฟลเดอร์" และ "convention ที่ใช้อยู่จริง"** — เอาร่างจาก `/init` มาตัดด้วย `/doctor` (มันตัดของที่ AI derive จากโค้ดได้เอง) | A.1 |
 | `scripts/verify.mjs` | ถ้าโปรเจกต์เดิมมี `verify` เป็น `&&` ยาว ๆ → ครอบด้วย `templates/verify.mjs.tpl` ให้พิมพ์สรุปสั้น (A.2) | A.2 |
 | `.gitignore` | เติมจาก `templates/gitignore.tpl` (อย่างน้อย `.verify.log`, `.claude/settings.local.json`, `CLAUDE.local.md`) ของเดิมที่มีอยู่ไม่ต้องแตะ | — |
-| pre-push hook + `.claude/gate.js` | ติดตั้ง gate — **ถ้ามี CI เดิมอยู่แล้ว อย่าแทน** ให้เพิ่ม `node .claude/gate.js` เป็น job ใหม่ข้าง ๆ · ไม่ได้ใช้ husky ให้ตั้ง `preflightHookPath` ใน `stack.json` เป็น `.git/hooks/pre-push` | A.1 CI/CD |
+| pre-push hook + `.claude/gate.js` | ติดตั้ง gate — **ถ้ามี CI เดิมอยู่แล้ว อย่าแทน** ให้เพิ่ม `node .claude/gate.js` เป็น job ใหม่ข้าง ๆ · ไม่ได้ใช้ husky ให้ตั้ง `preflightHookPath` ใน `stack.json` เป็น `.git/hooks/pre-push` · ไม่มี CI (นาทีหมด / ไม่ได้ push ขึ้น remote) ให้ตั้ง `ciMode: local-only` — แล้ว hook ตัวนี้จะกลายเป็นข้อบังคับ ไม่ใช่ของเสริม | A.1 CI/CD |
 
 **เกณฑ์:** `node .claude/check-config.js` ต้องได้ `ต้องแก้: 0` และ `ควรดู:` ต้องไม่มี "pattern ที่ไม่ match" เหลืออยู่
 

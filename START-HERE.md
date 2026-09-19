@@ -68,6 +68,8 @@
 - มี `docs/planning/_state.md` อยู่ไหม? **ถ้ามี → อ่านแล้วทำต่อจากจุดที่ค้าง อย่าเริ่มใหม่**
 - **โปรเจกต์ที่ผ่าน kit v1.0 มาแล้ว** — สัญญาณ: มี `.claude/commands/` หรือมี `CLAUDE.md` ที่ยาวเต็มโดยไม่มี `AGENTS.md` และ `_state.md` บอกว่า Phase 7 เสร็จแล้ว
   → **ไม่ต้องทำ Phase ใด** อ่าน `project-kit/UPGRADE.md` แล้วทำตามนั้นแทน (บอกผู้ใช้ว่าตรวจพบ v1.0 ก่อนเริ่ม)
+- **โปรเจกต์ที่ผ่าน kit v2.1 มาแล้ว** — สัญญาณ: มี `.claude/skills/` และ `AGENTS.md` แล้ว แต่**ไม่มี `.claude/stack.json`**
+  → **ไม่ต้องทำ Phase ใด** อ่าน `project-kit/UPGRADE.md` หัวข้อ **v2.1 → v2.2** (~15 นาที) แล้วทำตามนั้นแทน
 
 ### 2.2 ถาม 4 คำถามนี้ (รอบเดียว)
 
@@ -212,7 +214,7 @@ Phase 8 คือรอบที่เอาบทเรียนจากกา
 | Data model | `prisma/schema.prisma` เป็น source of truth ตัวเดียว ล็อก core entities ที่ Phase 4.4b ก่อน scaffold |
 | Artifact chain | งานใหม่เข้าทาง `docs/intents/` เสมอ → spec → plan → code → check → PR → done (งานจิ๋ว: trivial track ไม่ต้อง intent/plan) |
 | กติกา AI | คาย `AGENTS.md` (มาตรฐานกลาง) + `CLAUDE.md` ที่ import เข้าไป ไม่เขียนซ้ำ 2 ที่ |
-| CI/CD | gate มีตั้งแต่ Phase 6 (pre-push) + ไฟล์ CI เตรียมไว้ทั้ง GitHub/GitLab — เลือก host แล้วเปิด branch protection |
+| CI/CD | **ด่านหลักคือ pre-push hook ในเครื่อง ไม่ใช่ CI** — มีตั้งแต่ Phase 6 · CI เป็นชั้นที่สองที่กันคนข้าม hook · นาที CI มีจำกัด (ฟรีไม่จำกัดเฉพาะ repo public) ถ้าหมดหรือไม่มี remote ให้ตั้ง `"ciMode": "local-only"` ใน `.claude/stack.json` แล้วลบไฟล์ CI ทิ้ง — gate ยังบังคับอยู่ |
 | Deploy target | **ยังไม่ตัดสินใจ** → ออกแบบให้เป็น container-first ไม่ผูก vendor |
 | Git host | **ยังไม่ตัดสินใจ** → ใช้ convention ที่ย้ายไป host ไหนก็ได้ |
 

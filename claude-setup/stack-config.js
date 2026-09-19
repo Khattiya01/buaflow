@@ -45,6 +45,12 @@ const DEFAULTS = {
   // git hook ที่เรียก gate.js — husky (Node) หรือ .git/hooks ตรง ๆ ก็ได้
   preflightHookPath: '.husky/pre-push',
 
+  // CI เป็น "ระดับ" ไม่ใช่มี/ไม่มี เพราะนาที CI มีจำกัดและบางโปรเจกต์ไม่มี remote ด้วยซ้ำ
+  //   required   ต้องมีไฟล์ CI (มีโควต้า หรือ repo public ซึ่ง Actions ฟรีไม่จำกัด)
+  //   pr-only    มี CI แต่รันเฉพาะ PR เข้า main และข้าม verify เมื่อแตะแต่ docs
+  //   local-only ไม่มี CI โดยตั้งใจ -> pre-push hook เป็นด่านเดียว ต้องติดตั้งจริงเท่านั้น
+  ciMode: 'required',
+
   // format/lint เฉพาะไฟล์ที่เพิ่งแก้ — เป็น "ข้อมูล" ไม่ใช่ if-chain ในสคริปต์
   //   when         ไฟล์ config ที่ต้องมีอย่างน้อยหนึ่งตัว ถึงจะถือว่าโปรเจกต์ใช้ตัวนี้
   //   match        (ไม่ใส่ = ทุกไฟล์ที่ผ่าน formattablePattern)
