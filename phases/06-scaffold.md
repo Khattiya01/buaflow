@@ -60,7 +60,8 @@
   ทำไฟล์ preview HTML ต่อ component (มี marker `<!-- @dsCard group="..." -->` บรรทัดแรก ระบุกลุ่มตาม
   หมวดใน `docs/design/components.md`) แล้วใช้ `design-sync` push ขึ้น Design System project บน
   claude.ai/design ครั้งแรก (สร้าง project ใหม่ถ้ายังไม่มี) — นี่คือจุดตั้งต้นของ storybook ที่จะใช้เทียบ
-  ความสอดคล้องใน Phase 8 ต่อไป บันทึก `projectId` ไว้ใน `_state.md`
+  ความสอดคล้องใน Phase 8 ต่อไป บันทึก `projectId` ไว้ใน `_state.md` และ `design_system_project` +
+  `last_storybook_sync` (commit ปัจจุบัน) ใน `docs/design/brief.md` — `/ui` ใช้สองค่านี้แนบ DS project และเช็ค stale ก่อนเปิด canvas
 - **ถ้า Phase 3 ใช้เส้นทาง D**: ติดตั้ง Playwright เป็น dev dependency
   (`pnpm add -D @playwright/test && pnpm exec playwright install chromium --with-deps`)
   ไว้สำหรับ render + screenshot ตอนเทียบ canvas กับหน้า local ใน Phase 8.8 — แค่ใช้ render ภาพเทียบ

@@ -13,7 +13,7 @@ paths:
 2. In the shadcn/ui registry? → **install from the registry; never hand-write it**
 3. Composable from existing primitives?
 4. Is there a design (image / HTML / legacy project)?
-5. None of the above → **stop and ask the user before designing your own**
+5. None of the above → **stop and ask the user before designing your own** — offer text (2 options) or canvas (claude.ai/design); canvas needs `docs/design/brief.md` first
 
 ## Forbidden
 
@@ -48,6 +48,7 @@ In addition to the core DoD in `docs/standards/definition-of-done.md`:
 - [ ] No raw colors/sizes · UI library per constitution art. 9
 - [ ] All states covered: loading / empty / error / unauthorized / success
 - [ ] Actually tested at ~390px, light + dark, and switching th/en does not break the layout
+- [ ] Has a design → pixel diff vs the baseline leaves only the agreed `deviation` rows, and the canvas was updated to match the code
 - [ ] a11y: labels complete, Tab order works, focus visible, contrast passes
 - [ ] `T-xxx-test` task created (blocked until the UI is done — `docs-lint --release` refuses to release while it is open)
 
