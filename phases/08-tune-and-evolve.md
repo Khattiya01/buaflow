@@ -159,6 +159,11 @@ rule จะเงียบไปเลยโดยไม่มี error บอ�
 > แจ้งผู้ใช้ทันที แล้วถอยไปทำงานแบบเส้นทาง B ชั่วคราว (ถามตรงๆ ว่าจะปรับ UI ยังไง ไม่ใช่เดาจาก canvas เก่า)
 > จนกว่าจะต่อ access กลับมาได้
 
+> **กติกากันวน ping-pong:** canvas กับโค้ดต้อง**เท่ากันเสมอหลังปิดงาน** — deviation ที่ผู้ใช้ตกลงตอน build (`/ui`)
+> ต้องถูกย้อนไปแก้ canvas และ commit `.dc.html` ใหม่เป็น baseline ตั้งแต่ตอนนั้น (ดู `standards/ui-component-rules.md` ข้อ 8)
+> ถ้าไม่ทำ รอบ sync นี้จะเห็น diff แล้วเข้าใจว่า "คนแก้ canvas" → ย้อนโค้ดกลับ → รอบหน้าเห็น diff อีก ไม่มีวันจบ
+> เจอ diff ที่ตรงกับแถว `deviation` ใน `docs/design/components.md` = **baseline ค้าง ไม่ใช่ canvas เปลี่ยน** → แก้ canvas ให้ตรงโค้ดแล้ว commit baseline ห้ามย้อนโค้ด
+
 1. **เช็คว่ามีของใหม่จริงไหม** — อ่าน canvas เวอร์ชันปัจจุบันกลับมา (Artifact read) เทียบกับเวอร์ชันล่าสุด
    ที่บันทึกไว้ใน `_state.md` ถ้าไม่มีเวอร์ชันใหม่ → จบ ไม่ต้องทำอะไรต่อ
 2. **กรอง scope ก่อนด้วย `git diff`** — เขียน HTML ที่อ่านมาทับไฟล์ baseline เดิมที่
@@ -167,8 +172,9 @@ rule จะเงียบไปเลยโดยไม่มี error บอ�
    (diff นี้ใช้แค่ลด scope ห้ามใช้ตัดสินความหมายของการเปลี่ยนแปลง เพราะ markup diff ดิบ noisy เกินไป
    — ยังไม่ commit ทับในขั้นนี้ รอ verify ผ่านก่อนถึงจะ commit เป็น baseline ใหม่ในข้อ 6)
 3. **ยืนยันความหมายด้วยภาพ** — ใช้ Playwright (ติดตั้งไว้แล้วใน Phase 6) render ทั้ง canvas baseline เดิม
-   และ canvas ใหม่ (หรือหน้า local dev ที่เกี่ยวข้อง) เป็น PNG เก็บไว้ใน scratchpad ชั่วคราว **ห้าม commit
-   รูปพวกนี้เข้า repo** (ทำให้ repo บวมโดยไม่จำเป็น) เทียบเฉพาะโซนที่ diff ในข้อ 2 ชี้ไว้ แล้วจัดประเภท:
+   และ canvas ใหม่ (หรือหน้า local dev ที่เกี่ยวข้อง) เป็น PNG **ที่ viewport เดียวกับ artboard** เก็บไว้ใน scratchpad ชั่วคราว
+   **ห้าม commit รูปพวกนี้เข้า repo** (ทำให้ repo บวมโดยไม่จำเป็น) แล้ว pixel diff คู่ภาพ (`pixelmatch` / `odiff`)
+   ให้ได้ % pixel ที่ต่าง + ภาพ diff highlight — ไม่ใช่ "ดูด้วยตาแล้วเหมือน" — เทียบเฉพาะโซนที่ diff ในข้อ 2 ชี้ไว้ แล้วจัดประเภท:
 
    | ประเภท | ตัวอย่าง | ขอบเขตที่ต้องแก้ |
    |---|---|---|
@@ -179,10 +185,12 @@ rule จะเงียบไปเลยโดยไม่มี error บอ�
 4. **ก่อนสร้างไฟล์ component ใหม่ (กรณี structural ที่เป็นของใหม่จริง)** — ต้องผ่านลำดับใน
    `standards/ui-component-rules.md` ข้อ 1 (shared → shadcn → ประกอบ → design → ถาม) เหมือนเดิมทุกครั้ง
    ห้ามข้ามเพราะรีบ sync — hook `guard-new-component.js` จะบล็อกถ้าลืมบันทึกใน `docs/design/components.md`
-5. แก้ตามขอบเขตที่จัดประเภทไว้ → **verify ด้วย screenshot จนภาพตรงกับ canvas จริง** อย่าเดาว่าเหมือนแล้ว
-   (หลักการเดียวกับ `claude-setup/skills/ui/SKILL.md`)
+5. แก้ตามขอบเขตที่จัดประเภทไว้ → **verify ด้วย pixel diff ซ้ำจน diff ที่เหลือเป็นเฉพาะแถว `deviation` ที่ตกลงไว้**
+   อย่าเดาว่าเหมือนแล้ว (loop เดียวกับ `claude-setup/skills/ui/SKILL.md` ส่วน "After writing")
+   ถ้าระหว่างแก้ผู้ใช้ตกลงให้โค้ดต่างจาก canvas ตรงไหน → บันทึกลง `deviation` และ **แก้ canvas ให้ตามโค้ดในรอบนี้เลย**
 6. Push component ที่แก้ขึ้น `design-sync` เพื่อให้ storybook บน claude.ai/design ตรงกับโค้ดปัจจุบัน
    (ต้องมีไฟล์ preview HTML ต่อ component พร้อม marker `<!-- @dsCard group="..." -->` บรรทัดแรก
    ไม่ใช่ push ไฟล์ `.tsx` ตรงๆ — Design System pane อ่านการ์ดจาก marker นี้)
    อัปเดต `docs/design/components.md`, commit ไฟล์ `docs/design/canvas/<screen-name>.dc.html` ที่เขียน
    ทับในข้อ 2 เป็น baseline ใหม่ (ตอนนี้ verify ผ่านแล้ว) และบันทึกเวอร์ชัน canvas ล่าสุดที่ sync แล้วลง `_state.md`
+   + `last_storybook_sync` ใน `docs/design/brief.md` (ไว้ให้ `/ui` เช็คว่า storybook stale ไหมก่อนเปิด canvas ครั้งหน้า)

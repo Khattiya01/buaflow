@@ -23,7 +23,9 @@
   │
   └─ 5. ไม่มีทั้งหมด → ❗ หยุด แล้วถามผู้ใช้ก่อน
          "component นี้ยังไม่มีทั้งใน shared และ shadcn และไม่มี design
-          ต้องการให้ผมออกแบบเองไหม หรือคุณมี reference จะส่งมา?"
+          คุณมี reference จะส่งมาไหม หรือให้ผมออกแบบ — เป็น text (เสนอ 2 แบบ) หรือบน canvas (claude.ai/design)?"
+         text   → เสนอ 2 แบบจาก shadcn + token ให้เลือก
+         canvas → ต้องมี docs/design/brief.md ก่อน + แนบ Design System project เดิม (ดูข้อ 8)
 ```
 
 > ข้อ 1-3 (ใช้ของเดิม/ประกอบจาก primitive) เป็น self-serve ทำได้เลยไม่ต้องรอ
@@ -37,7 +39,7 @@
 > จะทำ `<ชื่อ component>` ครับ ขอเช็กก่อน:
 > 1. มีของเดิมใน `components/shared/` ที่ใช้แทนได้ไหม — ที่ผมเห็นใกล้เคียงคือ `<X>`
 > 2. shadcn มี `<Y>` ที่ใช้เป็นฐานได้ — เอาตัวนี้ไหม
-> 3. มี design/reference ให้ดูไหม หรือให้ผมเสนอแบบให้เลือก
+> 3. มี design/reference ให้ดูไหม หรือให้ผมเสนอแบบให้เลือก — เป็น text หรือ canvas
 
 ---
 
@@ -57,7 +59,9 @@
 - ถ้าเห็นซ้ำครั้งที่ 2 ค่อยยก (แต่ต้องยกจริง อย่าปล่อยให้ซ้ำครั้งที่ 3)
 
 ### ต้องบันทึกใน `docs/design/components.md` ทุกตัว
-| component | ที่มา | shared? | ใช้ที่ไหน | หมายเหตุ |
+| component | ที่มา | shared? | ใช้ที่ไหน | หมายเหตุ | deviation จาก design |
+
+คอลัมน์ `deviation`: จุดที่ผู้ใช้ **ตกลงแล้ว** ให้โค้ดต่างจาก canvas/design + เหตุผล (ว่าง = ต้องตรง 100%) — ดูข้อ 8
 
 ---
 
@@ -132,3 +136,45 @@ components/
 - [ ] responsive ที่ ~390px ไม่พัง
 - [ ] light + dark ใช้ได้ทั้งคู่
 - [ ] a11y: role/label ครบ, Tab ไล่ได้, focus เห็นชัด
+- [ ] มี design → pixel diff เหลือเฉพาะ `deviation` ที่ตกลง และ canvas ถูกแก้ให้ตรงโค้ดแล้ว (ข้อ 8)
+
+---
+
+## 8. Design เป็น source of truth ของ "หน้าตา" — โค้ดต้องตรง 100%
+
+> ใช้กับทุก design ไม่ว่าจะเป็น canvas จาก claude.ai/design, รูป, HTML หรือโปรเจกต์เก่า
+> **ตรงในเชิงภาพ ไม่ใช่ตรงในเชิง markup** — ห้าม copy โค้ด/สไตล์จาก canvas (กติกาเดียวกับข้อ 6)
+
+### 8.1 ก่อนเปิด canvas — ต้องมีสัญญาก่อน
+- **`docs/design/brief.md`** (จาก `docs/templates/design-brief.tpl.md`) ส่วนที่ 1 ต้อง `confirmed` ก่อนเปิด canvas ครั้งแรกของโปรเจกต์
+  และตอบส่วนที่ 2 (scope · theme · viewports · states · content · deviation policy) ทุกครั้งที่สั่ง design
+  เหตุผล: canvas ไม่มีคำตอบให้กับสิ่งที่ brief ไม่ได้ถาม มันจะเดาแทน และการเดาคือสิ่งที่ทำให้ตรง 100% ไม่ได้
+- **แนบ Design System project เดิมเสมอ** (`design_system_project` ใน brief) ให้ canvas ประกอบจาก button/input/dialog ที่มีจริง
+  ไม่ใช่วาดใหม่ — canvas ห้ามใช้สี/ฟอนต์/icon นอก token และ storybook
+- **storybook ต้องใหม่กว่าโค้ด** — เทียบ `last_storybook_sync` ใน brief กับ commit ล่าสุดที่แตะ `components/`
+  ถ้าโค้ดใหม่กว่า → `/design-sync` ก่อน ไม่งั้น canvas จะประกอบจากชิ้นส่วนเก่า
+- ลำดับที่ถูก: **storybook → canvas → โค้ด** ไม่ใช่ design หน้าก่อนแล้วค่อยแกะ component ทีหลัง
+
+### 8.2 Theme: ใช้เดิม / ปรับ / ใหม่ — ผลต่างกัน
+| คำตอบ | ทำอะไร |
+|---|---|
+| ใช้เดิม | แนบ DS project → canvas ประกอบจากของเดิมล้วน ๆ |
+| เดิมแต่ปรับ X | เป็น **token-level change** กระทบทุกหน้า → ยืนยันก่อน · แก้ `docs/design/theme.md` + `globals.css` ที่เดียว · push storybook · แล้วค่อยเปิด canvas |
+| ออกแบบใหม่ทั้งหมด | มีหน้าที่ build แล้ว ≥ 1 → ไม่ใช่งาน `/ui` ต้องเป็น intent + ADR (ธรรมนูญมาตรา 9) เพราะทุกหน้าต้องตามไป · ยังไม่มีหน้าไหน → ทำ brief ส่วนที่ 1 ใหม่ |
+
+### 8.3 หลังเขียนโค้ด — พิสูจน์ด้วย pixel diff ไม่ใช่ "ดูแล้วเหมือน"
+1. screenshot หน้า local (Playwright) **ที่ viewport เดียวกับ artboard** ทุก viewport + light/dark ตาม brief
+   render baseline `.dc.html` เป็น PNG แบบเดียวกัน — เก็บใน scratchpad **ห้าม commit รูป**
+2. pixel diff (`pixelmatch` / `odiff`) → รายงาน % ที่ต่าง + ภาพ diff + **ไล่รายการความต่างทีละจุด** (ระยะ, ขนาด, น้ำหนัก, สี, state ที่หาย)
+3. แก้แล้ววนซ้ำ **จน diff ที่เหลือเป็นเฉพาะรายการที่ deviation policy อนุญาต** — diff ที่อธิบายไม่ได้คือบั๊กของโค้ด ไม่ใช่ของ canvas
+4. สีใน canvas ที่ไม่มี token → **หยุดถาม**: เพิ่ม token (theme-level กระทบทั้งระบบ) หรือแก้ canvas — ห้ามใส่ hex ดิบเพื่อให้ตรง
+
+### 8.4 Deviation — ปรับได้ แต่ต้องเป็นลายลักษณ์อักษร และ canvas ต้องตามโค้ด
+- ผู้ใช้ตกลงระหว่าง build ว่า "เอาแบบนี้แทน" = deviation → บันทึกใน `docs/design/components.md` คอลัมน์ `deviation` พร้อมเหตุผล
+- **แล้วแก้ canvas ให้ตรงโค้ดทันที** commit `.dc.html` ใหม่เป็น baseline — **canvas กับโค้ดต้องเท่ากันเสมอหลังปิดงาน มี source of truth เดียว**
+  ไม่ทำ → Phase 8.8 รอบหน้าจะเห็น diff แล้วเข้าใจว่าคนแก้ canvas → ย้อนโค้ดกลับ → วน ping-pong ไม่จบ
+- push preview HTML ของ component (`<!-- @dsCard group="..." -->` บรรทัดแรก) ขึ้น `/design-sync` แล้วอัปเดต `last_storybook_sync`
+
+### 8.5 สิ่งที่ canvas ไม่ตอบ — ห้ามเอาจาก canvas
+data fetching · auth · validation · business rule → มาจาก spec เท่านั้น canvas ตอบแค่ "หน้าตา"
+hover / focus / transition → ใช้กติกากลางใน brief 1.8 ไม่ตีความจากภาพนิ่ง

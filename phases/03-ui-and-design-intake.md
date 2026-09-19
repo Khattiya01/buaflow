@@ -123,15 +123,33 @@ Canvas (`.dc.html` artboard) เป็น mockup ภาพ/HTML ไม่ใช�
 ต้องแปลงเป็น shadcn + theme token + i18n เสมอ เหมือนกติกาการหยิบ UI จากโปรเจกต์เก่า
 (ดู `standards/ui-component-rules.md` ข้อ 6) — canvas ให้แค่ "หน้าตาที่ยืนยันแล้ว" ไม่ใช่ source code
 
+**canvas ไม่มีคำตอบให้กับสิ่งที่ไม่ได้ถาม** — ถ้าเปิด canvas โดยไม่ล็อกสี/ฟอนต์/icon/states/viewports ไว้ก่อน
+มันจะเดาแทนทุกหน้าไม่เหมือนกัน แล้วโค้ดจะ "ตรง 100%" ไม่ได้ตั้งแต่ต้น → ต้องมี **Design Brief** ที่เห็นชอบก่อนเสมอ
+
 ### D.1 ขั้นตอน
 
-1. ทำข้อ 1–4 ของเส้นทาง B ตามปกติ (ตัวอย่างเว็บที่ชอบ, โทนแบรนด์, logo, dark mode)
-2. แทนที่จะเสนอ wireframe เป็นข้อความ → ใช้ skill `design` สร้าง canvas มาตามข้อมูลที่ได้ วาง artboard ตามจำนวนหน้าที่คุยกันไว้
-3. ส่ง URL canvas ให้ผู้ใช้ (หรือ UX/UI) ไปแก้เองที่เว็บ (click-to-select, properties panel) จนพอใจ แล้ว publish
-4. อ่าน canvas เวอร์ชันที่ confirm แล้วกลับมา สกัด token + ทำ inventory หน้าจอ/component เหมือนเส้นทาง A ข้อ 2–6
-5. บันทึก source HTML ของแต่ละ artboard ที่ confirm แล้วลง `docs/design/canvas/<screen-name>.dc.html` แล้ว commit เข้า repo —
+1. **ทำ Design Brief ส่วนที่ 1 (ระดับโปรเจกต์)** จาก `project-kit/templates/design-brief.tpl.md` → `docs/design/brief.md`
+   ถามทีละหมวดให้ผู้ใช้ตอบ (reference · สี · typography · shape/space · core components · shell/viewports · icon set · motion · content/i18n)
+   — ข้อ 1–4 ของเส้นทาง B รวมอยู่ในหมวด reference/สี แล้ว ไม่ต้องถามซ้ำ
+   ต้องได้ `status: confirmed` ก่อนไปข้อถัดไป **แก้ brief ส่วนที่ 1 ทีหลัง = token-level change กระทบทุกหน้า**
+2. **design storybook ก่อน ไม่ใช่ design หน้าก่อน** — ใช้ skill `design` สร้าง canvas ของ core components ที่ติ๊กไว้ใน brief 1.5
+   (button, input, dialog, table, ... ครบทุก variant/state) ให้ผู้ใช้ยืนยันเป็นภาพ แล้วค่อยเอาชุดนี้ไปประกอบหน้า
+   ถ้า design หน้าก่อนแล้วค่อยแกะ component ทีหลัง จะได้ปุ่มคนละแบบในแต่ละหน้า
+3. **ตอบ brief ส่วนที่ 2 (ระดับงาน)** สำหรับชุดหน้าที่จะ design รอบนี้: scope · viewports (ทุกหน้าต้องมี artboard ครบตาม brief 1.6
+   ไม่ใช่แค่ desktop — มือถือที่ไม่มี artboard จะถูก "เดา" ตอนเขียนโค้ด) · states (empty/loading/error หรือใช้ pattern กลางจาก storybook)
+   · content (ภาษา + ข้อมูลตัวอย่างยาวเท่าของจริง) · deviation policy
+4. ใช้ skill `design` สร้าง canvas ของหน้าจอ **โดยประกอบจาก storybook ในข้อ 2** วาง artboard ตามจำนวนหน้า × viewport × state ที่ตกลง
+5. ส่ง URL canvas ให้ผู้ใช้ (หรือ UX/UI) ไปแก้เองที่เว็บ (click-to-select, properties panel) จนพอใจ แล้ว publish
+6. อ่าน canvas เวอร์ชันที่ confirm แล้วกลับมา สกัด token + ทำ inventory หน้าจอ/component เหมือนเส้นทาง A ข้อ 2–6
+   **สีหรือฟอนต์ที่โผล่ใน canvas แต่ไม่อยู่ใน brief** → ถามว่าจะเพิ่มเป็น token หรือแก้ canvas ห้ามเงียบ ๆ เพิ่ม token เอง
+7. บันทึก source HTML ของแต่ละ artboard ที่ confirm แล้วลง `docs/design/canvas/<screen-name>.dc.html` แล้ว commit เข้า repo —
    นี่คือ baseline ตั้งต้นที่ Phase 8.8 จะ diff ด้วยทุกครั้งที่มีการแก้ canvas ต่อไป
-6. บันทึก URL canvas + เวอร์ชันล่าสุดที่ sync แล้วไว้ใน `_state.md` — จะใช้เป็นจุดอ้างอิงตอนวน loop ปรับ UI ใน Phase 8 (ข้อ "UI drift sync ผ่าน Claude Design")
+8. บันทึก URL canvas + เวอร์ชันล่าสุดที่ sync แล้วไว้ใน `docs/design/brief.md` (ส่วน "ผล") และ `_state.md`
+   — จะใช้เป็นจุดอ้างอิงตอนวน loop ปรับ UI ใน Phase 8 (ข้อ "UI drift sync ผ่าน Claude Design")
+   `design_system_project` ใน brief จะได้ค่าตอน Phase 6 push storybook ครั้งแรก
+
+> หลังจบ Phase นี้ **ทุกหน้าใหม่ที่เพิ่มทีหลัง** ต้องผ่าน `/ui` ซึ่งจะถาม brief ส่วนที่ 2 และแนบ Design System project เดิม
+> ให้ canvas ประกอบจาก component ที่มีจริง — ไม่ต้องกลับมาทำ Phase 3 ซ้ำ (ดู `claude-setup/skills/ui/SKILL.md`)
 
 ---
 
@@ -154,7 +172,10 @@ Canvas (`.dc.html` artboard) เป็น mockup ภาพ/HTML ไม่ใช�
 - ความยาวข้อความไทย/อังกฤษไม่เท่ากัน → layout ต้องไม่พังเมื่อสลับภาษา
 
 ### 3. Component inventory — `docs/design/components.md`
-| component | ที่มา (shadcn / ประกอบเอง / สร้างใหม่) | shared หรือเฉพาะหน้า | ใช้ที่ไหนบ้าง | สถานะ |
+| component | ที่มา (shadcn / ประกอบเอง / สร้างใหม่) | shared หรือเฉพาะหน้า | ใช้ที่ไหนบ้าง | สถานะ | deviation จาก design |
+
+คอลัมน์ `deviation` ว่างไว้ตอนนี้ — ใช้ตอน build (Phase 7+) เมื่อผู้ใช้ตกลงให้โค้ดต่างจาก canvas/design ตรงจุดไหน
+(รายละเอียดใน `project-kit/standards/ui-component-rules.md` ข้อ 8)
 
 กติกาการตัดสินว่าเป็น shared: **ถ้ามีโอกาสถูกใช้ ≥ 2 ที่ → ทำเป็น shared ตั้งแต่แรก**
 (รายละเอียดเต็มใน `project-kit/standards/ui-component-rules.md`)

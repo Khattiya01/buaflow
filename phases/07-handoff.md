@@ -137,6 +137,7 @@ project-kit/templates/spec.tpl.md          →  docs/templates/
 project-kit/templates/task.tpl.md          →  docs/templates/
 project-kit/templates/adr.tpl.md           →  docs/templates/
 project-kit/templates/eval-case.tpl.md     →  docs/templates/
+project-kit/templates/design-brief.tpl.md  →  docs/templates/
 project-kit/claude-setup/evals/*.md        →  docs/evals/
 ```
 

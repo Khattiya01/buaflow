@@ -150,6 +150,7 @@ project-kit/
 │   ├── adr.tpl.md
 │   ├── backlog-board.tpl.md
 │   ├── eval-case.tpl.md
+│   ├── design-brief.tpl.md          สัญญาก่อนเปิด canvas (theme/components/viewports/states/deviation)
 │   ├── AGENTS.md.tpl                กติกาหลัก (มาตรฐานกลาง)
 │   ├── CLAUDE.md.tpl                ชั้นบางเฉพาะ Claude Code
 │   ├── REVIEW.tpl.md                นโยบายการรีวิว
