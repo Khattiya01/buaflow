@@ -26,8 +26,8 @@ Claude จะทำข้อ 1–10 ให้ โดยหยุดถามค�
 | `CLAUDE.md` ก้อนเดียว ภาษาไทย | `AGENTS.md` (อังกฤษ, มาตรฐานกลาง) + `CLAUDE.md` = `@AGENTS.md` + ชั้นบาง | แยกไฟล์ (ข้อ 2) |
 | `.claude/commands/{task,review,spec,ui,done,hotfix}.md` | `.claude/skills/*/SKILL.md` 9 ตัว (`/review` → `/check`, เพิ่ม `/intent` `/plan` `/release`) | **ลบ commands ทิ้ง** แล้วติดตั้ง skills (ข้อ 3) |
 | `.claude/agents/` 3 ตัว ภาษาไทย | 3 ตัวเดิม เพิ่ม `model:` เป็นอังกฤษ อ่านแค่ plan+diff | แทนที่ (ข้อ 3) |
-| ไม่มี | `.claude/rules/` `hooks/` `settings.json` `protected-paths.json` | ติดตั้งใหม่ (ข้อ 4) |
-| ไม่มี | `check-config.js` `docs-lint.js` `board.js` `gate.js` + pre-push + CI templates | ติดตั้งใหม่ (ข้อ 4) |
+| ไม่มี | `.claude/rules/` `hooks/` `settings.json` `stack.json` | ติดตั้งใหม่ (ข้อ 4) |
+| ไม่มี | `check-config.js` `docs-lint.js` `board.js` `gate.js` `verify.js` `stack-config.js` + pre-push + CI templates | ติดตั้งใหม่ (ข้อ 4) |
 | `verify` เป็น `tsc && eslint && vitest` | `scripts/verify.mjs` พิมพ์สรุปสั้น | ครอบของเดิม (ข้อ 5) |
 | ไม่มี | `docs/constitution.md` `REVIEW.md` | เขียนจากการตัดสินใจที่มีอยู่แล้ว (ข้อ 6) |
 | `board.md` เขียนมือ + `import.csv` | ไฟล์ task = source of truth, board generate, ไม่มี csv | ย้ายข้อมูลลง task แล้ว generate (ข้อ 7) |
@@ -67,19 +67,23 @@ cp -r project-kit/claude-setup/skills .claude/
 cp -r project-kit/claude-setup/agents .claude/     # ทับของเดิม (ถ้าเคยแก้ agent เอง ให้ย้ายส่วนที่แก้เข้าตัวใหม่)
 ```
 
-ปรับตาม Phase 7.4: คำสั่งใน skills ต้องมีจริงใน `package.json` (`pnpm verify`, `test:cov`, `test:api`)
+ปรับตาม Phase 7.4: คำสั่งใน skills ต้องมีจริงในโปรเจกต์ (`test:cov`, `test:api`) — คำสั่ง verify ไม่ต้องแก้ เรียกผ่าน `node .claude/verify.js`
 
 ### 4. ชั้นบังคับ + สคริปต์ gate
 
 ```bash
 cp -r project-kit/claude-setup/rules project-kit/claude-setup/hooks .claude/
-cp project-kit/claude-setup/{check-config,docs-lint,board,gate}.js project-kit/claude-setup/protected-paths.json .claude/
+cp project-kit/claude-setup/{check-config,docs-lint,board,gate,verify,run,stack-config}.js project-kit/claude-setup/stack.json .claude/
 cp project-kit/claude-setup/settings.json.tpl .claude/settings.json      # ลบ $comment, แก้ ${CLAUDE_PROJECT_DIR} ไม่ต้อง — Claude Code แทนให้
 cp project-kit/claude-setup/ci/pre-push.tpl .husky/pre-push
 cp project-kit/claude-setup/ci/github-actions.yml.tpl .github/workflows/gate.yml   # และ/หรือ gitlab-ci.yml.tpl
 ```
 
-แล้วทำตาม **Phase A.5** (ตารางปรับ config ให้ตรงของจริง): `paths:` ของ rules ต้องตรงโครงจริง, `protected-paths.json` ตามของที่ generate จริง, `format-changed.js` ชี้ formatter ที่ใช้
+> **โปรเจกต์ที่มี `.claude/protected-paths.json` อยู่แล้ว:** ไม่ต้องรีบย้าย — `stack-config.js` ยังอ่านไฟล์เดิมเป็น fallback
+> อยากรวมเป็นไฟล์เดียว: คัดลอก `stack.json` มา แล้วย้าย `protected` / `testFilePattern` / `bugfixBranchPattern` ของเดิมเข้าไป แล้วลบไฟล์เก่าทิ้ง
+> (ถ้ามีทั้งสองไฟล์ `stack.json` ชนะ) · `check-config.js` จะเตือนให้เองว่ายังใช้ไฟล์เก่าอยู่
+
+แล้วทำตาม **Phase A.5** (ตารางปรับ config ให้ตรงของจริง): **`stack.json` ก่อนเพื่อน** (คำสั่ง verify, pattern ไฟล์โค้ด, formatter, ไฟล์ที่ generate), แล้วค่อย `paths:` ของ rules ให้ตรงโครงจริง
 `node .claude/check-config.js` จนได้ `ต้องแก้: 0` **(ถาม: แปะผลรอบแรกให้ผู้ใช้ดู — pattern ไหนที่ไม่ match ต้องให้ผู้ใช้ยืนยันว่าลบได้)**
 
 ### 5. verify

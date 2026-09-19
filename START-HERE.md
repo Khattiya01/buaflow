@@ -207,7 +207,7 @@ Phase 8 คือรอบที่เอาบทเรียนจากกา
 | Spec | feature ใหญ่ต้องมี spec 3 ส่วนก่อนโค้ด, task ย่อย/hotfix ใช้ template สั้น |
 | Coverage | Backend: เขียน unit test พร้อม module ทุกครั้ง / Frontend: เขียนทีหลังเมื่อ UI นิ่ง |
 | API docs | ต้องมี OpenAPI เสมอเมื่อมี API |
-| คำสั่งตรวจ | ต้องมี **`pnpm verify` คำสั่งเดียว** (`scripts/verify.mjs` จาก template) รันจบใน ~30 วินาที exit non-zero เมื่อพัง **พิมพ์สรุปสั้น** log เต็มลง `.verify.log` |
+| คำสั่งตรวจ | ต้องมี **คำสั่งเดียวที่บอกว่างานผ่านหรือไม่** รันจบใน ~30 วินาที exit non-zero เมื่อพัง **พิมพ์สรุปสั้น** log เต็มลง `.verify.log` — *นโยบายคือ "คำสั่งเดียว" ส่วนคำสั่งจริงเป็นของ stack*: ตั้งที่ `verifyCommand` ใน `.claude/stack.json` แล้วทุกที่เรียกผ่าน `node .claude/verify.js` (JS/TS: `scripts/verify.mjs` จาก template) |
 | Gate | `node .claude/gate.js` = verify + check-config + docs-lint — รันจาก pre-push และ CI ตัวเดียวกัน main รับของผ่าน PR เท่านั้น |
 | Data model | `prisma/schema.prisma` เป็น source of truth ตัวเดียว ล็อก core entities ที่ Phase 4.4b ก่อน scaffold |
 | Artifact chain | งานใหม่เข้าทาง `docs/intents/` เสมอ → spec → plan → code → check → PR → done (งานจิ๋ว: trivial track ไม่ต้อง intent/plan) |

@@ -65,7 +65,7 @@ Briefly:
 ## 6. Self-check before finishing
 
 ```
-pnpm verify
+node .claude/verify.js
 ```
 Paste the **summary line** it prints (full log is in `.verify.log`) — never claim it passed without running it.
 Complete every Proof in the plan and show the result.

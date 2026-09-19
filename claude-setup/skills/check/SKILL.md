@@ -2,7 +2,7 @@
 name: check
 description: Check finished work before asking a human to approve. Runs verify for real, compares the diff to the plan, then hands the diff to the built-in /code-review and /security-review. Use after /task and before /done. Not named /review because that collides with the built-in alias.
 argument-hint: "[T-xxx]"
-allowed-tools: Read Glob Grep Bash(git *) Bash(pnpm verify*) Bash(node .claude/*) Agent(code-reviewer)
+allowed-tools: Read Glob Grep Bash(git *) Bash(node .claude/*) Agent(code-reviewer)
 ---
 
 Check: $ARGUMENTS
@@ -29,7 +29,7 @@ Read `track:` in the task file (`docs/backlog/tasks/<ID>.md`)
 ## 1. Run the real thing first — never review broken code
 
 ```
-pnpm verify
+node .claude/verify.js
 ```
 
 - Fails → **stop, fix first**, then start over

@@ -11,6 +11,22 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
 
 ---
 
+## kit นี้รองรับแค่ไหน (อ่านก่อนเอาไปใช้)
+
+แบ่งเป็น 2 ชั้นที่รองรับไม่เท่ากัน — **บอกไว้ตรง ๆ ดีกว่าให้ไปเจอเองตอนติดตั้งแล้ว**
+
+| ชั้น | รองรับ | คืออะไร |
+|---|---|---|
+| **ชั้น process** | **ทุก stack ทุกภาษา** | artifact chain (intent → spec → plan → task → check → done), `board.js`, `docs-lint.js`, `gate.js`, `verify.js`, guard hooks เรื่อง git, Conventional Commits, ธรรมนูญ, eval — เป็น Node ล้วนที่ทำงาน**รอบ ๆ** โค้ด ไม่ได้อ่านโค้ดของแอป |
+| **ชั้น stack** | **JS/TS + เว็บเป็นหลัก** | `rules/*.md` ที่อ้าง shadcn / Prisma / next-intl, `skills/ui/`, `guard-new-component.js`, Phase 2–6 ที่เขียนโดยสมมติ Next.js |
+
+- **stack อื่น (Python, .NET, Go, Laravel)** ใช้ได้ผ่าน **[Phase A](phases/A-adopt-existing.md)** — ตั้งค่าที่ `.claude/stack.json` ไฟล์เดียว
+  (คำสั่ง verify, pattern ไฟล์โค้ด, formatter, ไฟล์ที่ห้ามแก้) แต่ **ต้องเขียน `.claude/rules/` เองตาม convention ของ stack นั้น** เพราะของที่มากับ kit อ้าง library ของฝั่ง JS
+- **แอป desktop / CLI / mobile** — ชั้น process ใช้ได้เต็ม ส่วน Phase 3 (design token) กับขั้น Docker/OpenAPI ใน Phase 6 ข้ามได้ ไม่ใช่ทุกขั้นจะเกี่ยว
+- ยังไม่มีโปรไฟล์สำเร็จรูปของ stack อื่นให้ — จะทำเมื่อมีโปรเจกต์จริงที่ใช้ เพื่อให้เขียนจาก convention ที่เจอจริง ไม่ใช่เดาเอา
+
+---
+
 ## หลักการออกแบบ
 
 1. **Artifact ต่อกันเป็นทอด** — ทุกขั้นคายไฟล์ที่ขั้นถัดไปอ่านได้ และทุกไฟล์อยู่ใน git
@@ -24,7 +40,7 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
    กฎที่ห้ามพังต้องมี hook ไม่ใช่แค่ข้อความว่า "ห้าม..." และกฎที่ต้องอยู่**นอก session ของ Claude** ต้องอยู่ใน gate
    (`gate.js` = verify + check-config + docs-lint รันจาก pre-push และ CI — main รับของผ่าน PR เท่านั้น)
 
-3. **AI ต้องตรวจงานตัวเองได้ก่อนคนเห็น** — ทุกโปรเจกต์ต้องมี `pnpm verify` คำสั่งเดียว
+3. **AI ต้องตรวจงานตัวเองได้ก่อนคนเห็น** — ทุกโปรเจกต์ต้องมี **คำสั่งตรวจคำสั่งเดียว** (เรียกผ่าน `node .claude/verify.js` คำสั่งจริงอยู่ใน `.claude/stack.json`)
    ที่รันเร็วพอให้ AI วนซ้ำได้ **พิมพ์สรุปสั้นพอที่จะแปะได้ทุกครั้ง** (log เต็มแยกไฟล์) และทุกงานต้องระบุ **Proof** ว่าอะไรพิสูจน์ว่าเสร็จ
 
 4. **ห้ามเดา** — จุดที่ไม่ชัดต้องเขียน `[NEEDS CLARIFICATION: ...]` ไม่ใช่เติมค่าที่ดูสมเหตุสมผล
@@ -147,8 +163,11 @@ project-kit/
     ├── docs-lint.js                 ⭐ ตรวจว่า artifact chain ยังตรงกัน (spec โกหก / task ลอย / WIP / หนี้เทส)
     ├── board.js                     generate board.md จากไฟล์ task
     ├── gate.js                      ⭐ ด่านเดียว: verify + check-config + docs-lint — pre-push และ CI รันตัวเดียวกัน
+    ├── verify.js                    ทางเข้าเดียวของคำสั่งตรวจ — skill เรียกตัวนี้ ไม่ผูกกับ pnpm
+    ├── run.js                       คำสั่งรองตามชื่อ (coverage / audit / apiTest) อ่านจาก stack.json
+    ├── stack-config.js              ⭐ ตัวอ่าน stack.json ที่สคริปต์อื่นใช้ร่วมกัน
+    ├── stack.json                   ⭐ stack ของโปรเจกต์: คำสั่ง verify, pattern ไฟล์โค้ด, formatter, ไฟล์ที่ห้าม AI แก้
     ├── ci/                          pre-push + GitHub Actions + GitLab CI templates
-    ├── protected-paths.json         ไฟล์ที่ห้าม AI แก้ — ปรับได้โดยไม่แตะ hook
     ├── settings.json.tpl            permissions + การผูก hooks
     └── evals/                       ชุดเคสทดสอบ config
 ```
@@ -166,8 +185,8 @@ CONTRIBUTING.md
 ├── agents/*.md                ← 3 subagents
 ├── hooks/*.js                 ← ชั้นบังคับ
 ├── check-config.js            ← ตรวจสุขภาพ config (รันทุกครั้งที่ปรับ)
-├── docs-lint.js  board.js  gate.js
-├── protected-paths.json       ← ไฟล์ที่ห้าม AI แก้
+├── docs-lint.js  board.js  gate.js  verify.js  run.js  stack-config.js
+├── stack.json                 ← stack ของโปรเจกต์ + ไฟล์ที่ห้าม AI แก้
 └── settings.json              ← permissions + hooks
 .husky/pre-push                ← node .claude/gate.js
 .github/workflows/gate.yml | .gitlab-ci.yml

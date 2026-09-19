@@ -12,8 +12,26 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
-const FORMATTABLE = /\.(ts|tsx|js|jsx|mjs|cjs|json|css|scss|md)$/;
-const SKIP = /(^|\/)(node_modules|\.next|dist|build|coverage)\//;
+
+// formatter/linter ของโปรเจกต์มาจาก .claude/stack.json — ไม่ใช่ if-chain ในไฟล์นี้
+// (ติดตั้งเก่าที่ยังไม่มี stack-config.js จะถอยไปใช้ค่าเดิมของ kit)
+let cfg;
+try {
+  cfg = require('../stack-config.js').load(ROOT);
+} catch {
+  cfg = {
+    formattablePattern: '\\.(ts|tsx|js|jsx|mjs|cjs|json|css|scss|md)$',
+    skipPattern: '(^|/)(node_modules|\\.next|dist|build|coverage)/',
+    formatCommands: [
+      { when: ['biome.json', 'biome.jsonc'], cmd: 'pnpm', args: ['exec', 'biome', 'check', '--write', '{file}'], exclusive: true },
+      { when: ['.prettierrc', '.prettierrc.json', 'prettier.config.js', '.prettierrc.cjs'], cmd: 'pnpm', args: ['exec', 'prettier', '--write', '{file}'] },
+      { when: ['eslint.config.js', 'eslint.config.mjs', '.eslintrc.json', '.eslintrc.cjs'], match: '\\.(ts|tsx|js|jsx|mjs|cjs)$', cmd: 'pnpm', args: ['exec', 'eslint', '--fix', '{file}'], reportOutput: true },
+    ],
+  };
+}
+
+const FORMATTABLE = new RegExp(cfg.formattablePattern);
+const SKIP = new RegExp(cfg.skipPattern);
 
 function has(rel) {
   return fs.existsSync(path.join(ROOT, rel));
@@ -44,17 +62,13 @@ process.stdin.on('end', () => {
 
   const messages = [];
 
-  // Biome ทำทั้ง format และ lint ในคำสั่งเดียว — ถ้ามีให้ใช้ตัวนี้อย่างเดียว
-  if (has('biome.json') || has('biome.jsonc')) {
-    run('pnpm', ['exec', 'biome', 'check', '--write', rel]);
-  } else {
-    if (has('.prettierrc') || has('.prettierrc.json') || has('prettier.config.js') || has('.prettierrc.cjs')) {
-      run('pnpm', ['exec', 'prettier', '--write', rel]);
-    }
-    if (/\.(ts|tsx|js|jsx|mjs|cjs)$/.test(rel) && (has('eslint.config.js') || has('eslint.config.mjs') || has('.eslintrc.json') || has('.eslintrc.cjs'))) {
-      const out = run('pnpm', ['exec', 'eslint', '--fix', rel]);
-      if (out && out.trim()) messages.push(out.trim().slice(0, 2000));
-    }
+  // exclusive = ตัวที่ทำทั้ง format และ lint จบในคำสั่งเดียว (เช่น Biome) ถ้าทำงานแล้วไม่ต้องรันตัวอื่น
+  for (const f of cfg.formatCommands) {
+    if (!Array.isArray(f.when) || !f.when.some(has)) continue;
+    if (f.match && !new RegExp(f.match).test(rel)) continue;
+    const out = run(f.cmd, (f.args || []).map((a) => (a === '{file}' ? rel : a)));
+    if (f.reportOutput && out && out.trim()) messages.push(out.trim().slice(0, 2000));
+    if (f.exclusive) break;
   }
 
   if (messages.length) {

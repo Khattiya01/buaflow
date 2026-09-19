@@ -20,6 +20,32 @@ const { execFileSync } = require('node:child_process');
 const ROOT = process.argv[2] || process.cwd();
 const CLAUDE = path.join(ROOT, '.claude');
 
+// stack ของโปรเจกต์มาจาก .claude/stack.json — ถ้าไม่มีก็เป็นค่าเริ่มต้นเดิมของ kit (JS/TS)
+let stack;
+let stackConfigAvailable = true;
+try {
+  stack = require(path.join(CLAUDE, 'stack-config.js')).load(ROOT);
+} catch {
+  // ติดตั้งเก่าที่ยังไม่มี stack-config.js — ต้องเป็นค่าเดิมของ kit เป๊ะ ๆ ไม่งั้นจะรายงานผิด
+  // (เคยพลาดมาแล้ว: fallback ที่ protected/formatCommands ว่าง ทำให้ข้ามเทสและเตือน formatter ผิด)
+  stackConfigAvailable = false;
+  const legacy = (() => {
+    try { return JSON.parse(fs.readFileSync(path.join(CLAUDE, 'protected-paths.json'), 'utf8')); } catch { return {}; }
+  })();
+  stack = {
+    codeFilePattern: '\\.(ts|tsx|js|jsx|prisma|sql)$',
+    testFilePattern: legacy.testFilePattern || '\\.(spec|test)\\.[jt]sx?$|(^|/)(tests?|__tests__|e2e)/',
+    bugfixBranchPattern: legacy.bugfixBranchPattern || '^(fix|hotfix)/',
+    preflightHookPath: '.husky/pre-push',
+    protected: Array.isArray(legacy.protected) ? legacy.protected : [{ pattern: '**/components/ui/**' }],
+    formatCommands: [
+      { id: 'biome', when: ['biome.json', 'biome.jsonc'] },
+      { id: 'prettier', when: ['.prettierrc', '.prettierrc.json', 'prettier.config.js', '.prettierrc.cjs'] },
+      { id: 'eslint', when: ['eslint.config.js', 'eslint.config.mjs', '.eslintrc.json', '.eslintrc.cjs'] },
+    ],
+  };
+}
+
 const problems = [];
 const warnings = [];
 const ok = (m) => console.log(`  ok   ${m}`);
@@ -100,6 +126,8 @@ try {
 
 const coverage = new Map(allFiles.map((f) => [f, []]));
 const rulesDir = path.join(CLAUDE, 'rules');
+let rulesChecked = 0;
+let rulesDead = 0;
 if (fs.existsSync(rulesDir)) {
   for (const rf of fs.readdirSync(rulesDir).filter((f) => f.endsWith('.md'))) {
     const fm = frontmatter(path.join(rulesDir, rf));
@@ -122,17 +150,32 @@ if (fs.existsSync(rulesDir)) {
       for (const h of hits) coverage.get(h).push(rf.replace(/\.md$/, ''));
     }
 
-    if (total === 0) bad(`${rf}: ไม่ match ไฟล์ไหนเลย = rule ตายเงียบ`);
+    rulesChecked++;
+    if (total === 0) { rulesDead++; bad(`${rf}: ไม่ match ไฟล์ไหนเลย = rule ตายเงียบ`); }
     else if (dead.length) warn(`${rf}: match ${total} ไฟล์ แต่มี pattern ที่ไม่ match อะไรเลย ${dead.length} อัน -> ${dead.join(', ')} (ลบทิ้งหรือแก้ให้ตรงโครง)`);
     else ok(`${rf}: match ${total} ไฟล์ ทุก pattern ใช้งานจริง`);
   }
 }
 
+// rule ตายทั้งหมด = โครงไฟล์ไม่ตรงกับที่ rule คาดไว้ทั้งชุด ไม่ใช่พิมพ์ผิดทีละอัน
+// แยกข้อความนี้ออกมาเพื่อไม่ให้คนอ่านเห็น FAIL 5-6 บรรทัดแล้วไล่แก้ทีละไฟล์โดยไม่รู้สาเหตุร่วม
+if (rulesChecked > 1 && rulesDead === rulesChecked)
+  console.log(
+    `\n  วินิจฉัย: rule ทั้ง ${rulesDead} ไฟล์ไม่ match อะไรเลยพร้อมกัน = paths: ยังเป็นค่าของ kit (JS/TS) ไม่ใช่โครงจริงของโปรเจกต์นี้\n` +
+      '            ถ้า stack ไม่ใช่ JS/TS ให้เขียน rules ใหม่ตาม convention ของ stack นั้น (phases/A-adopt-existing.md ข้อ A.5)\n' +
+      '            rule ที่ยังไม่มีของจริงให้คุ้มครอง = ลบทิ้ง ดีกว่าเก็บไว้แล้วเข้าใจว่ามีกฎคุมอยู่'
+  );
+
 // ── 4. ไฟล์โค้ดที่ไม่มี rule คุ้มครอง ──────────────────────────────────
 head('4. ไฟล์โค้ดที่ไม่มี rule คุ้มครอง');
-const code = allFiles.filter((f) => /\.(ts|tsx|js|jsx|prisma|sql)$/.test(f) && !f.startsWith('docs/'));
+const CODE_RE = new RegExp(stack.codeFilePattern);
+const code = allFiles.filter((f) => CODE_RE.test(f) && !f.startsWith('docs/'));
 const naked = code.filter((f) => coverage.get(f).length === 0);
-if (!code.length) warn('ไม่เจอไฟล์โค้ดเลย (ยังไม่ scaffold?)');
+if (!code.length)
+  warn(
+    `ไม่เจอไฟล์ที่ match codeFilePattern (${stack.codeFilePattern}) เลย — ` +
+      'ถ้ายังไม่ scaffold ก็ปกติ แต่ถ้าโปรเจกต์มีโค้ดอยู่แล้วแปลว่า pattern ไม่ตรง stack: ตั้ง "codeFilePattern" ใน .claude/stack.json'
+  );
 else if (!naked.length) ok(`ไฟล์โค้ด ${code.length} ไฟล์ มี rule คุ้มครองครบ`);
 else {
   warn(`${naked.length} จาก ${code.length} ไฟล์ไม่มี rule ไหนคุ้มครอง:`);
@@ -201,9 +244,13 @@ head('5c. สคริปต์ gate');
 for (const s of ['docs-lint.js', 'board.js', 'gate.js']) {
   exists(`.claude/${s}`) ? ok(`.claude/${s}`) : warn(`ไม่มี .claude/${s} — กฎเรื่อง artifact chain / board / ด่านก่อน main จะเป็นแค่ข้อความ`);
 }
-exists('.husky/pre-push')
-  ? (/gate\.js/.test(read('.husky/pre-push')) ? ok('.husky/pre-push เรียก gate.js') : warn('.husky/pre-push มีอยู่แต่ไม่ได้เรียก gate.js'))
-  : warn('ไม่มี .husky/pre-push — gate จะรันแค่ใน CI (ถ้ามี) คนที่ push จากเครื่องข้ามได้');
+for (const s of ['stack-config.js', 'verify.js', 'run.js']) {
+  exists(`.claude/${s}`) ? ok(`.claude/${s}`) : warn(`ไม่มี .claude/${s} — สคริปต์จะถอยไปใช้ค่าเริ่มต้น JS/TS และ skill จะเรียก verify ของ stack อื่นไม่ได้ (ดู UPGRADE.md)`);
+}
+const preflight = stack.preflightHookPath;
+exists(preflight)
+  ? (/gate\.js/.test(read(preflight)) ? ok(`${preflight} เรียก gate.js`) : warn(`${preflight} มีอยู่แต่ไม่ได้เรียก gate.js`))
+  : warn(`ไม่มี ${preflight} — gate จะรันแค่ใน CI (ถ้ามี) คนที่ push จากเครื่องข้ามได้ · ถ้าโปรเจกต์ไม่ได้ใช้ husky ให้ตั้ง "preflightHookPath" ใน .claude/stack.json (เช่น .git/hooks/pre-push)`);
 const ciFiles = ['.github/workflows/gate.yml', '.gitlab-ci.yml'].filter(exists);
 ciFiles.length ? ok(`CI: ${ciFiles.join(', ')}`) : warn('ยังไม่มีไฟล์ CI (gate.yml / .gitlab-ci.yml) — วางจาก claude-setup/ci/ ได้เลยแม้ยังไม่เลือก host');
 
@@ -234,54 +281,86 @@ if (settings?.hooks) {
   warn('settings.json ไม่มี hooks เลย — กฎทั้งหมดเป็นแค่คำแนะนำ ไม่มีอะไรบังคับ');
 }
 
-if (exists('.claude/protected-paths.json')) {
+const ppFile = ['.claude/stack.json', '.claude/protected-paths.json'].find(exists);
+if (ppFile) {
   try {
-    const pp = JSON.parse(read('.claude/protected-paths.json'));
+    const pp = JSON.parse(read(ppFile));
+    const name = path.basename(ppFile);
     const list = Array.isArray(pp.protected) ? pp.protected : [];
     const noReason = list.filter((r) => !r.reason);
-    if (!list.length) warn('protected-paths.json ไม่มีรายการ protected เลย');
-    else if (noReason.length) warn(`protected-paths.json: ${noReason.length} รายการไม่มี reason — Claude จะไม่รู้ทางที่ถูกตอนถูกบล็อก`);
-    else ok(`protected-paths.json: ${list.length} รายการ มี reason ครบ`);
+    if (!list.length) warn(`${name} ไม่มีรายการ protected เลย`);
+    else if (noReason.length) warn(`${name}: ${noReason.length} รายการไม่มี reason — Claude จะไม่รู้ทางที่ถูกตอนถูกบล็อก`);
+    else ok(`${name}: ${list.length} รายการ มี reason ครบ`);
     // pattern ที่ไม่ match อะไรเลย = อาจคัดลอกมาดิบ ๆ จากโปรเจกต์อื่น
     for (const r of list) {
       if (!r.pattern) continue;
       let hits = 0;
       try { hits = fs.globSync(r.pattern, { cwd: ROOT }).length; } catch { /* pattern แปลก ๆ ให้ hook ตัดสินเอง */ }
-      if (!hits) warn(`protected-paths.json: "${r.pattern}" ไม่ match ไฟล์ไหนในโปรเจกต์ (ยังไม่มี หรือคัดลอกมาจาก stack อื่น)`);
+      if (!hits) warn(`${name}: "${r.pattern}" ไม่ match ไฟล์ไหนในโปรเจกต์ (ยังไม่มี หรือคัดลอกมาจาก stack อื่น)`);
     }
+    if (name === 'protected-paths.json' && !exists('.claude/stack.json'))
+      warn('ยังใช้ protected-paths.json อยู่ — ย้ายไป .claude/stack.json ได้ (รวมคีย์อื่นของ stack ไว้ที่เดียว ดู UPGRADE.md) ไฟล์เดิมยังอ่านได้ต่อไป');
   } catch (e) {
-    bad(`protected-paths.json ไม่ใช่ JSON ที่ถูกต้อง: ${e.message} (hook จะถอยไปใช้ค่าเริ่มต้นเงียบ ๆ)`);
+    bad(`${path.basename(ppFile)} ไม่ใช่ JSON ที่ถูกต้อง: ${e.message} (hook จะถอยไปใช้ค่าเริ่มต้นเงียบ ๆ)`);
   }
 } else {
-  warn('ไม่มี .claude/protected-paths.json — guard-edit จะใช้ค่าเริ่มต้น (components/ui/** เท่านั้น)');
+  warn('ไม่มี .claude/stack.json — guard-edit จะใช้ค่าเริ่มต้น (components/ui/** เท่านั้น) และสคริปต์อื่นจะถือว่า stack เป็น JS/TS');
+}
+
+// hook ที่ไม่มีอะไรให้ทำ = exit 0 ทุกครั้งเหมือนทำงานปกติ ต้องฟ้องตรงนี้ ไม่งั้นเข้าใจว่า format-on-save ต่อแล้ว
+if (exists('.claude/hooks/format-changed.js')) {
+  const active = (stack.formatCommands || []).filter((f) => Array.isArray(f.when) && f.when.some(exists));
+  active.length
+    ? ok(`format-changed.js: ใช้ ${active.map((f) => f.id || f.cmd).join(', ')}`)
+    : warn(
+        'format-changed.js ผูกไว้แต่ไม่มี formatter ตัวไหน match โปรเจกต์นี้เลย = hook ไม่ทำอะไร ' +
+          (stackConfigAvailable ? 'ตั้ง "formatCommands" ใน .claude/stack.json' : 'คัดลอก stack-config.js + stack.json มาก่อน')
+      );
 }
 
 // ── 7. hooks ทำงานจริงไหม ─────────────────────────────────────────────
 head('7. hooks ทำงานจริงไหม (รันด้วย input จำลอง)');
-const TEST_FILE = /\.(spec|test)\.[jt]sx?$|(^|\/)(tests?|__tests__|e2e)\//;
+const TEST_FILE = new RegExp(stack.testFilePattern);
 let branch = '';
 try {
   branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
 } catch { /* ไม่ใช่ repo git ก็ไม่เป็นไร */ }
-const onFixBranch = /^(fix|hotfix)\//.test(branch);
+const onFixBranch = new RegExp(stack.bugfixBranchPattern).test(branch);
 console.log(`  (branch ปัจจุบัน: ${branch || 'ไม่ทราบ'}${onFixBranch ? ' -> เป็น branch แก้บั๊ก' : ''})`);
 
-const uiFile = code.find((f) => /components\/ui\//.test(f)) || 'src/components/ui/button.tsx';
+// ต้องใช้ "ไฟล์ที่มีอยู่จริง" เท่านั้น — guard-edit ตัดสินจาก pattern ล้วน ไฟล์สมมติจึงได้ exit ตามที่คาด
+// เสมอแล้วรายงานว่าผ่าน ทั้งที่ไม่ได้พิสูจน์ว่า config ตรงกับโครงจริงของโปรเจกต์เลย (เขียวปลอม)
+const protectedHits = new Set();
+for (const r of stack.protected || []) {
+  if (!r.pattern) continue;
+  try {
+    fs.globSync(r.pattern, { cwd: ROOT }).forEach((p) => protectedHits.add(p.replace(/\\/g, '/')));
+  } catch { /* pattern แปลก ๆ ให้ hook ตัดสินเอง */ }
+}
+const isFile = (p) => { try { return fs.statSync(path.join(ROOT, p)).isFile(); } catch { return false; } };
+const protectedFile = [...protectedHits].find(isFile) || null;
 // ต้องเลือกไฟล์ที่ "ไม่ใช่ไฟล์เทส" ไม่งั้นผลจะขึ้นกับ branch ที่กำลังยืนอยู่
-const normalFile = code.find((f) => !TEST_FILE.test(f) && !/components\/ui\//.test(f)) || 'src/lib/util.ts';
+const normalFile = code.find((f) => !TEST_FILE.test(f) && !protectedHits.has(f)) || null;
 const testFile = code.find((f) => TEST_FILE.test(f));
+const verifyCmd = (() => {
+  try { return require(path.join(CLAUDE, 'stack-config.js')).resolveVerify(ROOT); } catch { return null; }
+})() || 'pnpm verify';
 
 const cases = [
-  ['guard-edit.js', { tool_input: { file_path: uiFile } }, 2, `บล็อกการแก้ ${uiFile}`],
-  ['guard-edit.js', { tool_input: { file_path: normalFile } }, 0, `ปล่อยผ่าน ${normalFile}`],
   ['guard-bash.js', { tool_input: { command: 'git commit --no-verify -m x' } }, 2, 'บล็อก --no-verify'],
   ['guard-bash.js', { tool_input: { command: 'pnpm sonar' } }, 2, 'บล็อกการรัน sonar เอง'],
-  ['guard-bash.js', { tool_input: { command: 'pnpm verify' } }, 0, 'ปล่อยผ่าน pnpm verify'],
+  ['guard-bash.js', { tool_input: { command: verifyCmd } }, 0, `ปล่อยผ่าน ${verifyCmd}`],
   ['guard-bash.js', { tool_input: { command: 'git push origin HEAD:main' } }, 2, 'บล็อก push ตรงเข้า main'],
   ['guard-bash.js', { tool_input: { command: 'git push --no-verify' } }, 2, 'บล็อก push --no-verify'],
   ['guard-bash.js', { tool_input: { command: 'git push -u origin feat/x' } }, 0, 'ปล่อยผ่าน push branch feature'],
-  ['guard-edit.js', { tool_input: { file_path: 'docs/backlog/board.md' } }, exists('.claude/protected-paths.json') && /board\.md/.test(read('.claude/protected-paths.json')) ? 2 : 0, 'board.md (generate) ถูกกันตาม protected-paths'],
+  ['guard-edit.js', { tool_input: { file_path: 'docs/backlog/board.md' } }, ppFile && /board\.md/.test(read(ppFile)) ? 2 : 0, 'board.md (generate) ถูกกันตาม protected'],
 ];
+
+if (protectedFile) cases.unshift(['guard-edit.js', { tool_input: { file_path: protectedFile } }, 2, `บล็อกการแก้ ${protectedFile}`]);
+else warn('ข้ามเทส "บล็อกไฟล์ protected" — ไม่มีไฟล์จริงในโปรเจกต์ที่ match pattern ไหนใน protected เลย จึงยังพิสูจน์ไม่ได้ว่ารายการนี้ตรงกับโครงจริง');
+
+if (normalFile) cases.splice(1, 0, ['guard-edit.js', { tool_input: { file_path: normalFile } }, 0, `ปล่อยผ่าน ${normalFile}`]);
+else warn('ข้ามเทส "ปล่อยผ่านไฟล์ปกติ" — ไม่เจอไฟล์โค้ดที่ไม่ใช่ไฟล์เทสและไม่ได้อยู่ในรายการ protected');
 // merge บน main ขึ้นกับ branch ที่ยืนอยู่ — ตรวจให้ตรงกับที่ควรเป็น
 cases.push(['guard-bash.js', { tool_input: { command: 'git merge feat/x' } }, /^(main|master)$/.test(branch) ? 2 : 0,
   /^(main|master)$/.test(branch) ? 'บล็อก merge ขณะยืนบน main' : `ปล่อย merge เพราะยืนบน ${branch || '?'} (บน main ต้องถูกบล็อก)`]);

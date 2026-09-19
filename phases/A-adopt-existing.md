@@ -7,8 +7,12 @@
 > ทุกอย่างหลังจากนี้ต้องยึดของจริงในโค้ด ไม่ใช่ค่าเริ่มต้นที่ kit สมมติไว้
 >
 > **stack ที่ไม่ใช่ JS/TS** (Laravel, .NET, Python, Go): ใช้ได้ — hooks / gate / docs-lint / board เป็น Node ล้วนไม่ผูกกับ stack ของแอป
-> แต่ต้อง (1) ตั้ง `VERIFY_COMMAND` env หรือ script `verify` ใน `package.json` เปล่า ๆ ให้ `gate.js` เจอ (2) เขียน `.claude/rules/` ใหม่ตาม convention ของ stack นั้นใน A.5
-> (rules ที่มากับ kit อ้าง shadcn / Prisma / next-intl) (3) `format-changed.js` ให้ชี้ formatter ของ stack นั้นหรือปิดไป — งาน A.5 จะหนักกว่าโปรเจกต์ TS ประมาณเท่าตัว
+> สิ่งที่ผูกกับ stack ย้ายไปอยู่ใน `.claude/stack.json` ไฟล์เดียวแล้ว (คำสั่ง verify, pattern ไฟล์โค้ด, formatter, ไฟล์ที่ห้ามแก้, path ของ pre-push hook)
+> เหลือสิ่งที่ยังต้องเขียนเองจริง ๆ คือ **`.claude/rules/`** เพราะ `paths:` ฝังอยู่ใน frontmatter ของแต่ละ rule พารามิเตอร์ไม่ได้
+> และ rules ที่มากับ kit อ้าง shadcn / Prisma / next-intl — rule ไหนไม่มีของจริงให้คุ้มครอง **ลบทิ้ง ดีกว่าเก็บไว้แล้วเข้าใจว่ามีกฎคุมอยู่**
+>
+> **hook ที่เป็นเว็บโดยเฉพาะ** (`guard-new-component.js`) ไม่มีอะไรให้ทำบน stack ที่ไม่มี component tree — ถอดออกจาก `settings.json` ไปเลย
+> อย่าปล่อยไว้เฉย ๆ เพราะมันจะ exit 0 ทุกครั้งเหมือนทำงานปกติ
 
 ---
 
@@ -48,7 +52,7 @@ CLAUDE_CODE_NEW_INIT=1 claude      # แล้วพิมพ์ /init — flow 
 | **โครงโฟลเดอร์** | ผังจริงระดับ 2-3 ชั้น + อะไรวางตรงไหน — **นี่คือสิ่งที่ `paths:` ของ rules ต้องอิง** |
 | **คำสั่ง** | ทุก script ใน `package.json` และอันไหน**รันผ่านจริง** (ลองรัน อย่าเชื่อชื่อ) |
 | **Convention ที่ใช้อยู่จริง** | ตั้งชื่อไฟล์, error handling, การ validate, การเรียก API, state management — ดูจากโค้ดที่เขียนซ้ำ ๆ ไม่ใช่จาก README |
-| **สิ่งที่ generate อัตโนมัติ** | โฟลเดอร์ไหนห้ามแก้มือ (shadcn ui/, OpenAPI client, Prisma client, migration ที่รันแล้ว) → จะไปเป็น `protected-paths.json` |
+| **สิ่งที่ generate อัตโนมัติ** | โฟลเดอร์ไหนห้ามแก้มือ (shadcn ui/, OpenAPI client, Prisma client, migration ที่รันแล้ว, `*_ui.py` จาก pyuic) → จะไปเป็น `protected` ใน `stack.json` |
 | **Data model** | schema ที่มีอยู่ (`schema.prisma` / entities / migrations / SQL) — **ไฟล์นั้นคือ source of truth ของ data model ตั้งแต่วันนี้** ถ้าไม่มีไฟล์ schema เลย (DB ถูกแก้มือ) → `prisma db pull` หรือ dump DDL ลง `docs/data-model.md` ก่อน ไม่งั้น feature ใหม่จะสร้างตารางซ้ำกับของเดิม (เทียบ Phase 4.4b) |
 | **เทส** | มีไหม ครอบแค่ไหน รันผ่านไหม ใช้อะไร |
 | **CI/CD ที่มีอยู่** | มี pipeline อยู่แล้วไหม รันอะไร — ถ้ามี **อย่าไปแตะ** แค่บันทึก |
@@ -58,7 +62,7 @@ CLAUDE_CODE_NEW_INIT=1 claude      # แล้วพิมพ์ /init — flow 
 > ถ้าเจอ **เอกสารที่ไม่ตรงกับโค้ด** ให้บันทึกว่าไม่ตรง แล้ว**ถือโค้ดเป็นความจริง**
 > เอกสารที่โกหกอันตรายกว่าไม่มีเอกสาร เพราะ AI จะเชื่อมัน
 
-## A.2 ตั้ง `pnpm verify` ให้ผ่านก่อนทำอย่างอื่น
+## A.2 ตั้งคำสั่งตรวจให้ผ่านก่อนทำอย่างอื่น
 
 นี่คือขั้นที่**สำคัญที่สุด**และมักถูกข้าม
 
@@ -77,7 +81,9 @@ CLAUDE_CODE_NEW_INIT=1 claude      # แล้วพิมพ์ /init — flow 
 | **ตั้ง baseline** | error เยอะเกินไป → ตั้งค่า lint/tsc ให้ **ไม่ล้มกับของเก่า แต่จับของใหม่** (เช่น `--max-warnings` เท่าของเดิม, หรือ `ignore` ไฟล์เก่าเป็นรายชื่อ) แล้วเปิด intent สำหรับค่อย ๆ ลด |
 | **verify แค่ส่วนที่มี** | ไม่มีเทสเลย → `verify = typecheck && lint` ไปก่อน แล้วเปิด intent "เพิ่มเทสให้ส่วนที่แตะบ่อย" |
 
-3. เพิ่ม script `verify` ใน `package.json` ที่**รันจบใน ~30 วินาที**และ exit non-zero เมื่อพัง
+3. ตั้งคำสั่งนั้นเป็น `verifyCommand` ใน `.claude/stack.json` — ต้อง**รันจบใน ~30 วินาที**และ exit non-zero เมื่อพัง
+   (JS/TS: `pnpm verify` · Python: `uv run poe verify` หรือ `pytest && ruff check && mypy` · .NET: `dotnet test`)
+   ตรวจด้วย `node .claude/verify.js` แล้วทุกที่ในระบบจะเรียกคำสั่งเดียวกันนี้เอง — ไม่ต้องไล่แก้ skill ทีละตัว
 4. **แปะ output ตอนผ่านไว้** — จะไปใส่ `AGENTS.md`
 
 > ห้าม "ปิด strict" หรือ "ลบเทสที่ fail" เพื่อให้ผ่าน — นั่นคือการทำลายหลักฐาน ไม่ใช่การแก้
@@ -119,17 +125,18 @@ AI ที่ไม่รู้ว่า "ทำไมถึงเป็นแบ
 
 | ไฟล์ | ปรับอะไร | อิงจาก |
 |---|---|---|
-| `.claude/rules/*.md` | `paths:` ให้ตรงโครงจริง **ลบ pattern ที่ไม่ match ทิ้ง** และแก้เนื้อหาที่อ้าง library ที่ไม่ได้ใช้ | A.1 โครงโฟลเดอร์ |
-| `.claude/protected-paths.json` | รายการโฟลเดอร์ที่ generate อัตโนมัติ — **ลบ `components/ui/**` ถ้าไม่ได้ใช้ shadcn** | A.1 สิ่งที่ generate |
-| `.claude/skills/*/SKILL.md` | คำสั่งที่อ้าง (`pnpm verify`, `pnpm test:api`) ต้องมีจริง / ตัดขั้นตอนที่ไม่เกี่ยว (เช่น Postman ถ้าไม่มี API) | A.1 คำสั่ง |
-| `.claude/settings.json` | `permissions.allow` ตามคำสั่งจริง / `deny` ตามไฟล์ลับจริงของโปรเจกต์ | A.1 |
-| `.claude/hooks/format-changed.js` | ตรวจว่า formatter/linter ที่มันมองหา ตรงกับที่โปรเจกต์ใช้ | A.1 |
+| `.claude/stack.json` | **ทำข้อนี้ก่อนเพื่อน** — `verifyCommand`, `commands` (coverage/audit/apiTest — ไม่มีให้ตั้ง `null`), `codeFilePattern`, `formatCommands`, `preflightHookPath`, `protected` (ลบ `components/ui/**` ถ้าไม่ได้ใช้ shadcn) · stack ที่ไม่ใช่ JS/TS แก้ที่ไฟล์นี้ที่เดียว แทนการไล่แก้ไส้สคริปต์ | A.1 ทั้งหมด |
+| `.claude/rules/*.md` | `paths:` ให้ตรงโครงจริง **ลบ pattern ที่ไม่ match ทิ้ง** และแก้เนื้อหาที่อ้าง library ที่ไม่ได้ใช้ · rule ที่ไม่มีของจริงให้คุ้มครอง = ลบ ไม่ใช่เก็บไว้ | A.1 โครงโฟลเดอร์ |
+| `.claude/skills/*/SKILL.md` | ตัดขั้นตอนที่ไม่เกี่ยว (เช่น Postman ถ้าไม่มี API) · **คำสั่ง verify ไม่ต้องแก้** — เรียกผ่าน `node .claude/verify.js` ซึ่งอ่านจาก `stack.json` | A.1 คำสั่ง |
+| `.claude/settings.json` | `permissions.allow` ตามคำสั่งจริง / `deny` ตามไฟล์ลับจริง · **ถอด hook ที่ stack นี้ไม่มีอะไรให้ทำ** (`guard-new-component.js` บนแอปที่ไม่มี component tree) | A.1 |
 | `AGENTS.md` | เขียนจาก A.1 ทั้งหมด **โดยเฉพาะ "โครงโฟลเดอร์" และ "convention ที่ใช้อยู่จริง"** — เอาร่างจาก `/init` มาตัดด้วย `/doctor` (มันตัดของที่ AI derive จากโค้ดได้เอง) | A.1 |
 | `scripts/verify.mjs` | ถ้าโปรเจกต์เดิมมี `verify` เป็น `&&` ยาว ๆ → ครอบด้วย `templates/verify.mjs.tpl` ให้พิมพ์สรุปสั้น (A.2) | A.2 |
 | `.gitignore` | เติมจาก `templates/gitignore.tpl` (อย่างน้อย `.verify.log`, `.claude/settings.local.json`, `CLAUDE.local.md`) ของเดิมที่มีอยู่ไม่ต้องแตะ | — |
-| `.husky/pre-push` + `.claude/gate.js` | ติดตั้ง gate — **ถ้ามี CI เดิมอยู่แล้ว อย่าแทน** ให้เพิ่ม `node .claude/gate.js` เป็น job ใหม่ข้าง ๆ | A.1 CI/CD |
+| pre-push hook + `.claude/gate.js` | ติดตั้ง gate — **ถ้ามี CI เดิมอยู่แล้ว อย่าแทน** ให้เพิ่ม `node .claude/gate.js` เป็น job ใหม่ข้าง ๆ · ไม่ได้ใช้ husky ให้ตั้ง `preflightHookPath` ใน `stack.json` เป็น `.git/hooks/pre-push` | A.1 CI/CD |
 
 **เกณฑ์:** `node .claude/check-config.js` ต้องได้ `ต้องแก้: 0` และ `ควรดู:` ต้องไม่มี "pattern ที่ไม่ match" เหลืออยู่
+
+> ถ้า `check-config` ขึ้น "rule ตายเงียบ" พร้อมกันทุกไฟล์ มันจะพิมพ์บรรทัดวินิจฉัยให้ว่านี่คือ stack ไม่ตรง ไม่ใช่พิมพ์ผิดทีละอัน — แก้ที่ `stack.json` + `rules/` ไม่ใช่ไล่แก้ทีละ pattern
 
 ## A.6 Source of truth ของงาน
 
@@ -174,7 +181,7 @@ playbook เตือนไว้ชัด: **ห้ามมี 2 sources of tr
 | ข้อ | ผ่าน |
 |---|---|
 | `docs/planning/A1-inventory.md` ครบทุกหมวด และผู้ใช้ยืนยันแล้วว่าตรงกับความเข้าใจ | ⬜ |
-| `pnpm verify` มีอยู่ รันผ่าน และแปะ output ตอนผ่านไว้แล้ว | ⬜ |
+| `node .claude/verify.js` มีคำสั่งจริงให้รัน (ตั้งที่ `verifyCommand` ใน `stack.json`) รันผ่าน และแปะ output ตอนผ่านไว้แล้ว | ⬜ |
 | ADR ย้อนหลัง 3–7 ฉบับ สถานะ Accepted | ⬜ |
 | `docs/constitution.md` มาตรา 9 เป็นของจริง + มาตรา 9.1 เปิดใช้ | ⬜ |
 | ตัดสินเรื่อง source of truth แล้ว บันทึกเป็น ADR | ⬜ |

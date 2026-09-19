@@ -26,8 +26,8 @@ Runs verify + check-config + docs-lint + release conditions: every task in the m
 Fails → stop and say what blocks — **never release over test debt**
 
 Additional checks the gate cannot know:
-- [ ] `pnpm test:cov` — coverage at target (paste the number)
-- [ ] `pnpm test:api` (Postman/newman) passes, if there is an API
+- [ ] `node .claude/run.js coverage` — coverage at target (paste the number)
+- [ ] `node .claude/run.js apiTest` passes, if there is an API
 - [ ] SonarQube local passes the quality gate — **the user runs it**; the AI only reminds and waits
 - [ ] `docs/api/openapi.json` re-exported / `.env.example` matches the variables actually used
 - [ ] This round's migrations ran on a DB copy, and you can answer **whether they roll back**
@@ -61,7 +61,7 @@ Written for **the testers**, not a commit log:
 
 - [ ] UAT approved in writing (link/name/date in the release note)
 - [ ] `/security-review` on the diff since the previous tag (`git diff v<previous>...HEAD`) with no high findings open
-- [ ] `docs/standards/security-checklist.md` passes · `pnpm audit` has no high/critical
+- [ ] `docs/standards/security-checklist.md` passes · `node .claude/run.js audit` has no high/critical
 - [ ] **DB backup before running migrations**, and a restore has been rehearsed
 - [ ] prd env vars complete, no secrets in git · `/health` `/ready` respond correctly · `/docs` disabled or behind auth
 - [ ] Release time agreed + who is on watch

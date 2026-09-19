@@ -24,15 +24,22 @@ const RELEASE = ri !== -1 ? args[ri + 1] : null;
 const ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const CLAUDE = path.join(ROOT, '.claude');
 
-const pkg = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')); } catch { return {}; } })();
-const VERIFY = process.env.VERIFY_COMMAND || (pkg.scripts?.verify ? 'pnpm verify' : null);
+const VERIFY = (() => {
+  try {
+    return require(path.join(CLAUDE, 'stack-config.js')).resolveVerify(ROOT);
+  } catch {
+    // ยังไม่ได้คัดลอก stack-config.js มา (ติดตั้งเก่า) — ใช้กติกาเดิม
+    const pkg = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')); } catch { return {}; } })();
+    return process.env.VERIFY_COMMAND || (pkg.scripts?.verify ? 'pnpm verify' : null);
+  }
+})();
 
 const steps = [];
 const add = (name, cmd, cmdArgs, opts = {}) => steps.push({ name, cmd, cmdArgs, ...opts });
 
 if (!DOCS_ONLY) {
   if (VERIFY) add('verify', VERIFY.split(' ')[0], VERIFY.split(' ').slice(1), { shell: true });
-  else add('verify', null, null, { skip: 'ไม่พบ script verify ใน package.json — ตั้งใน Phase 2 รอบ B2' });
+  else add('verify', null, null, { skip: 'ยังไม่ได้ตั้งคำสั่ง verify — ใส่ "verifyCommand" ใน .claude/stack.json หรือ env VERIFY_COMMAND (Phase 2 รอบ B2)' });
 }
 add('check-config', process.execPath, [path.join(CLAUDE, 'check-config.js')]);
 add('docs-lint', process.execPath, [path.join(CLAUDE, 'docs-lint.js'), ...(RELEASE ? ['--release', RELEASE] : [])]);
