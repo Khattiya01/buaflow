@@ -1,4 +1,63 @@
-# อัปเกรดโปรเจกต์ที่ใช้ kit v1.0 → v2.1
+# อัปเกรดโปรเจกต์ที่ใช้ kit เวอร์ชันเก่า
+
+**เลือกเส้นทางตามเวอร์ชันที่โปรเจกต์ใช้อยู่:**
+
+| ใช้อยู่ | ไปที่ | ใช้เวลา |
+|---|---|---|
+| **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) ข้างล่างนี้ | ~15 นาที |
+| **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2 | ~1 session |
+
+---
+
+## v2.1 → v2.2 (เล็ก ทำได้ระหว่าง task)
+
+v2.2 ไม่เปลี่ยน workflow เลย — เปลี่ยนแค่ "ที่อยู่ของการตั้งค่า" จากที่ฝังในสคริปต์มาเป็น `.claude/stack.json`
+**ไม่ทำก็ยังใช้งานได้ปกติ** แต่จะไม่ได้ผลของการแก้ "เขียวปลอม" (hook ที่ตายแล้วบอกว่ายังไม่ตาย)
+
+```bash
+# 1. วาง project-kit เวอร์ชันใหม่ทับของเดิม
+# 2. คัดลอกไฟล์ใหม่ + ไฟล์ที่แก้ เข้า .claude/
+cp project-kit/claude-setup/{stack-config,verify,run,check-config,gate}.js .claude/
+cp project-kit/claude-setup/stack.json .claude/
+cp project-kit/claude-setup/hooks/{format-changed,guard-edit}.js .claude/hooks/
+cp -r project-kit/claude-setup/skills project-kit/claude-setup/agents .claude/
+```
+
+แล้วเปิด Claude Code ที่ราก repo พิมพ์:
+
+```
+อ่าน project-kit/UPGRADE.md หัวข้อ v2.1 → v2.2 แล้วทำตาม
+```
+
+**ถึง Claude — ทำ 4 ข้อนี้ตามลำดับ:**
+
+1. **ย้าย `protected-paths.json` → `stack.json`** (ไม่บังคับ แต่ควรทำ) — ยกค่า `protected` / `testFilePattern` /
+   `bugfixBranchPattern` ของเดิมไปใส่ `stack.json` แล้วลบไฟล์เก่า · ถ้าไม่ย้ายก็ยังอ่านได้ (`stack.json` ชนะถ้ามีทั้งคู่)
+2. **ตั้งค่าใน `stack.json` ให้ตรงของจริง** — `verifyCommand` (คำสั่งที่ `package.json` มีอยู่),
+   `codeFilePattern`, `formatCommands` (formatter ที่โปรเจกต์ใช้จริง), `preflightHookPath`, `commands.coverage`/`audit`/`apiTest`
+3. **`ciMode`** — **ถามผู้ใช้** ว่านาที CI เป็นยังไง แล้วตั้งเป็น `required` / `pr-only` / `local-only` (ดูตารางข้างล่าง)
+4. **เติม permissions** ใน `.claude/settings.json` → `permissions.allow`:
+   `"Bash(node .claude/verify.js*)"` และ `"Bash(node .claude/run.js*)"`
+
+จบแล้วรัน `node .claude/check-config.js` ต้องได้ `ต้องแก้: 0` **แปะผลให้ผู้ใช้ดู**
+
+### เลือก `ciMode` ยังไง
+
+| สถานการณ์ | ตั้งเป็น | ผลที่ได้ |
+|---|---|---|
+| repo public | `required` | Actions ฟรีไม่จำกัด ใช้เหมือนเดิม |
+| repo private ยังมีโควต้าเหลือ | `pr-only` | template ใหม่รันครั้งเดียวต่องาน (เดิม 2) + ข้าม verify เมื่อแตะแต่ docs |
+| **นาทีหมด / billing ติด / ไม่มี remote** | `local-only` | ลบไฟล์ CI ทิ้ง ใช้ pre-push เป็นด่านเดียว |
+
+> ⚠️ **ถ้าเปลี่ยนเป็น `local-only` และเคยเปิด branch protection ไว้** — ต้องไปเอา required status check `gate`
+> ออกจาก Settings → Branches ด้วย ไม่งั้น PR จะค้าง merge ไม่ได้ตลอดไป เพราะรอ check ที่ไม่มีวันรัน
+>
+> และเมื่อเป็น `local-only` แล้ว **pre-push hook ต้องติดตั้งจริง** — `check-config.js` จะขึ้น `FAIL` ถ้าไม่มี
+> เพราะไม่เหลือด่านไหนบังคับเลยนอก session ของ Claude (เดิมเป็นแค่ warn)
+
+---
+
+## v1.0 → v2.1
 
 > สำหรับโปรเจกต์ที่ผ่าน Phase 0–7 ของ **v1.0 (2026-09-13)** มาแล้วและกำลังทำงานอยู่
 > **ไม่ใช่ Phase A** — Phase A สำหรับโปรเจกต์ที่ไม่เคยใช้ kit; ของคุณมี `docs/planning/`, ADR, spec, task, board อยู่แล้ว เก็บไว้ทั้งหมด
