@@ -305,6 +305,44 @@ for (const [hook, input, want, label] of cases) {
   }
   got === want ? ok(`${hook}: ${label} (exit ${got})`) : bad(`${hook}: ${label} — คาดว่า exit ${want} แต่ได้ ${got}`);
 }
+// ── 7b. hooks กับ git worktree ────────────────────────────────────────
+// บั๊กที่เจอจริง: currentBranch() ใน guard-bash.js/guard-edit.js เคยรัน `git rev-parse`
+// ด้วย cwd: ROOT (= CLAUDE_PROJECT_DIR) ซึ่งชี้ไปที่ primary checkout เสมอ ต่อให้คำสั่งที่
+// กำลังจะรันจริงอยู่ใน git worktree แยก (เช่น subagent ที่ spawn ด้วย isolation: "worktree")
+// ผลคือ hook เห็น branch ของ checkout หลักแทนที่จะเห็น branch จริงของ worktree
+head('7b. hooks กับ git worktree (currentBranch ต้องอ่าน cwd จริง ไม่ใช่ primary checkout)');
+try {
+  const os = require('node:os');
+  const wtDir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-config-wt-'));
+  const wtBranch = `check-config-wt-test-${Date.now()}`;
+  execFileSync('git', ['worktree', 'add', '-b', wtBranch, wtDir], { cwd: ROOT, stdio: 'pipe' });
+  try {
+    let got = 0;
+    try {
+      execFileSync(process.execPath, [path.join(CLAUDE, 'hooks', 'guard-bash.js')], {
+        cwd: wtDir,
+        input: JSON.stringify({ tool_input: { command: 'git merge feat/x' } }),
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+    } catch (e) {
+      got = e.status ?? -1;
+    }
+    // wtBranch ไม่ใช่ main/master แน่ๆ (ตั้งชื่อเอง) -> merge ต้องปล่อยผ่านเสมอ ไม่ว่า
+    // primary checkout (ROOT) จะยืนอยู่บน branch อะไร ถ้า hook อ่าน ROOT แทน cwd จะบล็อกผิด
+    got === 0
+      ? ok(`guard-bash.js: ปล่อย merge ใน worktree บน branch "${wtBranch}" (exit 0) แม้ primary checkout อยู่บน ${branch || '?'}`)
+      : bad(`guard-bash.js: ควรปล่อยผ่าน merge ใน worktree (branch "${wtBranch}") แต่ได้ exit ${got} — currentBranch() น่าจะอ่าน ROOT/CLAUDE_PROJECT_DIR แทน cwd จริง (บั๊ก worktree isolation)`);
+    if (!/^(main|master)$/.test(branch))
+      warn('primary checkout (ROOT) ไม่ได้อยู่บน main/master ตอนรันเทสนี้ — เทส 7b จะตรวจจับบั๊กนี้ได้แน่นอนเฉพาะตอน ROOT อยู่บน main/master เท่านั้น');
+  } finally {
+    try { execFileSync('git', ['worktree', 'remove', '--force', wtDir], { cwd: ROOT, stdio: 'pipe' }); } catch { /* เก็บกวาดแบบ best-effort */ }
+    try { execFileSync('git', ['branch', '-D', wtBranch], { cwd: ROOT, stdio: 'pipe' }); } catch { /* เก็บกวาดแบบ best-effort */ }
+    try { fs.rmSync(wtDir, { recursive: true, force: true }); } catch { /* เก็บกวาดแบบ best-effort */ }
+  }
+} catch (e) {
+  warn(`ข้ามเทส worktree isolation: ${e.message.split('\n')[0]} (อาจไม่ใช่ git repo หรือ git worktree ใช้ไม่ได้ในสภาพแวดล้อมนี้)`);
+}
+
 const sc = path.join(CLAUDE, 'hooks', 'session-context.js');
 if (fs.existsSync(sc)) {
   try {
