@@ -45,7 +45,7 @@ Report in Thai; test code in English. For test names, follow whatever the existi
 - Changing production code to make a test pass
 
 ## Finishing
-Run `pnpm test:cov` and report:
+Run `node .claude/run.js coverage` and report:
 - Which tests were added and what they cover
 - Coverage before → after
 - **What is still not covered and why**

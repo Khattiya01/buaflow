@@ -23,7 +23,7 @@ paths:
 | Raw hex / `bg-blue-600` | tokens: `bg-primary`, `text-muted-foreground` |
 | `style={{...}}` with constants | Tailwind classes bound to tokens |
 | Installing a new UI library | use the one locked in constitution art. 9 (default: shadcn/ui + Radix) — adding another needs an intent + ADR first |
-| Editing registry/generator output (`components/ui/**`) | a hook blocks it per `.claude/protected-paths.json` — reinstall via CLI or wrap it in `shared/` |
+| Editing registry/generator output (`components/ui/**`) | a hook blocks it per `protected` in `.claude/stack.json` — reinstall via CLI or wrap it in `shared/` |
 | One feature importing another feature's component | promote to `components/shared/` |
 
 ## While writing

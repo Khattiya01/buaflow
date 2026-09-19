@@ -17,6 +17,8 @@
       "Bash(pnpm test:cov)",
       "Bash(pnpm build)",
       "Bash(pnpm exec *)",
+      "Bash(node .claude/verify.js*)",
+      "Bash(node .claude/run.js*)",
       "Bash(node .claude/check-config.js*)",
       "Bash(node .claude/docs-lint.js*)",
       "Bash(node .claude/board.js*)",

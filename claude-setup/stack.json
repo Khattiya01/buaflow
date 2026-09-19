@@ -1,0 +1,78 @@
+{
+  "$comment": [
+    "stack.json — บอกสคริปต์ใน .claude/ ว่าโปรเจกต์นี้ใช้เครื่องมืออะไร",
+    "ค่าในไฟล์นี้คือค่าเริ่มต้นของ kit (JS/TS + pnpm) — ลบคีย์ไหนทิ้งก็ได้ สคริปต์จะถอยไปใช้ค่าเริ่มต้นเดิม",
+    "",
+    "ไฟล์นี้แทนที่ protected-paths.json เดิม (ยังอ่านไฟล์เก่าได้อยู่เพื่อความเข้ากันได้ — ดู UPGRADE.md)",
+    "",
+    "โปรเจกต์เดิม (โหมด EXTEND) แก้ที่นี่ที่เดียว แทนการไล่แก้ไส้สคริปต์:",
+    "  verifyCommand      คำสั่งตรวจมาตรฐานคำสั่งเดียว (env VERIFY_COMMAND ชนะไฟล์นี้)",
+    "  commands           คำสั่งรองที่ skill เรียกผ่าน `node .claude/run.js <ชื่อ>` — ไม่มีคำสั่งนั้นให้ตั้ง null",
+    "  codeFilePattern    ไฟล์ที่นับว่าเป็นโค้ด ตอนตรวจว่า rule คุ้มครองครบไหม",
+    "  formatCommands     format/lint เฉพาะไฟล์ที่เพิ่งแก้ — when: ต้องเจอไฟล์ config อย่างน้อยหนึ่งตัว",
+    "  preflightHookPath  git hook ที่เรียก gate.js (.husky/pre-push หรือ .git/hooks/pre-push)",
+    "  protected          ไฟล์ที่ guard-edit.js ห้าม AI แก้",
+    "",
+    "pattern ของ protected ใช้ glob ง่าย ๆ: ** = ข้ามกี่โฟลเดอร์ก็ได้, * = ในโฟลเดอร์เดียว",
+    "reason จะถูกส่งให้ Claude อ่านตอนถูกบล็อก — ต้องบอกทางที่ถูก ไม่ใช่แค่ว่าห้าม",
+    "reason เป็นภาษาอังกฤษเพราะ Claude อ่าน ส่วน $comment เขียนให้คนอ่าน"
+  ],
+
+  "verifyCommand": null,
+  "commands": {
+    "coverage": "pnpm test:cov",
+    "audit": "pnpm audit",
+    "apiTest": "pnpm test:api"
+  },
+  "codeFilePattern": "\\.(ts|tsx|js|jsx|prisma|sql)$",
+  "formattablePattern": "\\.(ts|tsx|js|jsx|mjs|cjs|json|css|scss|md)$",
+  "skipPattern": "(^|/)(node_modules|\\.next|dist|build|coverage)/",
+  "testFilePattern": "\\.(spec|test)\\.[jt]sx?$|(^|/)(tests?|__tests__|e2e)/",
+  "bugfixBranchPattern": "^(fix|hotfix)/",
+  "preflightHookPath": ".husky/pre-push",
+
+  "formatCommands": [
+    {
+      "id": "biome",
+      "when": ["biome.json", "biome.jsonc"],
+      "cmd": "pnpm",
+      "args": ["exec", "biome", "check", "--write", "{file}"],
+      "exclusive": true,
+      "reportOutput": false
+    },
+    {
+      "id": "prettier",
+      "when": [".prettierrc", ".prettierrc.json", "prettier.config.js", ".prettierrc.cjs"],
+      "cmd": "pnpm",
+      "args": ["exec", "prettier", "--write", "{file}"],
+      "reportOutput": false
+    },
+    {
+      "id": "eslint",
+      "when": ["eslint.config.js", "eslint.config.mjs", ".eslintrc.json", ".eslintrc.cjs"],
+      "match": "\\.(ts|tsx|js|jsx|mjs|cjs)$",
+      "cmd": "pnpm",
+      "args": ["exec", "eslint", "--fix", "{file}"],
+      "reportOutput": true
+    }
+  ],
+
+  "protected": [
+    {
+      "pattern": "**/components/ui/**",
+      "reason": "This file is under components/ui/, which shadcn generates. Do not hand-edit it.\nCorrect path: install/update through the shadcn CLI, or create a wrapper in components/shared/ instead."
+    },
+    {
+      "pattern": "**/*.generated.*",
+      "reason": "This file is generated automatically; hand edits are overwritten on the next generate.\nCorrect path: change the source (schema / spec) and re-run the generator."
+    },
+    {
+      "pattern": "pnpm-lock.yaml",
+      "reason": "The lockfile changes only through pnpm (pnpm add / pnpm install). Never hand-edit it."
+    },
+    {
+      "pattern": "docs/backlog/board.md",
+      "reason": "board.md is generated from docs/backlog/tasks/*.md by node .claude/board.js. Never hand-edit it.\nCorrect path: change status:/fields in the task file, then run node .claude/board.js."
+    }
+  ]
+}

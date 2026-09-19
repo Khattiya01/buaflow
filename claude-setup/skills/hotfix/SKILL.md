@@ -46,7 +46,7 @@ Offer the user:
 - Change only what is necessary
 
 ## Step 5 — Test
-- Run `pnpm verify`; paste the summary line
+- Run `node .claude/verify.js`; paste the summary line
 - `/code-review high` + `/security-review` on the diff (the hotfix is the most rushed diff — the easiest to get wrong)
 - Test the broken flow locally in conditions as close to prd as possible
 - If time allows, go through uat first

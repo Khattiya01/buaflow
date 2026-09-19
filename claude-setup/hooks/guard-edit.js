@@ -3,12 +3,12 @@
  * PreToolUse hook — กันการแก้ไฟล์ที่ห้ามแก้
  *
  * บล็อก 2 กรณี:
- *   1. ไฟล์ที่อยู่ในรายการ protected (อ่านจาก .claude/protected-paths.json)
+ *   1. ไฟล์ที่อยู่ในรายการ protected (อ่านจาก .claude/stack.json)
  *      ค่าเริ่มต้น: components/ui/** ที่ shadcn generate
  *   2. ไฟล์เทส ขณะที่อยู่บน branch แก้บั๊ก (fix/ หรือ hotfix/)
  *      เหตุผล: ตอนแก้บั๊ก เทสคือหลักฐานว่าบั๊กมีจริง ถ้าแก้เทสได้ = แก้หลักฐาน
  *
- * ปรับรายการได้ที่ .claude/protected-paths.json โดยไม่ต้องแก้สคริปต์นี้
+ * ปรับรายการได้ที่ .claude/stack.json โดยไม่ต้องแก้สคริปต์นี้ (protected-paths.json เดิมยังอ่านได้)
  * (โปรเจกต์เดิมที่ไม่มี components/ui/ ให้แก้ที่นั่น)
  *
  * exit 2 = บล็อก (ข้อความใน stderr จะถูกส่งให้ Claude อ่าน)
@@ -34,6 +34,10 @@ const DEFAULTS = {
 };
 
 function loadConfig() {
+  // stack.json เป็นที่อยู่ใหม่ของค่าพวกนี้ — stack-config.js อ่าน protected-paths.json ให้ด้วย
+  try {
+    return require('../stack-config.js').load(ROOT);
+  } catch { /* ติดตั้งเก่าที่ยังไม่มี stack-config.js — อ่านไฟล์เดิมตรง ๆ ข้างล่าง */ }
   try {
     const raw = fs.readFileSync(path.join(ROOT, '.claude', 'protected-paths.json'), 'utf8');
     const cfg = JSON.parse(raw);

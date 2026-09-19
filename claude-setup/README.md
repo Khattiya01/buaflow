@@ -14,18 +14,23 @@ claude-setup/check-config.js     →  .claude/check-config.js
 claude-setup/docs-lint.js        →  .claude/docs-lint.js       artifact chain ตรงกันไหม (CI รันได้)
 claude-setup/board.js            →  .claude/board.js           generate board.md จากไฟล์ task
 claude-setup/gate.js             →  .claude/gate.js            ด่านเดียว: verify + check-config + docs-lint
+claude-setup/verify.js           →  .claude/verify.js          ทางเข้าเดียวของคำสั่งตรวจ (อ่านคำสั่งจริงจาก stack.json)
+claude-setup/run.js              →  .claude/run.js             คำสั่งรอง: coverage / audit / apiTest
+claude-setup/stack-config.js     →  .claude/stack-config.js    ตัวอ่าน stack.json ที่สคริปต์อื่นใช้ร่วมกัน
+claude-setup/stack.json          →  .claude/stack.json         stack ของโปรเจกต์นี้: คำสั่ง, pattern ไฟล์, formatter, ไฟล์ที่ห้ามแก้
 claude-setup/ci/pre-push.tpl     →  .husky/pre-push
 claude-setup/ci/*.yml.tpl        →  .github/workflows/gate.yml | .gitlab-ci.yml
-claude-setup/protected-paths.json →  .claude/protected-paths.json
 claude-setup/settings.json.tpl   →  .claude/settings.json
 claude-setup/evals/*.md          →  docs/evals/*.md
 ```
 
-**ระหว่างคัดลอกต้องปรับให้ตรง stack จริง** อย่าคัดลอกดิบ ๆ:
+**ระหว่างคัดลอกต้องปรับให้ตรง stack จริง** อย่าคัดลอกดิบ ๆ — **เริ่มที่ `stack.json` ก่อนเสมอ** เพราะสคริปต์ที่เหลืออ่านค่าจากไฟล์นี้:
+- `stack.json` — `verifyCommand`, `codeFilePattern`, `formatCommands`, `preflightHookPath`, `protected`
+  ค่าเริ่มต้นเป็น JS/TS + pnpm · stack อื่น (Python, .NET, Go) แก้ที่ไฟล์นี้ที่เดียว ไม่ต้องแตะไส้สคริปต์
+- `protected` ต้องเป็นรายการไฟล์ที่ generate อัตโนมัติ**ของโปรเจกต์นี้** — ไม่ได้ใช้ shadcn ก็ลบ `components/ui/**` ทิ้ง
 - `paths:` ใน rules ต้องตรงกับโครงโฟลเดอร์จริง (ไม่งั้น rule จะเงียบไปเลยโดยไม่มี error)
-- คำสั่งใน skills และ `settings.json` ต้องเป็นคำสั่งที่มีจริงใน `package.json`
+- คำสั่งใน skills และ `settings.json` ต้องเป็นคำสั่งที่มีจริงในโปรเจกต์
 - ตัดส่วนที่ไม่เกี่ยวกับ stack ที่เลือกออก — เช่น ใช้ App Router ก็ลบ pattern `**/pages/**` ทิ้ง
-- `protected-paths.json` ต้องเป็นรายการโฟลเดอร์ที่ generate อัตโนมัติ**ของโปรเจกต์นี้** — ไม่ได้ใช้ shadcn ก็ลบ `components/ui/**` ทิ้ง
 
 **แล้วรัน `node .claude/gate.js`** (= verify + `check-config.js` + `docs-lint.js` + `board.js --check`) — ส่วน `check-config.js` จะบอกว่า pattern ไหนไม่ match อะไรเลย,
 rule ไหนตายเงียบ, ไฟล์โค้ดกลุ่มไหนไม่มี rule คุ้มครอง, hook ผูกครบและคืน exit code ถูกไหม

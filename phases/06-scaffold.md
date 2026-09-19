@@ -41,7 +41,8 @@
   "verify": "node scripts/verify.mjs"
   ```
   เพิ่ม `.verify.log` ลง `.gitignore` · ต้อง exit non-zero เมื่อพัง และรันจบในเวลาที่ตกลงไว้
-- **gate + pre-push** — คัดลอก `project-kit/claude-setup/{gate,docs-lint,board,check-config}.js` → `.claude/` (Phase 7 จะทำซ้ำอยู่แล้ว แต่ต้องมีตั้งแต่ตอนนี้เพื่อให้ pre-push ทำงาน)
+- **gate + pre-push** — คัดลอก `project-kit/claude-setup/{gate,docs-lint,board,check-config,verify,run,stack-config}.js` และ `stack.json` → `.claude/` (Phase 7 จะทำซ้ำอยู่แล้ว แต่ต้องมีตั้งแต่ตอนนี้เพื่อให้ pre-push ทำงาน)
+  แล้วตั้ง `verifyCommand` ใน `.claude/stack.json` ให้ตรงกับคำสั่งที่เพิ่งสร้าง — `gate.js` และ `/check` `/done` อ่านจากที่นี่
   และ `project-kit/claude-setup/ci/pre-push.tpl` → `.husky/pre-push`
   verify: แก้ไฟล์ให้ lint พังแล้วลอง `git push` → ต้องถูกปฏิเสธ
 - verify: ลอง commit ที่ผิดรูปแบบแล้วต้องถูกปฏิเสธ

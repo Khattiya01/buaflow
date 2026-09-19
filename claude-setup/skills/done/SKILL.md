@@ -3,7 +3,7 @@ name: done
 description: Close a task that passed /check and was approved by the user. Opens a PR (never merges), updates the task file, regenerates the board, unblocks waiting tasks, and feeds lessons back into config.
 argument-hint: "[T-xxx]"
 disable-model-invocation: true
-allowed-tools: Read Glob Grep Edit Bash(git *) Bash(gh pr *) Bash(glab mr *) Bash(pnpm verify*) Bash(node .claude/*)
+allowed-tools: Read Glob Grep Edit Bash(git *) Bash(gh pr *) Bash(glab mr *) Bash(node .claude/*)
 ---
 
 Close: $ARGUMENTS
@@ -13,7 +13,7 @@ Talk to the user in Thai. The task file notes are in Thai; commit messages and P
 ## Pre-close checks
 
 - [ ] Passed `/check` and **the user approved**
-- [ ] `pnpm verify` passes (run it again; paste the summary line)
+- [ ] `node .claude/verify.js` passes (run it again; paste the summary line)
 - [ ] Every Proof in the plan/task is done and shown
 - [ ] `node .claude/docs-lint.js` passes
 

@@ -3,6 +3,27 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v2.2 — 2026-09-19
+
+เลิก hardcode ชื่อเครื่องมือไว้ในสคริปต์ — **ไม่ใช่การเพิ่ม feature แต่คือการแก้ "เขียวปลอม"**
+อาการเดิม: สคริปต์ฝัง `pnpm` / `\.tsx?$` / `prettier` / `.husky` เป็น regex ตายตัว โปรเจกต์ที่ไม่ตรงค่าเริ่มต้น
+(รวม **JS/TS ที่ใช้ npm แทน pnpm หรือ Biome แทน Prettier** ไม่ใช่แค่ stack อื่น) จะเจอ hook ที่ exit 0 เงียบ ๆ เหมือนทำงานปกติ
+
+- **`claude-setup/stack-config.js` + `stack.json`** — ที่เดียวที่รู้ว่าโปรเจกต์ใช้เครื่องมืออะไร
+  (`verifyCommand`, `codeFilePattern`, `formatCommands`, `preflightHookPath`, `protected`)
+  ใช้กติกาเดียวกับ `guard-edit.js`/`protected-paths.json` ซึ่งเป็นต้นแบบ: DEFAULTS ในสคริปต์ = ค่าเดิมเป๊ะ ๆ,
+  ทับรายคีย์, ไฟล์พังก็ถอยไปค่าเริ่มต้นเงียบ ๆ → **โปรเจกต์ JS/TS เดิมไม่มีอะไรเปลี่ยน**
+  **แทน `protected-paths.json`** (ไฟล์เดิมยังอ่านได้เป็น fallback — ดู UPGRADE.md)
+- **`claude-setup/verify.js`** — ทางเข้าเดียวของคำสั่งตรวจ
+  `allowed-tools: Bash(pnpm verify*)` เป็นกฎที่บังคับจริง ไม่ใช่ข้อความ — โปรเจกต์ที่ไม่ใช้ pnpm จึงรัน verify ของตัวเองไม่ได้เลย
+  ทุก skill ที่เกี่ยวมี `Bash(node .claude/*)` อยู่แล้ว เรียกผ่านไฟล์นี้จึงผ่าน permission โดยไม่ต้องแก้ frontmatter
+- **`claude-setup/run.js`** — คำสั่งรองตามชื่อ (`coverage`, `audit`, `apiTest`) อ่านจาก `commands` ใน `stack.json`
+  เหตุผลเดียวกับ verify.js: `/release` มี `Bash(pnpm *)` ซึ่งใช้ไม่ได้กับ stack อื่น · คำสั่งที่ไม่ได้ตั้ง = บอกตรง ๆ แล้ว exit 1 ไม่ใช่เงียบแล้วผ่าน
+- **`check-config.js` เลิกรายงานผ่านทั้งที่ไม่ได้ทดสอบ** — เดิมใช้ path สมมติ (`src/components/ui/button.tsx`)
+  เป็น fixture ตอนทดสอบ hook ซึ่ง hook ตัดสินจาก pattern ล้วน จึงได้ exit ตามที่คาดเสมอแล้วขึ้น `ok`
+  ตอนนี้ใช้เฉพาะไฟล์ที่มีอยู่จริง ไม่มีก็ `warn` ว่าข้ามเทส · เพิ่มการตรวจว่า `format-changed.js` มี formatter ที่ match จริงไหม
+  · rule ตายพร้อมกันทุกไฟล์ → พิมพ์บรรทัดวินิจฉัยว่าเป็นเรื่อง stack ไม่ตรง ไม่ใช่พิมพ์ผิดทีละอัน
+
 ## v2.1 — 2026-09-17
 
 > โปรเจกต์ที่ใช้ v1.0 อยู่ → **[UPGRADE.md](UPGRADE.md)** (ไม่ต้องรัน Phase ใหม่ ~1 session)
@@ -46,7 +67,7 @@
 ### ไฟล์ที่ AI อ่านอย่างเดียวเป็นภาษาอังกฤษ
 
 `AGENTS.md.tpl`, `CLAUDE.md.tpl`, `REVIEW.tpl.md`, `claude-setup/rules/*`, `claude-setup/skills/*`, `claude-setup/agents/*`, ข้อความ stderr/additionalContext ของ hooks,
-`reason` ใน `protected-paths.json` — ภาษาไทย tokenize แพงกว่าอังกฤษ ~2 เท่า และไฟล์กลุ่มนี้ถูกโหลดทุก session
+`reason` ใน `stack.json` — ภาษาไทย tokenize แพงกว่าอังกฤษ ~2 เท่า และไฟล์กลุ่มนี้ถูกโหลดทุก session
 ทุกไฟล์มีคำสั่ง "reply to the user in Thai / write docs/ artifacts in full Thai" ไฟล์ที่คนอ่าน (phases, standards, docs templates, START-HERE, README) ยังเป็นไทย
 (กฎเหล็กข้อ 6 ใน START-HERE ระบุข้อยกเว้นนี้แล้ว)
 

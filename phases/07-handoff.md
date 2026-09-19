@@ -67,9 +67,12 @@ project-kit/claude-setup/check-config.js →  .claude/check-config.js
 project-kit/claude-setup/docs-lint.js    →  .claude/docs-lint.js      ตรวจว่า artifact chain ยังตรงกัน
 project-kit/claude-setup/board.js        →  .claude/board.js          generate board.md จากไฟล์ task
 project-kit/claude-setup/gate.js         →  .claude/gate.js           ด่านเดียว: verify + check-config + docs-lint
+project-kit/claude-setup/verify.js       →  .claude/verify.js         ทางเข้าเดียวของคำสั่งตรวจ
+project-kit/claude-setup/run.js          →  .claude/run.js            คำสั่งรอง: coverage / audit / apiTest
+project-kit/claude-setup/stack-config.js →  .claude/stack-config.js   ตัวอ่าน stack.json ที่สคริปต์อื่นใช้ร่วมกัน
+project-kit/claude-setup/stack.json      →  .claude/stack.json        stack ของโปรเจกต์นี้ (แทน protected-paths.json เดิม)
 project-kit/claude-setup/ci/pre-push.tpl →  .husky/pre-push
 project-kit/claude-setup/ci/*.yml.tpl    →  .github/workflows/gate.yml และ/หรือ .gitlab-ci.yml
-project-kit/claude-setup/protected-paths.json →  .claude/protected-paths.json
 project-kit/claude-setup/settings.json.tpl  →  .claude/settings.json
 ```
 
@@ -79,11 +82,12 @@ project-kit/claude-setup/settings.json.tpl  →  .claude/settings.json
 
 | ไฟล์ | ปรับอะไร |
 |---|---|
+| `stack.json` | **ปรับตัวนี้ก่อนเพื่อน** — สคริปต์ที่เหลืออ่านค่าจากไฟล์นี้: `verifyCommand`, `codeFilePattern`, `formatCommands`, `preflightHookPath`, `protected` · stack ที่ไม่ใช่ JS/TS แก้ที่นี่ที่เดียว |
 | `rules/*.md` | `paths:` ต้องตรงกับโครงโฟลเดอร์จริงที่ scaffold ไว้ |
-| `skills/*/SKILL.md` | คำสั่งต้องเป็นคำสั่งที่มีจริงใน `package.json` |
+| `skills/*/SKILL.md` | คำสั่งต้องเป็นคำสั่งที่มีจริงในโปรเจกต์ (คำสั่ง verify ไม่ต้องแก้ — เรียกผ่าน `node .claude/verify.js` แล้ว) |
 | `settings.json` | `permissions.allow` ตามคำสั่งจริง, `deny` ตามไฟล์ลับจริง — **อย่านั่งเดา**: หลังใช้ 1-2 สัปดาห์รัน skill `fewer-permission-prompts` มันสแกน transcript แล้วเสนอ allowlist ให้ / แก้ hook หรือ settings ทีหลังใช้ skill `update-config` |
 | `skills/check/` | ชื่อคือ `/check` **ไม่ใช่ `/review`** — `/review` เป็น alias ของ built-in `/code-review` ที่ `/check` เรียกใช้ข้างใน |
-| `protected-paths.json` | รายการโฟลเดอร์ที่ generate อัตโนมัติของโปรเจกต์นี้ — ถ้าไม่ได้ใช้ shadcn ให้ลบ `components/ui/**` ออก (ไม่ต้องแก้สคริปต์ hook) |
+| `stack.json` → `protected` | รายการไฟล์ที่ generate อัตโนมัติของโปรเจกต์นี้ — ถ้าไม่ได้ใช้ shadcn ให้ลบ `components/ui/**` ออก (ไม่ต้องแก้สคริปต์ hook) |
 
 **แล้วรันตัวตรวจ** — ห้ามข้าม:
 
