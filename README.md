@@ -65,8 +65,8 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
 อ่าน project-kit/UPGRADE.md แล้วทำตาม
 ```
 
-[UPGRADE.md](UPGRADE.md) จะเลือกเส้นทางให้ตามเวอร์ชันที่ใช้อยู่ — **v2.1 → v2.2** ~15 นาที (แค่ย้ายการตั้งค่าไป `stack.json`)
-หรือ **v1.0 → v2.1 → v2.2** ~1 session · ทั้งคู่ทำระหว่าง task (หลัง `/done` ก่อน `/task` ถัดไป)
+[UPGRADE.md](UPGRADE.md) จะเลือกเส้นทางให้ตามเวอร์ชันที่ใช้อยู่ — **v2.2 → v2.3** ~10 นาที (copy ไฟล์ฝั่ง design) · **v2.1 → v2.2** ~15 นาที (แค่ย้ายการตั้งค่าไป `stack.json`)
+หรือ **v1.0 → v2.1 → v2.2 → v2.3** ~1 session · ทั้งคู่ทำระหว่าง task (หลัง `/done` ก่อน `/task` ถัดไป)
 ไม่ต้องรัน Phase ใหม่ เก็บ planning/ADR/spec/task ไว้ทั้งหมด
 
 ### โปรเจกต์ที่มีโค้ดอยู่แล้ว (ไม่เคยใช้ kit)
@@ -151,6 +151,7 @@ project-kit/
 │   ├── backlog-board.tpl.md
 │   ├── eval-case.tpl.md
 │   ├── design-brief.tpl.md          สัญญาก่อนเปิด canvas (theme/components/viewports/states/deviation)
+│   ├── prototype-flow.tpl.json      hotspot + mock data map ของ click-through prototype
 │   ├── AGENTS.md.tpl                กติกาหลัก (มาตรฐานกลาง)
 │   ├── CLAUDE.md.tpl                ชั้นบางเฉพาะ Claude Code
 │   ├── REVIEW.tpl.md                นโยบายการรีวิว
@@ -158,13 +159,14 @@ project-kit/
 │   └── verify.mjs.tpl               ⭐ verify ที่พิมพ์สรุปสั้น log เต็มลง .verify.log
 │
 └── claude-setup/               ← จะถูกคัดลอกไป .claude/ ตอน Phase 7
-    ├── skills/                      /intent /spec /plan /task /ui /check /done /hotfix /release
+    ├── skills/                      /intent /spec /plan /task /ui /prototype /check /done /hotfix /release
     ├── rules/                       กฎที่โหลดตาม paths ของไฟล์ที่แตะ
     ├── agents/                      code-reviewer, test-writer, legacy-explorer
     ├── hooks/                       ⭐ ชั้นที่บังคับได้จริง (Node ล้วน ไม่มี dependency)
     ├── check-config.js              ⭐ ตรวจว่า config ทำงานจริง (paths match ไหม / hook คืน exit code ถูกไหม / ชื่อ skill ชน built-in ไหม)
     ├── docs-lint.js                 ⭐ ตรวจว่า artifact chain ยังตรงกัน (spec โกหก / task ลอย / WIP / หนี้เทส)
     ├── board.js                     generate board.md จากไฟล์ task
+    ├── prototype.js                 click-through prototype จาก canvas baseline — copy artboard ทั้งก้อน ฉีด overlay ไม่วาดใหม่ (ตรง design 100% โดยโครงสร้าง)
     ├── gate.js                      ⭐ ด่านเดียว: verify + check-config + docs-lint — pre-push และ CI รันตัวเดียวกัน
     ├── verify.js                    ทางเข้าเดียวของคำสั่งตรวจ — skill เรียกตัวนี้ ไม่ผูกกับ pnpm
     ├── run.js                       คำสั่งรองตามชื่อ (coverage / audit / apiTest) อ่านจาก stack.json

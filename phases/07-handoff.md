@@ -66,6 +66,7 @@ project-kit/claude-setup/hooks/*         →  .claude/hooks/
 project-kit/claude-setup/check-config.js →  .claude/check-config.js
 project-kit/claude-setup/docs-lint.js    →  .claude/docs-lint.js      ตรวจว่า artifact chain ยังตรงกัน
 project-kit/claude-setup/board.js        →  .claude/board.js          generate board.md จากไฟล์ task
+project-kit/claude-setup/prototype.js    →  .claude/prototype.js      click-through prototype จาก canvas baseline (เฉพาะโปรเจกต์ที่ใช้ canvas)
 project-kit/claude-setup/gate.js         →  .claude/gate.js           ด่านเดียว: verify + check-config + docs-lint
 project-kit/claude-setup/verify.js       →  .claude/verify.js         ทางเข้าเดียวของคำสั่งตรวจ
 project-kit/claude-setup/run.js          →  .claude/run.js            คำสั่งรอง: coverage / audit / apiTest
@@ -138,6 +139,7 @@ project-kit/templates/task.tpl.md          →  docs/templates/
 project-kit/templates/adr.tpl.md           →  docs/templates/
 project-kit/templates/eval-case.tpl.md     →  docs/templates/
 project-kit/templates/design-brief.tpl.md  →  docs/templates/
+project-kit/templates/prototype-flow.tpl.json →  docs/templates/
 project-kit/claude-setup/evals/*.md        →  docs/evals/
 ```
 

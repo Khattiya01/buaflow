@@ -147,6 +147,9 @@ Canvas (`.dc.html` artboard) เป็น mockup ภาพ/HTML ไม่ใช�
 8. บันทึก URL canvas + เวอร์ชันล่าสุดที่ sync แล้วไว้ใน `docs/design/brief.md` (ส่วน "ผล") และ `_state.md`
    — จะใช้เป็นจุดอ้างอิงตอนวน loop ปรับ UI ใน Phase 8 (ข้อ "UI drift sync ผ่าน Claude Design")
    `design_system_project` ใน brief จะได้ค่าตอน Phase 6 push storybook ครั้งแรก
+9. **(ทางเลือก) prototype ที่กดได้** — ถ้าทีม/ลูกค้าอยากกดดู flow ก่อนเขียนโค้ด ใช้ `/prototype`: เสนอ `flow.json`
+   (หน้าไหนกดอะไรไปไหน — canvas ไม่รู้เรื่องนี้ ต้องมาจาก sitemap) + mock data ถ้าต้องการ → generate จาก baseline ข้อ 7
+   ทั้งก้อน ไม่วาดใหม่ → publish เป็น link เดียวที่ใช้ซ้ำ · **เป็น click-through เพื่อคุย design ไม่ใช่แอป** บอกลูกค้าให้ชัด
 
 > หลังจบ Phase นี้ **ทุกหน้าใหม่ที่เพิ่มทีหลัง** ต้องผ่าน `/ui` ซึ่งจะถาม brief ส่วนที่ 2 และแนบ Design System project เดิม
 > ให้ canvas ประกอบจาก component ที่มีจริง — ไม่ต้องกลับมาทำ Phase 3 ซ้ำ (ดู `claude-setup/skills/ui/SKILL.md`)

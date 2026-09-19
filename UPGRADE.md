@@ -4,8 +4,34 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
-| **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) ข้างล่างนี้ | ~15 นาที |
-| **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2 | ~1 session |
+| **v2.2** | [v2.2 → v2.3](#v22--v23-copy-ไฟล์อย่างเดียว) ข้างล่างนี้ | ~10 นาที |
+| **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) แล้วต่อด้วย v2.3 | ~15 นาที |
+| **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2, v2.3 | ~1 session |
+
+---
+
+## v2.2 → v2.3 (copy ไฟล์อย่างเดียว)
+
+v2.3 เพิ่มฝั่ง design: `/ui` ถาม text/canvas ได้, `/prototype` ใหม่, กติกา "โค้ดต้องตรง design 100%" (`ui-component-rules.md` ข้อ 8)
+**โปรเจกต์ที่ไม่ได้ใช้ claude.ai/design ไม่มีอะไรเปลี่ยน** — `/ui` ยังเสนอ 2 option แบบ text เหมือนเดิมถ้าเลือก text
+
+```bash
+# 1. วาง project-kit เวอร์ชันใหม่ทับของเดิม
+# 2. คัดลอกของใหม่
+cp project-kit/claude-setup/prototype.js .claude/
+cp -r project-kit/claude-setup/skills/ui project-kit/claude-setup/skills/prototype .claude/skills/
+cp project-kit/claude-setup/rules/frontend-ui.md .claude/rules/
+cp project-kit/templates/design-brief.tpl.md project-kit/templates/prototype-flow.tpl.json docs/templates/
+cp project-kit/standards/ui-component-rules.md docs/standards/
+```
+
+แล้วทำ 3 ข้อนี้ (Claude ทำได้ ไม่ต้องตัดสินใจอะไร):
+1. เติม `"Bash(node .claude/prototype.js*)"` ใน `.claude/settings.json` → `permissions.allow`
+2. เพิ่มคอลัมน์ `deviation จาก design` ท้ายตาราง `docs/design/components.md` (ว่างไว้ — hook `guard-new-component` match ชื่อในคอลัมน์แรกอย่างเดียว ไม่กระทบ)
+3. โปรเจกต์ที่ใช้ canvas อยู่แล้ว (มี `docs/design/canvas/`) → สร้าง `docs/design/brief.md` จาก template โดย**ถอดค่าจาก `theme.md` + `components.md` ที่มีอยู่** ไม่ต้องถามใหม่
+   เติม `design_system_project` (projectId ใน `_state.md`) และ `last_storybook_sync` = commit ล่าสุดที่ push storybook · ไม่ได้ใช้ canvas → ข้าม ทำตอนเปิด canvas ครั้งแรก
+
+รัน `node .claude/check-config.js` ต้องได้ `ต้องแก้: 0`
 
 ---
 

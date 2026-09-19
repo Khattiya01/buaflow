@@ -83,6 +83,7 @@ Then:
 3. Fix and repeat until the only remaining differences are the ones the deviation policy allows. "Looks the same" is not a result; a diff you cannot explain is a bug in the code, not in the canvas.
 4. A change the user approves during build (they say "keep it like this instead") is a **deviation**: record it in `docs/design/components.md` (`deviation` column, with why) **and update the canvas to match the code**, then commit the new `.dc.html` as the baseline. Canvas and code must be equal when the task closes — one source of truth, otherwise the next drift sync (Phase 8.8) reads your deviation as a canvas change and reverts it.
 5. Push the component's preview HTML (first line `<!-- @dsCard group="..." -->`) with `/design-sync` so the storybook matches the code; update `last_storybook_sync` in the brief.
+6. `prototype_url` set in the brief → run `/prototype` and republish to the same URL. The baseline changed; the prototype the team is looking at must follow.
 
 **With an image / legacy reference:** same loop with screenshots side by side — list differences, fix until they match. Do not assume it matches.
 
