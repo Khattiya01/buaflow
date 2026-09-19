@@ -174,6 +174,7 @@ components/
 - **แล้วแก้ canvas ให้ตรงโค้ดทันที** commit `.dc.html` ใหม่เป็น baseline — **canvas กับโค้ดต้องเท่ากันเสมอหลังปิดงาน มี source of truth เดียว**
   ไม่ทำ → Phase 8.8 รอบหน้าจะเห็น diff แล้วเข้าใจว่าคนแก้ canvas → ย้อนโค้ดกลับ → วน ping-pong ไม่จบ
 - push preview HTML ของ component (`<!-- @dsCard group="..." -->` บรรทัดแรก) ขึ้น `/design-sync` แล้วอัปเดต `last_storybook_sync`
+- มี prototype (`prototype_url` ใน brief) → `/prototype` regenerate ทับ URL เดิม — prototype เป็น view ของ baseline ห้ามค้าง
 
 ### 8.5 สิ่งที่ canvas ไม่ตอบ — ห้ามเอาจาก canvas
 data fetching · auth · validation · business rule → มาจาก spec เท่านั้น canvas ตอบแค่ "หน้าตา"

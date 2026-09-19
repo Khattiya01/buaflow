@@ -194,3 +194,5 @@ rule จะเงียบไปเลยโดยไม่มี error บอ�
    อัปเดต `docs/design/components.md`, commit ไฟล์ `docs/design/canvas/<screen-name>.dc.html` ที่เขียน
    ทับในข้อ 2 เป็น baseline ใหม่ (ตอนนี้ verify ผ่านแล้ว) และบันทึกเวอร์ชัน canvas ล่าสุดที่ sync แล้วลง `_state.md`
    + `last_storybook_sync` ใน `docs/design/brief.md` (ไว้ให้ `/ui` เช็คว่า storybook stale ไหมก่อนเปิด canvas ครั้งหน้า)
+7. **มี `prototype_url` ใน brief → `/prototype` regenerate แล้ว publish ทับ URL เดิม** — prototype คือ view ของ baseline
+   baseline เปลี่ยนแล้วไม่ regenerate = ทีมกดดู design ที่ไม่มีอยู่แล้ว

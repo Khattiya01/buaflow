@@ -3,6 +3,27 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v2.3 — 2026-09-19
+
+> โปรเจกต์ที่ใช้ v2.2 อยู่ → **[UPGRADE.md](UPGRADE.md)** หัวข้อ v2.2 → v2.3 (~10 นาที copy ไฟล์ ไม่มีอะไรต้องตัดสินใจ)
+
+ปิด loop ฝั่ง design: **design → prototype ที่กดได้ → โค้ดที่ตรง design 100%** โดยมี canvas เป็น source of truth เดียวตลอดทาง
+
+- **`/ui` ต่อกับ Claude Design ได้ตรง ๆ แล้ว** — เดิมเส้นทาง D (canvas) มีแค่ตอน intake Phase 3 กับ drift sync 8.8
+  พอสั่ง `/ui` หน้าใหม่ที่ไม่มี design มันเสนอ 2 option เป็น text เท่านั้น ตอนนี้ถาม **text หรือ canvas** และ canvas ต้องผ่าน 3 ด่านก่อน:
+  `docs/design/brief.md` (ใหม่: `templates/design-brief.tpl.md` — สัญญาระดับโปรเจกต์ครั้งเดียว + ระดับงานทุกครั้ง เพราะ canvas
+  ไม่มีคำตอบให้กับสิ่งที่ไม่ได้ถาม มันจะเดา) · แนบ Design System project เดิมให้ประกอบจาก component ที่มีจริง · storybook ต้องไม่ stale
+  (`last_storybook_sync` เทียบ HEAD → `/design-sync` ก่อน) · theme "เดิม/ปรับ/ใหม่" ให้ผลต่างกัน — ปรับ = token-level, ใหม่ทั้งที่มีหน้าแล้ว = intent + ADR
+- **"ตรง design 100%" วัดได้ ไม่ใช่ดูด้วยตา** — `ui-component-rules.md` ข้อ 8: screenshot ที่ viewport เดียวกับ artboard → pixel diff
+  (`pixelmatch`/`odiff`) → ไล่แก้จน diff เหลือเฉพาะแถว `deviation` (คอลัมน์ใหม่ใน `docs/design/components.md`) ที่ผู้ใช้ตกลง
+  และ **deviation ต้องย้อนไปแก้ canvas ให้ตรงโค้ด** commit baseline ใหม่ทันที — ไม่งั้น 8.8 รอบหน้าอ่านเป็น "คนแก้ canvas" แล้วย้อนโค้ด วน ping-pong ไม่จบ
+- **`/prototype` + `claude-setup/prototype.js`** — click-through prototype ให้ทีม/ลูกค้ากดดู flow ก่อนเขียนโค้ด
+  ไม่วาดอะไรใหม่เลย: copy artboard `.dc.html` ทั้งก้อนแล้วฉีด `<script>` ท้าย `</body>` เป็น overlay (hotspot + mock data)
+  → ตรง canvas 100% **โดยโครงสร้าง** ไม่ใช่โดยความพยายาม · `flow.json` (`templates/prototype-flow.tpl.json`) บอกว่าหน้าไหนกดอะไรไปไหน
+  + `bindings` ใส่ mock data จาก `data/*.json` (เขียนมือ หรือ export จาก DB แบบ sanitize — ห้ามข้อมูลลูกค้าจริงเข้า repo)
+  · shell มี viewport / state / dark / back / present mode · ⚠ ถ้า selector ไม่เจอใน artboard · `--check` fail ถ้าอ้างไฟล์/หน้าที่ไม่มี
+  · `dist/` generate ล้วน ห้ามแก้มือ ห้าม commit · **baseline เปลี่ยน = regenerate** ไม่งั้นทีมคุยกับ design ที่ไม่มีอยู่แล้ว
+
 ## v2.2 — 2026-09-19
 
 เลิก hardcode ชื่อเครื่องมือไว้ในสคริปต์ — **ไม่ใช่การเพิ่ม feature แต่คือการแก้ "เขียวปลอม"**
@@ -27,14 +48,6 @@
   ทั้งที่ merge ทุกครั้งผ่าน PR ที่เพิ่งตรวจไปแล้ว · ตัด `push` ออก และเพิ่มการตรวจว่าแตะแต่ `docs/` `*.md` ไหม
   ถ้าใช่ข้าม `pnpm install` แล้วรัน `gate.js --docs-only` (โหมดที่ `gate.js` มีอยู่แล้วแต่ CI ไม่เคยเรียก)
   ไม่ใช้ `paths-ignore` เพราะ required check ที่ไม่เคยรัน = PR ค้าง merge ไม่ได้ตลอดไป · `.gitlab-ci.yml.tpl` ตัด rule ซ้ำเหมือนกัน
-- **`/ui` ต่อกับ Claude Design ได้ตรง ๆ แล้ว** — เดิมเส้นทาง D (canvas) มีแค่ตอน intake Phase 3 กับ drift sync 8.8
-  พอสั่ง `/ui` หน้าใหม่ที่ไม่มี design มันเสนอ 2 option เป็น text เท่านั้น ตอนนี้ถาม **text หรือ canvas** และ canvas ต้องผ่าน 3 ด่านก่อน:
-  `docs/design/brief.md` (ใหม่: `templates/design-brief.tpl.md` — สัญญาระดับโปรเจกต์ครั้งเดียว + ระดับงานทุกครั้ง เพราะ canvas
-  ไม่มีคำตอบให้กับสิ่งที่ไม่ได้ถาม มันจะเดา) · แนบ Design System project เดิมให้ประกอบจาก component ที่มีจริง · storybook ต้องไม่ stale
-  (`last_storybook_sync` เทียบ HEAD → `/design-sync` ก่อน) · theme "เดิม/ปรับ/ใหม่" ให้ผลต่างกัน — ปรับ = token-level, ใหม่ทั้งที่มีหน้าแล้ว = intent + ADR
-- **"ตรง design 100%" วัดได้ ไม่ใช่ดูด้วยตา** — `ui-component-rules.md` ข้อ 8: screenshot ที่ viewport เดียวกับ artboard → pixel diff
-  (`pixelmatch`/`odiff`) → ไล่แก้จน diff เหลือเฉพาะแถว `deviation` (คอลัมน์ใหม่ใน `docs/design/components.md`) ที่ผู้ใช้ตกลง
-  และ **deviation ต้องย้อนไปแก้ canvas ให้ตรงโค้ด** commit baseline ใหม่ทันที — ไม่งั้น 8.8 รอบหน้าอ่านเป็น "คนแก้ canvas" แล้วย้อนโค้ด วน ping-pong ไม่จบ
 - **`check-config.js` เลิกรายงานผ่านทั้งที่ไม่ได้ทดสอบ** — เดิมใช้ path สมมติ (`src/components/ui/button.tsx`)
   เป็น fixture ตอนทดสอบ hook ซึ่ง hook ตัดสินจาก pattern ล้วน จึงได้ exit ตามที่คาดเสมอแล้วขึ้น `ok`
   ตอนนี้ใช้เฉพาะไฟล์ที่มีอยู่จริง ไม่มีก็ `warn` ว่าข้ามเทส · เพิ่มการตรวจว่า `format-changed.js` มี formatter ที่ match จริงไหม

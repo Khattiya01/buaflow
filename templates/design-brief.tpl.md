@@ -5,6 +5,7 @@ confirmed_by: <ใครเป็นคนยืนยัน>
 confirmed: YYYY-MM-DD
 design_system_project: <projectId บน claude.ai/design — ว่างถ้ายังไม่ได้ push storybook>
 last_storybook_sync: <commit sha ล่าสุดที่ design-sync push ขึ้นไป — ใช้เช็คว่า storybook stale ไหม>
+prototype_url: <Artifact URL ของ click-through prototype จาก /prototype — ว่างถ้ายังไม่ได้ทำ · URL เดิมตลอด regenerate ทับ>
 ---
 
 # Design Brief: <ชื่อโปรเจกต์>
