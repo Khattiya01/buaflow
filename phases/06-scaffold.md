@@ -109,6 +109,11 @@ docs/specs/    docs/adr/    docs/design/ docs/standards/  docs/templates/
 วาง CI ไว้ทั้งสองแบบ (ยังไม่เลือก host — เลือกแล้วลบอีกอัน): `claude-setup/ci/github-actions.yml.tpl` → `.github/workflows/gate.yml`,
 `claude-setup/ci/gitlab-ci.yml.tpl` → `.gitlab-ci.yml` เติม `{{PNPM_VERSION}}` `{{NODE_MAJOR}}` จาก `.nvmrc` / `packageManager`
 
+> **ถามผู้ใช้เรื่องนาที CI ก่อนวาง** แล้วบันทึกเป็น `ciMode` ใน `.claude/stack.json`:
+> `required` (repo public = Actions ฟรีไม่จำกัด หรือมีโควต้าเหลือ) · `pr-only` (มีโควต้าจำกัด) · `local-only` (นาทีหมด / ไม่มี remote → **ไม่ต้องวางไฟล์ CI เลย**)
+> ด่านจริงอยู่ที่ pre-push อยู่แล้ว CI เป็นชั้นที่กันคนข้าม hook — เลือก `local-only` ไม่ได้แปลว่าไม่มี gate
+> แต่ถ้าเลือก `local-only` แล้ว **pre-push ต้องติดตั้งจริง** ไม่งั้น `check-config.js` จะขึ้น FAIL เพราะไม่เหลือด่านไหนเลย
+
 ### ขั้น 11 — Commit และปิด M0
 - commit ตาม Conventional Commits ทีละขั้น
 - ไฟล์ task ของ M0 → `status: done` + `commit:` แล้ว `node .claude/board.js`

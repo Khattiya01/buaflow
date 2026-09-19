@@ -11,6 +11,8 @@
     "  codeFilePattern    ไฟล์ที่นับว่าเป็นโค้ด ตอนตรวจว่า rule คุ้มครองครบไหม",
     "  formatCommands     format/lint เฉพาะไฟล์ที่เพิ่งแก้ — when: ต้องเจอไฟล์ config อย่างน้อยหนึ่งตัว",
     "  preflightHookPath  git hook ที่เรียก gate.js (.husky/pre-push หรือ .git/hooks/pre-push)",
+    "  ciMode             required | pr-only | local-only — นาที CI มีจำกัด และบางโปรเจกต์ไม่มี remote เลย",
+    "                     local-only = pre-push เป็นด่านเดียว ต้องติดตั้งจริง ไม่ใช่แค่มีไฟล์ CI วางไว้",
     "  protected          ไฟล์ที่ guard-edit.js ห้าม AI แก้",
     "",
     "pattern ของ protected ใช้ glob ง่าย ๆ: ** = ข้ามกี่โฟลเดอร์ก็ได้, * = ในโฟลเดอร์เดียว",
@@ -30,6 +32,7 @@
   "testFilePattern": "\\.(spec|test)\\.[jt]sx?$|(^|/)(tests?|__tests__|e2e)/",
   "bugfixBranchPattern": "^(fix|hotfix)/",
   "preflightHookPath": ".husky/pre-push",
+  "ciMode": "required",
 
   "formatCommands": [
     {

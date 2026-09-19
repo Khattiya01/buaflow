@@ -1,8 +1,18 @@
 # .gitlab-ci.yml — คัดลอกไปวางที่ราก repo เมื่อเลือก GitLab เป็น git host
-# ด่านเดียวกับ .husky/pre-push และ /release
+# ด่านเดียวกับ pre-push hook และ /release
 #
 # ต้องทำเพิ่มบน GitLab: Settings → Merge requests → "Pipelines must succeed"
 # และ Settings → Repository → Protected branches → main: ห้าม push ตรง
+#
+# ── เรื่องนาที CI ───────────────────────────────────────────────────────
+# นาที CI มีจำกัด ถ้าหมดหรือ billing มีปัญหา: ตั้ง "ciMode": "local-only" ใน .claude/stack.json
+# แล้วลบไฟล์นี้ทิ้ง — gate ยังบังคับอยู่ที่ pre-push hook เหมือนเดิม
+#
+# ไฟล์นี้รันเฉพาะ merge request (ไม่รันซ้ำตอน push เข้า main เพราะ merge ทุกครั้งผ่าน MR ที่เพิ่งตรวจไปแล้ว)
+# ถ้ายังไม่ได้เปิด protected branch ให้เพิ่ม `- if: $CI_COMMIT_BRANCH == 'main'` กลับมาเพื่อจับ push ตรง
+#
+# หมายเหตุ: ที่นี่ไม่มีลูกเล่น --docs-only แบบฝั่ง GitHub เพราะ image node:alpine ไม่มี git
+# จะเทียบว่าแตะแต่ docs ไม่ได้ — ถ้าอยากได้ ต้องลง git ในภาพเองซึ่งกินเวลาพอ ๆ กับที่ประหยัด
 
 stages: [gate]
 
@@ -20,7 +30,6 @@ gate:
     CI: 'true'
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'main'
   cache:
     key: { files: [pnpm-lock.yaml] }
     paths: [.pnpm-store]

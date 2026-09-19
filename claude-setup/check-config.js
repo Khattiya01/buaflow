@@ -248,11 +248,34 @@ for (const s of ['stack-config.js', 'verify.js', 'run.js']) {
   exists(`.claude/${s}`) ? ok(`.claude/${s}`) : warn(`ไม่มี .claude/${s} — สคริปต์จะถอยไปใช้ค่าเริ่มต้น JS/TS และ skill จะเรียก verify ของ stack อื่นไม่ได้ (ดู UPGRADE.md)`);
 }
 const preflight = stack.preflightHookPath;
-exists(preflight)
-  ? (/gate\.js/.test(read(preflight)) ? ok(`${preflight} เรียก gate.js`) : warn(`${preflight} มีอยู่แต่ไม่ได้เรียก gate.js`))
-  : warn(`ไม่มี ${preflight} — gate จะรันแค่ใน CI (ถ้ามี) คนที่ push จากเครื่องข้ามได้ · ถ้าโปรเจกต์ไม่ได้ใช้ husky ให้ตั้ง "preflightHookPath" ใน .claude/stack.json (เช่น .git/hooks/pre-push)`);
+const ciMode = stack.ciMode || 'required';
+const localOnly = ciMode === 'local-only';
+
+if (exists(preflight)) {
+  /gate\.js/.test(read(preflight))
+    ? ok(`${preflight} เรียก gate.js`)
+    : (localOnly ? bad : warn)(`${preflight} มีอยู่แต่ไม่ได้เรียก gate.js`);
+} else {
+  const how = `ถ้าโปรเจกต์ไม่ได้ใช้ husky ให้ตั้ง "preflightHookPath" ใน .claude/stack.json (เช่น .git/hooks/pre-push)`;
+  // ciMode: local-only = ประกาศแล้วว่าไม่มี CI -> hook ตัวนี้คือด่านเดียวที่เหลือ ไม่ใช่ของเสริม
+  localOnly
+    ? bad(`ไม่มี ${preflight} แต่ ciMode = local-only — เท่ากับไม่มีด่านไหนบังคับเลยนอก session ของ Claude · ${how}`)
+    : warn(`ไม่มี ${preflight} — gate จะรันแค่ใน CI (ถ้ามี) คนที่ push จากเครื่องข้ามได้ · ${how}`);
+}
+
 const ciFiles = ['.github/workflows/gate.yml', '.gitlab-ci.yml'].filter(exists);
-ciFiles.length ? ok(`CI: ${ciFiles.join(', ')}`) : warn('ยังไม่มีไฟล์ CI (gate.yml / .gitlab-ci.yml) — วางจาก claude-setup/ci/ ได้เลยแม้ยังไม่เลือก host');
+if (localOnly) {
+  ciFiles.length
+    ? warn(`ciMode = local-only แต่ยังมีไฟล์ CI อยู่ (${ciFiles.join(', ')}) — ถ้าไม่ได้ใช้แล้วให้ลบ ไม่งั้นเข้าใจผิดว่ามีด่านที่ CI`)
+    : ok('ciMode = local-only — ไม่มีไฟล์ CI ตามที่ตั้งใจ (ด่านอยู่ที่ pre-push)');
+} else if (ciFiles.length) {
+  ok(`CI: ${ciFiles.join(', ')} (ciMode = ${ciMode})`);
+} else {
+  warn(
+    `ยังไม่มีไฟล์ CI (gate.yml / .gitlab-ci.yml) — วางจาก claude-setup/ci/ ได้เลยแม้ยังไม่เลือก host · ` +
+      'ถ้าตั้งใจไม่ใช้ CI (นาทีหมด / ไม่มี remote) ให้ตั้ง "ciMode": "local-only" ใน .claude/stack.json แล้วเช็กว่า pre-push ติดตั้งจริง'
+  );
+}
 
 // ── 6. settings.json + hooks ──────────────────────────────────────────
 head('6. settings.json และ hooks');
