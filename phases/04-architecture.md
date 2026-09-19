@@ -203,7 +203,7 @@ docker/
 
 ## 4.11 ร่างธรรมนูญโปรเจกต์
 
-ใช้ `project-kit/templates/constitution.tpl.md` สร้าง `docs/constitution.md`
+ใช้ `buaflow/templates/constitution.tpl.md` สร้าง `docs/constitution.md`
 
 มาตรา 1-8 เป็นหลักการกลางที่ใช้ได้ทุกโปรเจกต์ — **อ่านแล้วปรับถ้อยคำให้ตรงบริบท แต่อย่าตัดทิ้ง**
 ส่วนที่ต้องเติมเองคือ:

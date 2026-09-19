@@ -128,7 +128,7 @@ Canvas (`.dc.html` artboard) เป็น mockup ภาพ/HTML ไม่ใช�
 
 ### D.1 ขั้นตอน
 
-1. **ทำ Design Brief ส่วนที่ 1 (ระดับโปรเจกต์)** จาก `project-kit/templates/design-brief.tpl.md` → `docs/design/brief.md`
+1. **ทำ Design Brief ส่วนที่ 1 (ระดับโปรเจกต์)** จาก `buaflow/templates/design-brief.tpl.md` → `docs/design/brief.md`
    ถามทีละหมวดให้ผู้ใช้ตอบ (reference · สี · typography · shape/space · core components · shell/viewports · icon set · motion · content/i18n)
    — ข้อ 1–4 ของเส้นทาง B รวมอยู่ในหมวด reference/สี แล้ว ไม่ต้องถามซ้ำ
    ต้องได้ `status: confirmed` ก่อนไปข้อถัดไป **แก้ brief ส่วนที่ 1 ทีหลัง = token-level change กระทบทุกหน้า**
@@ -178,10 +178,10 @@ Canvas (`.dc.html` artboard) เป็น mockup ภาพ/HTML ไม่ใช�
 | component | ที่มา (shadcn / ประกอบเอง / สร้างใหม่) | shared หรือเฉพาะหน้า | ใช้ที่ไหนบ้าง | สถานะ | deviation จาก design |
 
 คอลัมน์ `deviation` ว่างไว้ตอนนี้ — ใช้ตอน build (Phase 7+) เมื่อผู้ใช้ตกลงให้โค้ดต่างจาก canvas/design ตรงจุดไหน
-(รายละเอียดใน `project-kit/standards/ui-component-rules.md` ข้อ 8)
+(รายละเอียดใน `buaflow/standards/ui-component-rules.md` ข้อ 8)
 
 กติกาการตัดสินว่าเป็น shared: **ถ้ามีโอกาสถูกใช้ ≥ 2 ที่ → ทำเป็น shared ตั้งแต่แรก**
-(รายละเอียดเต็มใน `project-kit/standards/ui-component-rules.md`)
+(รายละเอียดเต็มใน `buaflow/standards/ui-component-rules.md`)
 
 ### 4. `docs/planning/03-ui-design.md`
 รวม: รายการหน้าจอทั้งหมด, sitemap/flow, การตัดสินใจเรื่อง theme, ประเด็นที่ยังค้าง

@@ -16,13 +16,13 @@ v2.3 เพิ่มฝั่ง design: `/ui` ถาม text/canvas ได้, 
 **โปรเจกต์ที่ไม่ได้ใช้ claude.ai/design ไม่มีอะไรเปลี่ยน** — `/ui` ยังเสนอ 2 option แบบ text เหมือนเดิมถ้าเลือก text
 
 ```bash
-# 1. วาง project-kit เวอร์ชันใหม่ทับของเดิม
+# 1. วาง buaflow เวอร์ชันใหม่ทับของเดิม
 # 2. คัดลอกของใหม่
-cp project-kit/claude-setup/prototype.js .claude/
-cp -r project-kit/claude-setup/skills/ui project-kit/claude-setup/skills/prototype .claude/skills/
-cp project-kit/claude-setup/rules/frontend-ui.md .claude/rules/
-cp project-kit/templates/design-brief.tpl.md project-kit/templates/prototype-flow.tpl.json docs/templates/
-cp project-kit/standards/ui-component-rules.md docs/standards/
+cp buaflow/claude-setup/prototype.js .claude/
+cp -r buaflow/claude-setup/skills/ui buaflow/claude-setup/skills/prototype .claude/skills/
+cp buaflow/claude-setup/rules/frontend-ui.md .claude/rules/
+cp buaflow/templates/design-brief.tpl.md buaflow/templates/prototype-flow.tpl.json docs/templates/
+cp buaflow/standards/ui-component-rules.md docs/standards/
 ```
 
 แล้วทำ 3 ข้อนี้ (Claude ทำได้ ไม่ต้องตัดสินใจอะไร):
@@ -41,18 +41,18 @@ v2.2 ไม่เปลี่ยน workflow เลย — เปลี่ยน
 **ไม่ทำก็ยังใช้งานได้ปกติ** แต่จะไม่ได้ผลของการแก้ "เขียวปลอม" (hook ที่ตายแล้วบอกว่ายังไม่ตาย)
 
 ```bash
-# 1. วาง project-kit เวอร์ชันใหม่ทับของเดิม
+# 1. วาง buaflow เวอร์ชันใหม่ทับของเดิม
 # 2. คัดลอกไฟล์ใหม่ + ไฟล์ที่แก้ เข้า .claude/
-cp project-kit/claude-setup/{stack-config,verify,run,check-config,gate}.js .claude/
-cp project-kit/claude-setup/stack.json .claude/
-cp project-kit/claude-setup/hooks/{format-changed,guard-edit}.js .claude/hooks/
-cp -r project-kit/claude-setup/skills project-kit/claude-setup/agents .claude/
+cp buaflow/claude-setup/{stack-config,verify,run,check-config,gate}.js .claude/
+cp buaflow/claude-setup/stack.json .claude/
+cp buaflow/claude-setup/hooks/{format-changed,guard-edit}.js .claude/hooks/
+cp -r buaflow/claude-setup/skills buaflow/claude-setup/agents .claude/
 ```
 
 แล้วเปิด Claude Code ที่ราก repo พิมพ์:
 
 ```
-อ่าน project-kit/UPGRADE.md หัวข้อ v2.1 → v2.2 แล้วทำตาม
+อ่าน buaflow/UPGRADE.md หัวข้อ v2.1 → v2.2 แล้วทำตาม
 ```
 
 **ถึง Claude — ทำ 4 ข้อนี้ตามลำดับ:**
@@ -97,9 +97,9 @@ cp -r project-kit/claude-setup/skills project-kit/claude-setup/agents .claude/
 
 ```bash
 # 1. จบ task ที่ค้างอยู่ให้ถึง /done (ของ v1) ก่อน — อย่าอัปเกรดกลาง task
-# 2. วาง project-kit เวอร์ชันใหม่ทับของเดิม (หรือ git pull ถ้าเป็น submodule)
+# 2. วาง buaflow เวอร์ชันใหม่ทับของเดิม (หรือ git pull ถ้าเป็น submodule)
 # 3. เปิด Claude Code ที่ราก repo แล้วพิมพ์:
-อ่าน project-kit/UPGRADE.md แล้วทำตาม เริ่มข้อ 1
+อ่าน buaflow/UPGRADE.md แล้วทำตาม เริ่มข้อ 1
 ```
 
 Claude จะทำข้อ 1–10 ให้ โดยหยุดถามคุณ 4 จุด: ยืนยันการแยก CLAUDE.md (ข้อ 2), ผล check-config รอบแรก (ข้อ 4), มาตรา 9 ของธรรมนูญ (ข้อ 6), diff ของ board ก่อน/หลัง generate (ข้อ 7)
@@ -131,15 +131,15 @@ Claude จะทำข้อ 1–10 ให้ โดยหยุดถามค�
 
 ```bash
 git switch -c chore/kit-v2.1
-cat project-kit/templates/gitignore.tpl >> .gitignore   # แล้วลบบรรทัดที่ซ้ำกับของเดิม — ต้องมี .verify.log และ .claude/settings.local.json
-# เอา project-kit เวอร์ชันล่าสุดมาวางข้าง ๆ (หรือ git pull ถ้าเป็น submodule / โฟลเดอร์ใน repo)
-node project-kit/claude-setup/check-config.js   # ดู baseline ก่อนแก้ — จะ FAIL หลายข้อ ปกติ
+cat buaflow/templates/gitignore.tpl >> .gitignore   # แล้วลบบรรทัดที่ซ้ำกับของเดิม — ต้องมี .verify.log และ .claude/settings.local.json
+# เอา buaflow เวอร์ชันล่าสุดมาวางข้าง ๆ (หรือ git pull ถ้าเป็น submodule / โฟลเดอร์ใน repo)
+node buaflow/claude-setup/check-config.js   # ดู baseline ก่อนแก้ — จะ FAIL หลายข้อ ปกติ
 ```
 
 ### 2. แยก `CLAUDE.md` → `AGENTS.md` + `CLAUDE.md` **(ถาม: แสดงร่าง AGENTS.md ให้ผู้ใช้ยืนยันก่อนเขียนทับ)**
 
 1. เปิด `CLAUDE.md` เดิม เก็บ 4 อย่างนี้ไว้: ย่อหน้า "โปรเจกต์นี้คืออะไร", Stack, โครงโฟลเดอร์, **หมวด "สิ่งที่ AI เคยทำผิด"** (ถ้ามี — นี่คือของมีค่าที่สุด)
-2. สร้าง `AGENTS.md` จาก `project-kit/templates/AGENTS.md.tpl` — เติม 4 อย่างนั้นเป็น**ภาษาอังกฤษ** (AI อ่านอย่างเดียว; หมวด Language ในไฟล์สั่งให้ตอบผู้ใช้เป็นไทยแล้ว)
+2. สร้าง `AGENTS.md` จาก `buaflow/templates/AGENTS.md.tpl` — เติม 4 อย่างนั้นเป็น**ภาษาอังกฤษ** (AI อ่านอย่างเดียว; หมวด Language ในไฟล์สั่งให้ตอบผู้ใช้เป็นไทยแล้ว)
    หมวด "เคยทำผิด" ย้ายไปใต้ `## Things the AI gets wrong in this project` แปลเป็นอังกฤษ
 3. เขียน `CLAUDE.md` ใหม่จาก `templates/CLAUDE.md.tpl` — บรรทัดแรก `@AGENTS.md`
 4. กติกาใน `CLAUDE.md` เดิมที่**ผูกกับไฟล์บางกลุ่ม** (UI, API, DB) → ไม่ต้องย้ายเข้า AGENTS.md เพราะ `.claude/rules/` มีอยู่แล้ว (ข้อ 4) — ถ้ามีกฎเฉพาะโปรเจกต์ที่ rules ไม่ครอบ ให้เติมใน rule ที่ตรงกัน
@@ -148,8 +148,8 @@ node project-kit/claude-setup/check-config.js   # ดู baseline ก่อน�
 
 ```bash
 rm -rf .claude/commands            # ห้ามเหลือ — /review เดิมชนกับ built-in และ /check ใหม่
-cp -r project-kit/claude-setup/skills .claude/
-cp -r project-kit/claude-setup/agents .claude/     # ทับของเดิม (ถ้าเคยแก้ agent เอง ให้ย้ายส่วนที่แก้เข้าตัวใหม่)
+cp -r buaflow/claude-setup/skills .claude/
+cp -r buaflow/claude-setup/agents .claude/     # ทับของเดิม (ถ้าเคยแก้ agent เอง ให้ย้ายส่วนที่แก้เข้าตัวใหม่)
 ```
 
 ปรับตาม Phase 7.4: คำสั่งใน skills ต้องมีจริงในโปรเจกต์ (`test:cov`, `test:api`) — คำสั่ง verify ไม่ต้องแก้ เรียกผ่าน `node .claude/verify.js`
@@ -157,11 +157,11 @@ cp -r project-kit/claude-setup/agents .claude/     # ทับของเดิ
 ### 4. ชั้นบังคับ + สคริปต์ gate
 
 ```bash
-cp -r project-kit/claude-setup/rules project-kit/claude-setup/hooks .claude/
-cp project-kit/claude-setup/{check-config,docs-lint,board,gate,verify,run,stack-config}.js project-kit/claude-setup/stack.json .claude/
-cp project-kit/claude-setup/settings.json.tpl .claude/settings.json      # ลบ $comment, แก้ ${CLAUDE_PROJECT_DIR} ไม่ต้อง — Claude Code แทนให้
-cp project-kit/claude-setup/ci/pre-push.tpl .husky/pre-push
-cp project-kit/claude-setup/ci/github-actions.yml.tpl .github/workflows/gate.yml   # และ/หรือ gitlab-ci.yml.tpl
+cp -r buaflow/claude-setup/rules buaflow/claude-setup/hooks .claude/
+cp buaflow/claude-setup/{check-config,docs-lint,board,gate,verify,run,stack-config}.js buaflow/claude-setup/stack.json .claude/
+cp buaflow/claude-setup/settings.json.tpl .claude/settings.json      # ลบ $comment, แก้ ${CLAUDE_PROJECT_DIR} ไม่ต้อง — Claude Code แทนให้
+cp buaflow/claude-setup/ci/pre-push.tpl .husky/pre-push
+cp buaflow/claude-setup/ci/github-actions.yml.tpl .github/workflows/gate.yml   # และ/หรือ gitlab-ci.yml.tpl
 ```
 
 > **โปรเจกต์ที่มี `.claude/protected-paths.json` อยู่แล้ว:** ไม่ต้องรีบย้าย — `stack-config.js` ยังอ่านไฟล์เดิมเป็น fallback
@@ -198,14 +198,14 @@ cp project-kit/claude-setup/ci/github-actions.yml.tpl .github/workflows/gate.yml
 
 ```bash
 mkdir -p docs/intents docs/plans docs/evals docs/incidents docs/releases && touch docs/{intents,plans,incidents,releases}/.gitkeep
-cp project-kit/templates/{intent,plan,eval-case}.tpl.md docs/templates/
-cp project-kit/claude-setup/evals/*.md docs/evals/
+cp buaflow/templates/{intent,plan,eval-case}.tpl.md docs/templates/
+cp buaflow/claude-setup/evals/*.md docs/evals/
 ```
 
 ### 9. standards + workflow
 
 ```bash
-cp project-kit/standards/*.md docs/standards/     # ทับ — v2.1 เปลี่ยน definition-of-done, workflow-lifecycle, เพิ่ม context-budget, agent-config
+cp buaflow/standards/*.md docs/standards/     # ทับ — v2.1 เปลี่ยน definition-of-done, workflow-lifecycle, เพิ่ม context-budget, agent-config
 ```
 `docs/workflow.md` ที่ v1 คัดจาก `workflow-lifecycle.md` → คัดใหม่ (flow เปลี่ยนเป็น intent → … → check → PR → done)
 `CONTRIBUTING.md`: เพิ่มว่า merge ผ่าน PR + gate เท่านั้น และคำสั่ง `node .claude/gate.js`

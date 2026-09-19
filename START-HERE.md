@@ -67,11 +67,11 @@
 - โฟลเดอร์นี้ว่างเปล่า หรือมีโค้ดอยู่แล้ว?
 - มี `docs/planning/_state.md` อยู่ไหม? **ถ้ามี → อ่านแล้วทำต่อจากจุดที่ค้าง อย่าเริ่มใหม่**
 - **โปรเจกต์ที่ผ่าน kit v1.0 มาแล้ว** — สัญญาณ: มี `.claude/commands/` หรือมี `CLAUDE.md` ที่ยาวเต็มโดยไม่มี `AGENTS.md` และ `_state.md` บอกว่า Phase 7 เสร็จแล้ว
-  → **ไม่ต้องทำ Phase ใด** อ่าน `project-kit/UPGRADE.md` แล้วทำตามนั้นแทน (บอกผู้ใช้ว่าตรวจพบ v1.0 ก่อนเริ่ม)
+  → **ไม่ต้องทำ Phase ใด** อ่าน `buaflow/UPGRADE.md` แล้วทำตามนั้นแทน (บอกผู้ใช้ว่าตรวจพบ v1.0 ก่อนเริ่ม)
 - **โปรเจกต์ที่ผ่าน kit v2.1 มาแล้ว** — สัญญาณ: มี `.claude/skills/` และ `AGENTS.md` แล้ว แต่**ไม่มี `.claude/stack.json`**
-  → **ไม่ต้องทำ Phase ใด** อ่าน `project-kit/UPGRADE.md` หัวข้อ **v2.1 → v2.2** (~15 นาที) แล้วทำตามนั้นแทน
+  → **ไม่ต้องทำ Phase ใด** อ่าน `buaflow/UPGRADE.md` หัวข้อ **v2.1 → v2.2** (~15 นาที) แล้วทำตามนั้นแทน
 - **โปรเจกต์ที่ผ่าน kit v2.2 มาแล้ว** — สัญญาณ: มี `.claude/stack.json` แล้ว แต่**ไม่มี `.claude/prototype.js`**
-  → อ่าน `project-kit/UPGRADE.md` หัวข้อ **v2.2 → v2.3** (~10 นาที copy ไฟล์)
+  → อ่าน `buaflow/UPGRADE.md` หัวข้อ **v2.2 → v2.3** (~10 นาที copy ไฟล์)
 
 ### 2.2 ถาม 4 คำถามนี้ (รอบเดียว)
 
@@ -136,7 +136,7 @@
 | โหมด | Phase ถัดไป | บอกผู้ใช้ว่า |
 |---|---|---|
 | `NEW` / `REBUILD` | Phase 1 | *"พิมพ์ `ทำ Phase ต่อไป` เพื่อเริ่มเก็บ requirement"* |
-| `EXTEND` | **Phase A** (`project-kit/phases/A-adopt-existing.md`) แทน Phase 1–6 ทั้งหมด | *"พิมพ์ `ทำ Phase A` เพื่อสำรวจโปรเจกต์ที่มีอยู่"* |
+| `EXTEND` | **Phase A** (`buaflow/phases/A-adopt-existing.md`) แทน Phase 1–6 ทั้งหมด | *"พิมพ์ `ทำ Phase A` เพื่อสำรวจโปรเจกต์ที่มีอยู่"* |
 
 โหมด `EXTEND` ใน `_state.md` ให้แทนแถว Phase 1–6 ด้วยแถวเดียว: `| A สำรวจของเดิม | ⬜ | docs/planning/A1-inventory.md |`
 
@@ -146,15 +146,15 @@
 
 | Phase | ไฟล์ prompt ที่ต้องอ่านตอนเริ่ม Phase | ได้อะไร |
 |---|---|---|
-| **A** | `project-kit/phases/A-adopt-existing.md` | **เฉพาะโหมด EXTEND** — แทน Phase 1–6: สำรวจของเดิม, ตั้ง verify, ADR ย้อนหลัง, ธรรมนูญแบบของใหม่/ของเก่า |
-| 1 | `project-kit/phases/01-discovery.md` | requirement ครบ, MoSCoW, NFR |
-| 2 | `project-kit/phases/02-stack-decision.md` | stack ล็อก + ADR |
-| 3 | `project-kit/phases/03-ui-and-design-intake.md` | theme, design token, inventory หน้า/component |
-| 4 | `project-kit/phases/04-architecture.md` | โครงสร้าง, security, API contract, docker |
-| 5 | `project-kit/phases/05-backlog-and-roadmap.md` | Epic/Feature/Task + board + roadmap |
-| 6 | `project-kit/phases/06-scaffold.md` | โปรเจกต์จริงที่ build ผ่าน + `pnpm verify` |
-| 7 | `project-kit/phases/07-handoff.md` | AGENTS.md + CLAUDE.md + `.claude/` ทั้งชุด + ธรรมนูญ + eval |
-| 8 | `project-kit/phases/08-tune-and-evolve.md` | **ทำซ้ำเรื่อย ๆ** — ทบทวนและปรับ config |
+| **A** | `buaflow/phases/A-adopt-existing.md` | **เฉพาะโหมด EXTEND** — แทน Phase 1–6: สำรวจของเดิม, ตั้ง verify, ADR ย้อนหลัง, ธรรมนูญแบบของใหม่/ของเก่า |
+| 1 | `buaflow/phases/01-discovery.md` | requirement ครบ, MoSCoW, NFR |
+| 2 | `buaflow/phases/02-stack-decision.md` | stack ล็อก + ADR |
+| 3 | `buaflow/phases/03-ui-and-design-intake.md` | theme, design token, inventory หน้า/component |
+| 4 | `buaflow/phases/04-architecture.md` | โครงสร้าง, security, API contract, docker |
+| 5 | `buaflow/phases/05-backlog-and-roadmap.md` | Epic/Feature/Task + board + roadmap |
+| 6 | `buaflow/phases/06-scaffold.md` | โปรเจกต์จริงที่ build ผ่าน + `pnpm verify` |
+| 7 | `buaflow/phases/07-handoff.md` | AGENTS.md + CLAUDE.md + `.claude/` ทั้งชุด + ธรรมนูญ + eval |
+| 8 | `buaflow/phases/08-tune-and-evolve.md` | **ทำซ้ำเรื่อย ๆ** — ทบทวนและปรับ config |
 
 **วิธีเริ่มแต่ละ Phase:** อ่านไฟล์ prompt ของ Phase นั้น → อ่าน `_state.md` → ทำตาม → อัปเดต `_state.md` → หยุด
 
@@ -237,7 +237,7 @@ Phase 8 คือรอบที่เอาบทเรียนจากกา
 >
 > ถ้าเหตุผลจริงคือ "อยากให้ทุกโปรเจกต์ของบริษัทหน้าตาเหมือนกัน" — ล็อกยี่ห้อได้ แต่ต้องเขียน**เหตุผลนั้น**ลงมาตรา 9
 
-รายละเอียดเต็มของแต่ละข้ออยู่ใน `project-kit/standards/`
+รายละเอียดเต็มของแต่ละข้ออยู่ใน `buaflow/standards/`
 อ่าน standards ไฟล์ที่เกี่ยวข้อง **เฉพาะตอนที่ Phase นั้นต้องใช้** (ไม่ต้องอ่านทั้งหมดรวดเดียว)
 
 ---

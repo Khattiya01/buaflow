@@ -123,7 +123,7 @@ UI library เป็นข้อที่กระทบ AI มากที่�
 "verify": "node scripts/verify.mjs"
 ```
 
-ใช้ `project-kit/templates/verify.mjs.tpl` (ปรับ STEPS ให้ตรง stack) — มันรัน typecheck → lint → test เหมือน `&&` แต่:
+ใช้ `buaflow/templates/verify.mjs.tpl` (ปรับ STEPS ให้ตรง stack) — มันรัน typecheck → lint → test เหมือน `&&` แต่:
 - **ผ่าน**: พิมพ์ ~3 บรรทัด (นี่คือ "หน้าตาของผ่าน" ที่จะไปอยู่ใน AGENTS.md)
 - **พัง**: พิมพ์เฉพาะบรรทัด error ≤ 25 บรรทัด + บอกว่า log เต็มอยู่ `.verify.log`
 - หยุดที่ขั้นแรกที่พัง (ขั้นถัดไปมักพังตามและกิน context เปล่า)
@@ -146,7 +146,7 @@ UI library เป็นข้อที่กระทบ AI มากที่�
 ย้ำกับผู้ใช้และบันทึกเป็น ADR สถานะ `Proposed`:
 - **CI/CD** — ยังไม่เลือก git host **แต่ gate ต้องมีตั้งแต่วันแรก** (ไม่ใช่แค่ "CI-ready"):
   `node .claude/gate.js` = verify + check-config + docs-lint รันจาก `.husky/pre-push` ตั้งแต่ Phase 6
-  และมี `.github/workflows/gate.yml` + `.gitlab-ci.yml` เตรียมไว้ทั้งคู่ (`project-kit/claude-setup/ci/`)
+  และมี `.github/workflows/gate.yml` + `.gitlab-ci.yml` เตรียมไว้ทั้งคู่ (`buaflow/claude-setup/ci/`)
   วันที่เลือก host เหลือแค่เปิด branch protection — **นี่คือสิ่งเดียวที่ทำให้กฎของ kit เป็นกฎแข็งนอก session ของ Claude**
 - **Deploy target** — ยังไม่ตัดสินใจ ⇒ ออกแบบให้เป็น **container-first**:
   แอปต้องอ่าน config จาก env ล้วน, ไม่เขียนไฟล์ลง local disk แบบถาวร, มี `/health`
@@ -180,7 +180,7 @@ UI library เป็นข้อที่กระทบ AI มากที่�
 > (`npm view next version` ฯลฯ) อย่าเขียนจากความจำ
 
 ### 2. ADR หนึ่งไฟล์ต่อหนึ่งการตัดสินใจใหญ่
-ใช้ `project-kit/templates/adr.tpl.md` เขียนลง `docs/adr/`
+ใช้ `buaflow/templates/adr.tpl.md` เขียนลง `docs/adr/`
 อย่างน้อยต้องมี:
 - `0001-repo-structure.md`
 - `0002-frontend-framework.md`
