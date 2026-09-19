@@ -19,7 +19,7 @@
 ## ลำดับขั้น
 
 ### ขั้น 1 — รากฐาน repo
-- `git init` (ถ้ายังไม่มี), `.gitignore` จาก `project-kit/templates/gitignore.tpl` (มี `.verify.log`, `settings.local.json`, `.env*` ครบ), `.editorconfig`, `.nvmrc`
+- `git init` (ถ้ายังไม่มี), `.gitignore` จาก `buaflow/templates/gitignore.tpl` (มี `.verify.log`, `settings.local.json`, `.env*` ครบ), `.editorconfig`, `.nvmrc`
 - `.gitattributes` ตั้ง `* text=auto eol=lf` กันปัญหา CRLF บน Windows
 - README ตั้งต้น
 - verify: `git status` สะอาด
@@ -36,14 +36,14 @@
 - npm scripts มาตรฐาน:
   `dev` `build` `start` `lint` `format` `typecheck` `test` `test:cov` `db:migrate` `db:seed` `docker:dev` `sonar`
 - **`verify` — คำสั่งตรวจมาตรฐานตัวเดียว** (ตามที่ตัดสินใน Phase 2 รอบ B2):
-  คัดลอก `project-kit/templates/verify.mjs.tpl` → `scripts/verify.mjs` ปรับ `STEPS` ให้ตรง stack แล้ว
+  คัดลอก `buaflow/templates/verify.mjs.tpl` → `scripts/verify.mjs` ปรับ `STEPS` ให้ตรง stack แล้ว
   ```json
   "verify": "node scripts/verify.mjs"
   ```
   เพิ่ม `.verify.log` ลง `.gitignore` · ต้อง exit non-zero เมื่อพัง และรันจบในเวลาที่ตกลงไว้
-- **gate + pre-push** — คัดลอก `project-kit/claude-setup/{gate,docs-lint,board,check-config,verify,run,stack-config}.js` และ `stack.json` → `.claude/` (Phase 7 จะทำซ้ำอยู่แล้ว แต่ต้องมีตั้งแต่ตอนนี้เพื่อให้ pre-push ทำงาน)
+- **gate + pre-push** — คัดลอก `buaflow/claude-setup/{gate,docs-lint,board,check-config,verify,run,stack-config}.js` และ `stack.json` → `.claude/` (Phase 7 จะทำซ้ำอยู่แล้ว แต่ต้องมีตั้งแต่ตอนนี้เพื่อให้ pre-push ทำงาน)
   แล้วตั้ง `verifyCommand` ใน `.claude/stack.json` ให้ตรงกับคำสั่งที่เพิ่งสร้าง — `gate.js` และ `/check` `/done` อ่านจากที่นี่
-  และ `project-kit/claude-setup/ci/pre-push.tpl` → `.husky/pre-push`
+  และ `buaflow/claude-setup/ci/pre-push.tpl` → `.husky/pre-push`
   verify: แก้ไฟล์ให้ lint พังแล้วลอง `git push` → ต้องถูกปฏิเสธ
 - verify: ลอง commit ที่ผิดรูปแบบแล้วต้องถูกปฏิเสธ
 - verify: รัน `pnpm verify` แล้ว **เก็บ output ตอนที่ทุกอย่างเขียวไว้** — จะเอาไปใส่ `AGENTS.md` ใน Phase 7

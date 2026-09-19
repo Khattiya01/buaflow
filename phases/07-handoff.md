@@ -17,7 +17,7 @@
 
 ## 7.1 `docs/constitution.md` — ธรรมนูญโปรเจกต์ (ทำก่อนเพื่อน)
 
-ใช้ `project-kit/templates/constitution.tpl.md` แล้วเติมมาตรา 9 จากผลการตัดสินใจใน Phase 1-5
+ใช้ `buaflow/templates/constitution.tpl.md` แล้วเติมมาตรา 9 จากผลการตัดสินใจใน Phase 1-5
 
 ไฟล์นี้คือเกณฑ์ที่ `/spec`, `/plan`, `/review` และ `code-reviewer` จะใช้ตัดสิน —
 ถ้าไม่มี ทุกอย่างที่เหลือจะไม่มีอะไรให้ยึด
@@ -26,7 +26,7 @@
 
 ## 7.2 `AGENTS.md` — กติกาหลัก (สำคัญที่สุด)
 
-ใช้ `project-kit/templates/AGENTS.md.tpl` เติมค่าจริงจาก Phase 1-6
+ใช้ `buaflow/templates/AGENTS.md.tpl` เติมค่าจริงจาก Phase 1-6
 
 **ภาษา:** ไฟล์นี้ (และ `CLAUDE.md`, `REVIEW.md`, `.claude/rules/`, `.claude/skills/`, `.claude/agents/`) เป็น**ภาษาอังกฤษ** — AI อ่านทุก session และภาษาไทย tokenize แพงกว่า ~2 เท่า
 ค่าที่เติม (ชื่อโปรเจกต์, คำอธิบาย, โครงโฟลเดอร์) เขียนอังกฤษให้สอดคล้อง หมวด "Language" ในไฟล์สั่งให้ AI ตอบผู้ใช้และเขียน `docs/` เป็นไทยอยู่แล้ว
@@ -46,7 +46,7 @@
 
 ## 7.3 `CLAUDE.md` — ชั้นบางสำหรับ Claude Code
 
-ใช้ `project-kit/templates/CLAUDE.md.tpl`
+ใช้ `buaflow/templates/CLAUDE.md.tpl`
 
 บรรทัดแรกต้องเป็น `@AGENTS.md` (import) แล้วต่อด้วยเฉพาะของที่เป็นของ Claude Code:
 รายการ skills, ตาราง rules, ตาราง hooks, การจัดการ context
@@ -59,22 +59,22 @@
 ## 7.4 ติดตั้ง `.claude/` ทั้งชุด
 
 ```
-project-kit/claude-setup/skills/*        →  .claude/skills/
-project-kit/claude-setup/rules/*         →  .claude/rules/
-project-kit/claude-setup/agents/*        →  .claude/agents/
-project-kit/claude-setup/hooks/*         →  .claude/hooks/
-project-kit/claude-setup/check-config.js →  .claude/check-config.js
-project-kit/claude-setup/docs-lint.js    →  .claude/docs-lint.js      ตรวจว่า artifact chain ยังตรงกัน
-project-kit/claude-setup/board.js        →  .claude/board.js          generate board.md จากไฟล์ task
-project-kit/claude-setup/prototype.js    →  .claude/prototype.js      click-through prototype จาก canvas baseline (เฉพาะโปรเจกต์ที่ใช้ canvas)
-project-kit/claude-setup/gate.js         →  .claude/gate.js           ด่านเดียว: verify + check-config + docs-lint
-project-kit/claude-setup/verify.js       →  .claude/verify.js         ทางเข้าเดียวของคำสั่งตรวจ
-project-kit/claude-setup/run.js          →  .claude/run.js            คำสั่งรอง: coverage / audit / apiTest
-project-kit/claude-setup/stack-config.js →  .claude/stack-config.js   ตัวอ่าน stack.json ที่สคริปต์อื่นใช้ร่วมกัน
-project-kit/claude-setup/stack.json      →  .claude/stack.json        stack ของโปรเจกต์นี้ (แทน protected-paths.json เดิม)
-project-kit/claude-setup/ci/pre-push.tpl →  .husky/pre-push
-project-kit/claude-setup/ci/*.yml.tpl    →  .github/workflows/gate.yml และ/หรือ .gitlab-ci.yml
-project-kit/claude-setup/settings.json.tpl  →  .claude/settings.json
+buaflow/claude-setup/skills/*        →  .claude/skills/
+buaflow/claude-setup/rules/*         →  .claude/rules/
+buaflow/claude-setup/agents/*        →  .claude/agents/
+buaflow/claude-setup/hooks/*         →  .claude/hooks/
+buaflow/claude-setup/check-config.js →  .claude/check-config.js
+buaflow/claude-setup/docs-lint.js    →  .claude/docs-lint.js      ตรวจว่า artifact chain ยังตรงกัน
+buaflow/claude-setup/board.js        →  .claude/board.js          generate board.md จากไฟล์ task
+buaflow/claude-setup/prototype.js    →  .claude/prototype.js      click-through prototype จาก canvas baseline (เฉพาะโปรเจกต์ที่ใช้ canvas)
+buaflow/claude-setup/gate.js         →  .claude/gate.js           ด่านเดียว: verify + check-config + docs-lint
+buaflow/claude-setup/verify.js       →  .claude/verify.js         ทางเข้าเดียวของคำสั่งตรวจ
+buaflow/claude-setup/run.js          →  .claude/run.js            คำสั่งรอง: coverage / audit / apiTest
+buaflow/claude-setup/stack-config.js →  .claude/stack-config.js   ตัวอ่าน stack.json ที่สคริปต์อื่นใช้ร่วมกัน
+buaflow/claude-setup/stack.json      →  .claude/stack.json        stack ของโปรเจกต์นี้ (แทน protected-paths.json เดิม)
+buaflow/claude-setup/ci/pre-push.tpl →  .husky/pre-push
+buaflow/claude-setup/ci/*.yml.tpl    →  .github/workflows/gate.yml และ/หรือ .gitlab-ci.yml
+buaflow/claude-setup/settings.json.tpl  →  .claude/settings.json
 ```
 
 > ถ้าทำ Phase 6 ขั้น 3 แล้ว 4 สคริปต์แรกกับ pre-push จะมีอยู่แล้ว — ตรวจว่าเป็นเวอร์ชันเดียวกับ kit
@@ -125,22 +125,22 @@ node .claude/gate.js
 
 ## 7.5 `REVIEW.md` — นโยบายการรีวิว
 
-ใช้ `project-kit/templates/REVIEW.tpl.md` วางที่ราก repo
+ใช้ `buaflow/templates/REVIEW.tpl.md` วางที่ราก repo
 ปรับเพดานข้อสังเกตและรายการ "ไม่ต้องรายงาน" ให้ตรงโปรเจกต์
 
 ## 7.6 คัดลอก standards และ templates เข้าโปรเจกต์
 
 ```
-project-kit/standards/*.md                 →  docs/standards/
-project-kit/templates/intent.tpl.md        →  docs/templates/
-project-kit/templates/plan.tpl.md          →  docs/templates/
-project-kit/templates/spec.tpl.md          →  docs/templates/
-project-kit/templates/task.tpl.md          →  docs/templates/
-project-kit/templates/adr.tpl.md           →  docs/templates/
-project-kit/templates/eval-case.tpl.md     →  docs/templates/
-project-kit/templates/design-brief.tpl.md  →  docs/templates/
-project-kit/templates/prototype-flow.tpl.json →  docs/templates/
-project-kit/claude-setup/evals/*.md        →  docs/evals/
+buaflow/standards/*.md                 →  docs/standards/
+buaflow/templates/intent.tpl.md        →  docs/templates/
+buaflow/templates/plan.tpl.md          →  docs/templates/
+buaflow/templates/spec.tpl.md          →  docs/templates/
+buaflow/templates/task.tpl.md          →  docs/templates/
+buaflow/templates/adr.tpl.md           →  docs/templates/
+buaflow/templates/eval-case.tpl.md     →  docs/templates/
+buaflow/templates/design-brief.tpl.md  →  docs/templates/
+buaflow/templates/prototype-flow.tpl.json →  docs/templates/
+buaflow/claude-setup/evals/*.md        →  docs/evals/
 ```
 
 ระหว่าง copy ให้ **ปรับเนื้อหาให้ตรงกับ stack จริง** อย่า copy ดิบ ๆ
@@ -154,7 +154,7 @@ project-kit/claude-setup/evals/*.md        →  docs/evals/
 
 ## 7.8 `docs/workflow.md` — วงจรการทำงานประจำวัน
 
-คัดจาก `project-kit/standards/workflow-lifecycle.md` มาปรับให้ตรงโปรเจกต์
+คัดจาก `buaflow/standards/workflow-lifecycle.md` มาปรับให้ตรงโปรเจกต์
 
 ## 7.9 แช่แข็งผลงาน planning
 
@@ -211,10 +211,10 @@ project-kit/claude-setup/evals/*.md        →  docs/evals/
 ## 7.12 ปิดงาน
 
 1. commit ทั้งหมด
-2. บอกผู้ใช้ว่า **จากนี้ทำงานผ่าน skills ไม่ต้องเปิด `project-kit/` อีก**
+2. บอกผู้ใช้ว่า **จากนี้ทำงานผ่าน skills ไม่ต้องเปิด `buaflow/` อีก**
    และ **ทุก merge เข้า main ผ่าน PR** — hook บล็อก merge ในเครื่องแล้ว เหลือแค่เปิด branch protection บน git host ตอนเลือกได้
    แต่ **อย่าลบ kit** — Phase 8 จะกลับมาใช้ทุกครั้งที่ปรับ config
-   (ถ้าไม่อยากให้เกะกะ ย้ายไป `docs/_archive/project-kit/` ได้)
+   (ถ้าไม่อยากให้เกะกะ ย้ายไป `docs/_archive/buaflow/` ได้)
 3. แสดง **3 คำสั่งแรกที่ควรใช้ในวันถัดไป**:
    ```
    /intent <เรื่องที่อยากทำ>    เปิดงานใหม่ (งานจิ๋ว → trivial track ไม่ต้อง intent)

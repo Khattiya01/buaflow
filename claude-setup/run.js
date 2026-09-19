@@ -28,7 +28,7 @@ let commands;
 try {
   commands = require(path.join(__dirname, 'stack-config.js')).load(ROOT).commands || {};
 } catch {
-  console.error('run: ไม่พบ .claude/stack-config.js — คัดลอกมาจาก project-kit/claude-setup/ ก่อน (ดู UPGRADE.md)');
+  console.error('run: ไม่พบ .claude/stack-config.js — คัดลอกมาจาก buaflow/claude-setup/ ก่อน (ดู UPGRADE.md)');
   process.exit(1);
 }
 

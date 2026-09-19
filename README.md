@@ -1,4 +1,4 @@
-# Project Kit — มาตรฐานการตั้งและดำเนินโปรเจกต์เว็บด้วย Claude Code
+# Buaflow — มาตรฐานการตั้งและดำเนินโปรเจกต์เว็บด้วย Claude Code
 
 ชุดนี้ทำ 2 อย่าง:
 
@@ -59,10 +59,10 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
 ## วิธีใช้
 
 ### โปรเจกต์ที่ใช้ kit เวอร์ชันเก่าอยู่แล้ว
-วาง `project-kit/` เวอร์ชันนี้ทับของเดิมในโปรเจกต์ แล้วพิมพ์:
+วาง `buaflow/` เวอร์ชันนี้ทับของเดิมในโปรเจกต์ แล้วพิมพ์:
 
 ```
-อ่าน project-kit/UPGRADE.md แล้วทำตาม
+อ่าน buaflow/UPGRADE.md แล้วทำตาม
 ```
 
 [UPGRADE.md](UPGRADE.md) จะเลือกเส้นทางให้ตามเวอร์ชันที่ใช้อยู่ — **v2.2 → v2.3** ~10 นาที (copy ไฟล์ฝั่ง design) · **v2.1 → v2.2** ~15 นาที (แค่ย้ายการตั้งค่าไป `stack.json`)
@@ -77,7 +77,7 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
 เปิด Claude Code ที่ root ของโปรเจกต์ แล้วพิมพ์:
 
 ```
-อ่าน project-kit/START-HERE.md แล้วทำตาม เริ่ม Phase 0
+อ่าน buaflow/START-HERE.md แล้วทำตาม เริ่ม Phase 0
 ```
 
 ### ทำ Phase ถัดไป
@@ -87,7 +87,7 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
 
 ### เปิด session ใหม่มาทำต่อ
 ```
-อ่าน project-kit/START-HERE.md และ docs/planning/_state.md แล้วทำต่อจากที่ค้างไว้
+อ่าน buaflow/START-HERE.md และ docs/planning/_state.md แล้วทำต่อจากที่ค้างไว้
 ```
 
 ### หลังจบ Phase 7 — ทำงานประจำวัน
@@ -102,7 +102,7 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
 
 ### ทบทวนและปรับ config
 ```
-อ่าน project-kit/phases/08-tune-and-evolve.md แล้วทำตาม
+อ่าน buaflow/phases/08-tune-and-evolve.md แล้วทำตาม
 ```
 ทำตอนปิด milestone, หลัง incident, หรือเมื่อเปลี่ยนโมเดล
 
@@ -111,7 +111,7 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
 ## โครงไฟล์
 
 ```
-project-kit/
+buaflow/
 ├── README.md                   ← ไฟล์นี้
 ├── UPGRADE.md                  ← อัปเกรดโปรเจกต์จาก v1.0 → v2.1
 ├── VERSION.md                  ← changelog ของตัว kit

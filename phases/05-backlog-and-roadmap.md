@@ -41,7 +41,7 @@ Milestone  (M0-M3)     ก้อนที่ส่งมอบได้ / demo �
 ## 5.3 รูปแบบไฟล์ backlog
 
 ### `docs/backlog/tasks/T-001.md` — **source of truth ตัวเดียว**
-ใช้ template `project-kit/templates/task.tpl.md` — frontmatter ต้องครบ: `id status type milestone priority estimate depends_on` (board ใช้เรียง)
+ใช้ template `buaflow/templates/task.tpl.md` — frontmatter ต้องครบ: `id status type milestone priority estimate depends_on` (board ใช้เรียง)
 สถานะ: `backlog` → `todo` → `in-progress` → `review` → `done` (+ `blocked` ต้องมี `blocked_reason:`)
 
 ### `docs/backlog/board.md` — view ที่ generate
@@ -112,7 +112,7 @@ F-01 สมัครสมาชิก
 ## ผลลัพธ์ที่ต้องเขียน
 1. `docs/backlog/tasks/*.md` — **อย่างน้อยต้องเขียนละเอียดครบทุก task ของ M0 และ M1**
    ส่วน M2/M3 เขียนเป็นหัวข้อไว้ก่อนได้ แล้วค่อยลงรายละเอียดเมื่อใกล้ถึง
-2. `docs/backlog/board.md` — จาก `node project-kit/claude-setup/board.js` (Phase 7 จะย้ายสคริปต์ไป `.claude/`)
+2. `docs/backlog/board.md` — จาก `node buaflow/claude-setup/board.js` (Phase 7 จะย้ายสคริปต์ไป `.claude/`)
 3. `docs/planning/05-roadmap.md` — milestone, ลำดับ, dependency graph, ความเสี่ยงเรื่องเวลา
 
 ## ก่อนจบ Phase
