@@ -12,17 +12,23 @@
  *
  * ข้อจำกัดที่ต้องรู้: นี่คือ regex กันอุบัติเหตุของ AI เอง เลี่ยงได้ด้วยตัวแปร/subshell
  * มันไม่ใช่ security boundary — ของที่ต้องกันจริงให้ใช้ branch protection บน git host + CI gate
+ * regex ของกฎ git merge เช็คแค่ข้อความคำสั่ง จึงมีโอกาสแมตช์เท็จกับ commit message ที่แค่พูดถึง
+ * คำว่า "git merge" เฉยๆ (ไม่ได้รันคำสั่ง merge จริง) — เป็นข้อจำกัดที่ยอมรับได้ ไม่ใช่บั๊ก
  *
  * exit 2 = บล็อก | exit 0 = ผ่าน
  */
 const { execSync } = require('node:child_process');
 
-const ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
-const MAIN = /\b(main|master)\b/;
+function isMainBranch(branch) {
+  return branch === 'main' || branch === 'master';
+}
 
 function currentBranch() {
   try {
-    return execSync('git rev-parse --abbrev-ref HEAD', { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    // cwd ต้องเป็น process.cwd() ไม่ใช่ CLAUDE_PROJECT_DIR — CLAUDE_PROJECT_DIR ชี้ไปที่
+    // primary checkout เสมอ ต่อให้คำสั่งที่กำลังจะรันจริงอยู่ใน git worktree แยก (เช่น
+    // subagent ที่ spawn ด้วย isolation: "worktree") ก็ตาม ใช้ ROOT ตรงนี้จะเห็น branch ผิด
+    return execSync('git rev-parse --abbrev-ref HEAD', { cwd: process.cwd(), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
   } catch {
     return '';
   }
@@ -31,7 +37,7 @@ function currentBranch() {
 const RULES = [
   {
     // git merge <อะไรก็ตาม> ขณะยืนอยู่บน main = เอางานเข้า main โดยไม่ผ่าน PR
-    match: (cmd) => /\bgit\s+merge\b/.test(cmd) && MAIN.test(currentBranch()),
+    match: (cmd) => /\bgit\s+merge\b/.test(cmd) && isMainBranch(currentBranch()),
     reason: [
       'Blocked: no local merge into main — the AI does not merge its own work (constitution art. 7).',
       'Correct path: push the branch and open a PR (`gh pr create` / `glab mr create`) for a human to merge after the gate passes.',
@@ -43,7 +49,7 @@ const RULES = [
     match: (cmd) =>
       /\bgit\s+push\b/.test(cmd) &&
       !/--force|-f\b/.test(cmd) && // เคส force มีกฎของตัวเองด้านล่าง
-      (/\bgit\s+push\b[^|;&]*(:|\s)(main|master)\b/.test(cmd) || (!/\bgit\s+push\b[^|;&]*\s\S+\s+\S+/.test(cmd) && MAIN.test(currentBranch()))),
+      (/\bgit\s+push\b[^|;&]*(:|\s)(main|master)\b/.test(cmd) || (!/\bgit\s+push\b[^|;&]*\s\S+\s+\S+/.test(cmd) && isMainBranch(currentBranch()))),
     reason: [
       'Blocked: no direct push to main — main only accepts changes through a PR + gate.',
       'Correct path: `git push -u origin <current branch>` then open a PR.',

@@ -60,8 +60,12 @@ function globToRegex(glob) {
 
 function currentBranch() {
   try {
+    // cwd ต้องเป็น process.cwd() ไม่ใช่ ROOT (CLAUDE_PROJECT_DIR) — ROOT ชี้ไปที่ primary
+    // checkout เสมอ ต่อให้คำสั่งที่กำลังจะรันจริงอยู่ใน git worktree แยก (เช่น subagent ที่
+    // spawn ด้วย isolation: "worktree") ก็ตาม ใช้ ROOT ตรงนี้จะเห็น branch ของ checkout หลัก
+    // ผิดที่ (ดู guard-bash.js currentBranch() ซึ่งมีบั๊กเดียวกัน)
     return execSync('git rev-parse --abbrev-ref HEAD', {
-      cwd: ROOT,
+      cwd: process.cwd(),
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
