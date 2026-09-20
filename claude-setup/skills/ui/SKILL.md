@@ -52,10 +52,12 @@ Then:
    - *existing but tweak X* → that is a **token-level change** hitting every page: confirm, edit `docs/design/theme.md` + `globals.css` once, push storybook, **then** open the canvas
    - *redesign* with ≥ 1 built page → not a `/ui` job; it needs an intent + ADR (constitution art. 9). Stop here and say so.
 5. **Read the real theme first** — `docs/design/theme.md`, `globals.css`, `docs/design/components.md`, so the canvas is opened with the actual tokens and component names, not a summary.
-6. **Open the canvas** with the `design` skill, attaching the Design System project from the brief. Artboards: every viewport from the brief × every state the brief asked for. Send the URL to the user (or their UX/UI) to edit on the web and confirm.
-7. **Read the confirmed version back**, save each artboard's HTML to `docs/design/canvas/<screen-name>.dc.html`, commit it as the baseline, record the canvas URL + version in the brief and `_state.md`. → **Build**.
+6. **Open the canvas** with the `design` skill, attaching the Design System project from the brief. Artboards: every viewport from the brief × every state the brief asked for. One canvas session may cover several screens plus theme/global components in the same link — that's normal and expected; multi-screen design is fine here. Send the URL to the user (or their UX/UI) to edit on the web and confirm.
+7. **Read the confirmed version back and split it per screen now, before any Build starts**: save each screen's artboard HTML to its own `docs/design/canvas/<screen-name>.dc.html`, commit each as its baseline, record the canvas URL + version in the brief and `_state.md`. **One combined canvas link is never a build reference by itself** — until each screen has its own `.dc.html`, there is no per-page source of truth to match code against, and asking to "code it to match the design" off the raw link produces exactly the kind of drift this step exists to prevent. → **Build**.
 
 **Canvas is a mockup, not source code** — never copy its markup or styles. It answers "what it looks like"; data, auth and validation come from the spec.
+
+**One screen at a time, always** — even with N confirmed baselines ready, never take an instruction to "code it to match the design" for multiple pages as one batch. Build against one `.dc.html`, run pixel diff on it, close it out, only then move to the next screen's baseline. Tokens are locked and shadcn primitives installed (**Is it in shadcn?**, above) before the first page's Build even starts; "scaffold loosely now, reconcile UI to the design later" is not this loop — the pixel-diff check exists precisely so drift is caught immediately, not accumulated across pages and untangled afterward.
 
 ---
 
