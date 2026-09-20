@@ -53,8 +53,8 @@
 
     subagent ใช้เฉพาะตอนที่ต้อง **แยก context** จริง ๆ — มี 3 ตัวกำหนดไว้แล้วใน `claude-setup/agents/` (ตั้ง `model:` haiku/sonnet ไว้แล้ว)
 
-11. **AI ไม่ merge เข้า main และไม่แก้ `board.md` มือ** — `/done` เปิด PR ให้คนกด (hook บล็อก merge/push เข้า main)
-    board generate จากไฟล์ task ด้วย `node .claude/board.js` (ไฟล์ task คือ source of truth ตัวเดียว)
+11. **AI ไม่ merge เข้า main และไม่แก้ `board.md` มือ** — `/task` เปิด draft PR ทันทีตอน claim งาน, `/done` mark ready ให้คนกด merge (hook บล็อก merge/push เข้า main)
+    board generate จากไฟล์ task ด้วย `node .claude/board.js` แล้วไม่ commit (gitignored — ไม่งั้น conflict ทุกครั้งที่มีหลาย PR พร้อมกัน — ไฟล์ task คือ source of truth ตัวเดียว)
 12. **artifact แต่ละขั้นต้องบีบ ไม่ใช่ส่งต่อ** — `/plan` คัด AC + มาตราธรรมนูญ + กติกา design ลง plan.md
     แล้ว `/task` `/check` อ่าน plan.md ไฟล์เดียว · `verify` พิมพ์สรุปสั้น log เต็มลง `.verify.log` · รายงานเฉพาะข้อที่ไม่ผ่าน
     (รายละเอียดและตารางโมเดลต่อขั้นใน `standards/context-budget.md`)

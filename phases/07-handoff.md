@@ -181,6 +181,7 @@ buaflow/claude-setup/evals/*.md        →  docs/evals/
 | พิมพ์ `/` แล้วเห็น skills ทั้ง 9 ตัว | ⬜ |
 | เปิดไฟล์ใน `components/` แล้ว rule `frontend-ui` โหลดเข้ามาจริง | ⬜ |
 | เปิด session ใหม่แล้วเห็นสถานะ board ถูกฉีดเข้ามาอัตโนมัติ | ⬜ |
+| `git pull`/`git switch` แล้ว `docs/backlog/board.md` regenerate เองโดยไม่ต้องเปิด Claude Code (`.husky/post-merge`, `post-checkout` ติดตั้งแล้ว) | ⬜ |
 | แตก branch `fix/...` แล้วลองให้ Claude แก้ไฟล์เทส → ต้องถูกบล็อก | ⬜ |
 | ยืนบน main แล้วสั่ง `git merge <branch>` → ต้องถูกบล็อก (hook) | ⬜ |
 | แก้ไฟล์ให้ lint พังแล้ว `git push` → pre-push ปฏิเสธ | ⬜ |

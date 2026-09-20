@@ -12,7 +12,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execSync } = require('node:child_process');
 
-const ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+// cwd ต้องเป็น process.cwd() ไม่ใช่ CLAUDE_PROJECT_DIR — CLAUDE_PROJECT_DIR ชี้ไปที่ primary
+// checkout เสมอ ต่อให้ session นี้กำลังรันจริงอยู่ใน git worktree แยก (เช่น subagent ที่ spawn
+// ด้วย isolation: "worktree") ก็ตาม ใช้ CLAUDE_PROJECT_DIR ตรงนี้จะฉีด branch/board/task ของ
+// checkout ผิดตัวเข้า context (เหมือนบั๊กเดิมที่แก้แล้วใน guard-edit.js / guard-bash.js)
+const ROOT = process.cwd();
 const MAX_SECTION_LINES = 40;
 
 function read(rel) {
@@ -66,6 +70,27 @@ if (branch) {
   }
   parts.push(`## Git\nbranch: \`${branch}\`${dirtyBlock}`);
 }
+
+/**
+ * board.md ตั้งแต่ v2.3.3 อยู่ใน .gitignore (generate จาก tasks/*.md — commit แล้ว conflict
+ * ทุกครั้งที่มีหลาย PR พร้อมกัน) เลยอาจไม่มีไฟล์ตอน clone ใหม่ หรือมีแต่เก่ากว่า task ล่าสุด
+ * (คนอื่น merge task ใหม่เข้า main แล้วเราเพิ่ง pull) — regenerate ให้สดก่อนอ่านเสมอ
+ */
+function ensureFreshBoard() {
+  try {
+    const boardPath = path.join(ROOT, 'docs/backlog/board.md');
+    const tasksDir = path.join(ROOT, 'docs/backlog/tasks');
+    if (!fs.existsSync(tasksDir)) return;
+    if (!fs.existsSync(path.join(ROOT, '.claude/board.js'))) return;
+    const boardMtime = fs.existsSync(boardPath) ? fs.statSync(boardPath).mtimeMs : 0;
+    const newestTask = fs.readdirSync(tasksDir)
+      .filter((f) => f.endsWith('.md'))
+      .reduce((max, f) => Math.max(max, fs.statSync(path.join(tasksDir, f)).mtimeMs), 0);
+    if (boardMtime && boardMtime >= newestTask) return; // สดอยู่แล้ว
+    execSync('node .claude/board.js', { cwd: ROOT, stdio: 'ignore' });
+  } catch { /* ห้ามพัง session start เพราะ regenerate ไม่ได้ — อ่านของเก่า/ไม่มีไปก่อน */ }
+}
+ensureFreshBoard();
 
 const board = read('docs/backlog/board.md');
 if (board) {

@@ -2,7 +2,7 @@
 /**
  * gate.js — ประตูเดียวที่ทุกอย่างต้องผ่านก่อนเข้า main
  *
- *   node .claude/gate.js               รันครบ: verify → check-config → docs-lint → board --check
+ *   node .claude/gate.js               รันครบ: verify → check-config → docs-lint
  *   node .claude/gate.js --docs-only   ข้าม verify (ใช้กับ commit ที่แตะแต่ docs/)
  *   node .claude/gate.js --release M1  เพิ่มเงื่อนไข release ของ milestone
  *
@@ -71,7 +71,6 @@ if (SECRETS.cmd && SECRETS.mode !== 'off') {
 }
 add('check-config', process.execPath, [path.join(CLAUDE, 'check-config.js')]);
 add('docs-lint', process.execPath, [path.join(CLAUDE, 'docs-lint.js'), ...(RELEASE ? ['--release', RELEASE] : [])]);
-add('board --check', process.execPath, [path.join(CLAUDE, 'board.js'), '--check'], { optional: true });
 
 const results = [];
 for (const s of steps) {

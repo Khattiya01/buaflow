@@ -4,11 +4,74 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
-| **v2.3.1** | [v2.3.1 → v2.3.2](#v231--v232-copy-ไฟล์เดียว) ข้างล่างนี้ | ~1 นาที |
+| **v2.3.3** | [v2.3.3 → v2.3.4](#v233--v234-copy-ไฟล์เดียว) ข้างล่างนี้ | ~1 นาที |
+| **v2.3.2** | [v2.3.2 → v2.3.3](#v232--v233-copy-ไฟล์--1-คำสั่ง) แล้วต่อด้วย v2.3.4 | ~3 นาที |
+| **v2.3.1** | [v2.3.1 → v2.3.2](#v231--v232-copy-ไฟล์เดียว) แล้วต่อด้วย v2.3.3, v2.3.4 | ~4 นาที |
 | **v2.3** | [v2.3 → v2.3.1](#v23--v231-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.2 | ~5 นาที |
 | **v2.2** | [v2.2 → v2.3](#v22--v23-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.1 | ~15 นาที |
 | **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) แล้วต่อด้วย v2.3 | ~15 นาที |
 | **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2, v2.3 | ~1 session |
+
+---
+
+## v2.3.2 → v2.3.3 (copy ไฟล์ + 1 คำสั่ง)
+
+แก้ conflict ที่ `docs/backlog/board.md` ตลอดเวลาที่มีหลาย PR พร้อมกัน — board.md เป็น derived view จาก
+`docs/backlog/tasks/*.md` ทั้งไฟล์ ไม่ควร track ใน git ต่อไปแล้ว **แต่ก็เลยต้องมีวิธี regenerate ให้เอง
+โดยไม่ต้องพึ่งเปิด Claude Code ก่อน** — เพิ่ม git hook `post-merge`/`post-checkout` ให้ทำแทน
+
+```bash
+cp -r buaflow/claude-setup/hooks .claude/
+cp -r buaflow/claude-setup/skills/done .claude/skills/
+cp buaflow/claude-setup/gate.js .claude/gate.js
+cp buaflow/claude-setup/ci/post-merge.tpl .husky/post-merge
+cp buaflow/claude-setup/ci/post-checkout.tpl .husky/post-checkout
+chmod +x .husky/post-merge .husky/post-checkout   # Windows git จัดการเอง ข้ามได้
+```
+
+`gate.js` ตัดด่าน `board --check` ออกด้วย — ด่านเดิมเช็คว่า board.md ที่ commit มาตรงกับที่ควร generate ไหม
+ไม่ใช่ `warnOnly` เลย**บล็อก push จริง** พอ board.md ไม่ถูก commit อีกต่อไป เครื่องที่ยังไม่เคยรัน hook (เช่น
+clone ใหม่) จะโดนบล็อกทุก push โดยไม่เกี่ยวกับคุณภาพโค้ดเลยถ้าไม่ตัดด่านนี้ออก
+
+1. เติมบรรทัดนี้ใน `.gitignore` ของโปรเจกต์ (ดู `buaflow/templates/gitignore.tpl` เป็นตัวอย่าง):
+   ```
+   docs/backlog/board.md
+   ```
+2. เอาไฟล์ที่เคย track ออกจาก git แต่เก็บของในเครื่องไว้:
+   ```bash
+   git rm --cached docs/backlog/board.md
+   git add .gitignore .claude/hooks .claude/skills/done .husky/post-merge .husky/post-checkout
+   git commit -m "chore: stop tracking generated board.md, regenerate via post-merge/post-checkout hook"
+   ```
+3. บอกทุกคนในทีมให้ `git pull` แล้ว **รันคำสั่งข้อ 2 ในข้อ setup ใหม่ (copy hook) ที่เครื่องตัวเองด้วย** —
+   git hook ไม่ sync ผ่าน pull อัตโนมัติ ทุกคนต้องติดตั้งเองครั้งเดียว ไม่งั้น pull แล้วจะไม่มี board.md ให้ดูจนกว่าจะเปิด Claude Code
+4. เริ่ม branch ใหม่หลังจากนี้เท่านั้น — branch เก่าที่แตกก่อนอัปเกรดยังมี board.md ค้างอยู่ใน diff ของตัวเอง
+
+ตรวจว่าใช้ได้: `git pull` (หรือสลับ branch) แล้วดู `docs/backlog/board.md` ในเครื่อง — ควรถูก regenerate
+ให้ทันทีโดยไม่ต้องเปิด Claude Code ก่อน (ถ้ายังไม่ติดตั้ง hook สำเร็จ, session-context.js ก็ยัง regenerate
+ให้ตอนเปิด session อยู่ดี เป็น fallback อีกชั้น)
+
+---
+
+## v2.3.3 → v2.3.4 (copy ไฟล์เดียว)
+
+board.md ไม่ conflict แล้ว แต่ยังมีช่องว่าง: task file เปลี่ยนเป็น `in-progress` แค่บน branch ของคนทำ ไม่ถึง
+`main` จนกว่า PR จะ merge (ปกติคือตอนจบงาน) — ระหว่างนั้นคนอื่นเห็น task นั้นเป็น `todo` อยู่ อาจหยิบไปทำซ้ำ
+
+```bash
+cp -r buaflow/claude-setup/skills/task buaflow/claude-setup/skills/done .claude/skills/
+```
+
+ไม่มีอะไรต้องตั้งค่าเพิ่ม — `/task` จะ push branch + เปิด draft PR ทันทีตอน claim งาน (ต้องมี `gh`/`glab` CLI
+login ไว้แล้ว) แทนที่จะรอเปิดตอน `/done` เหมือนเดิม `/done` เปลี่ยนไปแค่ `gh pr ready` แทนการเปิด PR ใหม่
+(ยัง fallback เปิด PR ให้ถ้าไม่มีอยู่ก่อน เช่น task เก่าก่อนอัปเกรดนี้)
+
+พ่วงบั๊กที่เจอระหว่างทาง: `/task` ไม่เคยตั้ง `assignee:` ในไฟล์ task มาก่อน (แก้ในไฟล์เดียวกันนี้แล้ว) —
+ทำให้คอลัมน์ "ใครทำ" ใน board.md ว่างมาตลอด และ AI ไม่มีทางแยกว่า task ที่เห็น `in-progress` เป็นของเรา
+หรือของเพื่อนร่วมทีม ไม่ต้องทำอะไรเพิ่ม แค่ copy ไฟล์ข้างบนก็ได้ของใหม่ไปด้วย
+
+ตรวจว่าใช้ได้: `/task T-xxx` แล้วเช็คว่ามี draft PR เปิดขึ้นจริงหลัง commit แรกที่ claim งาน (ก่อนเริ่มเขียนโค้ดจริงด้วยซ้ำ)
+และไฟล์ task มี `assignee:` เป็นชื่อ/อีเมลจริง ไม่ใช่ placeholder
 
 ---
 

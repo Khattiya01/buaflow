@@ -3,6 +3,59 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v2.3.4 — 2026-09-21
+
+> โปรเจกต์ที่ใช้ v2.3.3 → **[UPGRADE.md](UPGRADE.md)** หัวข้อ v2.3.3 → v2.3.4 (copy ไฟล์เดียว)
+
+บทเรียนจากโปรเจกต์จริง (ต่อจาก v2.3.3): board.md ไม่ conflict แล้วก็จริง แต่ยังมีช่องว่างอีกจุด — task file
+เปลี่ยนเป็น `status: in-progress` ตอน `/task` ก็จริง แต่การแก้นั้นอยู่แค่บน branch ของคนที่ทำ ไม่ถึง `main`
+จนกว่า PR จะ merge (ปกติคือตอนจบงานทั้งหมด) ระหว่างนั้นคนอื่น `git pull main` แล้ว generate board จะยังเห็นว่า
+task นั้น `todo` อยู่ — จับจองไม่ทัน อาจมีคนหยิบไปทำซ้ำโดยไม่รู้ตัว
+
+- **`/task` step 5 เปิด draft PR ทันทีตอน claim งาน** (`claude-setup/skills/task/SKILL.md`) — แทนที่จะรอ
+  จนจบงานค่อยเปิด PR (แบบเดิม) ตอนนี้พอ set `status: in-progress` เสร็จ จะ commit เฉพาะการแก้ task file,
+  push branch, แล้ว `gh pr create --draft` ทันที ทำให้คนอื่นเห็นว่า task นี้ถูกจับจองแล้วผ่าน PR list ของ
+  git host โดยไม่ต้องรอ merge หรือพึ่ง board.md บน main เลย
+- **`/done` เปลี่ยนจาก "เปิด PR" เป็น "push + `gh pr ready`"** (`claude-setup/skills/done/SKILL.md` ข้อ 2)
+  เพราะ PR เปิดไว้แล้วตั้งแต่ `/task` — ยังมี fallback เปิด PR ใหม่ให้กรณี task เก่าก่อนอัปเดตนี้ หรือตอน claim
+  ไม่มี `gh`/`glab`
+- คนที่อยากทำต่อจาก task ที่คนอื่นเริ่มค้างไว้: ดู `branch:` ในไฟล์ task (หรือดู draft PR) แล้ว
+  `git fetch origin <branch> && git checkout <branch>` ทำต่อได้เลย — ไม่เกี่ยวกับ board.md
+- **เจอบั๊กระหว่างทาง: ไม่มี skill ไหนเคยตั้ง `assignee:` ในไฟล์ task เลย** ทั้งที่ template มี field นี้อยู่แล้ว
+  ผลคือคอลัมน์ "ใครทำ" ใน board.md ว่างเปล่าเสมอ และ `docs-lint.js` (เช็ค WIP เกิน 1 ต่อคน) เก็บทุกคนไว้
+  bucket เดียวกัน (`(ไม่ระบุ)`) — แก้โดยให้ `/task` step 5 ตั้ง `assignee:` จาก `git config user.name`
+  (fallback `user.email`) เป็นแค่ label ไว้บอกว่างานนี้ใครถือ ไม่ได้ให้ AI เอาไปตัดสินใจอะไร
+- **step 1 เปลี่ยนจาก "สแกน board หาว่ามี WIP ของใครค้างอยู่" เหลือแค่ "เช็ค task ที่ขอทำตัวเดียว"**
+  (`claude-setup/skills/task/SKILL.md`) — ตัดสินตอนแรกคือให้ AI เทียบ `assignee:` กับ git identity
+  เพื่อแยกว่า WIP อื่นที่เห็นในบอร์ดเป็นของเราเองหรือของเพื่อนร่วมทีม แต่พิจารณาใหม่แล้วไม่จำเป็น: ผู้ใช้สั่ง
+  `/task <ID>` มาตรงๆ อยู่แล้ว รู้ดีอยู่แล้วว่าจะทำอะไร ไม่ต้องให้ AI เดาจากบอร์ดว่า "นี่ใช่งานที่ user ค้างไว้ไหม"
+  เลย — ยิ่งเดายิ่งเสี่ยงเข้าใจผิด ตอนนี้เช็คแค่ว่า **task ที่ขอทำตัวเดียวกัน** ถูกจับจองไปแล้วหรือยัง (ข้อเท็จจริง
+  ล้วนๆ ไม่ต้องตีความ) ถ้าใช่ → บอกว่าใครถือแล้วหยุด ถ้าไม่ใช่ → ทำต่อได้เลย ไม่สนใจ WIP อื่นในบอร์ดทั้งหมด
+
+## v2.3.3 — 2026-09-21
+
+> โปรเจกต์ที่ใช้ v2.3.2 → **[UPGRADE.md](UPGRADE.md)** หัวข้อ v2.3.2 → v2.3.3 (copy ไฟล์ + 1 คำสั่ง)
+
+บทเรียนจากโปรเจกต์จริง: ทำงานหลาย task พร้อมกันคนละ branch แล้วเปิดหลาย PR — ทุกครั้งที่ PR แรก merge
+เข้า main, PR ที่เหลือ conflict ที่ `docs/backlog/board.md` ตลอด เพราะ `/done` สั่งให้ regenerate ทั้งไฟล์
+แล้ว commit คู่กับ task file — ไฟล์นี้เป็น derived view ล้วน ๆ (generate จาก `docs/backlog/tasks/*.md`)
+พอหลาย branch generate คนละเวอร์ชันแล้วมา merge กัน จึงชนกันทุกรอบไม่ว่าจะ rebase บ่อยแค่ไหน
+
+- **`docs/backlog/board.md` เข้า `.gitignore`** (`templates/gitignore.tpl`) — ไม่ track ในgitอีกต่อไป ไม่มีทาง conflict เพราะไม่เคยอยู่ใน diff
+- **`/done` ไม่สั่ง commit board.md แล้ว** (`claude-setup/skills/done/SKILL.md` ข้อ 4) — ยัง `node .claude/board.js` เหมือนเดิม แค่ไม่เอาเข้า git
+- **`.husky/post-merge` + `.husky/post-checkout` ใหม่** (`claude-setup/ci/{post-merge,post-checkout}.tpl`) — เพราะพอ board.md ไม่ commit
+  แล้ว ถ้าไม่มีอะไร regenerate ให้ พอ `git pull` เอา task ที่คนอื่นปิดจบเข้ามา จะไม่เห็นสถานะจนกว่าจะเปิด Claude Code ก่อน
+  สอง hook นี้รัน `node .claude/board.js` อัตโนมัติทันทีหลัง pull/merge/switch branch (scaffold ใหม่ติดตั้งให้เลย, โปรเจกต์เก่าดู UPGRADE.md)
+- **`session-context.js` regenerate board.md ให้อัตโนมัติตอนเปิด session** ถ้าไฟล์ยังไม่มีหรือเก่ากว่า task ล่าสุด — แก้ปัญหาที่ไฟล์ไม่มีให้อ่านตอน clone ใหม่ หรือค้างจาก branch อื่น
+- **`session-context.js` แก้บั๊ก worktree เดียวกับที่เคยแก้ใน `guard-edit.js`/`guard-bash.js`** — เดิมใช้ `CLAUDE_PROJECT_DIR`
+  (ชี้ primary checkout เสมอ) แทน `process.cwd()` ทำให้ subagent ที่รันใน git worktree แยก (`isolation: "worktree"`)
+  เห็น branch/board/task ของ checkout หลักผิดตัวตอนเปิด session ตอนนี้ทั้ง 3 hook สอดคล้องกัน
+- `docs-sync.md` อัปเดตข้อความให้ตรง (never commit ไม่ใช่แค่ never hand-edit)
+- **เอา step `board --check` ออกจาก `gate.js`** — เดิมเช็คว่า board.md ที่ commit มาตรงกับที่ควร generate ไหม (v2.1)
+  ไม่ใช่ `warnOnly` แปลว่าถ้า fail คือ**บล็อก push จริง** พอ board.md ไม่ถูก commit อีกต่อไป ไฟล์นี้จะไม่มีในเครื่องที่ยังไม่เคยรัน
+  hook สักครั้ง (เช่น fresh clone ก่อน pre-push แรก) → เช็คจะ fail แล้วบล็อกทุกคนโดยไม่เกี่ยวกับคุณภาพโค้ดเลย ตัดทิ้งไปเลย
+  (`node .claude/board.js --check` ยังใช้ตรวจมือได้อยู่ แค่ไม่ผูกกับ gate อัตโนมัติแล้ว)
+
 ## v2.3.2 — 2026-09-20
 
 > โปรเจกต์ที่ใช้ v2.3.1 → **[UPGRADE.md](UPGRADE.md)** หัวข้อ v2.3.1 → v2.3.2 (copy ไฟล์เดียว)

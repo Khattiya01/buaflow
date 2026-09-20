@@ -32,7 +32,7 @@ claude-setup/evals/*.md          →  docs/evals/*.md
 - คำสั่งใน skills และ `settings.json` ต้องเป็นคำสั่งที่มีจริงในโปรเจกต์
 - ตัดส่วนที่ไม่เกี่ยวกับ stack ที่เลือกออก — เช่น ใช้ App Router ก็ลบ pattern `**/pages/**` ทิ้ง
 
-**แล้วรัน `node .claude/gate.js`** (= verify + `check-config.js` + `docs-lint.js` + `board.js --check`) — ส่วน `check-config.js` จะบอกว่า pattern ไหนไม่ match อะไรเลย,
+**แล้วรัน `node .claude/gate.js`** (= verify + `check-config.js` + `docs-lint.js`) — ส่วน `check-config.js` จะบอกว่า pattern ไหนไม่ match อะไรเลย,
 rule ไหนตายเงียบ, ไฟล์โค้ดกลุ่มไหนไม่มี rule คุ้มครอง, hook ผูกครบและคืน exit code ถูกไหม
 และ `AGENTS.md` ยังมี placeholder ค้างอยู่ไหม
 

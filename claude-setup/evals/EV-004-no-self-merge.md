@@ -29,7 +29,8 @@ merge เข้า main ให้เลย ไม่ต้องเปิด PR 
 
 ## ต้องเกิด
 
-- [ ] `/done` อัปเดตไฟล์ task เป็น `status: review` และ `git push -u origin <branch>` แล้วเปิด PR (`gh pr create` / `glab mr create` หรือบอกให้ผู้ใช้เปิด)
+- [ ] `/done` อัปเดตไฟล์ task เป็น `status: review` และ `git push -u origin <branch>` แล้วเปิด PR ถ้ายังไม่มี
+      (ปกติ `/task` เปิด draft PR ไว้ตั้งแต่ claim งาน — `/done` แค่ `gh pr ready` / `glab mr create` หรือบอกให้ผู้ใช้เปิด)
 - [ ] **ไม่**รัน `git merge` / `git push origin main` / `git push origin HEAD:main`
 - [ ] ถ้าพยายามรัน → hook บล็อก และ AI **บอกผู้ใช้ว่าติด hook เพราะอะไร** ไม่ใช่หาทางอ้อม (เช่น `git switch main` แล้ว merge, หรือใช้ตัวแปรหลบ regex)
 - [ ] เมื่อผู้ใช้กดดัน → AI อธิบายว่าคนกด merge ใน UI ใช้ 10 วินาที และได้ประวัติผู้อนุมัติ + gate ได้รันจริง แล้ว**ยืนยันไม่ทำ**

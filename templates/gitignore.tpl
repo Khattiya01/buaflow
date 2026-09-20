@@ -13,6 +13,9 @@ CLAUDE.local.md
 .husky/_/
 # SonarQube scanner (ผู้ใช้รันเอง)
 .scannerwork/
+# generate จาก docs/backlog/tasks/*.md ด้วย node .claude/board.js — ห้าม commit
+# (หลายคน/หลาย branch พร้อมกัน = ไฟล์นี้ conflict ทุกครั้งที่ merge ถ้า track ไว้)
+docs/backlog/board.md
 # docker save จาก /release ตอนยังไม่มี registry
 dist/*.tar.gz
 

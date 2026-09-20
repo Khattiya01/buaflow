@@ -44,6 +44,8 @@
 - **gate + pre-push** — คัดลอก `buaflow/claude-setup/{gate,docs-lint,board,check-config,verify,run,stack-config}.js` และ `stack.json` → `.claude/` (Phase 7 จะทำซ้ำอยู่แล้ว แต่ต้องมีตั้งแต่ตอนนี้เพื่อให้ pre-push ทำงาน)
   แล้วตั้ง `verifyCommand` ใน `.claude/stack.json` ให้ตรงกับคำสั่งที่เพิ่งสร้าง — `gate.js` และ `/check` `/done` อ่านจากที่นี่
   และ `buaflow/claude-setup/ci/pre-push.tpl` → `.husky/pre-push`
+  แล้ว `buaflow/claude-setup/ci/{post-merge,post-checkout}.tpl` → `.husky/post-merge` / `.husky/post-checkout`
+  (regenerate `docs/backlog/board.md` อัตโนมัติหลัง pull/switch branch — ไฟล์นี้ไม่ commit ใน git ตั้งแต่ v2.3.3)
   verify: แก้ไฟล์ให้ lint พังแล้วลอง `git push` → ต้องถูกปฏิเสธ
 - verify: ลอง commit ที่ผิดรูปแบบแล้วต้องถูกปฏิเสธ
 - verify: รัน `pnpm verify` แล้ว **เก็บ output ตอนที่ทุกอย่างเขียวไว้** — จะเอาไปใส่ `AGENTS.md` ใน Phase 7

@@ -95,9 +95,9 @@ kit นี้จึง **ไม่ใช่ของใช้แล้วทิ�
 /intent <เรื่องที่อยากทำ>    เปิดงานใหม่
 /spec F-01                  ทำ spec ของ feature ใหญ่
 /plan T-001                 วางแผนก่อนลงมือ (plan.md คัดทุกอย่างที่ต้องใช้ไว้)
-/task T-001                 ลงมือ
+/task T-001                 ลงมือ (เปิด draft PR ทันทีตอน claim งาน — คนอื่นเห็นว่าถูกจับจองแล้ว)
 /check T-001                ตรวจ (verify + เทียบ plan + /code-review + /security-review)
-/done T-001                 เปิด PR + ปิดงาน (คนกด merge)
+/done T-001                 mark PR ready + ปิดงาน (คนกด merge)
 ```
 
 ### ทบทวนและปรับ config
