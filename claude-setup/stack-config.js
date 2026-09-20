@@ -27,9 +27,22 @@ const DEFAULTS = {
   // ตั้งเป็น null = โปรเจกต์นี้ไม่มีคำสั่งนั้น แล้ว run.js จะบอกตรง ๆ แทนที่จะรันอะไรมั่ว
   commands: {
     coverage: 'pnpm test:cov',
-    audit: 'pnpm audit',
+    audit: 'pnpm audit --audit-level=high',
     apiTest: 'pnpm test:api',
+    // สแกน 50 commit ล่าสุดหา key/password ที่เผลอ commit — ไม่มีช่องว่างในค่า --log-opts เพราะ gate.js แยกคำสั่งด้วยช่องว่าง
+    secrets: 'gitleaks git --no-banner --redact --log-opts=-50',
   },
+
+  // gate.js เรียก commands.secrets (gitleaks) — ถ้าเครื่องไม่มี gitleaks จะ skip พร้อมบอกวิธีติดตั้ง ไม่ fail
+  //   required  เจอ secret = บล็อก (ค่าเริ่มต้น — โปรเจกต์เก่าแทบไม่มี secret ค้างใน 50 commit ล่าสุด)
+  //   warn      รายงานอย่างเดียว | off ไม่รัน
+  secretsMode: 'required',
+
+  // gate.js เรียก commands.audit ด้วยระดับนี้
+  //   warn      รายงานผล แต่ไม่บล็อก push (ค่าเริ่มต้น — โปรเจกต์เก่ามีหนี้ช่องโหว่สะสม ไม่ควรถูกขวางตั้งแต่วันแรก)
+  //   required  บล็อกเหมือนด่านอื่น — สลับเมื่อเคลียร์ช่องโหว่ high/critical เดิมหมดแล้ว
+  //   off       ไม่รัน
+  auditMode: 'warn',
 
   // ไฟล์ที่นับว่าเป็น "โค้ด" ตอนตรวจว่า rule คุ้มครองครบไหม (check-config ข้อ 4)
   codeFilePattern: '\\.(ts|tsx|js|jsx|prisma|sql)$',

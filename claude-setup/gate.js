@@ -34,12 +34,40 @@ const VERIFY = (() => {
   }
 })();
 
+const AUDIT = (() => {
+  try {
+    const sc = require(path.join(CLAUDE, 'stack-config.js'));
+    const cfg = sc.load(ROOT);
+    return { cmd: sc.resolveCommand(ROOT, 'audit', cfg), mode: cfg.auditMode || 'warn' };
+  } catch {
+    return { cmd: null, mode: 'off' };
+  }
+})();
+
+const SECRETS = (() => {
+  try {
+    const sc = require(path.join(CLAUDE, 'stack-config.js'));
+    const cfg = sc.load(ROOT);
+    return { cmd: sc.resolveCommand(ROOT, 'secrets', cfg), mode: cfg.secretsMode || 'required' };
+  } catch {
+    return { cmd: null, mode: 'off' };
+  }
+})();
+
 const steps = [];
 const add = (name, cmd, cmdArgs, opts = {}) => steps.push({ name, cmd, cmdArgs, ...opts });
 
 if (!DOCS_ONLY) {
   if (VERIFY) add('verify', VERIFY.split(' ')[0], VERIFY.split(' ').slice(1), { shell: true });
   else add('verify', null, null, { skip: 'ยังไม่ได้ตั้งคำสั่ง verify — ใส่ "verifyCommand" ใน .claude/stack.json หรือ env VERIFY_COMMAND (Phase 2 รอบ B2)' });
+}
+if (!DOCS_ONLY && AUDIT.cmd && AUDIT.mode !== 'off')
+  add('audit', AUDIT.cmd.split(' ')[0], AUDIT.cmd.split(' ').slice(1), { shell: true, warnOnly: AUDIT.mode !== 'required' });
+if (SECRETS.cmd && SECRETS.mode !== 'off') {
+  const bin = SECRETS.cmd.split(' ')[0];
+  const has = spawnSync(bin, ['version'], { stdio: 'ignore', shell: true }).status === 0;
+  if (has) add('secrets', bin, SECRETS.cmd.split(' ').slice(1), { shell: true, warnOnly: SECRETS.mode === 'warn' });
+  else add('secrets', null, null, { skip: `ไม่พบ ${bin} ในเครื่อง — ติดตั้งจาก https://github.com/gitleaks/gitleaks (เช่น brew install gitleaks / scoop install gitleaks) หรือตั้ง "secretsMode": "off" ใน .claude/stack.json` });
 }
 add('check-config', process.execPath, [path.join(CLAUDE, 'check-config.js')]);
 add('docs-lint', process.execPath, [path.join(CLAUDE, 'docs-lint.js'), ...(RELEASE ? ['--release', RELEASE] : [])]);
@@ -57,7 +85,8 @@ for (const s of steps) {
   const r = spawnSync(s.cmd, s.cmdArgs, { cwd: ROOT, stdio: 'inherit', shell: !!s.shell });
   const sec = ((Date.now() - t0) / 1000).toFixed(1);
   const pass = r.status === 0;
-  results.push([s.name, pass ? 'pass' : 'fail', sec]);
+  results.push([s.name, pass ? 'pass' : s.warnOnly ? 'warn' : 'fail', sec]);
+  if (!pass && s.warnOnly) console.log(`  warn: ${s.name} พบปัญหา แต่ตั้งเป็นรายงานอย่างเดียว (${s.name}Mode: warn ใน .claude/stack.json) — ไม่บล็อก`);
   if (!pass && s.name === 'verify') {
     // verify พัง = ไม่ต้องเสียเวลาด่านอื่น
     console.log('\nverify ไม่ผ่าน — หยุดตรงนี้ แก้ก่อนแล้วรันใหม่');

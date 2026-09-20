@@ -23,6 +23,7 @@
       "Bash(node .claude/docs-lint.js*)",
       "Bash(node .claude/board.js*)",
       "Bash(node .claude/prototype.js*)",
+      "Bash(node .claude/pixel.js*)",
       "Bash(node .claude/gate.js*)",
       "Bash(gh pr *)",
       "Bash(glab mr *)",

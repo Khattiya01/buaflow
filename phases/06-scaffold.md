@@ -62,11 +62,12 @@
   claude.ai/design ครั้งแรก (สร้าง project ใหม่ถ้ายังไม่มี) — นี่คือจุดตั้งต้นของ storybook ที่จะใช้เทียบ
   ความสอดคล้องใน Phase 8 ต่อไป บันทึก `projectId` ไว้ใน `_state.md` และ `design_system_project` +
   `last_storybook_sync` (commit ปัจจุบัน) ใน `docs/design/brief.md` — `/ui` ใช้สองค่านี้แนบ DS project และเช็ค stale ก่อนเปิด canvas
-- **ถ้า Phase 3 ใช้เส้นทาง D**: ติดตั้ง Playwright เป็น dev dependency
-  (`pnpm add -D @playwright/test && pnpm exec playwright install chromium --with-deps`)
-  ไว้สำหรับ render + screenshot ตอนเทียบ canvas กับหน้า local ใน Phase 8.8 — แค่ใช้ render ภาพเทียบ
+- **ถ้า Phase 3 ใช้เส้นทาง D**: ติดตั้ง Playwright + pixelmatch + pngjs เป็น dev dependency
+  (`pnpm add -D @playwright/test pixelmatch pngjs && pnpm exec playwright install chromium --with-deps`)
+  ไว้ให้ `.claude/pixel.js` เทียบ canvas กับหน้า local (ตอน `/ui` และ Phase 8.8) — แค่ใช้ render ภาพเทียบ
   ไม่ต้องตั้ง test suite เต็มรูปแบบ ไม่ต้องเขียนไฟล์ `.spec.ts` ตอนนี้
-  verify: `pnpm exec playwright --version` รันได้
+  แล้วสร้าง `docs/design/pixel.json` จาก `docs/templates/pixel.tpl.json`
+  verify: `pnpm exec playwright --version` รันได้ และ `node .claude/pixel.js --check` ได้ `เครื่องมือครบ`
 
 ### ขั้น 5 — i18n
 - ติดตั้ง next-intl (หรือตามที่เลือก) + routing `/th` `/en`

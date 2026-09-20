@@ -167,7 +167,8 @@ buaflow/
     ├── docs-lint.js                 ⭐ ตรวจว่า artifact chain ยังตรงกัน (spec โกหก / task ลอย / WIP / หนี้เทส)
     ├── board.js                     generate board.md จากไฟล์ task
     ├── prototype.js                 click-through prototype จาก canvas baseline — copy artboard ทั้งก้อน ฉีด overlay ไม่วาดใหม่ (ตรง design 100% โดยโครงสร้าง)
-    ├── gate.js                      ⭐ ด่านเดียว: verify + check-config + docs-lint — pre-push และ CI รันตัวเดียวกัน
+    ├── pixel.js                     เทียบหน้าจริงกับ canvas baseline แบบเดียวกันทุกรอบ คืน % + พิกัดที่ต่าง (ใช้ pixelmatch/Playwright ของโปรเจกต์ ไม่เขียน diff เอง)
+    ├── gate.js                      ⭐ ด่านเดียว: verify + audit + secrets + check-config + docs-lint — pre-push และ CI รันตัวเดียวกัน
     ├── verify.js                    ทางเข้าเดียวของคำสั่งตรวจ — skill เรียกตัวนี้ ไม่ผูกกับ pnpm
     ├── run.js                       คำสั่งรองตามชื่อ (coverage / audit / apiTest) อ่านจาก stack.json
     ├── stack-config.js              ⭐ ตัวอ่าน stack.json ที่สคริปต์อื่นใช้ร่วมกัน

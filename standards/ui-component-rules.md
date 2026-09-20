@@ -163,10 +163,13 @@ components/
 | ออกแบบใหม่ทั้งหมด | มีหน้าที่ build แล้ว ≥ 1 → ไม่ใช่งาน `/ui` ต้องเป็น intent + ADR (ธรรมนูญมาตรา 9) เพราะทุกหน้าต้องตามไป · ยังไม่มีหน้าไหน → ทำ brief ส่วนที่ 1 ใหม่ |
 
 ### 8.3 หลังเขียนโค้ด — พิสูจน์ด้วย pixel diff ไม่ใช่ "ดูแล้วเหมือน"
-1. screenshot หน้า local (Playwright) **ที่ viewport เดียวกับ artboard** ทุก viewport + light/dark ตาม brief
-   render baseline `.dc.html` เป็น PNG แบบเดียวกัน — เก็บใน scratchpad **ห้าม commit รูป**
-2. pixel diff (`pixelmatch` / `odiff`) → รายงาน % ที่ต่าง + ภาพ diff + **ไล่รายการความต่างทีละจุด** (ระยะ, ขนาด, น้ำหนัก, สี, state ที่หาย)
-3. แก้แล้ววนซ้ำ **จน diff ที่เหลือเป็นเฉพาะรายการที่ deviation policy อนุญาต** — diff ที่อธิบายไม่ได้คือบั๊กของโค้ด ไม่ใช่ของ canvas
+1. ลงทะเบียนหน้าใน `docs/design/pixel.json` (route → artboard ทุก viewport + `:dark` ตาม brief) แล้วรัน `node .claude/pixel.js`
+   สคริปต์ screenshot หน้า local (Playwright) และ baseline `.dc.html` **แบบเดียวกันทุกครั้ง ที่ viewport เดียวกับ artboard** — ห้าม AI เขียนโค้ด screenshot/diff เอง ผลจะไม่คงที่
+   ภาพเก็บนอก repo **ห้าม commit รูป**
+2. รายงานเป็น % ที่ต่าง + ขนาดไม่เท่ากัน + **พิกัด y/x ของบริเวณที่ต่าง** (pixelmatch ข้างใน) — แก้จากตัวเลข เปิดภาพ diff เฉพาะตอนพิกัดไม่พอจะอธิบาย
+   แล้วไล่อธิบายความต่างทีละจุด (ระยะ, ขนาด, น้ำหนัก, สี, state ที่หาย)
+3. แก้แล้ววนซ้ำ **จนผ่านเกณฑ์** — diff ที่อธิบายไม่ได้คือบั๊กของโค้ด ไม่ใช่ของ canvas · ห้ามขยาย `maxDiffPercent` เพื่อให้ผ่าน:
+   ความต่างที่ผู้ใช้ตกลงคือ deviation (8.4) ไม่ใช่การผ่อนเกณฑ์กลาง
 4. สีใน canvas ที่ไม่มี token → **หยุดถาม**: เพิ่ม token (theme-level กระทบทั้งระบบ) หรือแก้ canvas — ห้ามใส่ hex ดิบเพื่อให้ตรง
 
 ### 8.4 Deviation — ปรับได้ แต่ต้องเป็นลายลักษณ์อักษร และ canvas ต้องตามโค้ด

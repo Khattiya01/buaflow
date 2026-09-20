@@ -2,7 +2,7 @@
 name: ui
 description: Start building a UI component or screen by asking first, never designing on your own. Offers text or canvas (claude.ai/design) when no design exists, then builds to match the design exactly. Use every time before creating a component or screen.
 argument-hint: "<component or screen name>"
-allowed-tools: Read Glob Grep Bash(pnpm dev*) Bash(pnpm exec playwright*) Bash(git diff*) Bash(git log*)
+allowed-tools: Read Glob Grep Bash(pnpm dev*) Bash(pnpm exec playwright*) Bash(node .claude/pixel.js*) Bash(git diff*) Bash(git log*)
 ---
 
 Building UI: $ARGUMENTS
@@ -78,9 +78,9 @@ Then:
 ### After writing — prove it against the design, not checkboxes
 
 **With a canvas baseline — match it exactly:**
-1. Use the `run` skill to start the app. With Playwright, screenshot the page at **the same viewport as each artboard** (light and dark if the brief has them); render the baseline `.dc.html` to PNG the same way. Keep the PNGs in the scratchpad, **never commit them**.
-2. Diff the pairs (`pixelmatch` or `odiff`), report the % of differing pixels and the diff image, and **list every difference one by one** — spacing, size, weight, color, missing state.
-3. Fix and repeat until the only remaining differences are the ones the deviation policy allows. "Looks the same" is not a result; a diff you cannot explain is a bug in the code, not in the canvas.
+1. Make sure the page has an entry in `docs/design/pixel.json` (from `docs/templates/pixel.tpl.json`: route → every artboard from the brief, incl. `:dark`). Use the `run` skill to start the app.
+2. Run `node .claude/pixel.js --page <name>` (`--check` first if it is the first run). It screenshots the page and the baseline `.dc.html` the same way at each artboard's viewport, diffs them, and prints **% differing, size mismatch, and the y/x regions that differ**. Do not write your own screenshot or diff code.
+3. Fix from the numbers and regions; **open the diff image (path printed under FAIL) only when a region does not explain itself** — images cost context. Repeat until the run passes. "Looks the same" is not a result; a diff you cannot explain is a bug in the code, not in the canvas. Never loosen `maxDiffPercent` to get a pass — a difference the user approved is a deviation (step 4).
 4. A change the user approves during build (they say "keep it like this instead") is a **deviation**: record it in `docs/design/components.md` (`deviation` column, with why) **and update the canvas to match the code**, then commit the new `.dc.html` as the baseline. Canvas and code must be equal when the task closes — one source of truth, otherwise the next drift sync (Phase 8.8) reads your deviation as a canvas change and reverts it.
 5. Push the component's preview HTML (first line `<!-- @dsCard group="..." -->`) with `/design-sync` so the storybook matches the code; update `last_storybook_sync` in the brief.
 6. `prototype_url` set in the brief → run `/prototype` and republish to the same URL. The baseline changed; the prototype the team is looking at must follow.

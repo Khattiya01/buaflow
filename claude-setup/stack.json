@@ -13,6 +13,8 @@
     "  preflightHookPath  git hook ที่เรียก gate.js (.husky/pre-push หรือ .git/hooks/pre-push)",
     "  ciMode             required | pr-only | local-only — นาที CI มีจำกัด และบางโปรเจกต์ไม่มี remote เลย",
     "                     local-only = pre-push เป็นด่านเดียว ต้องติดตั้งจริง ไม่ใช่แค่มีไฟล์ CI วางไว้",
+    "  auditMode          warn (ค่าเริ่มต้น: รายงานแต่ไม่บล็อก) | required (บล็อก) | off — เริ่มที่ warn กับโปรเจกต์เก่า แล้วสลับเป็น required เมื่อเคลียร์ high/critical หมด",
+    "  secretsMode        required (ค่าเริ่มต้น: เจอ secret ใน 50 commit ล่าสุดแล้วบล็อก) | warn | off — ต้องติดตั้ง gitleaks ไม่มีก็ skip",
     "  protected          ไฟล์ที่ guard-edit.js ห้าม AI แก้",
     "",
     "pattern ของ protected ใช้ glob ง่าย ๆ: ** = ข้ามกี่โฟลเดอร์ก็ได้, * = ในโฟลเดอร์เดียว",
@@ -23,9 +25,12 @@
   "verifyCommand": null,
   "commands": {
     "coverage": "pnpm test:cov",
-    "audit": "pnpm audit",
-    "apiTest": "pnpm test:api"
+    "audit": "pnpm audit --audit-level=high",
+    "apiTest": "pnpm test:api",
+    "secrets": "gitleaks git --no-banner --redact --log-opts=-50"
   },
+  "auditMode": "warn",
+  "secretsMode": "required",
   "codeFilePattern": "\\.(ts|tsx|js|jsx|prisma|sql)$",
   "formattablePattern": "\\.(ts|tsx|js|jsx|mjs|cjs|json|css|scss|md)$",
   "skipPattern": "(^|/)(node_modules|\\.next|dist|build|coverage)/",

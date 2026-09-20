@@ -4,9 +4,29 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
-| **v2.2** | [v2.2 → v2.3](#v22--v23-copy-ไฟล์อย่างเดียว) ข้างล่างนี้ | ~10 นาที |
+| **v2.3** | [v2.3 → v2.3.1](#v23--v231-copy-ไฟล์อย่างเดียว) ข้างล่างนี้ | ~5 นาที |
+| **v2.2** | [v2.2 → v2.3](#v22--v23-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.1 | ~15 นาที |
 | **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) แล้วต่อด้วย v2.3 | ~15 นาที |
 | **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2, v2.3 | ~1 session |
+
+---
+
+## v2.3 → v2.3.1 (copy ไฟล์อย่างเดียว)
+
+```bash
+cp buaflow/claude-setup/gate.js buaflow/claude-setup/stack-config.js .claude/
+cp buaflow/claude-setup/pixel.js .claude/                              # เฉพาะโปรเจกต์ที่ใช้ canvas
+cp -r buaflow/claude-setup/skills/ui .claude/skills/
+cp buaflow/templates/pixel.tpl.json docs/templates/
+cp buaflow/standards/ui-component-rules.md docs/standards/
+```
+
+1. `.claude/stack.json` → เติม `"auditMode": "warn"`, `"secretsMode": "required"` และใน `commands`: `"audit": "pnpm audit --audit-level=high"`, `"secrets": "gitleaks git --no-banner --redact --log-opts=-50"`
+   (ไม่เติมก็ได้ — ค่าเริ่มต้นใน `stack-config.js` เหมือนกัน แต่ถ้า stack.json เดิมมี `commands.audit` เป็นค่าเก่าอยู่ ค่านั้นจะชนะ)
+2. ติดตั้ง gitleaks ถ้าต้องการ (ไม่ติดตั้ง = ด่าน `secrets` ขึ้น skip) — หรือตั้ง `"secretsMode": "off"`
+3. เฉพาะโปรเจกต์ที่ใช้ canvas: เติม `"Bash(node .claude/pixel.js*)"` ใน `permissions.allow` · `pnpm add -D pixelmatch pngjs` · สร้าง `docs/design/pixel.json` จาก template แล้ว `node .claude/pixel.js --check`
+
+รัน `node .claude/gate.js` — ด่าน `audit` ควรขึ้น `pass` หรือ `warn` (ไม่ใช่ `fail`)
 
 ---
 
