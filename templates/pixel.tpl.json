@@ -1,4 +1,6 @@
 {
+  "$schema": "../../buaflow/schemas/pixel-config.schema.json",
+  "schemaVersion": "1.0",
   "$comment": [
     "docs/design/pixel.json — บอก .claude/pixel.js ว่าหน้าไหนต้องเทียบกับ canvas baseline ไหน",
     "key ของ artboards = '<width>' หรือ '<width>:dark' · ไฟล์อยู่ใน docs/design/canvas/ (เหมือน prototype flow.json)",

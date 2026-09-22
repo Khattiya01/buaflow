@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/pixel-config-v1.json",
+  "title": "Buaflow pixel comparison config v1",
+  "type": "object",
+  "required": ["schemaVersion", "baseUrl", "maxDiffPercent", "pixelmatchThreshold", "pages"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "$comment": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" } }
+      ]
+    },
+    "baseUrl": { "type": "string", "format": "uri" },
+    "maxDiffPercent": { "type": "number", "minimum": 0, "maximum": 100 },
+    "pixelmatchThreshold": { "type": "number", "minimum": 0, "maximum": 1 },
+    "pages": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/page" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "page": {
+      "type": "object",
+      "required": ["path", "artboards"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/" },
+        "artboards": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[1-9][0-9]*(?::[a-z][a-z0-9-]*)?$" },
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "maxDiffPercent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "pixelmatchThreshold": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    }
+  }
+}
+

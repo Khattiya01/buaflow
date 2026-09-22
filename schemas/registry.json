@@ -1,0 +1,78 @@
+{
+  "$schema": "./registry.schema.json",
+  "schemaVersion": "1.0",
+  "artifacts": [
+    {
+      "type": "stack-config",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/stack-config.schema.json",
+      "paths": [".claude/stack.json"],
+      "migration": "supported"
+    },
+    {
+      "type": "readiness-manifest",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/readiness-manifest.schema.json",
+      "paths": ["docs/evidence/readiness.json"],
+      "migration": "supported"
+    },
+    {
+      "type": "prototype-flow",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/prototype-flow.schema.json",
+      "paths": ["docs/design/prototype/flow.json"],
+      "migration": "supported"
+    },
+    {
+      "type": "pixel-config",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/pixel-config.schema.json",
+      "paths": ["docs/design/pixel.json"],
+      "migration": "supported"
+    },
+    {
+      "type": "project-manifest",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/project-manifest.schema.json",
+      "paths": [".buaflow/project.json"],
+      "migration": "supported"
+    },
+    {
+      "type": "product-graph",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/product-graph.schema.json",
+      "paths": ["docs/planning/product-graph.json"],
+      "migration": "supported"
+    },
+    {
+      "type": "application-profile",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/application-profile.schema.json",
+      "paths": [".claude/profiles/*.json"],
+      "migration": "supported"
+    },
+    {
+      "type": "pack",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/pack.schema.json",
+      "paths": [".claude/packs/*.json"],
+      "migration": "supported"
+    },
+    {
+      "type": "product-development-state",
+      "classification": "internal",
+      "latestVersion": "1.0",
+      "schema": "development/state.schema.json",
+      "paths": ["development/state.json"],
+      "migration": "manual"
+    }
+  ]
+}

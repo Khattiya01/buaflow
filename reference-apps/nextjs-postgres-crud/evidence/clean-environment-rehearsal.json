@@ -1,0 +1,60 @@
+{
+  "scope": "from-scratch docker build + boot against a freshly created database; not a fresh git clone",
+  "startedAt": "2026-09-22T16:41:16.981Z",
+  "finishedAt": "2026-09-22T16:42:00.070Z",
+  "totalDurationMs": 43088,
+  "healthCheck": {
+    "status": "ok",
+    "database": "up",
+    "latencyMs": 85,
+    "timestamp": "2026-09-22T16:41:59.605Z"
+  },
+  "steps": [
+    {
+      "name": "tear down any existing compose stack (including volumes)",
+      "durationMs": 798
+    },
+    {
+      "name": "start a brand-new Postgres (no prior data)",
+      "durationMs": 494
+    },
+    {
+      "name": "wait for Postgres to accept connections",
+      "durationMs": 1423
+    },
+    {
+      "name": "apply migrations to the fresh database",
+      "durationMs": 1598
+    },
+    {
+      "name": "seed the fresh database",
+      "durationMs": 656
+    },
+    {
+      "name": "build the production image with --no-cache",
+      "durationMs": 36678
+    },
+    {
+      "name": "remove any leftover rehearsal container",
+      "durationMs": 71
+    },
+    {
+      "name": "run the freshly built image against the fresh database",
+      "durationMs": 393
+    },
+    {
+      "name": "wait for /api/health",
+      "durationMs": 523
+    },
+    {
+      "name": "smoke test: log in as the seeded admin and list tasks",
+      "durationMs": 108,
+      "taskCount": 1
+    },
+    {
+      "name": "tear down the rehearsal container (compose db is left running)",
+      "durationMs": 345
+    }
+  ],
+  "ok": true
+}

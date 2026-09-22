@@ -1,0 +1,71 @@
+// Reference app data model (PP-003).
+// Core entities, IDs, ownership and soft delete follow Buaflow's data-model conventions;
+// this schema is the single source of truth for the persistence and database-migration controls.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  admin
+  member
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  done
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(member)
+  createdAt    DateTime @default(now())
+
+  tasks      Task[]
+  auditLogs  AuditLog[]
+
+  @@map("users")
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(todo)
+  ownerId     String
+  owner       User       @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+
+  auditLogs AuditLog[]
+
+  @@index([ownerId])
+  @@index([deletedAt])
+  @@map("tasks")
+}
+
+// Audit trail: satisfies the internal-crud profile's audit-trail clarification question
+// (claude-setup/tests/fixtures/profiles/internal-crud.json) — who changed which task, when, and what changed.
+model AuditLog {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  before    Json?
+  after     Json?
+  at        DateTime @default(now())
+
+  @@index([taskId])
+  @@map("audit_logs")
+}

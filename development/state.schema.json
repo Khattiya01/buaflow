@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/development-state-v1.json",
+  "title": "Buaflow product development state",
+  "type": "object",
+  "required": ["schemaVersion", "product", "updatedAt", "current", "workItems", "decisions", "lastSession"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "product": { "const": "buaflow" },
+    "updatedAt": { "type": "string", "format": "date" },
+    "current": {
+      "type": "object",
+      "required": ["milestone", "focus"],
+      "properties": {
+        "milestone": { "type": "string", "pattern": "^M[0-9]+$" },
+        "focus": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z]{2}-[0-9]{3}$" }, "uniqueItems": true }
+      },
+      "additionalProperties": false
+    },
+    "workItems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "milestone", "status", "dependsOn", "acceptance", "artifacts", "verification"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Z]{2}-[0-9]{3}$" },
+          "title": { "type": "string", "minLength": 3 },
+          "milestone": { "type": "string", "pattern": "^M[0-9]+$" },
+          "status": { "enum": ["backlog", "ready", "in_progress", "blocked", "done", "dropped"] },
+          "dependsOn": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+          "acceptance": { "type": "array", "items": { "type": "string", "minLength": 3 }, "minItems": 1 },
+          "artifacts": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+          "verification": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+          "startedAt": { "type": "string", "format": "date" },
+          "completedAt": { "type": "string", "format": "date" },
+          "blockedReason": { "type": "string" },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "date", "decision", "reason", "impact"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^D-[0-9]{3}$" },
+          "date": { "type": "string", "format": "date" },
+          "decision": { "type": "string" },
+          "reason": { "type": "string" },
+          "impact": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "lastSession": {
+      "type": "object",
+      "required": ["date", "summary", "next", "verifiedAt"],
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "summary": { "type": "string" },
+        "next": { "type": "string" },
+        "verifiedAt": { "type": ["string", "null"], "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
+

@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../../schemas/pack.schema.json",
+  "schemaVersion": "1.0",
+  "id": "nextjs-postgres",
+  "kind": "stack",
+  "name": "Next.js + PostgreSQL",
+  "description": "A full-stack web golden stack: Next.js app router frontend/API routes with a PostgreSQL database behind an ORM.",
+  "version": "1.0.0",
+  "inputs": [
+    { "name": "projectName", "type": "string", "required": true, "description": "npm package name for the generated app." },
+    { "name": "includeAuth", "type": "boolean", "required": false, "default": false, "description": "Scaffold a starter session-based auth module." },
+    { "name": "orm", "type": "enum", "required": true, "options": ["prisma", "drizzle"], "description": "ORM used to talk to PostgreSQL." }
+  ],
+  "generatedArtifacts": [
+    { "path": "package.json", "description": "Next.js app manifest with pinned dependency versions." },
+    { "path": "prisma/schema.prisma", "description": "Database schema — the single source of truth for the data model." },
+    { "path": ".claude/stack.json", "description": "Buaflow stack config pointing verify/format commands at this stack's tooling." },
+    { "path": "Dockerfile", "description": "Production build definition used for the deployment-package control." }
+  ],
+  "compatibility": {
+    "requiresPacks": [],
+    "conflictsWithPacks": [],
+    "profiles": ["content", "internal-crud", "saas"]
+  },
+  "verification": [
+    { "id": "typecheck", "command": "npm run typecheck", "description": "TypeScript compiles with no errors." },
+    { "id": "test", "command": "npm test", "description": "Unit and integration test suite passes." },
+    { "id": "build", "command": "npm run build", "description": "Production build succeeds, proving the build control." }
+  ],
+  "upgrade": [],
+  "operationalEvidence": [
+    { "control": "persistence", "evidence": "Prisma migrations under prisma/migrations/ give a repeatable, versioned persistence lifecycle." },
+    { "control": "database-migration", "evidence": "The generated migrate script is idempotent and every forward migration ships with a documented rollback step." },
+    { "control": "deployment-package", "evidence": "The generated Dockerfile builds a pinned, reproducible production image tagged with the build digest." }
+  ]
+}

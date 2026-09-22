@@ -1,0 +1,20 @@
+{
+  "$schema": "../../../../schemas/application-profile.schema.json",
+  "schemaVersion": "1.0",
+  "id": "content",
+  "name": "Content site",
+  "description": "Mostly static or CMS-driven public content with no meaningful user accounts.",
+  "controls": [
+    { "control": "persistence", "requirement": "not-applicable", "rationale": "Content is authored in a CMS or static files at build time; the runtime has no live application database to migrate or back up." },
+    { "control": "access-control", "requirement": "not-applicable", "rationale": "All published pages are public; there is no authenticated user boundary to test in the runtime application." },
+    { "control": "accessibility", "requirement": "required", "rationale": "Public content sites are read by the widest possible audience, so the accessibility budget applies from R3 onward." }
+  ],
+  "architectureChoices": [
+    { "area": "rendering", "choice": "static-generation-or-cdn-cache", "rationale": "Content changes rarely relative to traffic, so pre-rendering or edge caching keeps latency and hosting cost low." },
+    { "area": "editing", "choice": "headless-cms", "rationale": "Editors need a non-technical authoring workflow that is separate from the deploy pipeline." }
+  ],
+  "clarificationQuestions": [
+    { "id": "update-frequency", "prompt": "เนื้อหาจะถูกแก้ไขบ่อยแค่ไหน (นาที/วัน/สัปดาห์)?", "affects": ["architecture", "cost"], "whyItMatters": "ความถี่ในการแก้ไขกำหนดว่าใช้ static build ธรรมดา หรือใช้ cache ที่ invalidate อัตโนมัติ ซึ่งเปลี่ยนทั้งต้นทุนและความซับซ้อนของ pipeline" },
+    { "id": "localization", "prompt": "ต้องรองรับหลายภาษาไหม?", "affects": ["architecture"], "whyItMatters": "ต้องเลือกโครง routing/CMS ที่รองรับ locale ตั้งแต่ต้น เปลี่ยนทีหลังจะกระทบ URL structure และ SEO ทั้งเว็บ" }
+  ]
+}

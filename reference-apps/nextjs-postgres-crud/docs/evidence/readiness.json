@@ -1,0 +1,145 @@
+{
+  "$schema": "../../../../schemas/readiness-manifest.schema.json",
+  "schemaVersion": "1.0",
+  "project": "nextjs-postgres-crud",
+  "profile": "internal-crud",
+  "targetLevel": "R3",
+  "commit": "WORKTREE",
+  "generatedAt": "2026-09-22T16:45:00.000Z",
+  "controls": {
+    "version-control": {
+      "status": "pending",
+      "evidence": [],
+      "rationale": "Working tree not yet committed to git. Pending the user's go-ahead to commit (git safety protocol: only commit when asked). Nothing else in this manifest depends on this being done first."
+    },
+    "start-path": {
+      "status": "pass",
+      "evidence": [{ "type": "command", "value": "npm run dev" }]
+    },
+    "primary-flow": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "tests/e2e/primary-flow.spec.ts" },
+        { "type": "command", "value": "npx playwright test tests/e2e/primary-flow.spec.ts" }
+      ]
+    },
+    "build": {
+      "status": "pass",
+      "evidence": [{ "type": "command", "value": "npm run build" }]
+    },
+    "verification": {
+      "status": "pass",
+      "evidence": [{ "type": "command", "value": "npm run verify" }]
+    },
+    "requirements-traceability": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "docs/requirements-traceability.md" }]
+    },
+    "automated-tests": {
+      "status": "pass",
+      "evidence": [
+        { "type": "command", "value": "npm test" },
+        { "type": "command", "value": "npm run test:integration" },
+        { "type": "command", "value": "npx playwright test" }
+      ]
+    },
+    "persistence": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "prisma/schema.prisma" },
+        { "type": "file", "value": "evidence/migration-rollback-rehearsal.json" }
+      ]
+    },
+    "access-control": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "lib/guard.ts" },
+        { "type": "command", "value": "npm run test:integration" }
+      ]
+    },
+    "ci": {
+      "status": "pending",
+      "evidence": [{ "type": "file", "value": ".github/workflows/ci.yml" }],
+      "rationale": "Workflow file exists and runs the same commands documented in this manifest, but no run has executed on a real remote yet — pushing to a git host has not been authorized."
+    },
+    "deployment-package": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "Dockerfile" },
+        { "type": "file", "value": "evidence/clean-environment-rehearsal.json" }
+      ]
+    },
+    "runtime-config": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": ".env.example" }]
+    },
+    "database-migration": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "evidence/migration-rollback-rehearsal.json" }]
+    },
+    "rollback": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "prisma/migrations/20260922161307_init/rollback.sql" },
+        { "type": "file", "value": "evidence/migration-rollback-rehearsal.json" },
+        { "type": "file", "value": "docs/runbook.md" }
+      ]
+    },
+    "secrets-scan": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "evidence/gitleaks-report.json" }]
+    },
+    "dependency-scan": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "evidence/npm-audit.json" },
+        { "type": "file", "value": "evidence/dependency-scan-notes.md" }
+      ]
+    },
+    "security-controls": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "docs/security-notes.md" }]
+    },
+    "end-to-end-tests": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "evidence/playwright-report.json" },
+        { "type": "command", "value": "npx playwright test" }
+      ]
+    },
+    "observability": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "lib/log.ts" },
+        { "type": "file", "value": "app/api/health/route.ts" }
+      ]
+    },
+    "health-check": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "evidence/clean-environment-rehearsal.json" }]
+    },
+    "performance": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "evidence/performance-budget.json" }]
+    },
+    "accessibility": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "evidence/axe-login.json" },
+        { "type": "file", "value": "evidence/axe-tasks.json" }
+      ]
+    },
+    "sbom": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "evidence/sbom.cdx.json" }]
+    },
+    "runbook": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "docs/runbook.md" }]
+    },
+    "clean-environment": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "evidence/clean-environment-rehearsal.json" }]
+    }
+  }
+}

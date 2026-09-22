@@ -1,0 +1,9 @@
+{
+  "project": "fixture",
+  "track": "new",
+  "assuranceMode": "adoption",
+  "createdAt": "2026-09-22T12:00:00.000Z",
+  "buaflowVersion": "2.3.4",
+  "planningState": "docs/planning/_state.md"
+}
+

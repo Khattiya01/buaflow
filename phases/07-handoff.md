@@ -65,6 +65,7 @@ buaflow/claude-setup/agents/*        →  .claude/agents/
 buaflow/claude-setup/hooks/*         →  .claude/hooks/
 buaflow/claude-setup/check-config.js →  .claude/check-config.js
 buaflow/claude-setup/docs-lint.js    →  .claude/docs-lint.js      ตรวจว่า artifact chain ยังตรงกัน
+buaflow/claude-setup/readiness.js    →  .claude/readiness.js      ตรวจ R0-R4 จาก evidence manifest
 buaflow/claude-setup/board.js        →  .claude/board.js          generate board.md จากไฟล์ task
 buaflow/claude-setup/prototype.js    →  .claude/prototype.js      click-through prototype จาก canvas baseline (เฉพาะโปรเจกต์ที่ใช้ canvas)
 buaflow/claude-setup/pixel.js        →  .claude/pixel.js          เทียบหน้าจริงกับ canvas baseline เป็นตัวเลข (เฉพาะโปรเจกต์ที่ใช้ canvas · ต้องมี pixelmatch + pngjs + Playwright เป็น dev dependency)
@@ -76,6 +77,7 @@ buaflow/claude-setup/stack.json      →  .claude/stack.json        stack ขอ
 buaflow/claude-setup/ci/pre-push.tpl →  .husky/pre-push
 buaflow/claude-setup/ci/*.yml.tpl    →  .github/workflows/gate.yml และ/หรือ .gitlab-ci.yml
 buaflow/claude-setup/settings.json.tpl  →  .claude/settings.json
+buaflow/templates/readiness-manifest.tpl.json → docs/evidence/readiness.json
 ```
 
 > ถ้าทำ Phase 6 ขั้น 3 แล้ว 4 สคริปต์แรกกับ pre-push จะมีอยู่แล้ว — ตรวจว่าเป็นเวอร์ชันเดียวกับ kit
@@ -91,6 +93,10 @@ buaflow/claude-setup/settings.json.tpl  →  .claude/settings.json
 | `skills/check/` | ชื่อคือ `/check` **ไม่ใช่ `/review`** — `/review` เป็น alias ของ built-in `/code-review` ที่ `/check` เรียกใช้ข้างใน |
 | `stack.json` → `protected` | รายการไฟล์ที่ generate อัตโนมัติของโปรเจกต์นี้ — ถ้าไม่ได้ใช้ shadcn ให้ลบ `components/ui/**` ออก (ไม่ต้องแก้สคริปต์ hook) |
 
+ถ้ามี `stack.json`, `pixel.json` หรือ prototype `flow.json` จาก Buaflow รุ่นก่อนที่ยังไม่มี
+`schemaVersion` ให้อ่าน `standards/artifact-versioning.md` และใช้ migrator แบบ preview ก่อน `--write`
+ห้ามเติม version ใหม่ด้วยมือโดยไม่ตรวจ diff เพราะ version คือ contract ที่โปรแกรมใช้ตัดสิน compatibility
+
 **แล้วรันตัวตรวจ** — ห้ามข้าม:
 
 ```bash
@@ -103,6 +109,21 @@ skills มี description และความยาวโอเคไหม / 
 **รัน hook ด้วย input จำลองแล้วเช็ก exit code จริง** / โฟลเดอร์ artifact chain ครบไหม
 
 ต้องได้ `ต้องแก้: 0` ก่อนไปต่อ ส่วน `ควรดู:` ไล่ให้หมดเท่าที่ทำได้
+
+สร้าง `docs/evidence/readiness.json` จาก template แล้วเลือกระดับปัจจุบันตาม
+`standards/readiness-levels.md` — ตอนเริ่มใช้งาน control ส่วนใหญ่เป็น `pending` ได้ แต่ห้ามอ้างว่า
+ผ่านระดับนั้นจนคำสั่งต่อไปคืน exit code 0:
+
+```bash
+node .claude/readiness.js --file docs/evidence/readiness.json --level R0
+```
+
+R3 ต้องผูก manifest กับ commit SHA จริง และหลักฐานชนิด `file` ต้องมีอยู่ภายใน repository
+ส่วนการบังคับ R3 ใน release gate ให้เปิดเมื่อโปรเจกต์ตั้ง production mode แล้ว ไม่ควรทำให้ adoption รอบแรกพังเพราะยังเก็บ evidence ไม่ครบ
+
+เมื่อ evidence ครบและทีมกำลังจะส่งมอบ Production Candidate ให้ตั้ง `assuranceMode: "production"`,
+`readinessLevel: "R3"`, `auditMode: "required"` และ `secretsMode: "required"` ใน `stack.json`
+แล้วรัน full gate เท่านั้น โหมดนี้จะบล็อก scanner/verify ที่หาย, manifest ที่ไม่ผ่าน และ `--docs-only`
 
 **แล้วรัน gate ทั้งด่าน** — นี่คือคำสั่งเดียวกับที่ pre-push และ CI จะรัน:
 

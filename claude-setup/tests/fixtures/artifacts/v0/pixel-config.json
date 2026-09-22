@@ -1,0 +1,12 @@
+{
+  "baseUrl": "http://localhost:3000",
+  "maxDiffPercent": 0.1,
+  "pixelmatchThreshold": 0.1,
+  "pages": {
+    "home": {
+      "path": "/",
+      "artboards": { "1280": "home.dc.html" }
+    }
+  }
+}
+

@@ -1,0 +1,49 @@
+{
+  "evalId": "PP-003-nextjs-postgres-crud",
+  "description": "Baseline eval fixture for PP-003: how long it takes this reference app to prove itself from a torn-down, clean-environment starting state, and what evidence backs each R0-R3 control. Future changes to the app, the pack contracts, or the golden stack should be compared against this baseline, not just re-run ad hoc.",
+  "generatedAt": "2026-09-22T16:45:00.000Z",
+  "stack": {
+    "pack": "nextjs-postgres (claude-setup/tests/fixtures/packs/nextjs-postgres.json)",
+    "capabilityPack": "auth-rbac (claude-setup/tests/fixtures/packs/auth-rbac.json)",
+    "profile": "internal-crud (claude-setup/tests/fixtures/profiles/internal-crud.json)"
+  },
+  "timings": {
+    "cleanEnvironmentRehearsal": {
+      "command": "npm run rehearse:clean-environment",
+      "scope": "docker compose down -v, fresh Postgres, migrate, seed, docker build --no-cache, run, health check, smoke test, teardown",
+      "totalDurationMs": 43088,
+      "evidence": "evidence/clean-environment-rehearsal.json"
+    },
+    "migrationRollbackRehearsal": {
+      "command": "npm run rehearse:migration-rollback",
+      "scope": "verify schema, apply rollback.sql, verify dropped, migrate deploy + seed, verify restored",
+      "totalDurationMs": 1777,
+      "evidence": "evidence/migration-rollback-rehearsal.json"
+    }
+  },
+  "testCounts": {
+    "unit": { "command": "npm test", "count": 10 },
+    "integration": { "command": "npm run test:integration", "count": 14 },
+    "e2e": { "command": "npx playwright test", "count": 6, "evidence": "evidence/playwright-report.json" }
+  },
+  "readinessCheck": {
+    "command": "node claude-setup/readiness.js --file docs/evidence/readiness.json --level R3",
+    "result": "FAIL (23/25 controls) — the only two open items are version-control (working tree not yet committed) and ci (workflow file exists but no run has executed on a real remote yet); every other R0-R3 control has real, checked evidence",
+    "manifest": "docs/evidence/readiness.json"
+  },
+  "evidenceIndex": [
+    "evidence/clean-environment-rehearsal.json",
+    "evidence/migration-rollback-rehearsal.json",
+    "evidence/npm-audit.json",
+    "evidence/dependency-scan-notes.md",
+    "evidence/gitleaks-report.json",
+    "evidence/sbom.cdx.json",
+    "evidence/axe-login.json",
+    "evidence/axe-tasks.json",
+    "evidence/performance-budget.json",
+    "evidence/playwright-report.json",
+    "docs/runbook.md",
+    "docs/security-notes.md",
+    "docs/requirements-traceability.md"
+  ]
+}

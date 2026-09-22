@@ -1,0 +1,16 @@
+title = "nextjs-postgres-crud gitleaks config"
+
+# Extend gitleaks' default rule set instead of replacing it.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated/local-only paths that are never committed — see .gitignore"
+paths = [
+  '''node_modules/''',
+  '''\.next/''',
+  '''(^|/)\.env$''',
+  '''coverage/''',
+  '''playwright-report/''',
+  '''test-results/''',
+]

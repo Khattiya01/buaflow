@@ -1,0 +1,20 @@
+{
+  "$schema": "../../../../schemas/application-profile.schema.json",
+  "schemaVersion": "1.0",
+  "id": "internal-crud",
+  "name": "Internal CRUD tool",
+  "description": "A back-office tool used by employees to create, read, update and delete operational records.",
+  "controls": [
+    { "control": "persistence", "requirement": "required", "rationale": "The tool exists to create, read, update and delete records that must survive restarts, so a real persistence lifecycle is mandatory." },
+    { "control": "access-control", "requirement": "required", "rationale": "Internal tools still need to restrict who can view or change records, even behind a corporate network boundary." },
+    { "control": "accessibility", "requirement": "not-applicable", "rationale": "Users are a known, internal employee population; the team has not committed to a public accessibility budget for this tool." }
+  ],
+  "architectureChoices": [
+    { "area": "authentication", "choice": "sso-with-internal-identity-provider", "rationale": "Employees already have corporate accounts; reusing SSO avoids standing up a second credential store." },
+    { "area": "ui", "choice": "admin-table-with-inline-edit", "rationale": "CRUD-heavy workflows are fastest as data-dense tables rather than one-record-per-page forms." }
+  ],
+  "clarificationQuestions": [
+    { "id": "record-volume", "prompt": "คาดว่าจะมีจำนวน record กี่รายการในปีแรก?", "affects": ["architecture", "cost"], "whyItMatters": "ปริมาณ record กำหนดว่าต้องมี pagination/indexing ตั้งแต่ต้น หรือ query ตรง ๆ ก็เพียงพอ" },
+    { "id": "audit-trail", "prompt": "ต้องเก็บ audit log ว่าใครแก้ record ไหนเมื่อไรไหม?", "affects": ["compliance", "architecture"], "whyItMatters": "ถ้าต้องมี audit trail ต้องออกแบบ schema แยกตั้งแต่ต้น ผูกเพิ่มทีหลังต้อง backfill ย้อนหลังซึ่งทำยาก" }
+  ]
+}

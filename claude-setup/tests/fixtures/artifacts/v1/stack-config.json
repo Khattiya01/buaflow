@@ -1,0 +1,7 @@
+{
+  "$schema": "../buaflow/schemas/stack-config.schema.json",
+  "schemaVersion": "1.0",
+  "verifyCommand": "npm test",
+  "auditMode": "warn",
+  "codeFilePattern": "\\.(js|ts)$"
+}

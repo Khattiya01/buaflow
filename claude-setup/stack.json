@@ -1,4 +1,6 @@
 {
+  "$schema": "../buaflow/schemas/stack-config.schema.json",
+  "schemaVersion": "1.0",
   "$comment": [
     "stack.json — บอกสคริปต์ใน .claude/ ว่าโปรเจกต์นี้ใช้เครื่องมืออะไร",
     "ค่าในไฟล์นี้คือค่าเริ่มต้นของ kit (JS/TS + pnpm) — ลบคีย์ไหนทิ้งก็ได้ สคริปต์จะถอยไปใช้ค่าเริ่มต้นเดิม",
@@ -7,6 +9,9 @@
     "",
     "โปรเจกต์เดิม (โหมด EXTEND) แก้ที่นี่ที่เดียว แทนการไล่แก้ไส้สคริปต์:",
     "  verifyCommand      คำสั่งตรวจมาตรฐานคำสั่งเดียว (env VERIFY_COMMAND ชนะไฟล์นี้)",
+    "  assuranceMode     adoption (ค่าเริ่มต้น/เข้าระบบแบบค่อยเป็นค่อยไป) | production (fail-closed ห้ามข้าม verify/scanner/R3 readiness)",
+    "  readinessLevel    ระดับที่ production gate ต้องผ่าน (ค่าเริ่มต้น R3)",
+    "  readinessManifest path ของ evidence manifest จากรากโปรเจกต์",
     "  commands           คำสั่งรองที่ skill เรียกผ่าน `node .claude/run.js <ชื่อ>` — ไม่มีคำสั่งนั้นให้ตั้ง null",
     "  codeFilePattern    ไฟล์ที่นับว่าเป็นโค้ด ตอนตรวจว่า rule คุ้มครองครบไหม",
     "  formatCommands     format/lint เฉพาะไฟล์ที่เพิ่งแก้ — when: ต้องเจอไฟล์ config อย่างน้อยหนึ่งตัว",
@@ -22,6 +27,9 @@
     "reason เป็นภาษาอังกฤษเพราะ Claude อ่าน ส่วน $comment เขียนให้คนอ่าน"
   ],
 
+  "assuranceMode": "adoption",
+  "readinessLevel": "R3",
+  "readinessManifest": "docs/evidence/readiness.json",
   "verifyCommand": null,
   "commands": {
     "coverage": "pnpm test:cov",

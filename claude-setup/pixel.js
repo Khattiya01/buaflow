@@ -58,6 +58,14 @@ const die = (m) => { console.error(m); process.exit(1); };
 if (!fs.existsSync(CONFIG)) die(`✗ ไม่มี ${rel(CONFIG)} — สร้างตามตัวอย่างในหัวไฟล์ .claude/pixel.js (baseUrl + pages → artboards)`);
 let cfg;
 try { cfg = JSON.parse(fs.readFileSync(CONFIG, 'utf8')); } catch (e) { die(`✗ ${rel(CONFIG)} ไม่ใช่ JSON: ${e.message}`); }
+if (cfg.schemaVersion) {
+  const version = String(cfg.schemaVersion).match(/^(\d+)\.(\d+)$/);
+  if (!version || Number(version[1]) !== 1) {
+    die(`✗ ${rel(CONFIG)} ใช้ schemaVersion "${cfg.schemaVersion}" ที่ pixel.js รุ่นนี้ไม่รองรับ — migrate หรือ upgrade Buaflow`);
+  }
+} else {
+  console.log(`  warn ${rel(CONFIG)} ยังไม่มี schemaVersion — migrate เป็น pixel-config v1`);
+}
 
 const baseUrl = String(cfg.baseUrl || 'http://localhost:3000').replace(/\/$/, '');
 const maxDefault = Number.isFinite(cfg.maxDiffPercent) ? cfg.maxDiffPercent : 0.5;

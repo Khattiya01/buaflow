@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/project-manifest-v1.json",
+  "title": "Buaflow project manifest v1",
+  "type": "object",
+  "required": ["schemaVersion", "project", "track", "assuranceMode", "createdAt", "buaflowVersion"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "project": { "type": "string", "minLength": 1 },
+    "track": { "enum": ["new", "extend"] },
+    "assuranceMode": { "enum": ["adoption", "production"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "buaflowVersion": { "type": "string", "minLength": 1 },
+    "planningState": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}
+

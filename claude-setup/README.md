@@ -12,6 +12,7 @@ claude-setup/agents/*.md         →  .claude/agents/*.md
 claude-setup/hooks/*.js          →  .claude/hooks/*.js
 claude-setup/check-config.js     →  .claude/check-config.js
 claude-setup/docs-lint.js        →  .claude/docs-lint.js       artifact chain ตรงกันไหม (CI รันได้)
+claude-setup/readiness.js        →  .claude/readiness.js       ตรวจ readiness R0-R4 จาก evidence manifest
 claude-setup/board.js            →  .claude/board.js           generate board.md จากไฟล์ task
 claude-setup/gate.js             →  .claude/gate.js            ด่านเดียว: verify + check-config + docs-lint
 claude-setup/verify.js           →  .claude/verify.js          ทางเข้าเดียวของคำสั่งตรวจ (อ่านคำสั่งจริงจาก stack.json)
@@ -22,11 +23,13 @@ claude-setup/ci/pre-push.tpl     →  .husky/pre-push
 claude-setup/ci/*.yml.tpl        →  .github/workflows/gate.yml | .gitlab-ci.yml
 claude-setup/settings.json.tpl   →  .claude/settings.json
 claude-setup/evals/*.md          →  docs/evals/*.md
+templates/readiness-manifest.tpl.json → docs/evidence/readiness.json
 ```
 
 **ระหว่างคัดลอกต้องปรับให้ตรง stack จริง** อย่าคัดลอกดิบ ๆ — **เริ่มที่ `stack.json` ก่อนเสมอ** เพราะสคริปต์ที่เหลืออ่านค่าจากไฟล์นี้:
 - `stack.json` — `verifyCommand`, `codeFilePattern`, `formatCommands`, `preflightHookPath`, `protected`
   ค่าเริ่มต้นเป็น JS/TS + pnpm · stack อื่น (Python, .NET, Go) แก้ที่ไฟล์นี้ที่เดียว ไม่ต้องแตะไส้สคริปต์
+- `stack.json` เป็น public artifact v1 มี `$schema` และ `schemaVersion` — ไฟล์จาก Buaflow รุ่นเก่า migrate ได้ด้วย `node buaflow/scripts/migrate-artifact.js --type stack-config --file .claude/stack.json` (default เป็น preview)
 - `protected` ต้องเป็นรายการไฟล์ที่ generate อัตโนมัติ**ของโปรเจกต์นี้** — ไม่ได้ใช้ shadcn ก็ลบ `components/ui/**` ทิ้ง
 - `paths:` ใน rules ต้องตรงกับโครงโฟลเดอร์จริง (ไม่งั้น rule จะเงียบไปเลยโดยไม่มี error)
 - คำสั่งใน skills และ `settings.json` ต้องเป็นคำสั่งที่มีจริงในโปรเจกต์
@@ -37,6 +40,28 @@ rule ไหนตายเงียบ, ไฟล์โค้ดกลุ่ม�
 และ `AGENTS.md` ยังมี placeholder ค้างอยู่ไหม
 
 ต้องได้ `ต้องแก้: 0` ก่อนถือว่าติดตั้งเสร็จ รันซ้ำทุกครั้งที่ปรับ config (Phase 8)
+
+`readiness.js` แยกจาก gate ปกติใน v1 เพื่อไม่ทำให้โปรเจกต์เดิม fail ระหว่าง adoption ใช้คำสั่งนี้ประเมินระดับที่ต้องการ:
+
+```bash
+node .claude/readiness.js --file docs/evidence/readiness.json --level R3
+```
+
+ดูนิยามระดับและหลักฐานที่ต้องมีใน `standards/readiness-levels.md` กับ `standards/deployment-ready-contract.md`
+
+เมื่อเก็บ R3 evidence ครบแล้ว ให้เปลี่ยนค่าต่อไปนี้ใน `stack.json`:
+
+```json
+{
+  "assuranceMode": "production",
+  "readinessLevel": "R3",
+  "readinessManifest": "docs/evidence/readiness.json",
+  "auditMode": "required",
+  "secretsMode": "required"
+}
+```
+
+จากนั้น `gate.js` จะ fail-closed: verify/scanner/readiness ขาดหรือถูก skip ไม่ได้ และ `--docs-only` ใช้เป็น bypass ไม่ได้ ส่วนค่าเริ่มต้น `adoption` ยังคงพฤติกรรมเดิมเพื่อให้รับช่วงโปรเจกต์เก่าได้
 
 ## 4 ชั้น ต่างกันยังไง
 

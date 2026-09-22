@@ -24,9 +24,34 @@ const RELEASE = ri !== -1 ? args[ri + 1] : null;
 const ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const CLAUDE = path.join(ROOT, '.claude');
 
+let stackApi = null;
+let CONFIG = null;
+let CONFIG_ERROR = null;
+const STACK_CONFIG_FILE = path.join(CLAUDE, 'stack-config.js');
+if (fs.existsSync(STACK_CONFIG_FILE)) {
+  try {
+    stackApi = require(STACK_CONFIG_FILE);
+    CONFIG = stackApi.load(ROOT, { strict: true });
+  } catch (error) {
+    CONFIG_ERROR = error.message;
+  }
+}
+if (!CONFIG) {
+  CONFIG = {
+    assuranceMode: 'adoption',
+    readinessLevel: 'R3',
+    readinessManifest: 'docs/evidence/readiness.json',
+    auditMode: 'off',
+    secretsMode: 'off',
+    commands: {},
+  };
+}
+const ASSURANCE_MODE = CONFIG.assuranceMode || 'adoption';
+const PRODUCTION = ASSURANCE_MODE === 'production';
+
 const VERIFY = (() => {
   try {
-    return require(path.join(CLAUDE, 'stack-config.js')).resolveVerify(ROOT);
+    return stackApi ? stackApi.resolveVerify(ROOT, CONFIG) : null;
   } catch {
     // ยังไม่ได้คัดลอก stack-config.js มา (ติดตั้งเก่า) — ใช้กติกาเดิม
     const pkg = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')); } catch { return {}; } })();
@@ -36,9 +61,7 @@ const VERIFY = (() => {
 
 const AUDIT = (() => {
   try {
-    const sc = require(path.join(CLAUDE, 'stack-config.js'));
-    const cfg = sc.load(ROOT);
-    return { cmd: sc.resolveCommand(ROOT, 'audit', cfg), mode: cfg.auditMode || 'warn' };
+    return { cmd: stackApi?.resolveCommand(ROOT, 'audit', CONFIG) || null, mode: CONFIG.auditMode || 'warn' };
   } catch {
     return { cmd: null, mode: 'off' };
   }
@@ -46,9 +69,7 @@ const AUDIT = (() => {
 
 const SECRETS = (() => {
   try {
-    const sc = require(path.join(CLAUDE, 'stack-config.js'));
-    const cfg = sc.load(ROOT);
-    return { cmd: sc.resolveCommand(ROOT, 'secrets', cfg), mode: cfg.secretsMode || 'required' };
+    return { cmd: stackApi?.resolveCommand(ROOT, 'secrets', CONFIG) || null, mode: CONFIG.secretsMode || 'required' };
   } catch {
     return { cmd: null, mode: 'off' };
   }
@@ -57,24 +78,61 @@ const SECRETS = (() => {
 const steps = [];
 const add = (name, cmd, cmdArgs, opts = {}) => steps.push({ name, cmd, cmdArgs, ...opts });
 
+if (CONFIG_ERROR) {
+  add('stack-config', null, null, { failure: `cannot trust .claude/stack.json: ${CONFIG_ERROR}` });
+}
+if (!['adoption', 'production'].includes(ASSURANCE_MODE)) {
+  add('assurance-policy', null, null, {
+    failure: `unsupported assuranceMode "${ASSURANCE_MODE}"; use "adoption" or "production"`,
+  });
+}
+if (PRODUCTION && !['R3', 'R4'].includes(CONFIG.readinessLevel || 'R3')) {
+  add('readiness-policy', null, null, {
+    failure: `production assurance requires readinessLevel R3 or R4 (found "${CONFIG.readinessLevel}")`,
+  });
+}
+if (PRODUCTION && DOCS_ONLY) {
+  add('production-policy', null, null, {
+    failure: 'production assurance does not allow --docs-only because it is a caller-controlled bypass; run the full gate',
+  });
+}
 if (!DOCS_ONLY) {
   if (VERIFY) add('verify', VERIFY.split(' ')[0], VERIFY.split(' ').slice(1), { shell: true });
+  else if (PRODUCTION) add('verify', null, null, { failure: 'production assurance requires verifyCommand; missing verify may not be skipped' });
   else add('verify', null, null, { skip: 'ยังไม่ได้ตั้งคำสั่ง verify — ใส่ "verifyCommand" ใน .claude/stack.json หรือ env VERIFY_COMMAND (Phase 2 รอบ B2)' });
 }
-if (!DOCS_ONLY && AUDIT.cmd && AUDIT.mode !== 'off')
+if (PRODUCTION && AUDIT.mode !== 'required') {
+  add('audit-policy', null, null, { failure: `production assurance requires auditMode "required" (found "${AUDIT.mode}")` });
+} else if (!DOCS_ONLY && AUDIT.cmd && AUDIT.mode !== 'off') {
   add('audit', AUDIT.cmd.split(' ')[0], AUDIT.cmd.split(' ').slice(1), { shell: true, warnOnly: AUDIT.mode !== 'required' });
-if (SECRETS.cmd && SECRETS.mode !== 'off') {
+} else if (PRODUCTION && !AUDIT.cmd) {
+  add('audit', null, null, { failure: 'production assurance requires commands.audit' });
+}
+if (PRODUCTION && SECRETS.mode !== 'required') {
+  add('secrets-policy', null, null, { failure: `production assurance requires secretsMode "required" (found "${SECRETS.mode}")` });
+} else if (SECRETS.cmd && SECRETS.mode !== 'off') {
   const bin = SECRETS.cmd.split(' ')[0];
   const has = spawnSync(bin, ['version'], { stdio: 'ignore', shell: true }).status === 0;
   if (has) add('secrets', bin, SECRETS.cmd.split(' ').slice(1), { shell: true, warnOnly: SECRETS.mode === 'warn' });
+  else if (PRODUCTION) add('secrets', null, null, { failure: `production assurance requires secret scanner "${bin}", but it is unavailable` });
   else add('secrets', null, null, { skip: `ไม่พบ ${bin} ในเครื่อง — ติดตั้งจาก https://github.com/gitleaks/gitleaks (เช่น brew install gitleaks / scoop install gitleaks) หรือตั้ง "secretsMode": "off" ใน .claude/stack.json` });
+} else if (PRODUCTION) {
+  add('secrets', null, null, { failure: 'production assurance requires commands.secrets' });
 }
 add('check-config', process.execPath, [path.join(CLAUDE, 'check-config.js')]);
 add('docs-lint', process.execPath, [path.join(CLAUDE, 'docs-lint.js'), ...(RELEASE ? ['--release', RELEASE] : [])]);
+if (PRODUCTION) {
+  add('readiness', process.execPath, [
+    path.join(CLAUDE, 'readiness.js'),
+    '--file', CONFIG.readinessManifest || 'docs/evidence/readiness.json',
+    '--level', CONFIG.readinessLevel || 'R3',
+  ]);
+}
 
 const results = [];
 for (const s of steps) {
   process.stdout.write(`\n▶ ${s.name}\n`);
+  if (s.failure) { console.log(`  FAIL: ${s.failure}`); results.push([s.name, 'fail']); continue; }
   if (s.skip) { console.log(`  skip: ${s.skip}`); results.push([s.name, 'skip']); continue; }
   if (s.cmdArgs && s.cmdArgs[0] && s.cmdArgs[0].endsWith('.js') && !fs.existsSync(s.cmdArgs[0])) {
     if (s.optional) { console.log(`  skip: ไม่มี ${path.basename(s.cmdArgs[0])}`); results.push([s.name, 'skip']); continue; }

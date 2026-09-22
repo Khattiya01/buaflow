@@ -1,0 +1,38 @@
+{
+  "$schema": "../../buaflow/schemas/pack.schema.json",
+  "schemaVersion": "1.0",
+  "_": "pack.json — สัญญาของ stack pack หรือ capability pack หนึ่งตัว (PP-002) · เก็บที่ .claude/packs/<id>.json · ตัวอย่างจริงอยู่ที่ claude-setup/tests/fixtures/packs/",
+  "_rules": [
+    "id ต้องตรงชื่อไฟล์ (lowercase-kebab-case) — .claude/packs/nextjs-postgres.json ต้องมี id: \"nextjs-postgres\"",
+    "kind = \"stack\" (ให้สถาปัตยกรรมทั้งชุด เช่น Next.js+PostgreSQL) หรือ \"capability\" (เพิ่มความสามารถหนึ่งอย่างบน stack ที่มีอยู่ เช่น auth, payment)",
+    "version เป็น semver เต็ม (major.minor.patch) เพราะ pack คือ generator/convention จริง ไม่ใช่แค่ data schema — patch แก้บั๊กได้โดยไม่เปลี่ยน contract",
+    "generatedArtifacts / verification / operationalEvidence ต้องมีอย่างน้อยหมวดละ 1 รายการเสมอ — pack ที่ไม่ generate อะไร ไม่มีทางพิสูจน์ตัวเอง และไม่ช่วย readiness control ไหนเลย ไม่ใช่ pack",
+    "operationalEvidence[].control ต้องเป็น control id ที่รู้จักใน claude-setup/readiness.js (CONTROLS_BY_LEVEL) — evidence อธิบายว่า pack นี้ช่วยผ่าน control นั้นได้อย่างไรจริง ไม่ใช่คำอธิบายทั่วไป (≥ 20 ตัวอักษร)",
+    "compatibility.requiresPacks / conflictsWithPacks อ้าง id ของ pack อื่น · profiles อ้าง id ของ application profile (PP-001) — ปล่อยว่างได้ถ้าไม่ผูกกับใครเป็นพิเศษ",
+    "upgrade[] ว่างได้สำหรับ pack เวอร์ชันแรก — เพิ่มรายการเมื่อออกเวอร์ชันถัดไปที่ต้องมีขั้นตอน migrate จริง",
+    "ตรวจไฟล์นี้: node claude-setup/pack.js --file .claude/packs/<id>.json"
+  ],
+  "id": "<pack-id>",
+  "kind": "stack",
+  "name": "<Pack name>",
+  "description": "<pack นี้ให้อะไร และเหมาะกับงานแบบไหน>",
+  "version": "1.0.0",
+  "inputs": [
+    { "name": "<inputName>", "type": "string", "required": true, "description": "<ใช้ทำอะไร>" }
+  ],
+  "generatedArtifacts": [
+    { "path": "<path/ที่/generate>", "description": "<ทำหน้าที่อะไรในระบบ>" }
+  ],
+  "compatibility": {
+    "requiresPacks": [],
+    "conflictsWithPacks": [],
+    "profiles": []
+  },
+  "verification": [
+    { "id": "<verification-id>", "command": "<คำสั่งที่รันได้จริง>", "description": "<คำสั่งนี้พิสูจน์อะไร>" }
+  ],
+  "upgrade": [],
+  "operationalEvidence": [
+    { "control": "<control-id>", "evidence": "<pack นี้ช่วยผ่าน control นี้ได้อย่างไรจริง อย่างน้อย 20 ตัวอักษร>" }
+  ]
+}

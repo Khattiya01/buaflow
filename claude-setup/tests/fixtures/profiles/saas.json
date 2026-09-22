@@ -1,0 +1,20 @@
+{
+  "$schema": "../../../../schemas/application-profile.schema.json",
+  "schemaVersion": "1.0",
+  "id": "saas",
+  "name": "Multi-tenant SaaS",
+  "description": "A subscription product serving multiple paying customer organizations from shared infrastructure.",
+  "controls": [
+    { "control": "persistence", "requirement": "required", "rationale": "Tenant, subscription and product data must persist reliably across the product's lifetime." },
+    { "control": "access-control", "requirement": "required", "rationale": "Cross-tenant data leakage is the top SaaS risk, so authorization and tenant isolation must be tested, never waived." },
+    { "control": "database-migration", "requirement": "required", "rationale": "Schema changes ship continuously to a shared production database with live paying tenants, so forward and backward migration evidence is mandatory." }
+  ],
+  "architectureChoices": [
+    { "area": "tenancy", "choice": "shared-schema-with-tenant-id", "rationale": "A shared schema with a tenant_id column scales to many small tenants without per-tenant infrastructure overhead." },
+    { "area": "billing", "choice": "usage-metered-subscription", "rationale": "Subscription SaaS needs recurring billing and usage metering wired in from the first paid tier." }
+  ],
+  "clarificationQuestions": [
+    { "id": "tenant-isolation-level", "prompt": "ต้องแยกข้อมูลลูกค้าระดับ database แยก หรือ row-level ภายใน schema เดียวพอ?", "affects": ["architecture", "security", "cost"], "whyItMatters": "ระดับ isolation กำหนดทั้งต้นทุน infrastructure และความซับซ้อนของ authorization layer เปลี่ยนทีหลังคือ migration ใหญ่" },
+    { "id": "billing-provider", "prompt": "จะใช้ผู้ให้บริการ billing ภายนอก (เช่น Stripe) หรือทำระบบเก็บเงินเอง?", "affects": ["architecture", "cost", "compliance"], "whyItMatters": "ผู้ให้บริการภายนอกลดภาระ compliance ด้านการชำระเงิน แต่ผูก vendor และค่าธรรมเนียม เปลี่ยนทีหลังกระทบ billing history ทั้งหมด" }
+  ]
+}

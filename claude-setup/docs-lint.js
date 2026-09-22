@@ -27,7 +27,10 @@ const path = require('node:path');
 const args = process.argv.slice(2);
 const releaseIdx = args.indexOf('--release');
 const RELEASE_MS = releaseIdx !== -1 ? args[releaseIdx + 1] : null;
-const ROOT = args.find((a, i) => !a.startsWith('--') && i !== releaseIdx + 1) || process.cwd();
+// Exclude the value after --release only when that option is actually present.
+// The old `i !== releaseIdx + 1` also excluded index 0 when releaseIdx was -1,
+// so `node docs-lint.js /some/project` silently linted process.cwd() instead.
+const ROOT = args.find((a, i) => !a.startsWith('--') && !(releaseIdx !== -1 && i === releaseIdx + 1)) || process.cwd();
 
 const problems = [];
 const warnings = [];

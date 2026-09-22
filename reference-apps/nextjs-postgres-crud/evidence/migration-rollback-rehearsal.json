@@ -1,0 +1,48 @@
+{
+  "startedAt": "2026-09-22T16:38:10.428Z",
+  "finishedAt": "2026-09-22T16:38:12.206Z",
+  "totalDurationMs": 1777,
+  "steps": [
+    {
+      "name": "verify schema exists before rollback",
+      "durationMs": 25,
+      "tables": [
+        "_prisma_migrations",
+        "audit_logs",
+        "tasks",
+        "users"
+      ],
+      "userCount": 2,
+      "ok": true
+    },
+    {
+      "name": "apply rollback.sql",
+      "durationMs": 18,
+      "file": "prisma\\migrations\\20260922161307_init\\rollback.sql"
+    },
+    {
+      "name": "verify schema is gone after rollback",
+      "durationMs": 11,
+      "remainingTables": [],
+      "ok": true
+    },
+    {
+      "name": "roll forward: migrate deploy + seed",
+      "durationMs": 1710,
+      "ok": true
+    },
+    {
+      "name": "verify schema and seed data after roll-forward",
+      "durationMs": 13,
+      "tables": [
+        "_prisma_migrations",
+        "audit_logs",
+        "tasks",
+        "users"
+      ],
+      "userCount": 2,
+      "ok": true
+    }
+  ],
+  "ok": true
+}

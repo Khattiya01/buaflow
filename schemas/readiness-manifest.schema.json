@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/readiness-manifest-v1.json",
+  "title": "Buaflow readiness manifest v1",
+  "type": "object",
+  "required": ["schemaVersion", "project", "profile", "targetLevel", "commit", "generatedAt", "controls"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "project": { "type": "string", "minLength": 1 },
+    "profile": { "type": "string", "minLength": 1 },
+    "targetLevel": { "enum": ["R0", "R1", "R2", "R3", "R4"] },
+    "commit": { "type": "string", "minLength": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "controls": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9-]+$" },
+      "additionalProperties": { "$ref": "#/$defs/control" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "control": {
+      "type": "object",
+      "required": ["status", "evidence"],
+      "properties": {
+        "status": { "enum": ["pass", "fail", "pending", "not-applicable"] },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidence" }
+        },
+        "rationale": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["type", "value"],
+      "properties": {
+        "type": { "enum": ["command", "file", "url", "manual"] },
+        "value": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  }
+}

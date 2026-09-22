@@ -18,6 +18,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const DEFAULTS = {
+  // adoption = รายงาน assurance ที่ยังขาดโดยไม่ทำให้โปรเจกต์เดิมหยุดทันที
+  // production = fail-closed: verify, dependency audit, secret scan และ R3 manifest ต้องมีและผ่าน
+  assuranceMode: 'adoption',
+
+  // production mode ใช้สองค่านี้เรียก readiness.js เป็นด่านบังคับ
+  readinessLevel: 'R3',
+  readinessManifest: 'docs/evidence/readiness.json',
+
   // null = ให้ resolveVerify() เดาจาก package.json (พฤติกรรมเดิมของ gate.js)
   // แยกจาก commands ข้างล่างเพราะตัวนี้เป็นของที่ gate ยึด และ env VERIFY_COMMAND ทับได้
   verifyCommand: null,
@@ -106,11 +114,22 @@ const DEFAULTS = {
   ],
 };
 
-function readJson(file) {
+function readJson(file, strict = false) {
+  if (!fs.existsSync(file)) return null;
   try {
     return JSON.parse(fs.readFileSync(file, 'utf8'));
-  } catch {
+  } catch (error) {
+    if (strict) throw new Error(`${path.basename(file)} is not valid JSON: ${error.message}`);
     return null;
+  }
+}
+
+function assertSupportedVersion(value, type = 'stack-config') {
+  if (!value?.schemaVersion) return; // legacy/unversioned v0 remains readable and migratable
+  const match = String(value.schemaVersion).match(/^(\d+)\.(\d+)$/);
+  if (!match) throw new Error(`${type}: invalid schemaVersion "${value.schemaVersion}"`);
+  if (Number(match[1]) !== 1) {
+    throw new Error(`${type}: unsupported schemaVersion "${value.schemaVersion}"; migrate or upgrade Buaflow`);
   }
 }
 
@@ -118,10 +137,11 @@ function readJson(file) {
  * อ่าน config ของโปรเจกต์ที่ root แล้วรวมกับ DEFAULTS
  * protected-paths.json ยังอ่านอยู่เพื่อไม่ให้โปรเจกต์ที่ติดตั้งไปแล้วพัง (stack.json ชนะถ้ามีทั้งคู่)
  */
-function load(root) {
+function load(root, options = {}) {
   const dir = path.join(root || process.cwd(), '.claude');
-  const stack = readJson(path.join(dir, 'stack.json')) || {};
+  const stack = readJson(path.join(dir, 'stack.json'), !!options.strict) || {};
   const legacy = readJson(path.join(dir, 'protected-paths.json')) || {};
+  assertSupportedVersion(stack);
 
   const pick = (key) => {
     if (stack[key] !== undefined) return stack[key];
@@ -156,4 +176,4 @@ function resolveVerify(root, cfg) {
   return pkg?.scripts?.verify ? 'pnpm verify' : null;
 }
 
-module.exports = { DEFAULTS, load, resolveVerify, resolveCommand };
+module.exports = { DEFAULTS, assertSupportedVersion, load, resolveVerify, resolveCommand };

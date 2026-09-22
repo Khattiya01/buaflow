@@ -1,0 +1,42 @@
+{
+  "$schema": "../../buaflow/schemas/product-graph.schema.json",
+  "schemaVersion": "1.0",
+  "product": "Fixture product",
+  "actors": [
+    { "id": "customer", "name": "Customer", "type": "person", "description": "Buys items" }
+  ],
+  "outcomes": [
+    { "id": "faster-checkout", "statement": "Checkout completes in under 2 minutes" }
+  ],
+  "capabilities": [
+    { "id": "checkout", "name": "Checkout", "actors": ["customer"], "outcomes": ["faster-checkout"] }
+  ],
+  "rules": [
+    { "id": "one-active-cart", "statement": "A customer has exactly one active cart", "appliesTo": ["checkout"] }
+  ],
+  "entities": [
+    {
+      "id": "order",
+      "name": "Order",
+      "attributes": [
+        { "name": "id", "type": "string" },
+        { "name": "total", "type": "number" }
+      ]
+    }
+  ],
+  "integrations": [
+    { "id": "payment-gateway", "name": "Payment gateway", "direction": "outbound", "description": "Charges the customer" }
+  ],
+  "nonFunctionalRequirements": [
+    { "id": "checkout-latency", "category": "performance", "statement": "Checkout API responds quickly", "target": "p95 < 300ms" }
+  ],
+  "assumptions": [
+    { "id": "single-currency", "statement": "All prices are in THB", "confidence": "high" }
+  ],
+  "risks": [
+    { "id": "gateway-outage", "statement": "Payment gateway outage blocks checkout", "impact": "high", "likelihood": "low", "mitigation": "Queue orders and retry" }
+  ],
+  "exclusions": [
+    { "id": "no-subscriptions", "statement": "Recurring subscriptions are out of scope for v1" }
+  ]
+}

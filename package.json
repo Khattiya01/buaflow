@@ -1,0 +1,16 @@
+{
+  "name": "buaflow",
+  "version": "2.3.4",
+  "private": true,
+  "description": "Development commands for the Buaflow kit repository",
+  "bin": {
+    "buaflow": "bin/buaflow.js"
+  },
+  "scripts": {
+    "test": "node scripts/run-tests.js",
+    "check": "node scripts/check-repository.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

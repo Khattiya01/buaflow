@@ -1,4 +1,6 @@
 {
+  "$schema": "../../../buaflow/schemas/prototype-flow.schema.json",
+  "schemaVersion": "1.0",
   "_": "flow.json — click-through prototype จาก canvas baseline · เก็บที่ docs/design/prototype/flow.json · ลบ key ที่ขึ้นต้นด้วย _ ได้ (เป็นคำอธิบาย)",
   "_rules": [
     "artboard = ไฟล์ใน docs/design/canvas/ ที่ commit เป็น baseline แล้วเท่านั้น — ห้ามชี้ไปไฟล์ที่วาดเพิ่มเอง",

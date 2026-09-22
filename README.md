@@ -18,6 +18,8 @@
   ·
   <a href="START-HERE.md"><strong>อ่าน START HERE</strong></a>
   ·
+  <a href="CLI.md"><strong>CLI</strong></a>
+  ·
   <a href="UPGRADE.md"><strong>คู่มืออัปเกรด</strong></a>
   ·
   <a href="VERSION.md"><strong>Changelog</strong></a>
@@ -239,6 +241,15 @@ flowchart LR
 
 `gate.js` ใช้ชุดตรวจเดียวกันทั้ง local pre-push และ CI จึงลดปัญหา “ผ่านในเครื่อง แต่กฎบน CI เป็นคนละชุด” โดยโหมดของ audit และ secret scan ปรับได้ผ่าน `.claude/stack.json`
 
+`assuranceMode` มีสองระดับ:
+
+| Mode | ใช้เมื่อ | พฤติกรรม |
+|---|---|---|
+| `adoption` (ค่าเริ่มต้น) | กำลังติดตั้ง/รับช่วงโปรเจกต์เดิม | ของที่ยังไม่พร้อมอาจ `skip`/`warn` พร้อมรายงาน gap เพื่อไม่หยุดทีมทันที |
+| `production` | จะอ้าง R3/R4 หรือส่งมอบ Production Candidate | fail-closed: verify, dependency audit, secret scan และ readiness manifest ต้องมีและผ่านทั้งหมด; ห้าม `--docs-only` |
+
+ห้ามเปิด `production` เพื่อให้ป้ายดูดีแล้วปิด scanner ทีละตัว — gate จะปฏิเสธ `auditMode`/`secretsMode` ที่ไม่ใช่ `required` และ readiness ต่ำกว่า R3
+
 คำสั่งสำคัญหลังติดตั้ง Phase 7:
 
 ```bash
@@ -248,7 +259,7 @@ node .claude/verify.js
 # ประตูเต็ม: verify + audit/secrets ตาม config + check-config + docs-lint
 node .claude/gate.js
 
-# commit ที่แก้เฉพาะเอกสาร
+# commit ที่แก้เฉพาะเอกสาร (ใช้ได้ใน adoption mode เท่านั้น)
 node .claude/gate.js --docs-only
 
 # ตรวจเงื่อนไขปิด milestone เพิ่มเติม
@@ -259,6 +270,21 @@ node .claude/check-config.js
 
 # generate board จาก task files ซึ่งเป็น source of truth
 node .claude/board.js
+
+# ประเมิน readiness manifest (R0-R4) และคืน exit code สำหรับ CI
+node .claude/readiness.js --file docs/evidence/readiness.json --level R3
+```
+
+Machine-readable artifact ของ Buaflow มี `schemaVersion`, JSON Schema และ registry กลางที่
+`schemas/registry.json` ดู compatibility/migration policy ได้ใน
+[`standards/artifact-versioning.md`](standards/artifact-versioning.md) ไฟล์จาก Buaflow รุ่นเก่าที่ไม่มี version
+ให้ preview migration ก่อนเสมอ (คำสั่งนี้ยังไม่เขียนไฟล์):
+
+```bash
+node buaflow/scripts/migrate-artifact.js --type stack-config --file .claude/stack.json
+
+# เขียนจริงเมื่อดู diff แล้ว
+node buaflow/scripts/migrate-artifact.js --type stack-config --file .claude/stack.json --write
 ```
 
 ---
@@ -395,7 +421,7 @@ buaflow/
 │   ├── verify.mjs.tpl
 │   └── ...
 │
-└── claude-setup/                     คัดลอกไปเป็น .claude/ ใน Phase 7
+├── claude-setup/                     คัดลอกไปเป็น .claude/ ใน Phase 7
     ├── skills/                       10 reusable workflows
     ├── rules/                        6 path-scoped rules
     ├── agents/                       3 context-isolated agents
@@ -408,10 +434,15 @@ buaflow/
     ├── gate.js                       pre-push / CI quality gate
     ├── check-config.js               config health check
     ├── docs-lint.js                  artifact integrity check
+    ├── readiness.js                  R0-R4 evidence manifest validator
     ├── board.js                      task files → generated board
     ├── prototype.js                  canvas → click-through prototype
     ├── pixel.js                      screenshot diff
     └── run.js                        named command runner
+│
+├── bin/buaflow.js                    vendor-neutral CLI: init / doctor / verify / readiness / resume
+├── schemas/                          public artifact contracts + schema registry
+└── CLI.md                            CLI contract, exit codes และ JSON output
 ```
 
 </details>
@@ -429,7 +460,7 @@ your-project/
 │   ├── stack.json
 │   ├── settings.json
 │   ├── verify.js  gate.js  check-config.js
-│   ├── docs-lint.js  board.js  run.js
+│   ├── docs-lint.js  readiness.js  board.js  run.js
 │   └── prototype.js  pixel.js
 ├── .husky/
 │   ├── pre-push                      เรียก gate
@@ -438,6 +469,7 @@ your-project/
 ├── .github/workflows/gate.yml        หรือ .gitlab-ci.yml
 ├── docs/
 │   ├── constitution.md
+│   ├── evidence/readiness.json       readiness claim + evidence ของ commit/build
 │   ├── planning/  intents/  specs/  plans/
 │   ├── backlog/tasks/  adr/  evals/
 │   ├── design/  incidents/  releases/  api/

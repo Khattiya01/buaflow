@@ -1,0 +1,18 @@
+{
+  "id": "fixture-pack",
+  "kind": "stack",
+  "name": "Fixture pack",
+  "version": "1.0.0",
+  "inputs": [],
+  "generatedArtifacts": [
+    { "path": "fixture.txt", "description": "A single placeholder file for the migration test." }
+  ],
+  "compatibility": { "requiresPacks": [], "conflictsWithPacks": [], "profiles": [] },
+  "verification": [
+    { "id": "check", "command": "true", "description": "Always-passing placeholder command for the migration test." }
+  ],
+  "upgrade": [],
+  "operationalEvidence": [
+    { "control": "build", "evidence": "Fixture pack always produces a successful build for migration test coverage." }
+  ]
+}

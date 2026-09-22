@@ -1,0 +1,12 @@
+{
+  "title": "Fixture prototype",
+  "locale": "th-TH",
+  "start": "home",
+  "screens": {
+    "home": {
+      "title": "Home",
+      "artboards": { "1280": "home.dc.html" }
+    }
+  }
+}
+

@@ -1,0 +1,11 @@
+{
+  "$schema": "../buaflow/schemas/project-manifest.schema.json",
+  "schemaVersion": "1.0",
+  "project": "<project-name>",
+  "track": "new",
+  "assuranceMode": "adoption",
+  "createdAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
+  "buaflowVersion": "<buaflow-version>",
+  "planningState": "docs/planning/_state.md"
+}
+

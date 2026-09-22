@@ -50,6 +50,15 @@ if (!fs.existsSync(FLOW_FILE)) {
 let flow;
 try { flow = JSON.parse(fs.readFileSync(FLOW_FILE, 'utf8')); }
 catch (e) { console.error(`✗ ${rel(FLOW_FILE)} ไม่ใช่ JSON: ${e.message}`); process.exit(1); }
+if (flow.schemaVersion) {
+  const version = String(flow.schemaVersion).match(/^(\d+)\.(\d+)$/);
+  if (!version || Number(version[1]) !== 1) {
+    console.error(`✗ ${rel(FLOW_FILE)} ใช้ schemaVersion "${flow.schemaVersion}" ที่ prototype.js รุ่นนี้ไม่รองรับ — migrate หรือ upgrade Buaflow`);
+    process.exit(1);
+  }
+} else {
+  warn(`${rel(FLOW_FILE)} ยังไม่มี schemaVersion — migrate เป็น prototype-flow v1`);
+}
 
 const screens = flow.screens && typeof flow.screens === 'object' ? flow.screens : {};
 const names = Object.keys(screens);

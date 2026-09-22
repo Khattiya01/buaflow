@@ -1,0 +1,5 @@
+{
+  "verifyCommand": "npm test",
+  "auditMode": "warn",
+  "codeFilePattern": "\\.(js|ts)$"
+}
