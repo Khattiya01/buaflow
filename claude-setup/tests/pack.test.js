@@ -79,8 +79,10 @@ test('validatePack rejects an upgrade step whose from and to are identical', () 
   assert.match(result.errors.join('\n'), /from and to must differ/);
 });
 
-test('the nextjs-postgres and auth-rbac fixtures each pass validation', () => {
-  for (const name of ['nextjs-postgres', 'auth-rbac']) {
+const CORE_CAPABILITY_PACKS = ['nextjs-postgres', 'auth-rbac', 'db', 'storage', 'notification', 'background-jobs', 'audit-log'];
+
+test('every core pack fixture (PP-002 + PP-007) passes validation', () => {
+  for (const name of CORE_CAPABILITY_PACKS) {
     const result = validatePack(pack(name), { expectedId: name });
     assert.equal(result.ok, true, `${name}: ${result.errors.join('; ')}`);
   }
@@ -93,6 +95,18 @@ test('the two fixture packs contribute evidence to different readiness controls'
   assert.equal(pack('nextjs-postgres').kind, 'stack');
   assert.equal(pack('auth-rbac').kind, 'capability');
   assert.deepEqual(pack('auth-rbac').compatibility.requiresPacks, ['nextjs-postgres']);
+});
+
+test('the standalone db pack conflicts with nextjs-postgres, which already bundles persistence', () => {
+  assert.deepEqual(pack('db').compatibility.conflictsWithPacks, ['nextjs-postgres']);
+  assert.deepEqual(pack('nextjs-postgres').compatibility.conflictsWithPacks, ['db']);
+});
+
+test('background-jobs and audit-log leave requiresPacks empty (v1 has no capability-based dependency)', () => {
+  // They need *some* persistence-providing pack (nextjs-postgres or db), but requiresPacks v1 is
+  // identity-based, not capability-based — see templates/pack.tpl.json's note on this limitation.
+  assert.deepEqual(pack('background-jobs').compatibility.requiresPacks, []);
+  assert.deepEqual(pack('audit-log').compatibility.requiresPacks, []);
 });
 
 function run(args, cwd = repositoryRoot) {
@@ -110,7 +124,7 @@ test('--dir validates every pack in the fixtures directory', () => {
   assert.equal(result.status, 0, result.stderr);
   const parsed = JSON.parse(result.stdout);
   assert.equal(parsed.ok, true);
-  assert.equal(parsed.results.length, 2);
+  assert.equal(parsed.results.length, 7); // nextjs-postgres, auth-rbac, db, storage, notification, background-jobs, audit-log
   assert.ok(parsed.results.every((r) => r.ok));
 });
 

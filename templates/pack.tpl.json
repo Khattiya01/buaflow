@@ -9,8 +9,9 @@
     "generatedArtifacts / verification / operationalEvidence ต้องมีอย่างน้อยหมวดละ 1 รายการเสมอ — pack ที่ไม่ generate อะไร ไม่มีทางพิสูจน์ตัวเอง และไม่ช่วย readiness control ไหนเลย ไม่ใช่ pack",
     "operationalEvidence[].control ต้องเป็น control id ที่รู้จักใน claude-setup/readiness.js (CONTROLS_BY_LEVEL) — evidence อธิบายว่า pack นี้ช่วยผ่าน control นั้นได้อย่างไรจริง ไม่ใช่คำอธิบายทั่วไป (≥ 20 ตัวอักษร)",
     "compatibility.requiresPacks / conflictsWithPacks อ้าง id ของ pack อื่น · profiles อ้าง id ของ application profile (PP-001) — ปล่อยว่างได้ถ้าไม่ผูกกับใครเป็นพิเศษ",
+    "requiresPacks v1 อ้างได้เฉพาะ pack id ตรงตัว (identity-based) — อ้าง 'ต้องมีความสามารถ X' แบบ pack ไหนก็ได้ (capability-based เช่น 'ต้องมี persistence จาก db หรือ nextjs-postgres ก็ได้') ยังทำไม่ได้ใน v1 · pack ที่ต้องการแบบหลังให้ปล่อย requiresPacks ว่างแล้วอธิบายไว้ใน description แทน (ดูตัวอย่าง background-jobs.json/audit-log.json)",
     "upgrade[] ว่างได้สำหรับ pack เวอร์ชันแรก — เพิ่มรายการเมื่อออกเวอร์ชันถัดไปที่ต้องมีขั้นตอน migrate จริง",
-    "ตรวจไฟล์นี้: node claude-setup/pack.js --file .claude/packs/<id>.json"
+    "ตรวจไฟล์เดียว: node claude-setup/pack.js --file .claude/packs/<id>.json · ตรวจว่าชุด pack ติดตั้งพร้อมกันได้ไหม (PP-007): node claude-setup/pack-composition.js --dir .claude/packs --ids <id1>,<id2>,..."
   ],
   "id": "<pack-id>",
   "kind": "stack",

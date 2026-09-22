@@ -19,7 +19,7 @@
   ],
   "compatibility": {
     "requiresPacks": [],
-    "conflictsWithPacks": [],
+    "conflictsWithPacks": ["db"],
     "profiles": ["content", "internal-crud", "saas"]
   },
   "verification": [

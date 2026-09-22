@@ -279,7 +279,7 @@
       "id": "PP-004",
       "title": "Second web golden stack and R3 reference app",
       "milestone": "M2",
-      "status": "backlog",
+      "status": "ready",
       "dependsOn": ["PP-003"],
       "acceptance": [
         "A second, materially different web stack (e.g. React + FastAPI + PostgreSQL, per BUAFLOW_PRODUCT_ROADMAP.md) reaches R3 from a clean environment, proving the pack contract generalizes beyond nextjs-postgres",
@@ -287,7 +287,31 @@
       ],
       "artifacts": [],
       "verification": [],
-      "notes": "Placeholder only — added so development state has a valid non-done focus item now that M1 is fully complete (all 11 M0/M1 items done). Not started, not scoped in detail, and not promoted to ready. M2 (\"Repeatable Web Production\" per BUAFLOW_PRODUCT_ROADMAP.md) also expects core capability packs and convergence checks alongside a second web stack — the user should decide M2's actual entry point and priorities before real work begins here."
+      "notes": "Not started. Unblocked (PP-003 done) and promoted to ready, but this is PP-003-sized work (a full second reference app, hours of build+CI) — confirm with the user before starting, per the same pattern PP-003 itself followed."
+    },
+    {
+      "id": "PP-007",
+      "title": "Core capability packs",
+      "milestone": "M2",
+      "status": "done",
+      "dependsOn": ["PP-002"],
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
+      "acceptance": [
+        "Core capability packs cover database persistence, object storage, notifications, background jobs and audit logging, alongside the existing auth-rbac pack",
+        "A composed set of packs is checked deterministically for missing dependencies, declared conflicts and generated-file collisions"
+      ],
+      "artifacts": [
+        "claude-setup/tests/fixtures/packs/db.json",
+        "claude-setup/tests/fixtures/packs/storage.json",
+        "claude-setup/tests/fixtures/packs/notification.json",
+        "claude-setup/tests/fixtures/packs/background-jobs.json",
+        "claude-setup/tests/fixtures/packs/audit-log.json",
+        "claude-setup/pack-composition.js",
+        "claude-setup/tests/pack-composition.test.js"
+      ],
+      "verification": ["npm run check"],
+      "notes": "5 new capability packs (db, storage, notification, background-jobs, audit-log) alongside PP-002's existing nextjs-postgres/auth-rbac — matches the roadmap's 'auth, RBAC/ownership, DB, storage, notification, background jobs, audit log' list (auth+RBAC/ownership covered by the existing auth-rbac pack). claude-setup/pack-composition.js is new: it checks whether a chosen SET of packs installs together cleanly — missing requiresPacks, both sides of a conflictsWithPacks pair present, or two packs writing the same generatedArtifacts path undeclared. Building it immediately surfaced a real v1 contract gap: requiresPacks is identity-based ('needs pack X'), not capability-based ('needs something providing persistence'), so background-jobs/audit-log can't machine-declare their real dependency on db-or-nextjs-postgres — documented in templates/pack.tpl.json and each fixture's description rather than papered over. Also added db to nextjs-postgres's conflictsWithPacks (and vice versa), since nextjs-postgres already bundles persistence. A small step toward M2's 'convergence checks', not the whole of it."
     }
   ],
   "decisions": [
@@ -315,8 +339,8 @@
   ],
   "lastSession": {
     "date": "2026-09-23",
-    "summary": "Completed PP-003 and closed out M1 (\"One Golden Path to R3\"). Committed and pushed reference-apps/nextjs-postgres-crud (and its BF-001..BF-007/IC-001/PP-001/PP-002 foundation) to origin/main with explicit user consent, scoped precisely to exclude unrelated pending drafts (aidlc-starter-template/, CLI.md, AI_SDLC_COMPARISON.md). The first CI run on the newly-added .github/workflows/ci-nextjs-postgres-crud.yml failed three times in a row on gaps the local clean-environment rehearsal hadn't covered: a typecheck script relying on stale Next.js typegen output (fixed: `next typegen` now runs first), `--env-file=.env` hard-failing where CI has no .env file (fixed: `--env-file-if-exists`), and a dependency-audit step that would have red-lined forever on the already-documented prisma-CLI-peer-dependency finding (fixed: scripts/check-dependency-audit.mjs, an allowlist-aware check). Fourth run: fully green (https://github.com/Khattiya01/buaflow/actions/runs/35758419510). docs/evidence/readiness.json now reports a genuine 25/25 R3 PASS. Added PP-004 as an unscoped backlog placeholder only so development state has a valid focus item — M2 itself has not been planned.",
-    "next": "M2 (\"Repeatable Web Production\" per BUAFLOW_PRODUCT_ROADMAP.md) needs the user's direction before real work starts: a second web stack (PP-004), core capability packs (PP-006/PP-007 in the long-term roadmap — not yet added to this file), and convergence checks are all candidates. Do not start PP-004 or add further M2 work items without asking first.",
-    "verifiedAt": "2026-09-23T00:10:00.0000000+07:00"
+    "summary": "Completed PP-007 (core capability packs), the first M2 work after closing out M1. Asked the user to choose between PP-004 (second full golden stack, PP-003-sized) and PP-007 (contract/fixture work); they picked PP-007. Added db, storage, notification, background-jobs and audit-log pack fixtures alongside PP-002's existing nextjs-postgres/auth-rbac, and a new claude-setup/pack-composition.js that checks whether a chosen SET of packs installs together (missing requiresPacks, mutual conflictsWithPacks, or undeclared generated-file collisions). Building the composer immediately surfaced a real v1 gap: requiresPacks is identity-based, not capability-based, so background-jobs/audit-log can't machine-declare 'needs persistence from db-or-nextjs-postgres' — documented rather than hidden, in templates/pack.tpl.json and each fixture. Also declared nextjs-postgres and db as mutual conflicts, since nextjs-postgres already bundles persistence. 100 tests passing, npm run check clean. Not pushed to git yet.",
+    "next": "PP-004 (second web golden stack) is the only remaining ready M2 item — promoted to ready but not started, since it's PP-003-sized work. Confirm with the user before beginning it, and before adding any other M2 items (PP-006 is effectively superseded by PP-002's unified contract; convergence checks and the evidence bundle are still unscoped). Also confirm whether to commit+push this session's PP-007 work.",
+    "verifiedAt": "2026-09-23T00:35:00.0000000+07:00"
   }
 }

@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../../schemas/pack.schema.json",
+  "schemaVersion": "1.0",
+  "id": "notification",
+  "kind": "capability",
+  "name": "Transactional notifications (email)",
+  "description": "Adds a single send() entry point for transactional email, so every notification goes through one place that can be tested, logged and rate-limited.",
+  "version": "1.0.0",
+  "inputs": [
+    { "name": "provider", "type": "enum", "required": true, "options": ["smtp", "resend", "ses"], "description": "Transactional email provider." },
+    { "name": "fromAddress", "type": "string", "required": true, "description": "Verified sender address for outgoing mail." }
+  ],
+  "generatedArtifacts": [
+    { "path": "lib/notify.ts", "description": "send() wrapper and template rendering; the only place that calls the provider SDK." }
+  ],
+  "compatibility": {
+    "requiresPacks": [],
+    "conflictsWithPacks": [],
+    "profiles": ["internal-crud", "saas"]
+  },
+  "verification": [
+    { "id": "send-dry-run", "command": "npm test -- notify", "description": "Renders a templated notification and sends it through a test/dry-run transport, asserting the rendered content." }
+  ],
+  "upgrade": [],
+  "operationalEvidence": [
+    { "control": "observability", "evidence": "A failed send logs the provider's error code and the notification type — it is never silently swallowed, since a lost notification is otherwise invisible to everyone." },
+    { "control": "runtime-config", "evidence": "Provider API key and fromAddress are environment variables documented in .env.example; no credential is hardcoded in lib/notify.ts." }
+  ]
+}

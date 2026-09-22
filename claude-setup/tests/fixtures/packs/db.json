@@ -1,0 +1,30 @@
+{
+  "$schema": "../../../../schemas/pack.schema.json",
+  "schemaVersion": "1.0",
+  "id": "db",
+  "kind": "capability",
+  "name": "Database persistence (Prisma + PostgreSQL)",
+  "description": "Adds a Prisma-managed PostgreSQL persistence layer to a stack pack that does not already ship one. Not for use with nextjs-postgres, which already includes this.",
+  "version": "1.0.0",
+  "inputs": [
+    { "name": "poolSize", "type": "number", "required": false, "default": 10, "description": "Maximum Prisma connection pool size." }
+  ],
+  "generatedArtifacts": [
+    { "path": "prisma/schema.prisma", "description": "Base datasource and generator block; the app's own models are added on top." },
+    { "path": "prisma.config.ts", "description": "Prisma 7 CLI config — migrations path and datasource url sourced from DATABASE_URL." },
+    { "path": "lib/db.ts", "description": "Prisma client singleton wired to the @prisma/adapter-pg driver adapter." }
+  ],
+  "compatibility": {
+    "requiresPacks": [],
+    "conflictsWithPacks": ["nextjs-postgres"],
+    "profiles": ["internal-crud", "saas"]
+  },
+  "verification": [
+    { "id": "migrate-status", "command": "npx prisma migrate status", "description": "Confirms the schema and the database are in sync." }
+  ],
+  "upgrade": [],
+  "operationalEvidence": [
+    { "control": "persistence", "evidence": "Prisma migrations under prisma/migrations/ give a repeatable, versioned persistence lifecycle, independent of which stack pack it is layered onto." },
+    { "control": "database-migration", "evidence": "prisma migrate deploy is idempotent; every forward migration is expected to ship a hand-written rollback.sql alongside it, per the pattern in reference-apps/nextjs-postgres-crud." }
+  ]
+}
