@@ -70,7 +70,7 @@ jobs:
 
       - name: Production dependency audit
         working-directory: reference-apps/nextjs-postgres-crud
-        run: npm audit --omit=dev --audit-level=high
+        run: npm run audit:dependencies
 
       - name: Upload evidence
         if: always()

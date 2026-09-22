@@ -34,3 +34,11 @@ $ docker run --rm --entrypoint sh nextjs-postgres-crud:test \
   since the packages it "fixes" are already unreachable at runtime.
 - Re-run before every deploy: `npm audit --omit=dev` (do **not** rely on `npm audit` alone, which
   includes devDependencies and will always show this chain).
+
+## CI enforcement
+
+`npm run audit:dependencies` (`scripts/check-dependency-audit.mjs`) runs the same scan and fails the
+build on any vulnerable package **not** in this file's documented allowlist (`prisma`, `mysql2`,
+`@prisma/config`, `deepmerge-ts`). A plain `npm audit --omit=dev --audit-level=high` would block CI
+forever on this known, understood chain; the allowlist keeps the check meaningful — it still fails
+loudly on any genuinely new finding — without permanently red-lighting the pipeline on this one.
