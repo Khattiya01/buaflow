@@ -4,7 +4,7 @@
   "project": "react-fastapi-postgres-crud",
   "profile": "internal-crud",
   "targetLevel": "R3",
-  "commit": "0000000000000000000000000000000000000000",
+  "commit": "0867902176e09cbc43159d5076723f39969c3faa",
   "generatedAt": "2026-09-22T18:15:00.000Z",
   "controls": {
     "version-control": {
@@ -64,9 +64,9 @@
       ]
     },
     "ci": {
-      "status": "pending",
+      "status": "pass",
       "evidence": [
-        { "type": "manual", "value": ".github/workflows/ci-react-fastapi-postgres.yml exists but has not completed a real run yet" }
+        { "type": "url", "value": "https://github.com/Khattiya01/buaflow/actions/runs/35765907597" }
       ]
     },
     "deployment-package": {

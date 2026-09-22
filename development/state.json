@@ -5,7 +5,7 @@
   "updatedAt": "2026-09-23",
   "current": {
     "milestone": "M2",
-    "focus": ["PP-004"]
+    "focus": ["EP-001"]
   },
   "workItems": [
     {
@@ -271,24 +271,38 @@
         ".github/workflows/ci-nextjs-postgres-crud.yml"
       ],
       "verification": [
-        "node claude-setup/readiness.js --file reference-apps/nextjs-postgres-crud/docs/evidence/readiness.json --level R3"
+        "node claude-setup/readiness.js --file docs/evidence/readiness.json --level R3 --root reference-apps/nextjs-postgres-crud"
       ],
-      "notes": "25/25 R3 controls pass with real, checked evidence (see evidence/pp-003-eval-fixture.json): tests, Docker build, migration/rollback rehearsal, clean-environment rehearsal, SBOM, dependency/secrets scans, accessibility/performance checks, and a real green GitHub Actions run (https://github.com/Khattiya01/buaflow/actions/runs/35758419510) after committing and pushing with explicit user consent. The local clean-environment rehearsal (docker-only) did not catch three gaps that the first real CI run did: a typecheck script depending on stale Next.js typegen output, an --env-file that hard-fails with no .env present, and a dependency-audit step that would have red-lined forever on a documented, understood finding (prisma CLI's peer-dependency chain, proven absent from the shipped image). All three fixed and re-verified before the run that finally passed."
+      "notes": "25/25 R3 controls pass with real, checked evidence (see evidence/pp-003-eval-fixture.json): tests, Docker build, migration/rollback rehearsal, clean-environment rehearsal, SBOM, dependency/secrets scans, accessibility/performance checks, and a real green GitHub Actions run (https://github.com/Khattiya01/buaflow/actions/runs/35758419510) after committing and pushing with explicit user consent. The local clean-environment rehearsal (docker-only) did not catch three gaps that the first real CI run did: a typecheck script depending on stale Next.js typegen output, an --env-file that hard-fails with no .env present, and a dependency-audit step that would have red-lined forever on a documented, understood finding (prisma CLI's peer-dependency chain, proven absent from the shipped image). All three fixed and re-verified before the run that finally passed. Correction during PP-004 (2026-09-23): this verification command was missing --root, so it failed if run exactly as originally written (file evidence resolves relative to --root, which defaults to cwd, not to the manifest's own directory) — fixed here without changing PP-003's actual pass/fail outcome, which was independently re-confirmed."
     },
     {
       "id": "PP-004",
       "title": "Second web golden stack and R3 reference app",
       "milestone": "M2",
-      "status": "in_progress",
+      "status": "done",
       "dependsOn": ["PP-003"],
       "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
       "acceptance": [
         "A second, materially different web stack (e.g. React + FastAPI + PostgreSQL, per BUAFLOW_PRODUCT_ROADMAP.md) reaches R3 from a clean environment, proving the pack contract generalizes beyond nextjs-postgres",
         "All evidence and elapsed time are retained as an eval fixture, comparable to PP-003's"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "In progress: building reference-apps/react-fastapi-postgres-crud (React/Vite SPA + FastAPI + SQLAlchemy/Alembic + PostgreSQL), same task-board domain as PP-003 for a comparable eval fixture, single Docker image (FastAPI serves the built frontend). User confirmed start; PP-007 confirmed already committed and pushed. Python 3.12 installed on the dev machine via winget for local backend work."
+      "artifacts": [
+        "reference-apps/react-fastapi-postgres-crud/Dockerfile",
+        "reference-apps/react-fastapi-postgres-crud/docs/evidence/readiness.json",
+        "reference-apps/react-fastapi-postgres-crud/docs/runbook.md",
+        "reference-apps/react-fastapi-postgres-crud/docs/security-notes.md",
+        "reference-apps/react-fastapi-postgres-crud/docs/requirements-traceability.md",
+        "reference-apps/react-fastapi-postgres-crud/evidence/pp-004-eval-fixture.json",
+        "reference-apps/react-fastapi-postgres-crud/scripts/rehearse-clean-environment.mjs",
+        "reference-apps/react-fastapi-postgres-crud/scripts/rehearse-migration-rollback.mjs",
+        "claude-setup/tests/fixtures/packs/react-fastapi-postgres.json",
+        ".github/workflows/ci-react-fastapi-postgres.yml"
+      ],
+      "verification": [
+        "node claude-setup/readiness.js --file docs/evidence/readiness.json --level R3 --root reference-apps/react-fastapi-postgres-crud"
+      ],
+      "notes": "25/25 R3 controls pass with real, checked evidence (see evidence/pp-004-eval-fixture.json): 22 backend tests (pytest, real Postgres), 6 Playwright e2e tests (primary flow, accessibility, performance), strict mypy + ruff clean, real Docker build, a real Alembic upgrade/downgrade/upgrade rehearsal (a genuine native rollback, unlike PP-003's hand-written rollback.sql companion for forward-only Prisma), a real clean-environment rehearsal, SBOMs and dependency/secrets scans for both the Python backend and the npm frontend, and a real green GitHub Actions run (https://github.com/Khattiya01/buaflow/actions/runs/35765907597) after committing and pushing with the user's prior go-ahead to continue autonomously — reached on the FIRST push, no fix-iterate rounds needed (unlike PP-003's three). One real finding along the way, caught locally before pushing: pip-audit found 7 known advisories in starlette 0.46.2 (pulled in transitively by fastapi's loose >=0.46.0 bound); fixed by pinning starlette directly to >=1.6,<1.7, not documented-and-ignored — see docs/security-notes.md. Also caught and fixed a real, unrelated gap: PP-003's own recorded readiness verification command (this same PP-004 entry's sibling, above) was missing --root and would not have actually reproduced a pass as originally written — corrected there without changing PP-003's already-recorded outcome. No capability-pack equivalent of auth-rbac exists yet for this stack (v1's pack contract has no capability-based requiresPacks, same PP-007 gap) — auth/RBAC is built directly into the app; flagged as a follow-up, not attempted here."
     },
     {
       "id": "PP-007",
@@ -313,6 +327,20 @@
       ],
       "verification": ["npm run check"],
       "notes": "5 new capability packs (db, storage, notification, background-jobs, audit-log) alongside PP-002's existing nextjs-postgres/auth-rbac — matches the roadmap's 'auth, RBAC/ownership, DB, storage, notification, background jobs, audit log' list (auth+RBAC/ownership covered by the existing auth-rbac pack). claude-setup/pack-composition.js is new: it checks whether a chosen SET of packs installs together cleanly — missing requiresPacks, both sides of a conflictsWithPacks pair present, or two packs writing the same generatedArtifacts path undeclared. Building it immediately surfaced a real v1 contract gap: requiresPacks is identity-based ('needs pack X'), not capability-based ('needs something providing persistence'), so background-jobs/audit-log can't machine-declare their real dependency on db-or-nextjs-postgres — documented in templates/pack.tpl.json and each fixture's description rather than papered over. Also added db to nextjs-postgres's conflictsWithPacks (and vice versa), since nextjs-postgres already bundles persistence. A small step toward M2's 'convergence checks', not the whole of it."
+    },
+    {
+      "id": "EP-001",
+      "title": "Evidence bundle format",
+      "milestone": "M2",
+      "status": "ready",
+      "dependsOn": ["BF-003"],
+      "acceptance": [
+        "A single evidence bundle format wraps a readiness.json manifest, a human-readable report index and immutable run metadata (commit, timestamps, tool versions), per the roadmap's one-line description",
+        "The format is stack-agnostic: PP-003 (nextjs-postgres-crud) and PP-004 (react-fastapi-postgres-crud) can both produce a valid bundle from their existing evidence/ directories without app-specific special-casing"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Not started. Added and promoted to ready (not in_progress) only because current.focus cannot be empty and every other item in this file is already done — this is the last explicitly-named M2 completion criterion ('evidence bundle ครบ') that doesn't yet have a work-item entry; 'convergence checks' (the other named M2 criterion) has no natural single next item since it depends on BC-001..003, which don't exist yet either. This item's exact scope/format is a real design decision and per section 9/10 of BUAFLOW_PRODUCT_ROADMAP.md should be confirmed with the user before starting, the same pattern PP-004 itself followed. Do not start without that confirmation."
     }
   ],
   "decisions": [
@@ -340,8 +368,8 @@
   ],
   "lastSession": {
     "date": "2026-09-23",
-    "summary": "Completed PP-007 (core capability packs), the first M2 work after closing out M1. Asked the user to choose between PP-004 (second full golden stack, PP-003-sized) and PP-007 (contract/fixture work); they picked PP-007. Added db, storage, notification, background-jobs and audit-log pack fixtures alongside PP-002's existing nextjs-postgres/auth-rbac, and a new claude-setup/pack-composition.js that checks whether a chosen SET of packs installs together (missing requiresPacks, mutual conflictsWithPacks, or undeclared generated-file collisions). Building the composer immediately surfaced a real v1 gap: requiresPacks is identity-based, not capability-based, so background-jobs/audit-log can't machine-declare 'needs persistence from db-or-nextjs-postgres' — documented rather than hidden, in templates/pack.tpl.json and each fixture. Also declared nextjs-postgres and db as mutual conflicts, since nextjs-postgres already bundles persistence. 100 tests passing, npm run check clean. Not pushed to git yet.",
-    "next": "PP-004 (second web golden stack) is the only remaining ready M2 item — promoted to ready but not started, since it's PP-003-sized work. Confirm with the user before beginning it, and before adding any other M2 items (PP-006 is effectively superseded by PP-002's unified contract; convergence checks and the evidence bundle are still unscoped). Also confirm whether to commit+push this session's PP-007 work.",
-    "verifiedAt": "2026-09-23T00:35:00.0000000+07:00"
+    "summary": "Completed PP-004 (second web golden stack), the last currently-scoped M2 item. PP-007 was confirmed already committed and pushed from the prior session. Built reference-apps/react-fastapi-postgres-crud (React/Vite SPA + FastAPI + SQLAlchemy/Alembic + PostgreSQL, single Docker image), same task-board domain as PP-003 for a directly comparable eval fixture. Installed Python 3.12 via winget for local backend work (with the user's explicit go-ahead over a Docker-only alternative). Reached a genuine R3 PASS (25/25) with a real green GitHub Actions run on the FIRST push — no fix-iterate rounds needed, unlike PP-003's three. A real pip-audit finding (7 advisories in a transitively-pinned starlette version) was caught and fixed by pinning, not documented-and-ignored. Also found and fixed that PP-003's own recorded readiness verification command was missing --root and would not actually reproduce a pass as written — corrected in PP-003's own work-item entry without changing its already-recorded outcome. The user then went offline and asked me to continue autonomously through the rest of the plan and push without further check-ins, which this session did (see docs/security-notes.md and evidence/pp-004-eval-fixture.json for full detail). npm run check and node scripts/check-roadmap.js both clean.",
+    "next": "M2's stack-pack scope (PP-003 + PP-004 + PP-007) is now complete. EP-001 (evidence bundle format) was added and promoted to ready — not started — purely because current.focus cannot be empty per node scripts/check-roadmap.js and it's the only named M2 completion criterion with an obvious, contained next item; it still needs the user's confirmation before starting, same as PP-003/PP-004 did. 'Convergence checks', M2's other named completion criterion, has no natural next item yet (depends on BC-001..003, none of which exist in state). Confirm with the user what EP-001's actual scope should be (or whether to pull forward something else entirely, e.g. PP-005 mobile golden stack) before writing any code for it.",
+    "verifiedAt": "2026-09-23T01:40:00.0000000+07:00"
   }
 }

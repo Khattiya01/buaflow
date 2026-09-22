@@ -32,9 +32,8 @@ different golden stack reaching R3).
   route guard (see `docs/security-notes.md`'s "Known limitations").
 - Two separate dependency ecosystems audited (pip + npm) instead of one.
 
-## Not yet closed (see `docs/evidence/readiness.json` for the authoritative status)
+## Status
 
-- **ci**: `.github/workflows/ci-react-fastapi-postgres.yml` exists and runs the same
-  commands documented above, but a real GitHub Actions run has not completed yet at the
-  time this file was written — updated once it has (see `development/state.json`'s
-  `lastSession` for the current status).
+All 25 R0-R3 controls pass with real, checked evidence — see
+`docs/evidence/readiness.json`. `ci` closed on the first push, with a real green run at
+<https://github.com/Khattiya01/buaflow/actions/runs/35765907597>.

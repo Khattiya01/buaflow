@@ -27,10 +27,10 @@
     "e2e": { "command": "npx playwright test", "count": 6, "evidence": "evidence/playwright-report.json" }
   },
   "readinessCheck": {
-    "command": "node claude-setup/readiness.js --file docs/evidence/readiness.json --level R3",
-    "result": "PENDING at the time this fixture was generated — every control except ci already has real, checked evidence locally (pytest, ruff, mypy, npm typecheck/lint/build, Playwright e2e incl. accessibility and performance, a real Alembic upgrade/downgrade/upgrade rehearsal, a real docker build + clean-environment rehearsal, and clean pip-audit/npm audit/gitleaks scans). ci stays pending until a real GitHub Actions run completes after pushing (see docs/requirements-traceability.md's 'Not yet closed' section and development/state.json's lastSession for the current status). One genuine finding along the way: pip-audit's initial run against the pinned lockfile found 7 known advisories in a transitively-pinned starlette version pulled in by fastapi's loose >=0.46.0 bound; fixed by pinning starlette directly (see docs/security-notes.md), not documented-and-ignored.",
+    "command": "node claude-setup/readiness.js --file docs/evidence/readiness.json --level R3 --root reference-apps/react-fastapi-postgres-crud",
+    "result": "PASS (25/25 controls) — every R0-R3 control has real, checked evidence, reached on the first push (no fix-iterate rounds needed against real CI, unlike PP-003's three). One genuine finding along the way, caught and fixed before pushing: pip-audit's initial run against the pinned lockfile found 7 known advisories (PYSEC-2026-161/248/249/1941/1942/2280/2281) in a transitively-pinned starlette version pulled in by fastapi's loose >=0.46.0 bound; fixed by pinning starlette directly to >=1.6,<1.7 (see docs/security-notes.md), not documented-and-ignored. Also surfaced and fixed a real command-line-tooling gap unrelated to the app itself: development/state.json's PP-003 verification command was missing --root and would not actually reproduce a pass as originally written (file evidence resolves relative to --root, which defaults to cwd) — corrected in PP-003's own state.json entry, without changing its already-recorded pass outcome.",
     "manifest": "docs/evidence/readiness.json",
-    "ciRun": "pending — see development/state.json's lastSession"
+    "ciRun": "https://github.com/Khattiya01/buaflow/actions/runs/35765907597"
   },
   "evidenceIndex": [
     "evidence/clean-environment-rehearsal.json",
