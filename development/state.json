@@ -2,10 +2,10 @@
   "$schema": "./state.schema.json",
   "schemaVersion": "1.0",
   "product": "buaflow",
-  "updatedAt": "2026-09-22",
+  "updatedAt": "2026-09-23",
   "current": {
-    "milestone": "M1",
-    "focus": ["PP-003"]
+    "milestone": "M2",
+    "focus": ["PP-004"]
   },
   "workItems": [
     {
@@ -251,9 +251,10 @@
       "id": "PP-003",
       "title": "First web golden stack and R3 reference app",
       "milestone": "M1",
-      "status": "in_progress",
+      "status": "done",
       "dependsOn": ["PP-002", "BF-005"],
       "startedAt": "2026-09-22",
+      "completedAt": "2026-09-22",
       "acceptance": [
         "Reference app reaches R3 from a clean environment without source changes",
         "All evidence and elapsed time are retained as an eval fixture"
@@ -267,12 +268,26 @@
         "reference-apps/nextjs-postgres-crud/evidence/pp-003-eval-fixture.json",
         "reference-apps/nextjs-postgres-crud/scripts/rehearse-clean-environment.mjs",
         "reference-apps/nextjs-postgres-crud/scripts/rehearse-migration-rollback.mjs",
-        "reference-apps/nextjs-postgres-crud/.github/workflows/ci.yml"
+        ".github/workflows/ci-nextjs-postgres-crud.yml"
       ],
       "verification": [
         "node claude-setup/readiness.js --file reference-apps/nextjs-postgres-crud/docs/evidence/readiness.json --level R3"
       ],
-      "notes": "23/25 R3 controls have real, checked evidence (tests, Docker build, migration/rollback rehearsal, clean-environment rehearsal, SBOM, dependency/secrets scans, accessibility/performance checks — see evidence/pp-003-eval-fixture.json). The only two open items are version-control (working tree not yet committed — pending user go-ahead per git safety protocol) and ci (workflow file exists but has not run on a real remote, which has not been authorized). Not marked done because R3 is not literally achieved yet — `node claude-setup/readiness.js --level R3` currently reports FAIL, honestly, until those two are resolved."
+      "notes": "25/25 R3 controls pass with real, checked evidence (see evidence/pp-003-eval-fixture.json): tests, Docker build, migration/rollback rehearsal, clean-environment rehearsal, SBOM, dependency/secrets scans, accessibility/performance checks, and a real green GitHub Actions run (https://github.com/Khattiya01/buaflow/actions/runs/35758419510) after committing and pushing with explicit user consent. The local clean-environment rehearsal (docker-only) did not catch three gaps that the first real CI run did: a typecheck script depending on stale Next.js typegen output, an --env-file that hard-fails with no .env present, and a dependency-audit step that would have red-lined forever on a documented, understood finding (prisma CLI's peer-dependency chain, proven absent from the shipped image). All three fixed and re-verified before the run that finally passed."
+    },
+    {
+      "id": "PP-004",
+      "title": "Second web golden stack and R3 reference app",
+      "milestone": "M2",
+      "status": "backlog",
+      "dependsOn": ["PP-003"],
+      "acceptance": [
+        "A second, materially different web stack (e.g. React + FastAPI + PostgreSQL, per BUAFLOW_PRODUCT_ROADMAP.md) reaches R3 from a clean environment, proving the pack contract generalizes beyond nextjs-postgres",
+        "All evidence and elapsed time are retained as an eval fixture, comparable to PP-003's"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Placeholder only — added so development state has a valid non-done focus item now that M1 is fully complete (all 11 M0/M1 items done). Not started, not scoped in detail, and not promoted to ready. M2 (\"Repeatable Web Production\" per BUAFLOW_PRODUCT_ROADMAP.md) also expects core capability packs and convergence checks alongside a second web stack — the user should decide M2's actual entry point and priorities before real work begins here."
     }
   ],
   "decisions": [
@@ -299,9 +314,9 @@
     }
   ],
   "lastSession": {
-    "date": "2026-09-22",
-    "summary": "Built PP-003's reference app (reference-apps/nextjs-postgres-crud): a real Next.js 16 + PostgreSQL 16 task tracker built from the nextjs-postgres + auth-rbac packs, targeting the internal-crud profile. Hand-rolled scrypt+HMAC session auth, ownership/RBAC guard, soft delete, per-record audit trail. Proved it with 10 unit + 14 integration + 6 e2e (Playwright, incl. an axe-core accessibility scan that caught and got a real unlabeled-<select> bug fixed) tests, a multi-stage Docker build (output:standalone), a real CycloneDX SBOM, a gitleaks secrets scan, a documented+verified dependency-scan false-positive (prisma CLI peer dep, proven absent from the shipped image), a migration+rollback+roll-forward rehearsal, and a from-scratch clean-environment rehearsal (docker compose down -v -> build --no-cache -> boot -> smoke test, ~43s). Filled docs/evidence/readiness.json with real evidence and ran it through claude-setup/readiness.js: 23/25 R3 controls pass honestly; only version-control (not committed) and ci (no real remote run) are pending. Encountered and adapted to two Prisma 7 breaking changes (schema no longer carries datasource.url; PrismaClient now requires an explicit driver adapter) and Prisma's own AI-agent destructive-action guard on `migrate reset --force`, which required and got explicit user consent before proceeding.",
-    "next": "Ask the user whether to commit reference-apps/nextjs-postgres-crud now (closes the version-control control) and, separately, whether to push it to a real git host so .github/workflows/ci.yml can actually run (closes the ci control) — both are the only things between this app and a genuine R3 PASS. Once resolved, mark PP-003 done with the readiness check as verification. M1 (\"One Golden Path to R3\") is otherwise complete: CLI shell, product graph v1, profile/pack contracts and a web reference app all exist — PP-003 closing out is the last M1 milestone gate.",
-    "verifiedAt": "2026-09-22T23:45:00.0000000+07:00"
+    "date": "2026-09-23",
+    "summary": "Completed PP-003 and closed out M1 (\"One Golden Path to R3\"). Committed and pushed reference-apps/nextjs-postgres-crud (and its BF-001..BF-007/IC-001/PP-001/PP-002 foundation) to origin/main with explicit user consent, scoped precisely to exclude unrelated pending drafts (aidlc-starter-template/, CLI.md, AI_SDLC_COMPARISON.md). The first CI run on the newly-added .github/workflows/ci-nextjs-postgres-crud.yml failed three times in a row on gaps the local clean-environment rehearsal hadn't covered: a typecheck script relying on stale Next.js typegen output (fixed: `next typegen` now runs first), `--env-file=.env` hard-failing where CI has no .env file (fixed: `--env-file-if-exists`), and a dependency-audit step that would have red-lined forever on the already-documented prisma-CLI-peer-dependency finding (fixed: scripts/check-dependency-audit.mjs, an allowlist-aware check). Fourth run: fully green (https://github.com/Khattiya01/buaflow/actions/runs/35758419510). docs/evidence/readiness.json now reports a genuine 25/25 R3 PASS. Added PP-004 as an unscoped backlog placeholder only so development state has a valid focus item — M2 itself has not been planned.",
+    "next": "M2 (\"Repeatable Web Production\" per BUAFLOW_PRODUCT_ROADMAP.md) needs the user's direction before real work starts: a second web stack (PP-004), core capability packs (PP-006/PP-007 in the long-term roadmap — not yet added to this file), and convergence checks are all candidates. Do not start PP-004 or add further M2 work items without asking first.",
+    "verifiedAt": "2026-09-23T00:10:00.0000000+07:00"
   }
 }

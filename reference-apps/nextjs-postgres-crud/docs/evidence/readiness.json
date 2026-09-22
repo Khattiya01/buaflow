@@ -4,8 +4,8 @@
   "project": "nextjs-postgres-crud",
   "profile": "internal-crud",
   "targetLevel": "R3",
-  "commit": "f59fef2b58bbb9219eba5d44bea5bbf483fa9c73",
-  "generatedAt": "2026-09-22T16:54:00.000Z",
+  "commit": "ef0a5d196032c56478659deeb03c15512fdfc41a",
+  "generatedAt": "2026-09-22T17:07:00.000Z",
   "controls": {
     "version-control": {
       "status": "pass",
@@ -57,9 +57,10 @@
       ]
     },
     "ci": {
-      "status": "pending",
-      "evidence": [],
-      "rationale": "Workflow lives at the repo root (.github/workflows/ci-nextjs-postgres-crud.yml, outside this app's own directory so GitHub Actions can discover it) and runs the same commands documented in this manifest. Pushed to origin/main; pending its first completed run before this control can honestly be marked pass."
+      "status": "pass",
+      "evidence": [
+        { "type": "url", "value": "https://github.com/Khattiya01/buaflow/actions/runs/35758419510" }
+      ]
     },
     "deployment-package": {
       "status": "pass",

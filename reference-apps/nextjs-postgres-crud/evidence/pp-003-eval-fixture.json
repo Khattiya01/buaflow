@@ -28,8 +28,9 @@
   },
   "readinessCheck": {
     "command": "node claude-setup/readiness.js --file docs/evidence/readiness.json --level R3",
-    "result": "FAIL (23/25 controls) — the only two open items are version-control (working tree not yet committed) and ci (workflow file exists but no run has executed on a real remote yet); every other R0-R3 control has real, checked evidence",
-    "manifest": "docs/evidence/readiness.json"
+    "result": "PASS (25/25 controls) — every R0-R3 control has real, checked evidence. Reached in three commits after the first: fixing a typecheck script that depended on stale Next.js typegen output, an --env-file that hard-fails when CI has no .env file, and a dependency-audit step that would have red-lined forever on a documented, understood finding. Each was a genuine gap the from-scratch CI run caught that the local clean-environment rehearsal (docker-only) did not, because it never exercised the typecheck-before-build or env-var-only paths.",
+    "manifest": "docs/evidence/readiness.json",
+    "ciRun": "https://github.com/Khattiya01/buaflow/actions/runs/35758419510"
   },
   "evidenceIndex": [
     "evidence/clean-environment-rehearsal.json",
