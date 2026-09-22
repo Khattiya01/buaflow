@@ -70,7 +70,7 @@ const checkAfterRollback = record("verify schema is gone after rollback", async 
 
 const rollForward = record("roll forward: migrate deploy + seed", async () => {
   execFileSync("npx", ["prisma", "migrate", "deploy"], { cwd: root, stdio: "inherit", shell: true });
-  execFileSync("node", ["--env-file=.env", "prisma/seed.mjs"], { cwd: root, stdio: "inherit", shell: true });
+  execFileSync("node", ["--env-file-if-exists=.env", "prisma/seed.mjs"], { cwd: root, stdio: "inherit", shell: true });
   return { ok: true };
 });
 

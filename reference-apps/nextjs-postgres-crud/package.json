@@ -12,12 +12,12 @@
     "db:generate": "prisma generate",
     "db:migrate:dev": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:seed": "node --env-file=.env prisma/seed.mjs",
+    "db:seed": "node --env-file-if-exists=.env prisma/seed.mjs",
     "test": "vitest run --config vitest.config.mts",
     "test:integration": "npm run build && vitest run --config vitest.integration.config.mts",
     "test:e2e": "playwright test",
-    "rehearse:migration-rollback": "node --env-file=.env scripts/rehearse-migration-rollback.mjs",
-    "rehearse:clean-environment": "node --env-file=.env scripts/rehearse-clean-environment.mjs",
+    "rehearse:migration-rollback": "node --env-file-if-exists=.env scripts/rehearse-migration-rollback.mjs",
+    "rehearse:clean-environment": "node --env-file-if-exists=.env scripts/rehearse-clean-environment.mjs",
     "verify": "npm run typecheck && npm run lint && npm run test"
   },
   "dependencies": {

@@ -81,7 +81,7 @@ async function main() {
   });
 
   await step("seed the fresh database", () => {
-    sh("node", ["--env-file=.env", "prisma/seed.mjs"]);
+    sh("node", ["--env-file-if-exists=.env", "prisma/seed.mjs"]);
   });
 
   await step("build the production image with --no-cache", () => {

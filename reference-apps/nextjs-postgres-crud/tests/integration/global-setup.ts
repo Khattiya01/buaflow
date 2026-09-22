@@ -28,7 +28,9 @@ export async function setup() {
     stdio: "inherit",
     shell: true,
   });
-  execFileSync("node", ["--env-file=.env", "prisma/seed.mjs"], {
+  // --env-file-if-exists (not --env-file): CI already sets DATABASE_URL/SESSION_SECRET via the
+  // workflow's env block and has no .env file — --env-file would hard-fail with "not found".
+  execFileSync("node", ["--env-file-if-exists=.env", "prisma/seed.mjs"], {
     stdio: "inherit",
     shell: true,
   });
