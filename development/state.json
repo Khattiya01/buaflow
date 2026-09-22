@@ -279,15 +279,16 @@
       "id": "PP-004",
       "title": "Second web golden stack and R3 reference app",
       "milestone": "M2",
-      "status": "ready",
+      "status": "in_progress",
       "dependsOn": ["PP-003"],
+      "startedAt": "2026-09-23",
       "acceptance": [
         "A second, materially different web stack (e.g. React + FastAPI + PostgreSQL, per BUAFLOW_PRODUCT_ROADMAP.md) reaches R3 from a clean environment, proving the pack contract generalizes beyond nextjs-postgres",
         "All evidence and elapsed time are retained as an eval fixture, comparable to PP-003's"
       ],
       "artifacts": [],
       "verification": [],
-      "notes": "Not started. Unblocked (PP-003 done) and promoted to ready, but this is PP-003-sized work (a full second reference app, hours of build+CI) — confirm with the user before starting, per the same pattern PP-003 itself followed."
+      "notes": "In progress: building reference-apps/react-fastapi-postgres-crud (React/Vite SPA + FastAPI + SQLAlchemy/Alembic + PostgreSQL), same task-board domain as PP-003 for a comparable eval fixture, single Docker image (FastAPI serves the built frontend). User confirmed start; PP-007 confirmed already committed and pushed. Python 3.12 installed on the dev machine via winget for local backend work."
     },
     {
       "id": "PP-007",

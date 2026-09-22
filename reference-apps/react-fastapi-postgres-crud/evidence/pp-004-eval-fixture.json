@@ -1,0 +1,51 @@
+{
+  "evalId": "PP-004-react-fastapi-postgres-crud",
+  "description": "Baseline eval fixture for PP-004: how long it takes this second reference app to prove itself from a torn-down, clean-environment starting state, and what evidence backs each R0-R3 control. Comparable to evidence/../../nextjs-postgres-crud/evidence/pp-003-eval-fixture.json — same task-board domain, same profile, a materially different stack (React/Vite SPA + FastAPI + SQLAlchemy/Alembic instead of Next.js + Prisma).",
+  "generatedAt": "2026-09-22T18:20:00.000Z",
+  "stack": {
+    "pack": "react-fastapi-postgres (claude-setup/tests/fixtures/packs/react-fastapi-postgres.json)",
+    "capabilityPack": "none — no capability pack exists yet for this stack; auth/RBAC is built directly into backend/app (see docs/runbook.md)",
+    "profile": "internal-crud (claude-setup/tests/fixtures/profiles/internal-crud.json)"
+  },
+  "timings": {
+    "cleanEnvironmentRehearsal": {
+      "command": "node scripts/rehearse-clean-environment.mjs",
+      "scope": "docker compose down -v, fresh Postgres, alembic upgrade head, seed, docker build --no-cache, run, health check, smoke test, teardown",
+      "totalDurationMs": 20074,
+      "evidence": "evidence/clean-environment-rehearsal.json"
+    },
+    "migrationRollbackRehearsal": {
+      "command": "node scripts/rehearse-migration-rollback.mjs",
+      "scope": "verify schema, alembic downgrade base, verify dropped, alembic upgrade head + seed, verify restored",
+      "totalDurationMs": 3749,
+      "evidence": "evidence/migration-rollback-rehearsal.json"
+    }
+  },
+  "testCounts": {
+    "unit": { "command": "pytest tests/unit", "count": 10 },
+    "integration": { "command": "pytest tests/integration", "count": 12 },
+    "e2e": { "command": "npx playwright test", "count": 6, "evidence": "evidence/playwright-report.json" }
+  },
+  "readinessCheck": {
+    "command": "node claude-setup/readiness.js --file docs/evidence/readiness.json --level R3",
+    "result": "PENDING at the time this fixture was generated — every control except ci already has real, checked evidence locally (pytest, ruff, mypy, npm typecheck/lint/build, Playwright e2e incl. accessibility and performance, a real Alembic upgrade/downgrade/upgrade rehearsal, a real docker build + clean-environment rehearsal, and clean pip-audit/npm audit/gitleaks scans). ci stays pending until a real GitHub Actions run completes after pushing (see docs/requirements-traceability.md's 'Not yet closed' section and development/state.json's lastSession for the current status). One genuine finding along the way: pip-audit's initial run against the pinned lockfile found 7 known advisories in a transitively-pinned starlette version pulled in by fastapi's loose >=0.46.0 bound; fixed by pinning starlette directly (see docs/security-notes.md), not documented-and-ignored.",
+    "manifest": "docs/evidence/readiness.json",
+    "ciRun": "pending — see development/state.json's lastSession"
+  },
+  "evidenceIndex": [
+    "evidence/clean-environment-rehearsal.json",
+    "evidence/migration-rollback-rehearsal.json",
+    "evidence/pip-audit.json",
+    "evidence/npm-audit.json",
+    "evidence/gitleaks-report.json",
+    "evidence/sbom-backend.cdx.json",
+    "evidence/sbom-frontend.cdx.json",
+    "evidence/axe-login.json",
+    "evidence/axe-tasks.json",
+    "evidence/performance-budget.json",
+    "evidence/playwright-report.json",
+    "docs/runbook.md",
+    "docs/security-notes.md",
+    "docs/requirements-traceability.md"
+  ]
+}

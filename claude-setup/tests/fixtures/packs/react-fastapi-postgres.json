@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../../schemas/pack.schema.json",
+  "schemaVersion": "1.0",
+  "id": "react-fastapi-postgres",
+  "kind": "stack",
+  "name": "React + FastAPI + PostgreSQL",
+  "description": "A second web golden stack: a React (Vite) single-page frontend served by a FastAPI backend, talking to PostgreSQL through SQLAlchemy/Alembic — materially different from nextjs-postgres (separate frontend/backend languages and frameworks, a real Alembic downgrade instead of a hand-written rollback script).",
+  "version": "1.0.0",
+  "inputs": [
+    { "name": "projectName", "type": "string", "required": true, "description": "Package name used for both the frontend and backend manifests of the generated app." },
+    { "name": "includeAuth", "type": "boolean", "required": false, "default": false, "description": "Scaffold a starter session-cookie auth module." },
+    { "name": "orm", "type": "enum", "required": true, "options": ["sqlalchemy"], "description": "ORM used to talk to PostgreSQL." }
+  ],
+  "generatedArtifacts": [
+    { "path": "backend/pyproject.toml", "description": "FastAPI backend manifest with pinned dependency ranges." },
+    { "path": "backend/app/models.py", "description": "SQLAlchemy models — the single source of truth for the data model." },
+    { "path": "frontend/package.json", "description": "React/Vite frontend manifest with pinned dependency ranges." },
+    { "path": "Dockerfile", "description": "Multi-stage production build (frontend build stage -> Python runtime) used for the deployment-package control." }
+  ],
+  "compatibility": {
+    "requiresPacks": [],
+    "conflictsWithPacks": ["db"],
+    "profiles": ["content", "internal-crud", "saas"]
+  },
+  "verification": [
+    { "id": "typecheck", "command": "cd backend && mypy app && cd ../frontend && npm run typecheck", "description": "Backend strict mypy and frontend TypeScript both compile with no errors." },
+    { "id": "test", "command": "cd backend && pytest && cd ../tests/e2e && npm test", "description": "Backend unit/integration suite and frontend e2e suite both pass." },
+    { "id": "build", "command": "docker build -t react-fastapi-postgres-crud .", "description": "Production multi-stage build succeeds, proving the build control." }
+  ],
+  "upgrade": [],
+  "operationalEvidence": [
+    { "control": "persistence", "evidence": "Alembic migrations under backend/alembic/versions/ give a repeatable, versioned persistence lifecycle." },
+    { "control": "database-migration", "evidence": "Alembic supports a real downgrade() natively; the generated migration ships forward and backward paths together, rehearsed end to end." },
+    { "control": "deployment-package", "evidence": "The generated multi-stage Dockerfile builds a pinned, reproducible production image that serves the built frontend directly from FastAPI." }
+  ]
+}

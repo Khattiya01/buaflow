@@ -1,0 +1,12 @@
+**/node_modules
+**/__pycache__
+**/.venv
+.git
+**/.env
+**/.env.*
+!**/.env.example
+frontend/dist
+backend/static
+tests/e2e/playwright-report
+tests/e2e/test-results
+evidence

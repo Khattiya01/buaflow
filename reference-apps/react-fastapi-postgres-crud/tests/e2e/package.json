@@ -1,0 +1,14 @@
+{
+  "name": "react-fastapi-postgres-crud-e2e",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "pretest": "node ../../scripts/build-static.mjs",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.1",
+    "@playwright/test": "^1.49.1"
+  }
+}

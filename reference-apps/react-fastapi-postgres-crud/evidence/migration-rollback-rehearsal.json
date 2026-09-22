@@ -1,0 +1,50 @@
+{
+  "startedAt": "2026-09-22T18:08:38.628Z",
+  "finishedAt": "2026-09-22T18:08:42.380Z",
+  "totalDurationMs": 3749,
+  "steps": [
+    {
+      "name": "verify schema exists before rollback",
+      "durationMs": 514,
+      "tables": [
+        "alembic_version",
+        "audit_logs",
+        "tasks",
+        "users"
+      ],
+      "userCount": 2,
+      "ok": true
+    },
+    {
+      "name": "apply alembic downgrade base",
+      "durationMs": 607,
+      "ok": true
+    },
+    {
+      "name": "verify schema is gone after rollback",
+      "durationMs": 521,
+      "remainingTables": [
+        "alembic_version"
+      ],
+      "ok": true
+    },
+    {
+      "name": "roll forward: alembic upgrade head + seed",
+      "durationMs": 1572,
+      "ok": true
+    },
+    {
+      "name": "verify schema and seed data after roll-forward",
+      "durationMs": 535,
+      "tables": [
+        "alembic_version",
+        "audit_logs",
+        "tasks",
+        "users"
+      ],
+      "userCount": 2,
+      "ok": true
+    }
+  ],
+  "ok": true
+}

@@ -1,0 +1,18 @@
+title = "react-fastapi-postgres-crud gitleaks config"
+
+# Extend gitleaks' default rule set instead of replacing it.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated/local-only paths that are never committed — see .gitignore"
+paths = [
+  '''node_modules/''',
+  '''\.venv/''',
+  '''__pycache__/''',
+  '''(^|/)\.env$''',
+  '''frontend/dist/''',
+  '''backend/static/''',
+  '''tests/e2e/playwright-report/''',
+  '''tests/e2e/test-results/''',
+]
