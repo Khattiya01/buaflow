@@ -4,13 +4,12 @@
   "project": "nextjs-postgres-crud",
   "profile": "internal-crud",
   "targetLevel": "R3",
-  "commit": "WORKTREE",
-  "generatedAt": "2026-09-22T16:45:00.000Z",
+  "commit": "f59fef2b58bbb9219eba5d44bea5bbf483fa9c73",
+  "generatedAt": "2026-09-22T16:54:00.000Z",
   "controls": {
     "version-control": {
-      "status": "pending",
-      "evidence": [],
-      "rationale": "Working tree not yet committed to git. Pending the user's go-ahead to commit (git safety protocol: only commit when asked). Nothing else in this manifest depends on this being done first."
+      "status": "pass",
+      "evidence": [{ "type": "command", "value": "git rev-parse HEAD" }]
     },
     "start-path": {
       "status": "pass",
@@ -59,8 +58,8 @@
     },
     "ci": {
       "status": "pending",
-      "evidence": [{ "type": "file", "value": ".github/workflows/ci.yml" }],
-      "rationale": "Workflow file exists and runs the same commands documented in this manifest, but no run has executed on a real remote yet — pushing to a git host has not been authorized."
+      "evidence": [],
+      "rationale": "Workflow lives at the repo root (.github/workflows/ci-nextjs-postgres-crud.yml, outside this app's own directory so GitHub Actions can discover it) and runs the same commands documented in this manifest. Pushed to origin/main; pending its first completed run before this control can honestly be marked pass."
     },
     "deployment-package": {
       "status": "pass",

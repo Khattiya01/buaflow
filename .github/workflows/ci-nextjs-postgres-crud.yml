@@ -1,9 +1,11 @@
-name: CI
+name: nextjs-postgres-crud CI
 
 on:
   pull_request:
+    paths: ["reference-apps/nextjs-postgres-crud/**"]
   push:
     branches: [main]
+    paths: ["reference-apps/nextjs-postgres-crud/**"]
 
 env:
   DATABASE_URL: postgresql://app:app@localhost:5432/app
