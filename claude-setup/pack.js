@@ -6,9 +6,21 @@
  *   node claude-setup/pack.js --dir .claude/packs
  *   node claude-setup/pack.js --dir .claude/packs --json
  *
- * ทำไมต้องมี: pack ต้องพิสูจน์ตัวเองแบบ deterministic — สร้างอะไรจริง (generatedArtifacts),
- * รันแล้วผ่าน/ไม่ผ่านชัดเจน (verification), และช่วย readiness control ไหนได้จริง (operationalEvidence,
- * cross-check กับ claude-setup/readiness.js) ไม่ใช่แค่คำโฆษณาใน description
+ * ทำไมต้องมี: pack ต้องพิสูจน์ตัวเองแบบ deterministic — ต้องลงมืออย่างไร (setup), ต้องมีไฟล์อะไร
+ * อยู่จริงเมื่อทำเสร็จ (requiredArtifacts), รันแล้วผ่าน/ไม่ผ่านชัดเจน (verification), และช่วย readiness
+ * control ไหนได้จริง (operationalEvidence, cross-check กับ claude-setup/readiness.js)
+ * ไม่ใช่แค่คำโฆษณาใน description
+ *
+ * v2 (PP-010 / D-011) เปลี่ยนความหมายของ pack จาก template เป็น recipe + assertion:
+ *
+ *   - `setup` คือสูตร — คำสั่งของเจ้าของ framework ที่ต้องรัน ไม่ใช่โค้ดที่ Buaflow เก็บไว้
+ *     คำสั่ง scaffold ห้าม pin เวอร์ชัน เพราะ pack ที่ pin คือ snapshot ของปีที่เขียนมัน
+ *   - `requiredArtifacts` (เดิมชื่อ generatedArtifacts) คือ assertion — ไฟล์ที่ต้องมีอยู่จริงเมื่อเสร็จ
+ *     ไม่ใช่คำสัญญาว่า generator จะเขียนให้ (ซึ่งไม่เคยมีใครตรวจ เพราะไม่เคยมี generator)
+ *   - `implementedBy` ผูก pack เข้ากับ reference app ที่พิสูจน์มันจริง — ถ้าไฟล์ที่ประกาศไม่มีอยู่
+ *     ในนั้น pack ตก ไม่ใช่แค่ "รูปแบบถูก"
+ *   - `upgrade` ถูกถอดออก: ว่างเปล่าทั้ง 9 pack ตั้งแต่วันแรกจนวันสุดท้าย และ EP-010
+ *     (evidence-freshness) ตอบคำถามเรื่องของเก่าด้วยเครื่องแทน ledger ที่ต้องรอคนมาเขียน
  *
  * exit 0 = ผ่าน | exit 1 = มี pack ที่ไม่ผ่าน
  * ไม่มี dependency — Node ล้วน รันได้ทุก OS
@@ -29,11 +41,45 @@ function isPlainObject(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
+// Which token does each launcher treat as "the tool to run"? Leading flags are skipped so
+// that `npx --yes create-next-app@latest` reads the same as `npx create-next-app@latest`.
+// Only the `--flag=value` form is consumed as a flag value: allowing a space-separated one
+// lets the flag swallow the tool token itself, which silently passed a pinned scaffolder
+// until a test caught it.
+const SCAFFOLD_LAUNCHERS = [
+  /\bnpx\s+(?:--?[\w-]+(?:=\S+)?\s+)*(\S+)/,
+  /\bbunx\s+(?:--?[\w-]+(?:=\S+)?\s+)*(\S+)/,
+  /\b(?:pnpm|yarn)\s+dlx\s+(?:--?[\w-]+(?:=\S+)?\s+)*(\S+)/,
+  /\b(?:npm|pnpm|yarn|bun)\s+create\s+(?:--?[\w-]+(?:=\S+)?\s+)*(\S+)/,
+  /\buvx\s+(?:--?[\w-]+(?:=\S+)?\s+)*(\S+)/,
+  /\bpipx\s+run\s+(?:--?[\w-]+(?:=\S+)?\s+)*(\S+)/,
+];
+
+// The single rule that keeps a pack from aging into a lie. A scaffolder pinned to a
+// number bakes the year the pack was written into every project made from it, which is
+// exactly the failure phases/06-scaffold.md has always warned about ("อย่าสร้างไฟล์โครงเอง
+// ... ไม่ใช่โครงที่ AI จำมาจากปีก่อน"). Detection is by command shape, not by a flag the
+// author sets, so it cannot be dodged by leaving a field out. Only the launcher's own
+// tool token is examined: an application's own dependencies SHOULD be pinned, and a
+// later `npm ci` or a lockfile is none of this rule's business.
+function pinnedScaffolder(command) {
+  if (typeof command !== 'string') return null;
+  for (const pattern of SCAFFOLD_LAUNCHERS) {
+    const match = command.match(pattern);
+    if (match && /(?:@|==)\d/.test(match[1])) return match[1];
+  }
+  return null;
+}
+
 function validatePack(pack, options = {}) {
   const errors = [];
   if (!isPlainObject(pack)) return { ok: false, errors: ['pack must be a JSON object'] };
 
-  if (pack.schemaVersion !== '1.0') errors.push(`unsupported schemaVersion "${pack.schemaVersion}"`);
+  if (pack.schemaVersion !== '2.0') {
+    errors.push(pack.schemaVersion === '1.0'
+      ? 'schemaVersion 1.0 is a pack template, not a recipe; migrate it with scripts/migrate-artifact.js --type pack'
+      : `unsupported schemaVersion "${pack.schemaVersion}"`);
+  }
   if (!ID_PATTERN.test(pack.id || '')) errors.push('id must be lowercase-kebab-case');
   if (options.expectedId && pack.id !== options.expectedId) {
     errors.push(`id "${pack.id}" does not match filename "${options.expectedId}.json"`);
@@ -62,19 +108,52 @@ function validatePack(pack, options = {}) {
     });
   }
 
-  const generatedArtifacts = Array.isArray(pack.generatedArtifacts) ? pack.generatedArtifacts : null;
-  if (!generatedArtifacts || generatedArtifacts.length === 0) {
-    errors.push('generatedArtifacts must be a non-empty array');
+  const setup = Array.isArray(pack.setup) ? pack.setup : null;
+  if (!setup || setup.length === 0) {
+    errors.push('setup must be a non-empty array');
   } else {
-    generatedArtifacts.forEach((artifact, i) => {
-      const label = `generatedArtifacts[${i}]`;
+    const seen = new Set();
+    setup.forEach((step, i) => {
+      const label = `setup[${i}]`;
+      if (!isPlainObject(step)) { errors.push(`${label}: must be an object`); return; }
+      if (seen.has(step.id)) errors.push(`${label}: duplicate setup id "${step.id}"`);
+      seen.add(step.id);
+      if (!ID_PATTERN.test(step.id || '')) errors.push(`${label}: id must be lowercase-kebab-case`);
+      if (!step.command || typeof step.command !== 'string') errors.push(`${label}: command is required`);
+      if (!step.description || typeof step.description !== 'string') errors.push(`${label}: description is required`);
+      const pinned = pinnedScaffolder(step.command);
+      if (pinned) {
+        errors.push(`${label}: scaffolding command pins "${pinned}"; use the unpinned tool (e.g. @latest) so the generated project is current rather than a snapshot of when this pack was written`);
+      }
+    });
+  }
+
+  const requiredArtifacts = Array.isArray(pack.requiredArtifacts) ? pack.requiredArtifacts : null;
+  if (!requiredArtifacts || requiredArtifacts.length === 0) {
+    errors.push('requiredArtifacts must be a non-empty array');
+  } else {
+    const seen = new Set();
+    requiredArtifacts.forEach((artifact, i) => {
+      const label = `requiredArtifacts[${i}]`;
       if (!isPlainObject(artifact)) { errors.push(`${label}: must be an object`); return; }
       if (!artifact.path || typeof artifact.path !== 'string') errors.push(`${label}: path is required`);
-      else if (path.isAbsolute(artifact.path) || artifact.path.split(/[\\/]/).includes('..')) {
-        errors.push(`${label}: path must be relative and stay inside the generated project`);
+      else {
+        if (path.isAbsolute(artifact.path) || artifact.path.split(/[\\/]/).includes('..')) {
+          errors.push(`${label}: path must be relative and stay inside the generated project`);
+        }
+        if (seen.has(artifact.path)) errors.push(`${label}: duplicate path "${artifact.path}"`);
+        seen.add(artifact.path);
       }
       if (!artifact.description || typeof artifact.description !== 'string') errors.push(`${label}: description is required`);
     });
+  }
+
+  if (pack.implementedBy !== undefined) {
+    if (typeof pack.implementedBy !== 'string' || !pack.implementedBy.trim()) {
+      errors.push('implementedBy must be a non-empty path when present');
+    } else if (path.isAbsolute(pack.implementedBy) || pack.implementedBy.split(/[\\/]/).includes('..')) {
+      errors.push('implementedBy must be a repository-relative path that does not escape the repository');
+    }
   }
 
   const compatibility = pack.compatibility;
@@ -108,19 +187,11 @@ function validatePack(pack, options = {}) {
     });
   }
 
-  const upgrade = Array.isArray(pack.upgrade) ? pack.upgrade : null;
-  if (!upgrade) {
-    errors.push('upgrade must be an array');
-  } else {
-    upgrade.forEach((step, i) => {
-      const label = `upgrade[${i}]`;
-      if (!isPlainObject(step)) { errors.push(`${label}: must be an object`); return; }
-      if (!SEMVER_PATTERN.test(step.from || '')) errors.push(`${label}: from must be a full semver string`);
-      if (!SEMVER_PATTERN.test(step.to || '')) errors.push(`${label}: to must be a full semver string`);
-      if (step.from === step.to) errors.push(`${label}: from and to must differ`);
-      if (typeof step.breaking !== 'boolean') errors.push(`${label}: breaking must be a boolean`);
-      if (!Array.isArray(step.steps) || step.steps.length === 0) errors.push(`${label}: steps must be a non-empty array`);
-    });
+  // v1's `upgrade` ledger is gone on purpose: it was required by the contract and empty in
+  // all nine packs from the day they were written, which is what a field nobody can keep
+  // filling in looks like. EP-010 answers the same question by machine instead.
+  if (pack.upgrade !== undefined) {
+    errors.push('upgrade was removed in pack v2; staleness is detected by the evidence-freshness control (EP-010), not by a hand-written ledger');
   }
 
   const operationalEvidence = Array.isArray(pack.operationalEvidence) ? pack.operationalEvidence : null;
@@ -137,16 +208,34 @@ function validatePack(pack, options = {}) {
     });
   }
 
+  // The binding: a pack that names the reference app implementing it must actually match
+  // that app. Before v2 nothing in this repository connected a pack to a single line of
+  // real code, so a pack could describe a project that had never existed and still pass.
+  if (options.repoRoot && typeof pack.implementedBy === 'string' && pack.implementedBy.trim() && Array.isArray(requiredArtifacts)) {
+    const appRoot = path.resolve(options.repoRoot, pack.implementedBy);
+    if (!fs.existsSync(appRoot)) {
+      errors.push(`implementedBy: no such directory in this repository: ${pack.implementedBy}`);
+    } else {
+      for (const artifact of requiredArtifacts) {
+        if (!artifact || typeof artifact.path !== 'string') continue;
+        if (!fs.existsSync(path.resolve(appRoot, artifact.path))) {
+          errors.push(`requiredArtifacts: "${artifact.path}" is asserted by this pack but does not exist in ${pack.implementedBy}`);
+        }
+      }
+    }
+  }
+
   return { ok: errors.length === 0, errors };
 }
 
 function parseArgs(argv) {
-  const options = { file: null, dir: null, json: false };
+  const options = { file: null, dir: null, json: false, repoRoot: null };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
     if (arg === '--file') options.file = argv[++index];
     else if (arg === '--dir') options.dir = argv[++index];
     else if (arg === '--json') options.json = true;
+    else if (arg === '--repo-root') options.repoRoot = argv[++index];
     else if (arg === '--help' || arg === '-h') options.help = true;
     else throw new Error(`unknown argument: ${arg}`);
   }
@@ -164,7 +253,7 @@ function main(argv = process.argv.slice(2)) {
     return 2;
   }
   if (options.help) {
-    console.log('Usage: node claude-setup/pack.js (--file <path> | --dir <path>) [--json]');
+    console.log('Usage: node claude-setup/pack.js (--file <path> | --dir <path>) [--repo-root <path>] [--json]');
     return 0;
   }
 
@@ -202,7 +291,10 @@ function main(argv = process.argv.slice(2)) {
       ok = false;
       continue;
     }
-    const result = validatePack(pack, { expectedId });
+    const result = validatePack(pack, {
+      expectedId,
+      repoRoot: options.repoRoot ? path.resolve(process.cwd(), options.repoRoot) : null,
+    });
     if (!result.ok) ok = false;
     results.push({ file, ...result });
   }
@@ -225,4 +317,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { KNOWN_CONTROLS, parseArgs, validatePack };
+module.exports = { KNOWN_CONTROLS, parseArgs, pinnedScaffolder, validatePack };

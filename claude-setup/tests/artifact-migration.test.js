@@ -6,10 +6,13 @@ const path = require('node:path');
 const test = require('node:test');
 
 const { migrateArtifact } = require('../../scripts/migrate-artifact.js');
+const { validatePack } = require('../pack.js');
 const { cleanup, repositoryRoot, runNode, temporaryProject, writeJson } = require('./helpers.js');
 
 const fixtures = path.join(__dirname, 'fixtures', 'artifacts');
-const types = ['stack-config', 'readiness-manifest', 'prototype-flow', 'pixel-config', 'project-manifest', 'product-graph', 'application-profile', 'pack', 'evidence-bundle'];
+// pack is absent from this list on purpose: its registry entry is "manual", and its own
+// tests are below. Everything here is a type whose migration a program can perform.
+const types = ['stack-config', 'readiness-manifest', 'prototype-flow', 'pixel-config', 'project-manifest', 'product-graph', 'application-profile', 'evidence-bundle'];
 
 function fixture(version, type) {
   return JSON.parse(fs.readFileSync(path.join(fixtures, version, `${type}.json`), 'utf8'));
@@ -33,6 +36,42 @@ for (const type of types) {
     assert.deepEqual(result.value, current);
   });
 }
+
+// --- pack 1.0 -> 2.0 (PP-010 / D-011) ------------------------------------------------
+//
+// v2 requires a `setup` recipe: the framework owner's own CLI commands. A v1 pack never
+// recorded those anywhere, because v1 assumed a generator would write the files itself.
+// There is nothing to derive them from, so the migrator must refuse rather than invent a
+// placeholder — an invented recipe would be a lie that validates.
+
+test('pack v1 cannot be migrated to v2 by a program, and says why', () => {
+  const v1 = fixture('v1', 'pack');
+  assert.throws(
+    () => migrateArtifact(v1, { type: 'pack' }),
+    /pack 1\.0 -> 2\.0 is a manual migration/
+  );
+});
+
+test('an unversioned pack is refused the same way', () => {
+  assert.throws(
+    () => migrateArtifact(fixture('v0', 'pack'), { type: 'pack' }),
+    /pack unversioned -> 2\.0 is a manual migration/
+  );
+});
+
+test('pack v2 is canonical and migration is idempotent', () => {
+  const current = fixture('v2', 'pack');
+  const result = migrateArtifact(current, { type: 'pack' });
+  assert.equal(result.fromVersion, '2.0');
+  assert.equal(result.toVersion, '2.0');
+  assert.equal(result.changed, false);
+  assert.deepEqual(result.value, current);
+});
+
+test('the v2 pack fixture satisfies the pack contract it is a fixture for', () => {
+  const result = validatePack(fixture('v2', 'pack'), { expectedId: 'fixture-pack' });
+  assert.deepEqual(result, { ok: true, errors: [] });
+});
 
 test('migrator rejects unknown future source versions', () => {
   assert.throws(

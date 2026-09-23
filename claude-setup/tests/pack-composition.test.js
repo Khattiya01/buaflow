@@ -13,28 +13,28 @@ const profilesDir = path.join(__dirname, 'fixtures', 'profiles');
 
 function pack(overrides = {}) {
   return {
-    schemaVersion: '1.0',
+    schemaVersion: '2.0',
     id: 'fixture',
     kind: 'capability',
     name: 'Fixture',
     version: '1.0.0',
     inputs: [],
-    generatedArtifacts: [{ path: 'fixture.txt', description: 'placeholder' }],
+    setup: [{ id: 'install', command: 'npm install fixture', description: 'placeholder' }],
+    requiredArtifacts: [{ path: 'fixture.txt', description: 'placeholder' }],
     compatibility: { requiresPacks: [], conflictsWithPacks: [], profiles: [] },
     verification: [{ id: 'check', command: 'true', description: 'placeholder' }],
-    upgrade: [],
     operationalEvidence: [{ control: 'build', evidence: 'Fixture pack always produces a successful build.' }],
     ...overrides,
   };
 }
 
 test('validateComposition accepts an empty set', () => {
-  assert.deepEqual(validateComposition([]), { ok: true, errors: [], packIds: [] });
+  assert.deepEqual(validateComposition([]), { ok: true, errors: [], warnings: [], packIds: [] });
 });
 
 test('validateComposition accepts packs with no cross-references', () => {
   const a = pack({ id: 'a' });
-  const b = pack({ id: 'b', generatedArtifacts: [{ path: 'other.txt', description: 'placeholder' }] });
+  const b = pack({ id: 'b', requiredArtifacts: [{ path: 'other.txt', description: 'placeholder' }] });
   const result = validateComposition([a, b]);
   assert.equal(result.ok, true);
 });
@@ -48,25 +48,30 @@ test('validateComposition fails when a requiresPacks dependency is missing from 
 
 test('validateComposition passes when a requiresPacks dependency is present', () => {
   const a = pack({ id: 'a', compatibility: { requiresPacks: ['b'], conflictsWithPacks: [], profiles: [] } });
-  const b = pack({ id: 'b', generatedArtifacts: [{ path: 'other.txt', description: 'placeholder' }] });
+  const b = pack({ id: 'b', requiredArtifacts: [{ path: 'other.txt', description: 'placeholder' }] });
   const result = validateComposition([a, b]);
   assert.equal(result.ok, true);
 });
 
 test('validateComposition fails when two packs in the set declare each other as conflicts', () => {
   const a = pack({ id: 'a', compatibility: { requiresPacks: [], conflictsWithPacks: ['b'], profiles: [] } });
-  const b = pack({ id: 'b', generatedArtifacts: [{ path: 'other.txt', description: 'placeholder' }] });
+  const b = pack({ id: 'b', requiredArtifacts: [{ path: 'other.txt', description: 'placeholder' }] });
   const result = validateComposition([a, b]);
   assert.equal(result.ok, false);
   assert.match(result.errors.join('\n'), /a: conflicts with "b", which is also in this set/);
 });
 
-test('validateComposition fails when two packs generate the same file path, even if undeclared', () => {
-  const a = pack({ id: 'a' }); // generates fixture.txt
-  const b = pack({ id: 'b' }); // also generates fixture.txt by default
+test('two packs asserting the same path warn, but do not fail the composition', () => {
+  // v1 treated this as an overwrite conflict, because a pack claimed to GENERATE its files.
+  // v2 artifacts are existence assertions, and two packs needing the same file to exist are
+  // usually both simply right — so the genuine question (whose recipe decides its contents)
+  // is surfaced, and a legitimate composition is no longer failed over it.
+  const a = pack({ id: 'a' });
+  const b = pack({ id: 'b' });
   const result = validateComposition([a, b]);
-  assert.equal(result.ok, false);
-  assert.match(result.errors.join('\n'), /generatedArtifacts path "fixture.txt" is written by both "a" and "b"/);
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.errors, []);
+  assert.match(result.warnings.join('\n'), /"fixture.txt" is asserted by "a" and "b"/);
 });
 
 function loadFixture(dir, id) {
@@ -116,7 +121,9 @@ test('CLI: nextjs-postgres and the standalone db pack conflict', () => {
   const result = run(['--dir', path.relative(repositoryRoot, packsDir), '--ids', 'nextjs-postgres,db']);
   assert.equal(result.status, 1);
   assert.match(result.stdout, /conflicts with "db"/);
-  assert.match(result.stdout, /generatedArtifacts path "prisma\/schema\.prisma" is written by both/);
+  // The declared conflict is what fails the composition now; the shared prisma/schema.prisma
+  // is reported alongside it as a warning rather than as a second, redundant error.
+  assert.match(result.stdout, /warn: "prisma\/schema\.prisma" is asserted by "db" and "nextjs-postgres"/);
 });
 
 test('CLI --json emits a machine-readable result', () => {

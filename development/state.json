@@ -613,7 +613,7 @@
         "CLI.md"
       ],
       "verification": ["npm run check"],
-      "notes": "Opened 2026-09-23 from the direction review recorded in D-011. The gap is narrow but load-bearing: scripts/check-repository.js already performs every check this item needs — none of it is new work — but no CI workflow has ever run it. All three workflows in .github/workflows/ target reference apps, which are examples, while the gate/validator/adapter-generator machinery that every other claim in this repository rests on had no automated enforcement at all. That is principle 1 of the roadmap (the machine decides status) not being applied to Buaflow itself. Work done 2026-09-23: .github/workflows/kit-check.yml runs npm run check on push to main, on every pull request and on manual dispatch, with no path filter on purpose (check-repository.js syntax-checks every .js and parses every .json in the repository, reference apps included, so any change can break it) and with no install step, because the kit declares zero dependencies and that is itself part of the contract — the check must work from a bare checkout. Hygiene: the empty stray directory under reference-apps/, left by a shell command that broke on a Windows path on 2026-09-23, was removed; AI_SDLC_COMPARISON.md (referenced by this roadmap\u0027s section 12) and CLI.md (referenced twice by README.md) were committed, since tracked documents were pointing at untracked files; and a root .gitignore now covers node_modules/, .verify.log and aidlc-starter-template/ — the third-party starter reviewed in D-001 and deliberately not merged, which check-repository.js already skips. Kept in_progress rather than marked done: a CI workflow that has never run proves nothing, so this follows the same rule PP-003/004/005 followed — evidence stays provisional until a real run confirms it. Marking it done requires a green run of the kit check workflow recorded here."
+      "notes": "Opened 2026-09-23 from the direction review recorded in D-011. The gap is narrow but load-bearing: scripts/check-repository.js already performs every check this item needs — none of it is new work — but no CI workflow has ever run it. All three workflows in .github/workflows/ target reference apps, which are examples, while the gate/validator/adapter-generator machinery that every other claim in this repository rests on had no automated enforcement at all. That is principle 1 of the roadmap (the machine decides status) not being applied to Buaflow itself. Work done 2026-09-23: .github/workflows/kit-check.yml runs npm run check on push to main, on every pull request and on manual dispatch, with no path filter on purpose (check-repository.js syntax-checks every .js and parses every .json in the repository, reference apps included, so any change can break it) and with no install step, because the kit declares zero dependencies and that is itself part of the contract — the check must work from a bare checkout. Hygiene: the empty stray directory under reference-apps/, left by a shell command that broke on a Windows path on 2026-09-23, was removed; AI_SDLC_COMPARISON.md (referenced by this roadmap's section 12) and CLI.md (referenced twice by README.md) were committed, since tracked documents were pointing at untracked files; and a root .gitignore now covers node_modules/, .verify.log and aidlc-starter-template/ — the third-party starter reviewed in D-001 and deliberately not merged, which check-repository.js already skips. Kept in_progress rather than marked done: a CI workflow that has never run proves nothing, so this follows the same rule PP-003/004/005 followed — evidence stays provisional until a real run confirms it. Marking it done requires a green run of the kit check workflow recorded here."
     },
     {
       "id": "EP-010",
@@ -644,8 +644,10 @@
       "id": "PP-010",
       "title": "Pack contract v2: recipe and assertion, not template",
       "milestone": "M3",
-      "status": "ready",
+      "status": "done",
       "dependsOn": ["PP-002", "PP-003"],
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
       "acceptance": [
         "pack.schema.json v2 expresses a pack as a recipe plus assertions: the framework-owned CLI commands to run (unpinned, e.g. 'create-next-app@latest'), the configuration to apply, the verification commands that must pass, and the artifacts that must EXIST when the work is finished",
         "'generatedArtifacts' changes meaning from 'files this pack writes' to 'files that must be present afterwards', making it a checkable assertion rather than an unkept promise",
@@ -653,15 +655,31 @@
         "All nine existing pack fixtures migrate to v2 through the BF-006 artifact migration policy, with v1 fixtures retained and the migration path tested, rather than being rewritten in place",
         "phases/06-scaffold.md's existing rule (always use the framework owner's CLI, never hand-write the scaffold, check real versions before installing) and the pack contract state the same thing, instead of the two halves of the repository contradicting each other"
       ],
-      "artifacts": [],
+      "artifacts": [
+        "schemas/pack.schema.json",
+        "schemas/registry.json",
+        "templates/pack.tpl.json",
+        "claude-setup/pack.js",
+        "claude-setup/pack-composition.js",
+        "scripts/migrate-artifact.js",
+        "scripts/check-repository.js",
+        "claude-setup/tests/pack.test.js",
+        "claude-setup/tests/pack-composition.test.js",
+        "claude-setup/tests/artifact-migration.test.js",
+        "claude-setup/tests/fixtures/artifacts/v2/pack.json",
+        "claude-setup/tests/fixtures/packs/nextjs-postgres.json",
+        "claude-setup/tests/fixtures/packs/react-fastapi-postgres.json",
+        "claude-setup/tests/fixtures/packs/expo-fastapi-postgres-sync.json",
+        "phases/06-scaffold.md"
+      ],
       "verification": ["npm test", "npm run check"],
-      "notes": "Opened 2026-09-23 per D-011, which resolves D-010's first open question by choosing the opposite of the obvious answer: Buaflow will NOT build a template generator that stamps code out of a pack. A template generator freezes a dependency snapshot at authoring time and so manufactures staleness on every run; it duplicates what create-*/cookiecutter/Yeoman have done for fifteen years; and it directly contradicts phases/06-scaffold.md, which already tells the AI to use the framework's own CLI precisely so the scaffold is current rather than remembered from last year. The durable asset is the assertion set, not the code."
+      "notes": "Opened 2026-09-23 per D-011, which resolves D-010's first open question by choosing the opposite of the obvious answer: Buaflow will NOT build a template generator that stamps code out of a pack. A template generator freezes a dependency snapshot at authoring time and so manufactures staleness on every run; it duplicates what create-*/cookiecutter/Yeoman have done for fifteen years; and it directly contradicts phases/06-scaffold.md, which already tells the AI to use the framework's own CLI precisely so the scaffold is current rather than remembered from last year. The durable asset is the assertion set, not the code. Built and closed 2026-09-23. Shape of v2: `setup` (ordered framework-owner CLI commands) and `requiredArtifacts` (renamed from generatedArtifacts, meaning changed from ' files this pack writes ' to ' files that must be present afterwards ') replace the v1 generator framing; `implementedBy` names the reference app that proves the pack; `upgrade` is removed. The unpinned-scaffolder rule is enforced by command SHAPE, not by a flag the pack author sets — an early draft had a `scaffolds: true` boolean and it was dropped, because any rule a pack can opt out of by omitting a field is not a rule. Only the launcher's own tool token is judged (npx/bunx/dlx/npm create/uvx/pipx run), so an application pinning its own dependencies is untouched, which is correct: that is what a lockfile is for. A self-test of the detector caught a real bug before it shipped — the leading-flag pattern allowed a space-separated flag value, so `npx --yes create-next-app@16.3.5` had the flag swallow the tool token and passed; only `--flag=value` is consumed now. The binding check found a real drift on its first run: nextjs-postgres asserted `.claude/stack.json`, which reference-apps/nextjs-postgres-crud has never contained — removed, and a test now pins that exact failure. Migration is registered \"manual\" rather than \"supported\", and the migrator refuses v1 -> v2 with an explanation instead of transforming: a v1 pack recorded no setup commands anywhere (v1 assumed a generator would write the files), so there is nothing to derive a recipe from, and a placeholder recipe would be a lie that validates. All nine packs were rewritten by hand with real commands taken from how the reference apps were actually built; v0/v1 fixtures are kept as the before-state the versioning policy requires, and v2/pack.json is the new after-state. One check was deliberately WEAKENED and it should not be missed in review: pack-composition's artifact-path collision was an error in v1, because two packs generating the same path meant one silently overwrote the other. Under v2 an artifact is an existence assertion, and auth-rbac and audit-log both legitimately need prisma/migrations/ to exist, so the check now emits a warning naming every claimant and no longer fails a valid composition. The genuine question it was really asking — whose recipe decides the contents — survives as that warning. npm run check now runs the pack contract plus its binding to the reference apps, so BF-008's CI enforces it. phases/06-scaffold.md gained an explicit cross-reference so its rule 1/3 and the pack contract are visibly one rule rather than two that happen to agree. Suite 160/160. Left for a separate decision, NOT silently done here: the nine packs still live under claude-setup/tests/fixtures/packs/, which is a test-fixture path for what is meant to be a product catalog. Where the catalog belongs (packs/ in this repo, shipped to .claude/packs/ in an adopter project, or somewhere else) is a real question that changes artifact paths in four done work items, and it was left to the user rather than folded into this item."
     },
     {
       "id": "BC-006",
       "title": "Independent verifier role",
       "milestone": "M3",
-      "status": "backlog",
+      "status": "ready",
       "dependsOn": ["BF-005", "EP-001"],
       "acceptance": [
         "A verifier reaches a pass/fail decision from artifacts and command output alone and never treats the builder's self-report as evidence",
@@ -670,7 +688,7 @@
       ],
       "artifacts": [],
       "verification": [],
-      "notes": "Pulled ahead of BC-001/BC-002/BC-003 on 2026-09-23 per D-011. The rationale is the model-durability test applied to the whole backlog: as models improve, work that tells an AI how to write code loses value, while work that independently proves what was produced gains value, because the better the model the less a human reads its output. By that test this is the highest-value unbuilt item in the repository. Left at 'backlog' rather than 'ready' only to respect the WIP limit while BF-008 is in progress."
+      "notes": "Pulled ahead of BC-001/BC-002/BC-003 on 2026-09-23 per D-011. The rationale is the model-durability test applied to the whole backlog: as models improve, work that tells an AI how to write code loses value, while work that independently proves what was produced gains value, because the better the model the less a human reads its output. By that test this is the highest-value unbuilt item in the repository. Promoted to 'ready' on 2026-09-23 once PP-010 closed; its dependencies (BF-005, EP-001) have been done since M2, so nothing blocks it but a decision to start."
     },
     {
       "id": "EV-009",

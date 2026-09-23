@@ -23,11 +23,14 @@ function definition(type) {
   return registry.artifacts.find((item) => item.type === type && item.classification === 'public') || null;
 }
 
-function canonicalizeV1(value, type) {
+// Canonical form is the declared version plus the right $schema hint, with every other
+// field left exactly as the author wrote it — a migrator that reorders or reshapes content
+// it does not understand is a migrator nobody can review.
+function canonicalize(value, type, version) {
   const { $schema: ignoredSchema, schemaVersion: ignoredVersion, ...content } = value;
   return {
     $schema: schemaHints[type],
-    schemaVersion: '1.0',
+    schemaVersion: version,
     ...content,
   };
 }
@@ -37,16 +40,44 @@ function migrateArtifact(value, options) {
   const def = definition(options.type);
   if (!def) throw new Error(`unknown or non-public artifact type: ${options.type}`);
   const target = options.to || def.latestVersion;
-  if (target !== def.latestVersion || target !== '1.0') {
+  if (target !== def.latestVersion) {
     throw new Error(`unsupported target ${target} for ${options.type}; latest supported is ${def.latestVersion}`);
   }
 
   const from = value.schemaVersion || 'unversioned';
+
+  // Already at the target: only the canonical shape is enforced, never a transform. This
+  // runs before the migration-policy check below so that an artifact of a manually
+  // migrated type can still be checked for canonical form.
+  if (from === target) {
+    const migrated = canonicalize(value, options.type, target);
+    return {
+      type: options.type,
+      fromVersion: from,
+      toVersion: target,
+      changed: JSON.stringify(value) !== JSON.stringify(migrated),
+      value: migrated,
+    };
+  }
+
+  // Types the registry marks "manual" cannot be transformed by a program, and saying so is
+  // the point. pack 1.0 -> 2.0 is the case that introduced this: v2 requires a `setup`
+  // recipe — the framework owner's own CLI commands — which v1 never recorded anywhere,
+  // because v1 assumed a generator would write the files itself. There is nothing in a v1
+  // pack to derive those commands from, so the honest answer is to refuse and let a human
+  // (or an agent, with the reference app in front of it) write the recipe. See D-011.
+  if (def.migration === 'manual') {
+    throw new Error(
+      `${options.type} ${from} -> ${target} is a manual migration; ` +
+      'no deterministic transform exists, so the artifact must be rewritten by hand against the new schema'
+    );
+  }
+
   if (from !== 'unversioned' && from !== '1.0') {
     throw new Error(`unsupported source version ${from} for ${options.type}; upgrade Buaflow before migrating`);
   }
 
-  const migrated = canonicalizeV1(value, options.type);
+  const migrated = canonicalize(value, options.type, target);
   const changed = JSON.stringify(value) !== JSON.stringify(migrated);
   return { type: options.type, fromVersion: from, toVersion: target, changed, value: migrated };
 }
@@ -130,4 +161,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { atomicWrite, definition, migrateArtifact, parseArgs };
+module.exports = { atomicWrite, canonicalize, definition, migrateArtifact, parseArgs };

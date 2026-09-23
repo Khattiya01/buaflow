@@ -10,7 +10,7 @@
  *
  * ทำไมต้องมี: pack.js ตรวจ pack ทีละไฟล์ว่า "ตัวมันเองถูกต้องไหม" แต่ไม่เคยตอบว่า "ติดตั้งพร้อมกัน
  * ได้จริงไหม" — ไฟล์นี้เติมส่วนที่ขาด: หา requiresPacks ที่หายไปจากชุดที่จะติดตั้ง, หา
- * conflictsWithPacks ที่ทั้งสองฝั่งอยู่ในชุดเดียวกันจริง, และหา generatedArtifacts path ที่สอง pack
+ * conflictsWithPacks ที่ทั้งสองฝั่งอยู่ในชุดเดียวกันจริง, และหา requiredArtifacts path ที่สอง pack
  * เขียนทับกัน (ซึ่งเป็น conflict โดยพฤตินัยแม้ไม่มีใครประกาศไว้)
  *
  * --profile (เพิ่มภายหลัง) เติม convergence check อีกชั้น: application profile (PP-001) ประกาศ
@@ -65,6 +65,7 @@ function loadPacks(dir, ids) {
 
 function validateComposition(packs) {
   const errors = [];
+  const warnings = [];
   const byId = new Map(packs.map((p) => [p.id, p]));
 
   for (const pack of packs) {
@@ -80,21 +81,32 @@ function validateComposition(packs) {
     }
   }
 
-  // A path two different packs both generate would silently overwrite one or the other at
-  // install time — that is a real conflict whether or not either pack declared it.
-  const ownerOfPath = new Map();
+  // Overlapping paths are a warning in v2, not an error, and the demotion is deliberate.
+  // Under v1 a pack claimed to GENERATE its artifacts, so two packs naming the same path
+  // meant one would silently overwrite the other at install time — a real defect. v2
+  // artifacts are assertions that a file EXISTS when the work is done, and two packs
+  // asserting the same file are usually both simply right: auth-rbac and audit-log both
+  // need prisma/migrations/ to exist, and neither is overwriting anything. What survives
+  // is the genuine question underneath — if both recipes touch the same file, which one
+  // decides its contents — which is worth surfacing and not worth failing a legitimate
+  // composition over.
+  const claimants = new Map();
   for (const pack of packs) {
-    for (const artifact of pack.generatedArtifacts) {
-      const existingOwner = ownerOfPath.get(artifact.path);
-      if (existingOwner && existingOwner !== pack.id) {
-        errors.push(`generatedArtifacts path "${artifact.path}" is written by both "${existingOwner}" and "${pack.id}"`);
-      } else {
-        ownerOfPath.set(artifact.path, pack.id);
-      }
+    for (const artifact of pack.requiredArtifacts) {
+      if (!claimants.has(artifact.path)) claimants.set(artifact.path, new Set());
+      claimants.get(artifact.path).add(pack.id);
+    }
+  }
+  for (const [artifactPath, owners] of claimants) {
+    if (owners.size > 1) {
+      warnings.push(
+        `"${artifactPath}" is asserted by ${[...owners].sort().map((id) => `"${id}"`).join(' and ')} — `
+        + 'check which recipe determines its contents'
+      );
     }
   }
 
-  return { ok: errors.length === 0, errors, packIds: packs.map((p) => p.id) };
+  return { ok: errors.length === 0, errors, warnings, packIds: packs.map((p) => p.id) };
 }
 
 function loadProfile(file) {
@@ -193,9 +205,10 @@ function main(argv = process.argv.slice(2)) {
   const ok = result.ok && profileFit.ok;
 
   if (options.json) {
-    console.log(JSON.stringify({ ok, errors, packIds: result.packIds, profile: profile?.id || null }, null, 2));
+    console.log(JSON.stringify({ ok, errors, warnings: result.warnings, packIds: result.packIds, profile: profile?.id || null }, null, 2));
   } else {
     console.log(`Composing: ${result.packIds.join(', ')}${profile ? ` against profile "${profile.id}"` : ''}`);
+    for (const w of result.warnings) console.log(`  warn: ${w}`);
     for (const e of errors) console.log(`  - ${e}`);
     console.log(
       ok

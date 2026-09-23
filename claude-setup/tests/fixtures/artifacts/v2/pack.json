@@ -1,0 +1,22 @@
+{
+  "$schema": "../../buaflow/schemas/pack.schema.json",
+  "schemaVersion": "2.0",
+  "id": "fixture-pack",
+  "kind": "stack",
+  "name": "Fixture pack",
+  "version": "2.0.0",
+  "inputs": [],
+  "setup": [
+    { "id": "scaffold", "command": "npx create-fixture-app@latest .", "description": "Placeholder scaffolding command for the migration test; unpinned, as the contract requires." }
+  ],
+  "requiredArtifacts": [
+    { "path": "fixture.txt", "description": "A single placeholder file that must exist once the recipe has been run." }
+  ],
+  "compatibility": { "requiresPacks": [], "conflictsWithPacks": [], "profiles": [] },
+  "verification": [
+    { "id": "check", "command": "true", "description": "Always-passing placeholder command for the migration test." }
+  ],
+  "operationalEvidence": [
+    { "control": "build", "evidence": "Fixture pack always produces a successful build for migration test coverage." }
+  ]
+}

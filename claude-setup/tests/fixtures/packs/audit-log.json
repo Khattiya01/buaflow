@@ -1,29 +1,60 @@
 {
   "$schema": "../../../../schemas/pack.schema.json",
-  "schemaVersion": "1.0",
+  "schemaVersion": "2.0",
   "id": "audit-log",
   "kind": "capability",
   "name": "Structured audit log",
   "description": "Adds a durable, queryable record of who changed what and when, independent of any single feature's own logic — generalizes the pattern reference-apps/nextjs-postgres-crud built ad hoc for tasks into a reusable pack. Needs a persistence layer already present — either the nextjs-postgres stack pack or the standalone db capability pack — but v1's requiresPacks is identity-based (\"needs pack X\"), not capability-based (\"needs something providing persistence\"), so that dependency cannot be machine-checked yet; see templates/pack.tpl.json's note on this.",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "inputs": [
-    { "name": "retentionDays", "type": "number", "required": false, "default": 365, "description": "How long audit rows are kept before an operator-run cleanup job may remove them. This pack does not run that job itself." }
+    {
+      "name": "retentionDays",
+      "type": "number",
+      "required": false,
+      "default": 365,
+      "description": "How long audit rows are kept before an operator-run cleanup job may remove them. This pack does not run that job itself."
+    }
   ],
-  "generatedArtifacts": [
-    { "path": "prisma/migrations/0002_add_audit_log/migration.sql", "description": "Adds the audit_logs table (entity, entityId, userId, action, before, after, at)." },
-    { "path": "lib/audit.ts", "description": "recordAudit() helper — every mutation that needs a trail calls this instead of writing its own logging." }
+  "setup": [
+    {
+      "id": "migration",
+      "command": "npx prisma migrate dev --name add_audit_log",
+      "description": "Creates the audit table as a real migration, so the trail itself has a reversible schema history."
+    }
+  ],
+  "requiredArtifacts": [
+    {
+      "path": "prisma/migrations",
+      "description": "Contains the migration adding the audit_logs table (entity, entityId, userId, action, before, after, at)."
+    },
+    {
+      "path": "lib/audit.ts",
+      "description": "recordAudit() helper — every mutation that needs a trail calls this instead of writing its own logging."
+    }
   ],
   "compatibility": {
     "requiresPacks": [],
     "conflictsWithPacks": [],
-    "profiles": ["internal-crud", "saas"]
+    "profiles": [
+      "internal-crud",
+      "saas"
+    ]
   },
   "verification": [
-    { "id": "audit-roundtrip", "command": "npm test -- audit", "description": "Performs a create/update/delete through the app and asserts a matching audit_logs row exists with the correct before/after snapshot." }
+    {
+      "id": "audit-roundtrip",
+      "command": "npm test -- audit",
+      "description": "Performs a create/update/delete through the app and asserts a matching audit_logs row exists with the correct before/after snapshot."
+    }
   ],
-  "upgrade": [],
   "operationalEvidence": [
-    { "control": "security-controls", "evidence": "Audit rows are append-only from the application's perspective — there is no update/delete path exposed for audit_logs, so a compromised request handler cannot erase its own trail." },
-    { "control": "requirements-traceability", "evidence": "Every entry records which user and which request-level action produced it, giving a direct trace from a support/incident question back to the exact change." }
+    {
+      "control": "security-controls",
+      "evidence": "Audit rows are append-only from the application's perspective — there is no update/delete path exposed for audit_logs, so a compromised request handler cannot erase its own trail."
+    },
+    {
+      "control": "requirements-traceability",
+      "evidence": "Every entry records which user and which request-level action produced it, giving a direct trace from a support/incident question back to the exact change."
+    }
   ]
 }

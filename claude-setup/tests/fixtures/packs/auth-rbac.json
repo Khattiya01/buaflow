@@ -1,30 +1,77 @@
 {
   "$schema": "../../../../schemas/pack.schema.json",
-  "schemaVersion": "1.0",
+  "schemaVersion": "2.0",
   "id": "auth-rbac",
   "kind": "capability",
   "name": "Auth + RBAC/ownership",
   "description": "Adds session authentication plus role-based access control and per-record ownership checks on top of an existing stack pack.",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "inputs": [
-    { "name": "sessionStrategy", "type": "enum", "required": true, "options": ["jwt", "database-session"], "description": "How sessions are issued and verified." },
-    { "name": "roles", "type": "string", "required": false, "default": "admin,member", "description": "Comma-separated list of role names to seed." }
+    {
+      "name": "sessionStrategy",
+      "type": "enum",
+      "required": true,
+      "options": [
+        "jwt",
+        "database-session"
+      ],
+      "description": "How sessions are issued and verified."
+    },
+    {
+      "name": "roles",
+      "type": "string",
+      "required": false,
+      "default": "admin,member",
+      "description": "Comma-separated list of role names to seed."
+    }
   ],
-  "generatedArtifacts": [
-    { "path": "src/lib/auth.ts", "description": "Session verification and role/ownership guard helpers." },
-    { "path": "src/middleware.ts", "description": "Route-level authentication middleware." },
-    { "path": "prisma/migrations/0002_add_roles/migration.sql", "description": "Adds role and ownership columns to existing tables." }
+  "setup": [
+    {
+      "id": "session-deps",
+      "command": "npm install iron-session bcrypt && npm install --save-dev @types/bcrypt",
+      "description": "Session sealing and password hashing for the sessionStrategy input; no framework generator exists for this, so the recipe is the dependency set plus the files asserted below."
+    },
+    {
+      "id": "migration",
+      "command": "npx prisma migrate dev --name add_roles",
+      "description": "Generates the role and ownership columns as a real migration rather than an ad-hoc schema edit, so the change is reversible and auditable."
+    }
+  ],
+  "requiredArtifacts": [
+    {
+      "path": "src/lib/auth.ts",
+      "description": "Session verification and role/ownership guard helpers."
+    },
+    {
+      "path": "src/middleware.ts",
+      "description": "Route-level authentication middleware."
+    },
+    {
+      "path": "prisma/migrations",
+      "description": "Contains the migration adding role and ownership columns to existing tables."
+    }
   ],
   "compatibility": {
-    "requiresPacks": ["nextjs-postgres"],
+    "requiresPacks": [
+      "nextjs-postgres"
+    ],
     "conflictsWithPacks": [],
-    "profiles": ["internal-crud", "saas"]
+    "profiles": [
+      "internal-crud",
+      "saas"
+    ]
   },
   "verification": [
-    { "id": "auth-tests", "command": "npm test -- auth", "description": "Authenticated, unauthenticated and cross-tenant access attempts are all exercised." }
+    {
+      "id": "auth-tests",
+      "command": "npm test -- auth",
+      "description": "Authenticated, unauthenticated and cross-tenant access attempts are all exercised."
+    }
   ],
-  "upgrade": [],
   "operationalEvidence": [
-    { "control": "access-control", "evidence": "Every generated API route is wrapped in the ownership/role guard by default, and the test suite asserts a 403 on cross-tenant access." }
+    {
+      "control": "access-control",
+      "evidence": "Every generated API route is wrapped in the ownership/role guard by default, and the test suite asserts a 403 on cross-tenant access."
+    }
   ]
 }

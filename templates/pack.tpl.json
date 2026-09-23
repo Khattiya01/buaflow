@@ -1,17 +1,21 @@
 {
   "$schema": "../../buaflow/schemas/pack.schema.json",
-  "schemaVersion": "1.0",
-  "_": "pack.json — สัญญาของ stack pack หรือ capability pack หนึ่งตัว (PP-002) · เก็บที่ .claude/packs/<id>.json · ตัวอย่างจริงอยู่ที่ claude-setup/tests/fixtures/packs/",
+  "schemaVersion": "2.0",
+  "_": "pack.json — สัญญาของ stack pack หรือ capability pack หนึ่งตัว (PP-002, แก้ความหมายที่ PP-010/D-011) · เก็บที่ .claude/packs/<id>.json · ตัวอย่างจริงอยู่ที่ claude-setup/tests/fixtures/packs/",
   "_rules": [
+    "v2 คือ recipe + assertion ไม่ใช่ template: pack ไม่ได้เก็บโค้ดไว้ปั๊มออกมา แต่บอกว่า 'ต้องรันคำสั่งอะไร' (setup) และ 'เมื่อเสร็จแล้วต้องมีไฟล์อะไรอยู่จริง' (requiredArtifacts) — คนหรือ AI ตัวไหนลงมือก็ได้ Buaflow เป็นคนพิสูจน์ · ดู D-011",
     "id ต้องตรงชื่อไฟล์ (lowercase-kebab-case) — .claude/packs/nextjs-postgres.json ต้องมี id: \"nextjs-postgres\"",
     "kind = \"stack\" (ให้สถาปัตยกรรมทั้งชุด เช่น Next.js+PostgreSQL) หรือ \"capability\" (เพิ่มความสามารถหนึ่งอย่างบน stack ที่มีอยู่ เช่น auth, payment)",
-    "version เป็น semver เต็ม (major.minor.patch) เพราะ pack คือ generator/convention จริง ไม่ใช่แค่ data schema — patch แก้บั๊กได้โดยไม่เปลี่ยน contract",
-    "generatedArtifacts / verification / operationalEvidence ต้องมีอย่างน้อยหมวดละ 1 รายการเสมอ — pack ที่ไม่ generate อะไร ไม่มีทางพิสูจน์ตัวเอง และไม่ช่วย readiness control ไหนเลย ไม่ใช่ pack",
+    "version เป็น semver เต็ม (major.minor.patch) เพราะ pack คือ convention จริง ไม่ใช่แค่ data schema — patch แก้บั๊กได้โดยไม่เปลี่ยน contract",
+    "setup[].command ที่เรียก scaffolder ของเจ้าของ framework ห้าม pin เวอร์ชัน — ใช้ create-next-app@latest ไม่ใช่ create-next-app@16.3.5 · pack ที่ pin คือ snapshot ของปีที่เขียนมัน และ pack.js จะปฏิเสธให้เอง (ตรวจจากรูปคำสั่ง ไม่ใช่จาก flag ที่ประกาศเอง) · dependency ของแอปเอง pin ได้ตามปกติ กฎนี้คุมเฉพาะตัว scaffolder",
+    "requiredArtifacts คือ assertion ไม่ใช่คำสัญญา — 'ไฟล์นี้ต้องมีอยู่เมื่อทำเสร็จ' ไม่ใช่ 'generator จะเขียนไฟล์นี้ให้' (v1 เขียนแบบหลังไว้ และไม่เคยมีอะไรตรวจ เพราะไม่เคยมี generator)",
+    "implementedBy (ไม่บังคับ) ชี้ไปที่ reference app ที่พิสูจน์ pack นี้จริง — ถ้าใส่ไว้ ทุก path ใน requiredArtifacts ต้องมีอยู่จริงในนั้น มิฉะนั้น pack ตก · นี่คือสิ่งที่ผูก pack เข้ากับของจริงแทนที่จะอธิบายโปรเจกต์ที่ไม่มีใครเคยสร้าง",
+    "setup / requiredArtifacts / verification / operationalEvidence ต้องมีอย่างน้อยหมวดละ 1 รายการเสมอ — pack ที่ไม่บอกว่าต้องทำอะไร ไม่มีไฟล์ให้ตรวจ พิสูจน์ตัวเองไม่ได้ และไม่ช่วย readiness control ไหนเลย ไม่ใช่ pack",
     "operationalEvidence[].control ต้องเป็น control id ที่รู้จักใน claude-setup/readiness.js (CONTROLS_BY_LEVEL) — evidence อธิบายว่า pack นี้ช่วยผ่าน control นั้นได้อย่างไรจริง ไม่ใช่คำอธิบายทั่วไป (≥ 20 ตัวอักษร)",
     "compatibility.requiresPacks / conflictsWithPacks อ้าง id ของ pack อื่น · profiles อ้าง id ของ application profile (PP-001) — ปล่อยว่างได้ถ้าไม่ผูกกับใครเป็นพิเศษ",
-    "requiresPacks v1 อ้างได้เฉพาะ pack id ตรงตัว (identity-based) — อ้าง 'ต้องมีความสามารถ X' แบบ pack ไหนก็ได้ (capability-based เช่น 'ต้องมี persistence จาก db หรือ nextjs-postgres ก็ได้') ยังทำไม่ได้ใน v1 · pack ที่ต้องการแบบหลังให้ปล่อย requiresPacks ว่างแล้วอธิบายไว้ใน description แทน (ดูตัวอย่าง background-jobs.json/audit-log.json)",
-    "upgrade[] ว่างได้สำหรับ pack เวอร์ชันแรก — เพิ่มรายการเมื่อออกเวอร์ชันถัดไปที่ต้องมีขั้นตอน migrate จริง",
-    "ตรวจไฟล์เดียว: node claude-setup/pack.js --file .claude/packs/<id>.json · ตรวจว่าชุด pack ติดตั้งพร้อมกันได้ไหม (PP-007): node claude-setup/pack-composition.js --dir .claude/packs --ids <id1>,<id2>,..."
+    "requiresPacks อ้างได้เฉพาะ pack id ตรงตัว (identity-based) — อ้าง 'ต้องมีความสามารถ X' แบบ pack ไหนก็ได้ (capability-based เช่น 'ต้องมี persistence จาก db หรือ nextjs-postgres ก็ได้') ยังทำไม่ได้ · pack ที่ต้องการแบบหลังให้ปล่อย requiresPacks ว่างแล้วอธิบายไว้ใน description แทน (ดูตัวอย่าง background-jobs.json/audit-log.json)",
+    "v2 ถอด upgrade[] ออก — ว่างเปล่าทั้ง 9 pack ตั้งแต่วันแรก และคำถาม 'pack นี้เก่าหรือยัง' ตอบด้วย evidence-freshness control (EP-010) ซึ่งเป็นเครื่องตรวจ ไม่ใช่ ledger ที่รอคนมาเขียน",
+    "ตรวจไฟล์เดียว: node claude-setup/pack.js --file .claude/packs/<id>.json · ตรวจพร้อม binding กับ reference app: เพิ่ม --repo-root . · ตรวจว่าชุด pack ติดตั้งพร้อมกันได้ไหม (PP-007): node claude-setup/pack-composition.js --dir .claude/packs --ids <id1>,<id2>,..."
   ],
   "id": "<pack-id>",
   "kind": "stack",
@@ -21,8 +25,11 @@
   "inputs": [
     { "name": "<inputName>", "type": "string", "required": true, "description": "<ใช้ทำอะไร>" }
   ],
-  "generatedArtifacts": [
-    { "path": "<path/ที่/generate>", "description": "<ทำหน้าที่อะไรในระบบ>" }
+  "setup": [
+    { "id": "<setup-step-id>", "command": "<คำสั่งที่รันได้จริง — scaffolder ห้าม pin เวอร์ชัน>", "description": "<ขั้นนี้ทำอะไร และทำไมต้องทำตรงนี้>" }
+  ],
+  "requiredArtifacts": [
+    { "path": "<path/ที่/ต้องมีอยู่จริงเมื่อเสร็จ>", "description": "<ทำหน้าที่อะไรในระบบ>" }
   ],
   "compatibility": {
     "requiresPacks": [],
@@ -32,7 +39,6 @@
   "verification": [
     { "id": "<verification-id>", "command": "<คำสั่งที่รันได้จริง>", "description": "<คำสั่งนี้พิสูจน์อะไร>" }
   ],
-  "upgrade": [],
   "operationalEvidence": [
     { "control": "<control-id>", "evidence": "<pack นี้ช่วยผ่าน control นี้ได้อย่างไรจริง อย่างน้อย 20 ตัวอักษร>" }
   ]

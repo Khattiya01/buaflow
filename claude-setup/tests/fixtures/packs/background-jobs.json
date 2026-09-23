@@ -1,30 +1,75 @@
 {
   "$schema": "../../../../schemas/pack.schema.json",
-  "schemaVersion": "1.0",
+  "schemaVersion": "2.0",
   "id": "background-jobs",
   "kind": "capability",
   "name": "Background job queue",
   "description": "Adds a durable job queue and a standalone worker process, so slow or unreliable work (sending mail, calling a third party) never blocks a request. Needs a persistence layer already present — either the nextjs-postgres stack pack or the standalone db capability pack — but v1's requiresPacks is identity-based (\"needs pack X\"), not capability-based (\"needs something providing persistence\"), so that dependency cannot be machine-checked yet; see templates/pack.tpl.json's note on this.",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "inputs": [
-    { "name": "driver", "type": "enum", "required": true, "options": ["postgres", "redis"], "description": "Queue backing store." },
-    { "name": "concurrency", "type": "number", "required": false, "default": 5, "description": "Max jobs the worker processes at once." }
+    {
+      "name": "driver",
+      "type": "enum",
+      "required": true,
+      "options": [
+        "postgres",
+        "redis"
+      ],
+      "description": "Queue backing store."
+    },
+    {
+      "name": "concurrency",
+      "type": "number",
+      "required": false,
+      "default": 5,
+      "description": "Max jobs the worker processes at once."
+    }
   ],
-  "generatedArtifacts": [
-    { "path": "lib/queue.ts", "description": "enqueue() and job-definition helpers used by API routes and other packs." },
-    { "path": "worker.ts", "description": "Standalone worker process entrypoint — runs as its own container/process, not inside the web server." }
+  "setup": [
+    {
+      "id": "install",
+      "command": "npm install pg-boss",
+      "description": "A durable queue backed by the persistence layer already present, chosen by the `driver` input."
+    },
+    {
+      "id": "worker-script",
+      "command": "npm pkg set scripts.worker=\"node --enable-source-maps worker.js\"",
+      "description": "The worker must be startable as its own process, not a thread inside the web server — the deployment manifest needs a command to point at."
+    }
+  ],
+  "requiredArtifacts": [
+    {
+      "path": "lib/queue.ts",
+      "description": "enqueue() and job-definition helpers used by API routes and other packs."
+    },
+    {
+      "path": "worker.ts",
+      "description": "Standalone worker process entrypoint — runs as its own container/process, not inside the web server."
+    }
   ],
   "compatibility": {
     "requiresPacks": [],
     "conflictsWithPacks": [],
-    "profiles": ["internal-crud", "saas"]
+    "profiles": [
+      "internal-crud",
+      "saas"
+    ]
   },
   "verification": [
-    { "id": "job-roundtrip", "command": "npm test -- queue", "description": "Enqueues a job against a real queue backend and asserts the worker actually processes it, not just that enqueue() resolves." }
+    {
+      "id": "job-roundtrip",
+      "command": "npm test -- queue",
+      "description": "Enqueues a job against a real queue backend and asserts the worker actually processes it, not just that enqueue() resolves."
+    }
   ],
-  "upgrade": [],
   "operationalEvidence": [
-    { "control": "observability", "evidence": "Every job logs enqueue, start, success/failure and retry count as structured events, so a stuck queue is diagnosable from logs alone." },
-    { "control": "health-check", "evidence": "The worker process exposes its own liveness/readiness check, separate from the web process's /api/health — a stalled worker does not read as a healthy deployment." }
+    {
+      "control": "observability",
+      "evidence": "Every job logs enqueue, start, success/failure and retry count as structured events, so a stuck queue is diagnosable from logs alone."
+    },
+    {
+      "control": "health-check",
+      "evidence": "The worker process exposes its own liveness/readiness check, separate from the web process's /api/health — a stalled worker does not read as a healthy deployment."
+    }
   ]
 }

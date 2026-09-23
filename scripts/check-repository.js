@@ -54,6 +54,11 @@ run('artifact contracts', process.execPath, [path.join(root, 'scripts', 'check-a
 run('workflow rules (core → Claude adapter)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-rules.js'), '--check']);
 run('workflow skills (core → Claude adapter)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-skills.js'), '--check']);
 run('workflow agents (core → Claude adapter)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-agents.js'), '--check']);
+run('pack contracts and their binding to reference apps', process.execPath, [
+  path.join(root, 'claude-setup', 'pack.js'),
+  '--dir', path.join(root, 'claude-setup', 'tests', 'fixtures', 'packs'),
+  '--repo-root', root,
+]);
 run('regression tests', process.execPath, [path.join(root, 'scripts', 'run-tests.js')]);
 
 console.log('\nrepository check: PASS');
