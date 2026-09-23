@@ -17,6 +17,7 @@ const expectedSources = {
   'product-graph': 'templates/product-graph.tpl.json',
   'application-profile': 'templates/application-profile.tpl.json',
   'pack': 'templates/pack.tpl.json',
+  'evidence-bundle': 'templates/evidence-bundle.tpl.json',
   'product-development-state': 'development/state.json',
 };
 

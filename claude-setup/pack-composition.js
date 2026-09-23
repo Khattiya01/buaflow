@@ -1,18 +1,28 @@
 #!/usr/bin/env node
 /**
- * pack-composition — checks whether a SET of packs can be installed together (PP-007)
+ * pack-composition — checks whether a SET of packs can be installed together, and optionally
+ * against one application profile (PP-007, extended for M2's "convergence checks")
  *
  *   node claude-setup/pack-composition.js --dir .claude/packs
  *   node claude-setup/pack-composition.js --dir .claude/packs --ids nextjs-postgres,auth-rbac,storage
+ *   node claude-setup/pack-composition.js --dir .claude/packs --ids content,auth-rbac --profile .claude/profiles/content.json
  *   node claude-setup/pack-composition.js --dir .claude/packs --json
  *
  * ทำไมต้องมี: pack.js ตรวจ pack ทีละไฟล์ว่า "ตัวมันเองถูกต้องไหม" แต่ไม่เคยตอบว่า "ติดตั้งพร้อมกัน
  * ได้จริงไหม" — ไฟล์นี้เติมส่วนที่ขาด: หา requiresPacks ที่หายไปจากชุดที่จะติดตั้ง, หา
  * conflictsWithPacks ที่ทั้งสองฝั่งอยู่ในชุดเดียวกันจริง, และหา generatedArtifacts path ที่สอง pack
- * เขียนทับกัน (ซึ่งเป็น conflict โดยพฤตินัยแม้ไม่มีใครประกาศไว้) — เป็น convergence check ขั้นต้น
- * ของ M2 ("Repeatable Web Production")
+ * เขียนทับกัน (ซึ่งเป็น conflict โดยพฤตินัยแม้ไม่มีใครประกาศไว้)
  *
- * exit 0 = ชุดนี้ประกอบกันได้ | exit 1 = มี dependency หาย, conflict, หรือ path ชนกัน
+ * --profile (เพิ่มภายหลัง) เติม convergence check อีกชั้น: application profile (PP-001) ประกาศ
+ * ว่า control ไหน "not-applicable" พร้อมเหตุผล แต่ถ้า pack ที่เลือกไว้ใน --ids ดันประกาศ
+ * operationalEvidence สำหรับ control เดียวกันนั้นจริง (เช่น profile บอกว่า access-control
+ * not-applicable แต่ชุด pack มี auth-rbac ซึ่งทำหน้าที่พิสูจน์ access-control โดยตรง) แปลว่า
+ * profile กับชุด pack ที่เลือกขัดแย้งกันเอง — เป็นสัญญาณว่า "not-applicable" นั้นไม่จริงอีกต่อไป
+ * เป็น convergence check ที่ทำได้ตอนนี้โดยไม่ต้องมี BC-001..003 (agent I/O contract, work
+ * isolation, scheduler) ก่อน เพราะอ่านแค่ contract ของ artifact สองชนิดที่มีอยู่แล้ว (PP-001, PP-002)
+ *
+ * exit 0 = ชุดนี้ประกอบกันได้ (และไม่ขัดกับ profile ถ้าระบุ) | exit 1 = มี dependency หาย, conflict,
+ * path ชนกัน, หรือ profile/pack ขัดแย้งกัน
  * ไม่มี dependency — Node ล้วน รันได้ทุก OS
  */
 'use strict';
@@ -20,6 +30,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { validatePack } = require('./pack.js');
+const { validateProfile } = require('./application-profile.js');
 
 function loadPacks(dir, ids) {
   const files = ids
@@ -86,12 +97,47 @@ function validateComposition(packs) {
   return { ok: errors.length === 0, errors, packIds: packs.map((p) => p.id) };
 }
 
+function loadProfile(file) {
+  if (!fs.existsSync(file)) return { errors: [`no such profile file: ${file}`] };
+  let profile;
+  try {
+    profile = JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (error) {
+    return { errors: [`${file}: cannot read/parse: ${error.message}`] };
+  }
+  const expectedId = path.basename(file, '.json');
+  const result = validateProfile(profile, { expectedId });
+  if (!result.ok) return { errors: [`${file}: fails its own application-profile contract — ${result.errors.join('; ')}`] };
+  return { profile };
+}
+
+// A profile marking a control "not-applicable" is a claim that the capability genuinely does not
+// exist in this application. If a pack in the same composed set produces operationalEvidence for
+// that exact control, the pack is proof the capability DOES exist, so the two artifacts disagree.
+function validateProfileFit(profile, packs) {
+  const errors = [];
+  const notApplicable = (profile.controls || []).filter((c) => c.requirement === 'not-applicable');
+  for (const override of notApplicable) {
+    for (const pack of packs) {
+      const evidence = pack.operationalEvidence.find((item) => item.control === override.control);
+      if (evidence) {
+        errors.push(
+          `profile "${profile.id}" marks "${override.control}" as not-applicable, but pack "${pack.id}" `
+          + `declares operationalEvidence for it — the profile and the chosen pack set disagree`
+        );
+      }
+    }
+  }
+  return { ok: errors.length === 0, errors };
+}
+
 function parseArgs(argv) {
-  const options = { dir: null, ids: null, json: false };
+  const options = { dir: null, ids: null, profile: null, json: false };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
     if (arg === '--dir') options.dir = argv[++index];
     else if (arg === '--ids') options.ids = argv[++index].split(',').map((s) => s.trim()).filter(Boolean);
+    else if (arg === '--profile') options.profile = argv[++index];
     else if (arg === '--json') options.json = true;
     else if (arg === '--help' || arg === '-h') options.help = true;
     else throw new Error(`unknown argument: ${arg}`);
@@ -109,7 +155,10 @@ function main(argv = process.argv.slice(2)) {
     return 2;
   }
   if (options.help) {
-    console.log('Usage: node claude-setup/pack-composition.js --dir <path> [--ids id1,id2,...] [--json]');
+    console.log(
+      'Usage: node claude-setup/pack-composition.js --dir <path> [--ids id1,id2,...] '
+      + '[--profile <path>] [--json]'
+    );
     return 0;
   }
 
@@ -126,21 +175,37 @@ function main(argv = process.argv.slice(2)) {
     return 2;
   }
 
+  let profile = null;
+  if (options.profile) {
+    const profileFile = path.resolve(process.cwd(), options.profile);
+    const loaded = loadProfile(profileFile);
+    if (loaded.errors) {
+      if (options.json) console.log(JSON.stringify({ ok: false, errors: loaded.errors }, null, 2));
+      else for (const e of loaded.errors) console.error(`✗ ${e}`);
+      return 2;
+    }
+    profile = loaded.profile;
+  }
+
   const result = validateComposition(packs);
+  const profileFit = profile ? validateProfileFit(profile, packs) : { ok: true, errors: [] };
+  const errors = [...result.errors, ...profileFit.errors];
+  const ok = result.ok && profileFit.ok;
+
   if (options.json) {
-    console.log(JSON.stringify(result, null, 2));
+    console.log(JSON.stringify({ ok, errors, packIds: result.packIds, profile: profile?.id || null }, null, 2));
   } else {
-    console.log(`Composing: ${result.packIds.join(', ')}`);
-    for (const e of result.errors) console.log(`  - ${e}`);
+    console.log(`Composing: ${result.packIds.join(', ')}${profile ? ` against profile "${profile.id}"` : ''}`);
+    for (const e of errors) console.log(`  - ${e}`);
     console.log(
-      result.ok
+      ok
         ? `\n✓ pack-composition: ${result.packIds.length} pack(s) compose without conflict`
-        : `\n✗ pack-composition: ${result.errors.length} problem(s)`
+        : `\n✗ pack-composition: ${errors.length} problem(s)`
     );
   }
-  return result.ok ? 0 : 1;
+  return ok ? 0 : 1;
 }
 
 if (require.main === module) process.exit(main());
 
-module.exports = { loadPacks, parseArgs, validateComposition };
+module.exports = { loadPacks, loadProfile, parseArgs, validateComposition, validateProfileFit };

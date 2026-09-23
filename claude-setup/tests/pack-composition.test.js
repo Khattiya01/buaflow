@@ -1,13 +1,15 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const { validateComposition } = require('../pack-composition.js');
+const { validateComposition, validateProfileFit } = require('../pack-composition.js');
 const { repositoryRoot, runNode } = require('./helpers.js');
 
 const packsDir = path.join(__dirname, 'fixtures', 'packs');
+const profilesDir = path.join(__dirname, 'fixtures', 'profiles');
 
 function pack(overrides = {}) {
   return {
@@ -67,6 +69,36 @@ test('validateComposition fails when two packs generate the same file path, even
   assert.match(result.errors.join('\n'), /generatedArtifacts path "fixture.txt" is written by both "a" and "b"/);
 });
 
+function loadFixture(dir, id) {
+  return JSON.parse(fs.readFileSync(path.join(dir, `${id}.json`), 'utf8'));
+}
+
+test('validateProfileFit flags a pack that proves a control the profile calls not-applicable', () => {
+  const contentProfile = loadFixture(profilesDir, 'content');
+  const authRbac = loadFixture(packsDir, 'auth-rbac');
+  const result = validateProfileFit(contentProfile, [authRbac]);
+  assert.equal(result.ok, false);
+  assert.match(
+    result.errors.join('\n'),
+    /profile "content" marks "access-control" as not-applicable, but pack "auth-rbac" declares operationalEvidence for it/
+  );
+});
+
+test('validateProfileFit passes when no pack contradicts a not-applicable control', () => {
+  const contentProfile = loadFixture(profilesDir, 'content');
+  const storage = loadFixture(packsDir, 'storage');
+  const notification = loadFixture(packsDir, 'notification');
+  const result = validateProfileFit(contentProfile, [storage, notification]);
+  assert.equal(result.ok, true);
+});
+
+test('validateProfileFit passes for a profile with no not-applicable controls', () => {
+  const saasProfile = loadFixture(profilesDir, 'saas');
+  const db = loadFixture(packsDir, 'db');
+  const result = validateProfileFit(saasProfile, [db]);
+  assert.equal(result.ok, true);
+});
+
 function run(args) {
   return runNode(path.join(repositoryRoot, 'claude-setup', 'pack-composition.js'), { args });
 }
@@ -99,4 +131,34 @@ test('CLI fails cleanly on an unknown pack id', () => {
   const result = run(['--dir', path.relative(repositoryRoot, packsDir), '--ids', 'does-not-exist']);
   assert.equal(result.status, 2);
   assert.match(result.stderr, /no such pack file/);
+});
+
+test('CLI --profile fails when auth-rbac contradicts the content profile', () => {
+  const result = run([
+    '--dir', path.relative(repositoryRoot, packsDir),
+    '--ids', 'auth-rbac',
+    '--profile', path.relative(repositoryRoot, path.join(profilesDir, 'content.json')),
+  ]);
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /against profile "content"/);
+  assert.match(result.stdout, /marks "access-control" as not-applicable/);
+});
+
+test('CLI --profile passes when the chosen packs do not contradict the profile', () => {
+  const result = run([
+    '--dir', path.relative(repositoryRoot, packsDir),
+    '--ids', 'storage,notification',
+    '--profile', path.relative(repositoryRoot, path.join(profilesDir, 'content.json')),
+    '--json',
+  ]);
+  assert.equal(result.status, 0, result.stdout);
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.ok, true);
+  assert.equal(parsed.profile, 'content');
+});
+
+test('CLI fails cleanly when --profile points at a missing file', () => {
+  const result = run(['--dir', path.relative(repositoryRoot, packsDir), '--ids', 'auth-rbac', '--profile', 'no-such-profile.json']);
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /no such profile file/);
 });

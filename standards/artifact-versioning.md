@@ -16,6 +16,7 @@
 | `product-graph` | public | `docs/planning/product-graph.json` | `schemas/product-graph.schema.json` |
 | `application-profile` | public | `.claude/profiles/*.json` | `schemas/application-profile.schema.json` |
 | `pack` | public | `.claude/packs/*.json` | `schemas/pack.schema.json` |
+| `evidence-bundle` | public | `docs/evidence/bundle.json` | `schemas/evidence-bundle.schema.json` |
 | `product-development-state` | internal | `development/state.json` | `development/state.schema.json` |
 
 ไฟล์ที่ไม่อยู่ภายใต้ Buaflow schema:

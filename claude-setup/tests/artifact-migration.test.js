@@ -9,7 +9,7 @@ const { migrateArtifact } = require('../../scripts/migrate-artifact.js');
 const { cleanup, repositoryRoot, runNode, temporaryProject, writeJson } = require('./helpers.js');
 
 const fixtures = path.join(__dirname, 'fixtures', 'artifacts');
-const types = ['stack-config', 'readiness-manifest', 'prototype-flow', 'pixel-config', 'project-manifest', 'product-graph', 'application-profile', 'pack'];
+const types = ['stack-config', 'readiness-manifest', 'prototype-flow', 'pixel-config', 'project-manifest', 'product-graph', 'application-profile', 'pack', 'evidence-bundle'];
 
 function fixture(version, type) {
   return JSON.parse(fs.readFileSync(path.join(fixtures, version, `${type}.json`), 'utf8'));

@@ -67,6 +67,14 @@
       "migration": "supported"
     },
     {
+      "type": "evidence-bundle",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/evidence-bundle.schema.json",
+      "paths": ["docs/evidence/bundle.json"],
+      "migration": "supported"
+    },
+    {
       "type": "product-development-state",
       "classification": "internal",
       "latestVersion": "1.0",

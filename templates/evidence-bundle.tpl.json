@@ -1,0 +1,28 @@
+{
+  "$schema": "../../buaflow/schemas/evidence-bundle.schema.json",
+  "schemaVersion": "1.0",
+  "_": "bundle.json — Evidence Bundle (EP-001) · wraps one readiness manifest + a generated human-readable report index + immutable run metadata · เก็บที่ docs/evidence/bundle.json · generate ด้วย node claude-setup/evidence-bundle.js --root <path> --write",
+  "_rules": [
+    "ห้ามแก้ไฟล์นี้ด้วยมือ — เป็น output ของ claude-setup/evidence-bundle.js เสมอ, ไม่ใช่ input",
+    "commit และ summary คัดลอกมาจาก readinessManifestPath ตอน generate — ถ้า readiness manifest เปลี่ยนหลังจากนั้น ต้อง generate bundle ใหม่ ไม่ถือว่า bundle เก่ายัง valid",
+    "readinessManifestPath / reportIndexPath เป็น path สัมพัทธ์จาก project root เดียวกับที่ registry.json ระบุ ไม่ใช่ absolute path",
+    "toolVersions มาจาก process.versions/process.platform/process.arch ของเครื่องที่ generate จริง ไม่ใช่ค่าคงที่ — ไม่รู้จัก stack-specific tool version ใด ๆ เพื่อให้ format นี้ใช้ได้กับทุก stack pack โดยไม่ต้อง special-case",
+    "ตรวจไฟล์: node claude-setup/evidence-bundle.js --root <path> --check"
+  ],
+  "project": "<project-name>",
+  "commit": "<git-commit-sha>",
+  "generatedAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
+  "readinessManifestPath": "docs/evidence/readiness.json",
+  "reportIndexPath": "docs/evidence/bundle-index.md",
+  "toolVersions": {
+    "node": "<process.version>",
+    "platform": "<process.platform>",
+    "arch": "<process.arch>"
+  },
+  "summary": {
+    "level": "R3",
+    "ok": true,
+    "passed": 25,
+    "required": 25
+  }
+}
