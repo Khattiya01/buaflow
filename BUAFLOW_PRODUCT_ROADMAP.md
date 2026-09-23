@@ -121,6 +121,18 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | BF-006 | Canonical artifact schemas | schema versioning/migration policy สำหรับ state, intent, plan, proof |
 | BF-007 | CLI shell | `buaflow init`, `doctor`, `verify`, `readiness`, `resume` |
 
+### Discovery and Validation — จับปัญหาให้ถูกก่อนเข้า Intent Compiler
+
+> เพิ่มเข้ามาหลังทบทวนงานวิจัยภายนอก "AI-Native SDLC + Agentic Engineering" (22 กันยายน 2026) — ดู D-004
+> Phase 1/Phase A เดิมเก็บ requirement/technical inventory แต่ไม่มีชั้นหลักฐาน/pain point ก่อนหน้านั้น workstream นี้เติมช่องว่างนั้น
+> เป็น **ทางเลือกตามขนาดงาน** ไม่ใช่ของบังคับทุก `/intent` (ตาม principle "Progressive rigor" ข้อ 3)
+
+| ID | งาน | ผลลัพธ์ |
+|---|---|---|
+| DV-001 | Evidence และ pain-point discovery layer | evidence register, as-is/to-be process, pain-point register templates + Phase 1/Phase A เพิ่มขั้น Operational Discovery แบบ opt-in |
+| DV-002 | Traceability ย้อนขึ้นไปถึง evidence/pain point | เชื่อม pain point → feature/intent เข้ากับ docs-lint แบบ warn ไม่ใช่ fail ให้ยังใช้ได้กับงานที่ไม่ผ่านชั้นนี้ |
+| DV-003 | Business outcome review หลัง release | แยกจาก config-learning loop เดิมของ Phase 8 — วัดว่า pain point ถูกแก้จริงไหม ไม่ใช่แค่ config ปรับถูก |
+
 ### Intent Compiler — จาก idea ไปเป็น product graph
 
 | ID | งาน | ผลลัพธ์ |
@@ -157,6 +169,10 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | BC-005 | Contract mismatch detectors | schema/API/migration/UI/requirement drift checks |
 | BC-006 | Independent verifier role | verifier ไม่ใช้ self-report จาก builder เป็นหลักฐานเดียว |
 | BC-007 | Repair loop with limits | classify failure, retry budget, escalate with minimal question |
+
+> เมื่อดึง BC-* เข้ามาทำจริงที่ M3 ให้อ้างอิงรายละเอียด agent contract (permission/write-scope/budget/stop_when),
+> autonomy/risk tier (A0–A4) และ agent-run-record format จากงานวิจัย "AI-Native SDLC + Agentic Engineering"
+> ที่ทบทวนไว้ใน D-004 — เนื้อหาตรงกับขอบเขต BC-001/BC-002/BC-006 อยู่แล้ว ไม่ต้องคิดใหม่ แค่ทำให้ concrete ขึ้น
 
 ### Evidence and Production Qualification
 

@@ -396,6 +396,112 @@
       "artifacts": [],
       "verification": [],
       "notes": "Not started. current.focus moved here only because M2's own completion criteria (two web stacks, core capability packs, convergence checks, evidence bundle) are now all done and current.focus cannot be empty — this is the roadmap's own next-listed item and lastSession.next had already flagged it as a candidate. Stack choice (Expo vs. Flutter) and scope are real design decisions and should be confirmed with the user before starting, the same pattern EP-001 and PP-004 followed."
+    },
+    {
+      "id": "MT-001",
+      "title": "Canonical workflow protocol (narrow slice: rules)",
+      "milestone": "M4",
+      "status": "done",
+      "dependsOn": [],
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
+      "acceptance": [
+        "core/rules/*.md defines a vendor-neutral workflow rule contract (description + triggerPaths + body markdown) with no Claude-Code-specific syntax",
+        "All 6 existing workflow rules (backend-api, db-migration, docs-sync, frontend-ui, i18n, testing) are represented in core/rules/ without content loss",
+        "Skills, agents, hooks and settings are explicitly out of scope for this pass and documented as follow-up in core/README.md, not silently dropped"
+      ],
+      "artifacts": [
+        "core/README.md",
+        "core/rules/backend-api.md",
+        "core/rules/db-migration.md",
+        "core/rules/docs-sync.md",
+        "core/rules/frontend-ui.md",
+        "core/rules/i18n.md",
+        "core/rules/testing.md"
+      ],
+      "verification": ["node scripts/generate-workflow-rules.js --check"],
+      "notes": "Pulled forward from its nominal M4 milestone ahead of M3/PP-005 at the user's explicit request (see D-006) — Claude Code adapter only, Codex/Copilot deferred. Deliberately narrow first slice: rules were chosen because the existing claude-setup/rules/*.md content is already pure frontmatter (paths:) + markdown body with zero Claude-Code-specific syntax, so it round-trips through a neutral core losslessly. Skills (`$ARGUMENTS`, inline `` !`bash` `` execution, `allowed-tools` permission strings, `disable-model-invocation`) and agents (`model:` hints) embed real Claude-Code-specific mechanics that need their own neutral representation designed deliberately, not rushed in this pass — tracked as open follow-up, not claimed done. Proven lossless, not just asserted: regenerating claude-setup/rules/*.md from this core via scripts/generate-workflow-rules.js --write reproduced the previously hand-authored files byte-for-byte (empty git diff)."
+    },
+    {
+      "id": "MT-002",
+      "title": "Claude Code adapter (narrow slice: rules)",
+      "milestone": "M4",
+      "status": "done",
+      "dependsOn": ["MT-001"],
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
+      "acceptance": [
+        "claude-setup/rules/*.md is generated from core/rules/*.md by scripts/generate-workflow-rules.js, not hand-maintained",
+        "npm run check fails if claude-setup/rules/*.md drifts from core/rules/*.md, so the two cannot silently diverge",
+        "A README documents the adapter pattern (core → per-vendor generator) so a future Codex/Copilot adapter is understood as a new generator against the same core, not a new content fork"
+      ],
+      "artifacts": [
+        "scripts/generate-workflow-rules.js",
+        "claude-setup/tests/generate-workflow-rules.test.js",
+        "claude-setup/README.md",
+        "claude-setup/rules/backend-api.md",
+        "claude-setup/rules/db-migration.md",
+        "claude-setup/rules/docs-sync.md",
+        "claude-setup/rules/frontend-ui.md",
+        "claude-setup/rules/i18n.md",
+        "claude-setup/rules/testing.md",
+        "scripts/check-repository.js"
+      ],
+      "verification": ["npm run check", "node scripts/generate-workflow-rules.js --check"],
+      "notes": "Wired into npm run check (scripts/check-repository.js) as a new 'workflow rules (core → Claude adapter)' step, same pattern as the roadmap/artifact/test steps already there. MT-003 (Codex adapter) and MT-004 (Copilot/Kiro adapters) are explicitly NOT attempted here per the user's direction (2026-09-23) and the standing vendor-scope preference (keep new contracts vendor-neutral only when free; don't build other vendor adapters unasked) — do not start them without being asked again. Skills/agents/hooks/settings.json.tpl remain hand-maintained Claude-only content in claude-setup/, not yet core-derived."
+    },
+    {
+      "id": "DV-001",
+      "title": "Evidence and pain-point discovery layer before intent",
+      "milestone": "M1",
+      "status": "backlog",
+      "dependsOn": ["BF-001"],
+      "acceptance": [
+        "Evidence register template captures source, owner, date, coverage and a confidence level (measured, observed, reported or assumed)",
+        "A single process-flow template covers both as-is and to-be process mapping (actor, trigger, action, system, output, wait time, handoff and a pain-point id per step for as-is; change id, pain resolved, what becomes automated, what stays human judgment and a success metric for to-be)",
+        "Pain-point register template captures workflow/step, symptom, evidence id, frequency, impact, workaround, root cause, confidence and priority",
+        "standards/discovery-and-validation.md defines when this layer is required versus optional, so small tasks are never forced through it",
+        "Phase 1 and Phase A reference the new templates as an opt-in step before requirement gathering, gated on new-product or major-initiative scale work, not every /intent"
+      ],
+      "artifacts": [
+        "templates/evidence-register.tpl.md",
+        "templates/process-flow.tpl.md",
+        "templates/pain-point-register.tpl.md",
+        "standards/discovery-and-validation.md",
+        "phases/01-discovery.md",
+        "phases/A-adopt-existing.md"
+      ],
+      "verification": ["node scripts/check-roadmap.js"],
+      "notes": "Adopted from an external research review on 2026-09-23 (see D-005). Deliberately opt-in, not a mandatory gate, to keep the existing Progressive rigor principle intact — this must not become required ceremony for small tasks."
+    },
+    {
+      "id": "DV-002",
+      "title": "Traceability chain extended upstream to evidence and pain points",
+      "milestone": "M1",
+      "status": "backlog",
+      "dependsOn": ["DV-001"],
+      "acceptance": [
+        "docs-lint can check that a feature or intent references a pain-point or objective id when the discovery layer (DV-001) was used for that project",
+        "Missing linkage produces a warning, not a hard failure, so projects that skip the discovery layer are unaffected",
+        "Existing intent/spec/plan/task trace checks in docs-lint keep passing unchanged"
+      ],
+      "artifacts": ["claude-setup/docs-lint.js", "standards/discovery-and-validation.md"],
+      "verification": ["npm test", "npm run check"],
+      "notes": "Adopted from an external research review on 2026-09-23 (see D-005)."
+    },
+    {
+      "id": "DV-003",
+      "title": "Business outcome review after release, distinct from the config-learning loop",
+      "milestone": "M1",
+      "status": "backlog",
+      "dependsOn": ["BF-001"],
+      "acceptance": [
+        "Outcome-review template records baseline, target, actual metric and a keep/iterate/rollback/monitor/open-new-intent decision",
+        "phases/08-tune-and-evolve.md documents outcome review as a separate activity from the existing AGENTS.md/rule/hook config-learning loop, with its own trigger (milestone close or post-release), so the two loops are not conflated"
+      ],
+      "artifacts": ["templates/outcome-review.tpl.md", "phases/08-tune-and-evolve.md"],
+      "verification": ["node scripts/check-roadmap.js"],
+      "notes": "Adopted from an external research review on 2026-09-23 (see D-005)."
     }
   ],
   "decisions": [
@@ -426,12 +532,26 @@
       "decision": "Close M2 by (1) scoping EP-001 as a schema + generator script (not schema-only, not provenance/checksums) and (2) satisfying M2's 'convergence checks' criterion with a narrow profile-vs-pack contradiction check inside PP-007's pack-composition.js, tracked as a scoped-down BC-005, instead of waiting on BC-001..004.",
       "reason": "The user asked to jointly decide M2 scope before continuing (2026-09-23). For EP-001, a generator was chosen over a bare schema because a format nobody can produce isn't 'ครบ' (complete) in practice; provenance/checksums were excluded because that is EP-004's named scope and duplicating it there would blur the two. For convergence checks, full BC-005 (schema/API/migration/UI/requirement drift) needs BC-001..004 (agent I/O contract, work isolation, scheduler, convergence graph) which don't exist yet and would be a large, premature ecosystem surface to build just to close M2; PP-007 already noted its pack-composition.js as 'a small step toward M2's convergence checks, not the whole of it', so extending that same tool to catch one real, concrete contradiction (a profile declaring a control not-applicable while a chosen pack proves that exact control) was the smallest true instance of a 'convergence check' available without new machinery.",
       "impact": "M2 ('Repeatable Web Production': two web stacks, core capability packs, convergence checks, evidence bundle) is now fully done. The full BC-005 vision (schema/API/migration/UI/requirement drift detection across BC-001..004) remains open and unscoped; do not treat this BC-005 entry as having satisfied it. current.milestone moves to M3."
+    },
+    {
+      "id": "D-005",
+      "date": "2026-09-23",
+      "decision": "Reviewed an external research document, 'Buaflow: AI-Native SDLC + Agentic Engineering,' written by the user's friend. Added a new 'Discovery and Validation' workstream (DV-001..003) to BUAFLOW_PRODUCT_ROADMAP.md, positioned before Intent Compiler, and pulled DV-001..003 into state.json as backlog. Did not create a separate workstream for the research's proposed Agentic Engineering layer (Orchestrator, Agent Contract, autonomy tiers A0-A4, agent run records) because it substantially overlaps with the already-planned BC-001..007 workstream at M3; added a pointer note after the BC-* table instead so that detail is not lost.",
+      "reason": "Comparing the research against the current roadmap and phase docs found two gaps nothing existing covers: no evidence/pain-point/as-is/to-be discovery layer upstream of the Intent Compiler (Phase 1 is requirement Q&A, Phase A is technical inventory only, neither captures pain-point evidence or root cause), and Phase 8's feedback loop is config-learning only, not post-release business-outcome measurement. Everything else the research proposed (Orchestrator, Agent Contract, execution isolation, independent verification) already has a home in BC-001..007. Scoped DV-001..003 as opt-in (not a mandatory gate for every /intent) to keep the existing Progressive rigor principle intact, since the research's proposed process is heavier than small tasks warrant.",
+      "impact": "DV-001..003 are backlog, not in current.focus, and do not block or change PP-005/M3 work. They depend only on BF-001 (already done) so they can be picked up independently and in order (DV-001 first; DV-002/DV-003 depend on DV-001 or are independent of it) whenever the user chooses. BC-001..007's future scoping at M3 should reference the research's autonomy-tier and agent-contract detail per the new note in the roadmap."
+    },
+    {
+      "id": "D-006",
+      "date": "2026-09-23",
+      "decision": "Pulled MT-001 (canonical workflow protocol) and MT-002 (Claude Code adapter) forward from their nominal M4 milestone into active work, ahead of finishing M3/PP-005, and completed both within this session as a deliberately narrow first slice covering workflow rules only (claude-setup/rules/*.md). MT-003 (Codex adapter) and MT-004 (Copilot/Kiro adapters) were explicitly not started.",
+      "reason": "The user asked to continue working but redirected scope: build only the Claude Code adapter, leave Codex/Copilot for later, and skip PP-005 (mobile) for now. Confirmed with the user before starting (this session, 2026-09-23) that (1) this is a deliberate reorder ahead of M3, not an accidental milestone skip, and (2) the adapter should be a real vendor-neutral core + generator split proven with one real consumer (Claude Code), not just documentation of the existing claude-setup/ content. Scoped to rules only because claude-setup/rules/*.md was already pure frontmatter (`paths:`) + markdown body with zero Claude-Code-specific syntax — it round-trips through a neutral core losslessly. Skills and agents embed real Claude-Code-specific mechanics (`$ARGUMENTS`, inline `` !`bash` `` execution, `allowed-tools` permission strings, `disable-model-invocation`, subagent `model:` hints) that need their own neutral representation designed deliberately; attempting that in the same pass risked a rushed, wrong design, so it was left as documented follow-up instead (see core/README.md and MT-001's notes).",
+      "impact": "current.milestone and current.focus are unchanged by this pull-forward (still M3 / PP-005) — MT-001/MT-002 are simply done now, out of their nominal sequence, the same way BC-005/EP-001 were pulled into M2 ahead of their long-term table position. claude-setup/rules/*.md is now generated output (scripts/generate-workflow-rules.js), checked by npm run check, and must not be hand-edited again. MT-003/MT-004 remain untouched; do not start a Codex or Copilot adapter without the user asking again, per the standing vendor-neutral-scope preference. Canonicalizing skills/agents/hooks/settings into core/ remains open, unscoped future work — not committed to any milestone."
     }
   ],
   "lastSession": {
     "date": "2026-09-23",
-    "summary": "User asked to jointly decide M2 scope before continuing (D-004), then to proceed. Closed both of M2's open completion criteria: (1) EP-001 (evidence bundle format), scoped as schema + generator per the user's choice — new claude-setup/evidence-bundle.js wraps any readiness.json into a commit/timestamp/tool-version-stamped bundle plus a self-checking Markdown report index, reusing readiness.js's own validateManifest rather than re-evaluating controls; registered as a full public artifact type (schema, template, registry entry, v0/v1 migration fixtures) per standards/artifact-versioning.md's own recipe; proven stack-agnostic by actually generating real R3 PASS (25/25) bundles for both reference-apps/nextjs-postgres-crud and reference-apps/react-fastapi-postgres-crud with zero app-specific code. (2) 'Convergence checks', tracked as a new, deliberately narrow BC-005 — extended PP-007's claude-setup/pack-composition.js with a --profile flag and validateProfileFit() that flags when an application profile marks a control not-applicable while a chosen pack in the same set declares operationalEvidence for that exact control (e.g. content profile + auth-rbac pack), per the user's chosen option to extend PP-007 rather than pull in BC-001..003. Both closures are recorded in D-004 with the reasoning for what was excluded (EP-004's provenance/checksums scope; the rest of BC-005's schema/API/migration/UI drift detection). npm run check is green (120/120 tests).",
-    "next": "M2 ('Repeatable Web Production') is now fully done: two web stacks (PP-003, PP-004), core capability packs (PP-007), convergence checks (BC-005 narrow slice) and evidence bundle format (EP-001) are all `done`. current.milestone moved to M3 and current.focus moved to PP-005 (mobile golden stack) purely because current.focus cannot be empty and it is the roadmap's next-listed item — it is NOT started and NOT yet confirmed with the user. Before writing any code for PP-005: confirm the mobile stack choice (Expo vs. Flutter, per BUAFLOW_PRODUCT_ROADMAP.md's own both-options phrasing) and the sync/offline contract's scope with the user, the same pattern EP-001/PP-004 followed. Separately, the full BC-005 vision (schema/API/migration/UI/requirement drift detection, which needs BC-001..004) remains entirely unscoped and is not part of PP-005's dependencies.",
-    "verifiedAt": "2026-09-23T02:30:00.0000000+07:00"
+    "summary": "At the user's request, pulled MT-001 (canonical workflow protocol) and MT-002 (Claude Code adapter) forward from M4 ahead of M3/PP-005, scoped to Claude Code only (Codex/Copilot explicitly deferred, see D-006), and completed a narrow first slice covering workflow rules: core/rules/*.md is a new vendor-neutral rule contract (description + triggerPaths + body), scripts/generate-workflow-rules.js generates claude-setup/rules/*.md from it, and regenerating reproduced the previously hand-authored files byte-for-byte (proven, not just asserted, via an empty git diff after --write). Wired the generator's --check into npm run check so the two cannot silently drift; added claude-setup/tests/generate-workflow-rules.test.js (6 new tests, all 126 repo tests pass). Skills/agents/hooks/settings.json.tpl remain hand-maintained Claude-only content — explicitly out of scope this pass, documented as follow-up in core/README.md and MT-001's notes, not silently dropped.",
+    "next": "Two independent threads remain open, same as before this session. (1) M3/PP-005 (mobile golden stack): still not started, still needs the mobile stack choice (Expo vs. Flutter) and sync/offline contract scope confirmed with the user before any code, the same pattern EP-001/PP-004/MT-001 followed. (2) DV-001..003 (Discovery and Validation) are backlog, unaffected by this session. A third thread opened by this session: canonicalizing skills and agents into core/ (extending MT-001/MT-002 beyond rules) needs its own design pass for Claude-Code-specific mechanics ($ARGUMENTS, inline bash execution, allowed-tools strings, model hints) before it can be attempted — not started, no fixed owner yet. MT-003/MT-004 (Codex/Copilot adapters) should not be started without the user asking again.",
+    "verifiedAt": "2026-09-23T10:06:30.0000000+07:00"
   }
 }

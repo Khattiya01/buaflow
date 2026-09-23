@@ -3,11 +3,16 @@
 โฟลเดอร์นี้คือ **ชั้น "configuration as control"** ของ kit
 Phase 7 จะคัดลอกทุกอย่างในนี้ไปไว้ที่ `.claude/` ของโปรเจกต์จริง
 
+โฟลเดอร์นี้คือ Claude Code adapter (MT-002) ของ Buaflow — `rules/*.md` generate มาจาก
+`core/rules/*.md` (vendor-neutral core, MT-001) แล้ว `node scripts/generate-workflow-rules.js --check`
+ตรวจไม่ให้สองฝั่งเพี้ยนจากกัน (อยู่ใน `npm run check`) skills/agents/hooks/settings ในนี้ยังเป็น
+Claude-Code-specific content ที่เขียนตรงในนี้ (ยังไม่ผ่าน core) — ดูเหตุผลใน `core/README.md`
+
 ## แผนที่การติดตั้ง
 
 ```
 claude-setup/skills/*/SKILL.md   →  .claude/skills/*/SKILL.md
-claude-setup/rules/*.md          →  .claude/rules/*.md
+claude-setup/rules/*.md          →  .claude/rules/*.md          generate จาก core/rules/*.md — ดู core/README.md, ห้ามแก้ไฟล์นี้ตรง ๆ
 claude-setup/agents/*.md         →  .claude/agents/*.md
 claude-setup/hooks/*.js          →  .claude/hooks/*.js
 claude-setup/check-config.js     →  .claude/check-config.js
