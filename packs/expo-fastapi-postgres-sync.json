@@ -5,7 +5,7 @@
   "kind": "stack",
   "name": "Expo (React Native) + FastAPI + PostgreSQL, offline/sync",
   "description": "Buaflow's mobile golden stack: an Expo (React Native + TypeScript) client with an offline-first local store (SQLite on native, localStorage on the web export — see docs/sync-contract.md for why), synced against a FastAPI + PostgreSQL backend through a pull/push sync API with last-write-wins conflict resolution. Materially different from the two web golden stacks: the client persists data locally BEFORE any network round trip, and the API contract is a sync protocol (cursor-based pull, batched push with per-change outcomes), not plain CRUD.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "inputs": [
     {
       "name": "projectName",
@@ -94,9 +94,7 @@
   "implementedBy": "reference-apps/expo-fastapi-postgres-sync",
   "compatibility": {
     "requiresPacks": [],
-    "conflictsWithPacks": [
-      "db"
-    ],
+    "conflictsWithPacks": [],
     "profiles": [
       "content",
       "internal-crud",

@@ -8,7 +8,10 @@ const test = require('node:test');
 const { validateComposition, validateProfileFit } = require('../pack-composition.js');
 const { repositoryRoot, runNode } = require('./helpers.js');
 
-const packsDir = path.join(repositoryRoot, 'packs');
+// Composition logic is exercised by fixtures written for it, not by the product catalogue:
+// a test that breaks when a pack is added or retired is testing the catalogue, not the logic.
+const packsDir = path.join(__dirname, 'fixtures', 'packs');
+const catalogDir = path.join(repositoryRoot, 'packs');
 const profilesDir = path.join(__dirname, 'fixtures', 'profiles');
 
 function pack(overrides = {}) {
@@ -80,7 +83,7 @@ function loadFixture(dir, id) {
 
 test('validateProfileFit flags a pack that proves a control the profile calls not-applicable', () => {
   const contentProfile = loadFixture(profilesDir, 'content');
-  const authRbac = loadFixture(packsDir, 'auth-rbac');
+  const authRbac = loadFixture(catalogDir, 'auth-rbac');
   const result = validateProfileFit(contentProfile, [authRbac]);
   assert.equal(result.ok, false);
   assert.match(
@@ -91,16 +94,16 @@ test('validateProfileFit flags a pack that proves a control the profile calls no
 
 test('validateProfileFit passes when no pack contradicts a not-applicable control', () => {
   const contentProfile = loadFixture(profilesDir, 'content');
-  const storage = loadFixture(packsDir, 'storage');
-  const notification = loadFixture(packsDir, 'notification');
-  const result = validateProfileFit(contentProfile, [storage, notification]);
+  const gamma = loadFixture(packsDir, 'gamma-quiet');
+  const delta = loadFixture(packsDir, 'delta-quiet');
+  const result = validateProfileFit(contentProfile, [gamma, delta]);
   assert.equal(result.ok, true);
 });
 
 test('validateProfileFit passes for a profile with no not-applicable controls', () => {
   const saasProfile = loadFixture(profilesDir, 'saas');
-  const db = loadFixture(packsDir, 'db');
-  const result = validateProfileFit(saasProfile, [db]);
+  const beta = loadFixture(packsDir, 'beta-store');
+  const result = validateProfileFit(saasProfile, [beta]);
   assert.equal(result.ok, true);
 });
 
@@ -108,26 +111,35 @@ function run(args) {
   return runNode(path.join(repositoryRoot, 'claude-setup', 'pack-composition.js'), { args });
 }
 
-test('CLI: the realistic nextjs-postgres + capability packs subset composes cleanly', () => {
+test('CLI: a satisfiable set composes cleanly', () => {
   const result = run([
     '--dir', path.relative(repositoryRoot, packsDir),
-    '--ids', 'nextjs-postgres,auth-rbac,storage,notification,background-jobs,audit-log',
+    '--ids', 'alpha-stack,needs-alpha,gamma-quiet,delta-quiet',
   ]);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /6 pack\(s\) compose without conflict/);
+  assert.match(result.stdout, /4 pack\(s\) compose without conflict/);
 });
 
-test('CLI: nextjs-postgres and the standalone db pack conflict', () => {
-  const result = run(['--dir', path.relative(repositoryRoot, packsDir), '--ids', 'nextjs-postgres,db']);
+test('CLI: two packs that declare each other as conflicts fail, and the shared path warns', () => {
+  const result = run(['--dir', path.relative(repositoryRoot, packsDir), '--ids', 'alpha-stack,beta-store']);
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /conflicts with "db"/);
-  // The declared conflict is what fails the composition now; the shared prisma/schema.prisma
-  // is reported alongside it as a warning rather than as a second, redundant error.
-  assert.match(result.stdout, /warn: "prisma\/schema\.prisma" is asserted by "db" and "nextjs-postgres"/);
+  assert.match(result.stdout, /conflicts with "beta-store"/);
+  // The declared conflict is what fails the composition; the shared artifact path is reported
+  // alongside it as a warning rather than as a second, redundant error.
+  assert.match(result.stdout, /warn: "shared\/schema\.txt" is asserted by "alpha-stack" and "beta-store"/);
+});
+
+test('CLI: the shipped catalogue composes cleanly as a whole', () => {
+  // The one case that should still read the real catalogue, because that is the claim being
+  // made: everything Buaflow ships can be installed together.
+  const result = run(['--dir', path.relative(repositoryRoot, catalogDir), '--json']);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.ok, true);
 });
 
 test('CLI --json emits a machine-readable result', () => {
-  const result = run(['--dir', path.relative(repositoryRoot, packsDir), '--ids', 'nextjs-postgres,auth-rbac', '--json']);
+  const result = run(['--dir', path.relative(repositoryRoot, catalogDir), '--ids', 'nextjs-postgres,auth-rbac', '--json']);
   assert.equal(result.status, 0, result.stderr);
   const parsed = JSON.parse(result.stdout);
   assert.equal(parsed.ok, true);
@@ -142,7 +154,7 @@ test('CLI fails cleanly on an unknown pack id', () => {
 
 test('CLI --profile fails when auth-rbac contradicts the content profile', () => {
   const result = run([
-    '--dir', path.relative(repositoryRoot, packsDir),
+    '--dir', path.relative(repositoryRoot, catalogDir),
     '--ids', 'auth-rbac',
     '--profile', path.relative(repositoryRoot, path.join(profilesDir, 'content.json')),
   ]);
@@ -154,7 +166,7 @@ test('CLI --profile fails when auth-rbac contradicts the content profile', () =>
 test('CLI --profile passes when the chosen packs do not contradict the profile', () => {
   const result = run([
     '--dir', path.relative(repositoryRoot, packsDir),
-    '--ids', 'storage,notification',
+    '--ids', 'gamma-quiet,delta-quiet',
     '--profile', path.relative(repositoryRoot, path.join(profilesDir, 'content.json')),
     '--json',
   ]);
@@ -165,7 +177,7 @@ test('CLI --profile passes when the chosen packs do not contradict the profile',
 });
 
 test('CLI fails cleanly when --profile points at a missing file', () => {
-  const result = run(['--dir', path.relative(repositoryRoot, packsDir), '--ids', 'auth-rbac', '--profile', 'no-such-profile.json']);
+  const result = run(['--dir', path.relative(repositoryRoot, catalogDir), '--ids', 'auth-rbac', '--profile', 'no-such-profile.json']);
   assert.equal(result.status, 2);
   assert.match(result.stderr, /no such profile file/);
 });

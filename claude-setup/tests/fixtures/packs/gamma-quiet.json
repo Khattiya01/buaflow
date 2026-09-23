@@ -1,0 +1,41 @@
+{
+  "$schema": "../../../../schemas/pack.schema.json",
+  "schemaVersion": "2.0",
+  "kind": "capability",
+  "version": "1.0.0",
+  "inputs": [],
+  "setup": [
+    {
+      "id": "install",
+      "command": "npm install fixture",
+      "description": "Placeholder step for composition fixtures."
+    }
+  ],
+  "compatibility": {
+    "requiresPacks": [],
+    "conflictsWithPacks": [],
+    "profiles": []
+  },
+  "verification": [
+    {
+      "id": "check",
+      "command": "true",
+      "description": "Always-passing placeholder command."
+    }
+  ],
+  "id": "gamma-quiet",
+  "name": "Gamma fixture capability",
+  "description": "Fixture capability whose controls no test profile marks not-applicable, so it must never trip validateProfileFit.",
+  "requiredArtifacts": [
+    {
+      "path": "lib/gamma.txt",
+      "description": "Placeholder artifact unique to this fixture."
+    }
+  ],
+  "operationalEvidence": [
+    {
+      "control": "runtime-config",
+      "evidence": "Fixture capability contributes runtime configuration evidence."
+    }
+  ]
+}

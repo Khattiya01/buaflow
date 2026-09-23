@@ -1,0 +1,43 @@
+{
+  "$schema": "../../../../schemas/pack.schema.json",
+  "schemaVersion": "2.0",
+  "kind": "capability",
+  "version": "1.0.0",
+  "inputs": [],
+  "setup": [
+    {
+      "id": "install",
+      "command": "npm install fixture",
+      "description": "Placeholder step for composition fixtures."
+    }
+  ],
+  "compatibility": {
+    "requiresPacks": [
+      "alpha-stack"
+    ],
+    "conflictsWithPacks": [],
+    "profiles": []
+  },
+  "verification": [
+    {
+      "id": "check",
+      "command": "true",
+      "description": "Always-passing placeholder command."
+    }
+  ],
+  "id": "needs-alpha",
+  "name": "Fixture capability requiring alpha-stack",
+  "description": "Fixture whose requiresPacks is satisfiable, so the dependency check has a passing case as well as a failing one.",
+  "requiredArtifacts": [
+    {
+      "path": "lib/needs-alpha.txt",
+      "description": "Placeholder artifact unique to this fixture."
+    }
+  ],
+  "operationalEvidence": [
+    {
+      "control": "runtime-config",
+      "evidence": "Fixture capability contributes runtime configuration evidence."
+    }
+  ]
+}

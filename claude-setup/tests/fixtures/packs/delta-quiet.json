@@ -1,0 +1,41 @@
+{
+  "$schema": "../../../../schemas/pack.schema.json",
+  "schemaVersion": "2.0",
+  "kind": "capability",
+  "version": "1.0.0",
+  "inputs": [],
+  "setup": [
+    {
+      "id": "install",
+      "command": "npm install fixture",
+      "description": "Placeholder step for composition fixtures."
+    }
+  ],
+  "compatibility": {
+    "requiresPacks": [],
+    "conflictsWithPacks": [],
+    "profiles": []
+  },
+  "verification": [
+    {
+      "id": "check",
+      "command": "true",
+      "description": "Always-passing placeholder command."
+    }
+  ],
+  "id": "delta-quiet",
+  "name": "Delta fixture capability",
+  "description": "Second quiet fixture, so the two-pack profile-fit case does not depend on a single file.",
+  "requiredArtifacts": [
+    {
+      "path": "lib/delta.txt",
+      "description": "Placeholder artifact unique to this fixture."
+    }
+  ],
+  "operationalEvidence": [
+    {
+      "control": "observability",
+      "evidence": "Fixture capability contributes observability evidence."
+    }
+  ]
+}

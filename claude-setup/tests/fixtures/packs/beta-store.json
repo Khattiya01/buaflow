@@ -1,0 +1,43 @@
+{
+  "$schema": "../../../../schemas/pack.schema.json",
+  "schemaVersion": "2.0",
+  "kind": "capability",
+  "version": "1.0.0",
+  "inputs": [],
+  "setup": [
+    {
+      "id": "install",
+      "command": "npm install fixture",
+      "description": "Placeholder step for composition fixtures."
+    }
+  ],
+  "compatibility": {
+    "requiresPacks": [],
+    "conflictsWithPacks": [
+      "alpha-stack"
+    ],
+    "profiles": []
+  },
+  "verification": [
+    {
+      "id": "check",
+      "command": "true",
+      "description": "Always-passing placeholder command."
+    }
+  ],
+  "id": "beta-store",
+  "name": "Beta fixture store",
+  "description": "Fixture capability that adds persistence, and therefore conflicts with a stack that already has it.",
+  "requiredArtifacts": [
+    {
+      "path": "shared/schema.txt",
+      "description": "Deliberately the same path as alpha-stack, to exercise the overlap warning."
+    }
+  ],
+  "operationalEvidence": [
+    {
+      "control": "persistence",
+      "evidence": "Fixture capability supplies persistence for composition tests."
+    }
+  ]
+}

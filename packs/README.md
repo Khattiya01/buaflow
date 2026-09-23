@@ -41,34 +41,54 @@ catalog ไปจบอยู่ใต้โฟลเดอร์ test ตั้
 | `expo-fastapi-postgres-sync` | stack | `reference-apps/expo-fastapi-postgres-sync` |
 | `auth-rbac` | capability | `reference-apps/nextjs-postgres-crud` |
 | `audit-log` | capability | `reference-apps/nextjs-postgres-crud` |
-| `db` | capability | **ยังไม่มี** |
-| `storage` | capability | **ยังไม่มี** |
-| `notification` | capability | **ยังไม่มี** |
-| `background-jobs` | capability | **ยังไม่มี** |
 
-## pack ที่ยังไม่มีอะไรพิสูจน์
+**ทุก pack ใน catalog ผูกกับ reference app ที่พิสูจน์มันจริงแล้วทั้งหมด** — `npm run check` พิมพ์
+`all 5 bound to a reference app` ทุกครั้ง และทุก path ใน `requiredArtifacts` ถูกตรวจว่ามีอยู่จริง
 
-pack ที่ไม่มี `implementedBy` คือ **recipe ที่ยังไม่มีใครเดินจนจบสักครั้ง** — เขียนไว้ดีกว่าไม่มี
-แต่ห้ามให้มันหายไปในสายตา ตัวเลขนี้ถูกบังคับด้วยเครื่อง ไม่ใช่ด้วยเอกสาร:
+## สี่ pack ที่ถูกตัดทิ้ง และทำไม (D-014)
 
-- `npm run check` พิมพ์ `5/9 bound to a reference app; unproven: ...` ทุกครั้ง
-- test ใน `claude-setup/tests/pack.test.js` **ปักรายชื่อ 4 ตัวนี้ไว้** — ผูก pack เพิ่มแล้ว test จะแดง
-  จนกว่าจะลดรายชื่อ และเพิ่ม pack ใหม่ที่ยังไม่มีใครพิสูจน์ก็แดงจนกว่าจะเขียนลงไปว่ามันยังไม่ถูกพิสูจน์
-- pack ที่ผูกแล้วถูกตรวจทุก path ใน `requiredArtifacts` ว่ามีอยู่จริงใน app ที่มันอ้าง ทุกครั้งที่ CI รัน
+`db`, `storage`, `notification`, `background-jobs` เคยอยู่ใน catalog โดยไม่มี `implementedBy`
+ตัดออกเมื่อ 23 กันยายน 2026 แทนที่จะลงทุนพิสูจน์
 
-**ทำไมการผูกถึงสำคัญ ไม่ใช่แค่พิธี** ตอนผูก `auth-rbac` เข้ากับแอปจริงพบว่า recipe ที่ PP-010 เขียนไว้
-สั่งติดตั้ง `iron-session` กับ `bcrypt` — แต่แอปเดียวที่ implement capability นี้จริง **ไม่ใช้ทั้งสองตัว**
-มันเซ็น session cookie ด้วย HMAC จาก `node:crypto` และแฮชรหัสผ่านด้วย scrypt โดยตั้งใจ
-เพื่อไม่เพิ่ม dependency และไม่เพิ่ม supply-chain surface เลย recipe เดิมจึงจะพาโปรเจกต์ถัดไป
-ไปติดตั้งของที่ไม่ต้องใช้สองตัว — นี่คือสิ่งที่ `implementedBy` มีไว้จับ
+**หลักฐานที่ตัดสิน มาจากงานก่อนหน้านี้เองหนึ่งขั้น** ตอน PP-011 ผูก `auth-rbac` เข้ากับแอปจริง
+พบทันทีว่า recipe ผิด — มันสั่งติดตั้ง `iron-session` กับ `bcrypt` ขณะที่แอปนั้นเซ็น session ด้วย
+HMAC จาก `node:crypto` และแฮชด้วย scrypt โดยตั้งใจไม่เพิ่ม dependency เลย
+**ผูกครั้งเดียว เจอ recipe ผิดหนึ่งอัน**
 
-**ข้อจำกัดที่รู้อยู่ ยังไม่ได้แก้** capability pack ทั้งหกเขียน artifact เป็น path ของ Node/Next.js
-(`lib/*.ts`, `app/api/**/route.ts`) จึงใช้ได้เฉพาะบน `nextjs-postgres` เท่านั้น ไม่ได้กับ
-`react-fastapi-postgres` หรือ `expo-fastapi-postgres-sync` — แต่มีเพียง `auth-rbac` ที่ประกาศ
-`requiresPacks` ไว้จริง ส่วน `db` หนักกว่านั้น: มันประกาศ `conflictsWithPacks: ["nextjs-postgres"]`
-คือตั้งใจเติม persistence ให้ Node stack ที่ยังไม่มี — ซึ่ง **ไม่มี stack แบบนั้นอยู่ใน catalog เลย**
-การแก้ให้ถูกต้องต้องมี dependency แบบ capability-based (“ต้องมีอะไรสักอย่างที่ให้ persistence”)
-ซึ่งยังไม่มีในสัญญา — ดู `templates/pack.tpl.json` ข้อว่าด้วย identity-based requiresPacks
+recipe ที่ไม่เคยมีใครเดินจนจบจึงไม่ใช่ของกลาง ๆ — มันคือ `guidance-defect` ที่รอคนมาทำตาม
+(หมวดนี้อยู่ใน `standards/failure-taxonomy.md` โดยใช้เคส auth-rbac เป็น citation พอดี)
+
+และการพิสูจน์ก็ไม่ถูก: ต้องเพิ่ม S3, SMTP, queue พร้อม worker process เข้าไปใน reference app
+ซึ่งกินเวลาหลายวัน และทำให้ reference app หนักขึ้นสวนทางกับทิศทางตั้งแต่ D-011 ที่จะหยุดขยายมัน
+
+`db` หนักกว่าเพื่อน: มันประกาศ `conflictsWithPacks: ["nextjs-postgres"]` คือเล็ง Node stack ที่ยัง
+ไม่มี persistence — ซึ่ง **ไม่มี stack แบบนั้นใน catalog เลย** มันจึงประกอบกับอะไรไม่ได้สักอย่าง
+
+### เหตุผลเชิงออกแบบที่เก็บไว้ ไม่ได้ทิ้งไปพร้อมไฟล์
+
+สิ่งที่มีค่าจริงใน pack เหล่านั้นไม่ใช่ recipe แต่เป็นข้อจำกัดที่มันยืนยัน — บันทึกไว้ใน D-014:
+
+- **storage** — presigned upload/download เท่านั้น ห้ามให้ byte ของไฟล์วิ่งผ่าน app server
+- **notification** — ทางออกเดียว `send()` เพื่อให้ทุก notification ผ่านที่เดียวที่ test/log/rate-limit ได้
+- **background-jobs** — worker ต้องเป็น process ของตัวเอง ไม่ใช่ thread ใน web server เพื่อให้
+  deployment manifest มีคำสั่งให้ชี้
+- **db** — persistence ที่เติมทีหลังก็ยังต้องมาทาง migration ไม่ใช่แก้ schema ตรง ๆ
+
+pack ตัวใหม่สำหรับความสามารถเหล่านี้ ควรเริ่มจากข้อจำกัดพวกนี้ **และจากโปรเจกต์ที่ implement มันจริง**
+
+### สิ่งที่บังคับด้วยเครื่อง ไม่ใช่ด้วยเอกสาร
+
+- `npm run check` พิมพ์ `all 5 bound to a reference app` ทุกครั้ง
+- test ใน `claude-setup/tests/pack.test.js` ปักรายชื่อ pack ที่ยังไม่ถูกพิสูจน์ไว้ และตอนนี้ **ว่างเปล่า**
+  → pack ใหม่ที่ไม่มี `implementedBy` จะทำให้ CI แดงจนกว่าจะมีคนเขียนลงไปว่ามันยังไม่ถูกพิสูจน์
+  ซึ่งเป็นการตัดสินใจ ไม่ใช่การหลุดรอด
+- ทุก path ใน `requiredArtifacts` ของ pack ที่ผูกแล้ว ถูกตรวจว่ามีอยู่จริงทุกครั้งที่ CI รัน
+
+**ข้อจำกัดที่รู้อยู่ ยังไม่ได้แก้** capability pack ที่เหลือทั้งสองเขียน artifact เป็น path ของ Node/Next.js
+จึงใช้ได้เฉพาะบน `nextjs-postgres` — `auth-rbac` ประกาศ `requiresPacks` ไว้จริง ส่วน `audit-log`
+ปล่อยว่างเพราะมันต้องการ "pack อะไรก็ได้ที่ให้ persistence" ซึ่ง `requiresPacks` แบบ identity-based
+เขียนไม่ได้ · หลังตัด `db` ออก คำตอบเดียวที่เหลือคือ `nextjs-postgres` ทำให้ **capability-based
+dependency กลายเป็นช่องว่างของสัญญาที่ควรแก้จริง ไม่ใช่เชิงอรรถที่ไม่มีใครทำอะไรกับมัน**
 
 ## คำสั่ง
 

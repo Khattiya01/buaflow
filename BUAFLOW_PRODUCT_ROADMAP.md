@@ -155,7 +155,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | PP-004 | API/web golden stack #2 | เช่น React + FastAPI + PostgreSQL พร้อม R3 reference app |
 | PP-005 | Mobile golden stack | Expo หรือ Flutter + API + sync/offline contract |
 | ~~PP-006~~ | ~~Capability pack contract~~ | **dropped (D-013)** — PP-002 รวม stack/capability เป็นสัญญาเดียวตั้งแต่แรก และ PP-010 เขียนใหม่เป็น v2 แล้ว ไม่มีสัญญาแยกให้เขียนอีก |
-| PP-007 | Core capability packs | auth, RBAC/ownership, DB, storage, notification, background jobs, audit log |
+| PP-007 | Core capability packs | **เหลือ auth-rbac + audit-log** — db, storage, notification, background-jobs ถูกตัดที่ D-014 เพราะไม่มี reference app ไหนพิสูจน์ recipe ของมัน และ `db` ประกอบกับ stack ใน catalog ไม่ได้เลย |
 | PP-008 | Commercial capability packs | payment, subscription, search, analytics, AI/RAG, i18n |
 | PP-009 | Thailand packs | PDPA, PromptPay/payment providers, LINE integration, Thai localization |
 | PP-011 | ผูก capability pack เข้ากับ reference app ที่พิสูจน์มันจริง | pack ที่ยังไม่มีอะไรพิสูจน์ต้อง "มองเห็นได้ด้วยเครื่อง" ไม่ใช่เขียนไว้ในเอกสารเฉย ๆ |

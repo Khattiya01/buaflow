@@ -5,7 +5,7 @@
   "kind": "stack",
   "name": "React + FastAPI + PostgreSQL",
   "description": "A second web golden stack: a React (Vite) single-page frontend served by a FastAPI backend, talking to PostgreSQL through SQLAlchemy/Alembic — materially different from nextjs-postgres (separate frontend/backend languages and frameworks, a real Alembic downgrade instead of a hand-written rollback script).",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "inputs": [
     {
       "name": "projectName",
@@ -77,9 +77,7 @@
   "implementedBy": "reference-apps/react-fastapi-postgres-crud",
   "compatibility": {
     "requiresPacks": [],
-    "conflictsWithPacks": [
-      "db"
-    ],
+    "conflictsWithPacks": [],
     "profiles": [
       "content",
       "internal-crud",

@@ -1,0 +1,43 @@
+{
+  "$schema": "../../../../schemas/pack.schema.json",
+  "schemaVersion": "2.0",
+  "kind": "stack",
+  "version": "1.0.0",
+  "inputs": [],
+  "setup": [
+    {
+      "id": "install",
+      "command": "npm install fixture",
+      "description": "Placeholder step for composition fixtures."
+    }
+  ],
+  "compatibility": {
+    "requiresPacks": [],
+    "conflictsWithPacks": [
+      "beta-store"
+    ],
+    "profiles": []
+  },
+  "verification": [
+    {
+      "id": "check",
+      "command": "true",
+      "description": "Always-passing placeholder command."
+    }
+  ],
+  "id": "alpha-stack",
+  "name": "Alpha fixture stack",
+  "description": "Fixture stack that already bundles persistence, so it can conflict with the standalone store below.",
+  "requiredArtifacts": [
+    {
+      "path": "shared/schema.txt",
+      "description": "The file both fixtures claim, so the overlap warning has something to fire on."
+    }
+  ],
+  "operationalEvidence": [
+    {
+      "control": "persistence",
+      "evidence": "Fixture stack bundles its own persistence layer for composition tests."
+    }
+  ]
+}

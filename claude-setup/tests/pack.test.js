@@ -149,10 +149,11 @@ test('the binding check is skipped when no repository root is supplied', () => {
 
 
 test('the set of packs no reference app proves is pinned, so it can only change on purpose', () => {
-  // A capability pack with no implementedBy is a recipe nobody has followed end to end. That
-  // is allowed — writing one down beats not having it — but it must never become invisible.
-  // Binding auth-rbac exposed exactly why this matters: its recipe had installed iron-session
-  // and bcrypt, and the app that actually implements the capability uses neither, on purpose.
+  // Every pack in the catalogue is now bound to a reference app, and this list is how it stays
+  // that way: a new pack with no implementedBy fails here until someone writes down that it is
+  // unproven, which is a decision rather than an oversight. Four packs were dropped in D-014
+  // precisely because nothing proved them — binding auth-rbac had shown what an unproven recipe
+  // is worth, by revealing it installed two dependencies the real implementation avoids.
   const unbound = fs.readdirSync(packsDir)
     .filter((name) => name.endsWith('.json'))
     .map((name) => pack(name.replace(/\.json$/, '')))
@@ -162,7 +163,7 @@ test('the set of packs no reference app proves is pinned, so it can only change 
 
   assert.deepEqual(
     unbound,
-    ['background-jobs', 'db', 'notification', 'storage'],
+    [],
     'a pack gained or lost a reference-app binding; update this list and packs/README.md together'
   );
 });
@@ -178,7 +179,7 @@ test('every bound pack really matches the app it names', () => {
   }
 });
 
-const CORE_CAPABILITY_PACKS = ['nextjs-postgres', 'auth-rbac', 'db', 'storage', 'notification', 'background-jobs', 'audit-log'];
+const CORE_CAPABILITY_PACKS = ['nextjs-postgres', 'react-fastapi-postgres', 'expo-fastapi-postgres-sync', 'auth-rbac', 'audit-log'];
 
 test('every core pack fixture (PP-002 + PP-007) passes validation', () => {
   for (const name of CORE_CAPABILITY_PACKS) {
@@ -196,15 +197,12 @@ test('the two fixture packs contribute evidence to different readiness controls'
   assert.deepEqual(pack('auth-rbac').compatibility.requiresPacks, ['nextjs-postgres']);
 });
 
-test('the standalone db pack conflicts with nextjs-postgres, which already bundles persistence', () => {
-  assert.deepEqual(pack('db').compatibility.conflictsWithPacks, ['nextjs-postgres']);
-  assert.deepEqual(pack('nextjs-postgres').compatibility.conflictsWithPacks, ['db']);
-});
-
-test('background-jobs and audit-log leave requiresPacks empty (no capability-based dependency exists yet)', () => {
-  // They need *some* persistence-providing pack (nextjs-postgres or db), but requiresPacks v1 is
-  // identity-based, not capability-based — see templates/pack.tpl.json's note on this limitation.
-  assert.deepEqual(pack('background-jobs').compatibility.requiresPacks, []);
+test('audit-log leaves requiresPacks empty, because the dependency it has cannot be expressed', () => {
+  // It needs *some* persistence-providing pack, and requiresPacks is identity-based rather than
+  // capability-based, so there is no honest way to write it — see templates/pack.tpl.json.
+  // D-014 sharpened this: db was the other pack that could have satisfied it, and dropping db
+  // leaves nextjs-postgres as the only real answer, which makes the missing expressiveness the
+  // next thing worth fixing rather than a note nobody acts on.
   assert.deepEqual(pack('audit-log').compatibility.requiresPacks, []);
 });
 
@@ -223,7 +221,9 @@ test('--dir validates every pack in the fixtures directory', () => {
   assert.equal(result.status, 0, result.stderr);
   const parsed = JSON.parse(result.stdout);
   assert.equal(parsed.ok, true);
-  assert.equal(parsed.results.length, 9); // nextjs-postgres, react-fastapi-postgres, expo-fastapi-postgres-sync, auth-rbac, db, storage, notification, background-jobs, audit-log
+  // Three stacks and two capabilities, all bound to a reference app. D-014 dropped the four
+  // that nothing implemented, so this number going up means a new pack was added.
+  assert.equal(parsed.results.length, 5);
   assert.ok(parsed.results.every((r) => r.ok));
 });
 

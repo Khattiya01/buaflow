@@ -4,8 +4,8 @@
   "id": "audit-log",
   "kind": "capability",
   "name": "Structured audit log",
-  "description": "Adds a durable, queryable record of who changed what and when, independent of any single feature's own logic — generalizes the pattern reference-apps/nextjs-postgres-crud built ad hoc for tasks into a reusable pack. Needs a persistence layer already present — either the nextjs-postgres stack pack or the standalone db capability pack — but v1's requiresPacks is identity-based (\"needs pack X\"), not capability-based (\"needs something providing persistence\"), so that dependency cannot be machine-checked yet; see templates/pack.tpl.json's note on this.",
-  "version": "2.1.0",
+  "description": "Adds a durable, queryable record of who changed what and when, independent of any single feature's own logic — generalizes the pattern reference-apps/nextjs-postgres-crud built ad hoc for tasks into a reusable pack. Needs a persistence layer already present, which today means the nextjs-postgres stack pack: requiresPacks is identity-based (\"needs pack X\") rather than capability-based (\"needs something providing persistence\"), so that dependency still cannot be machine-checked; see templates/pack.tpl.json's note on this.",
+  "version": "2.2.0",
   "inputs": [
     {
       "name": "retentionDays",

@@ -5,7 +5,7 @@
   "kind": "stack",
   "name": "Next.js + PostgreSQL",
   "description": "A full-stack web golden stack: Next.js app router frontend/API routes with a PostgreSQL database behind an ORM.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "inputs": [
     {
       "name": "projectName",
@@ -74,9 +74,7 @@
   "implementedBy": "reference-apps/nextjs-postgres-crud",
   "compatibility": {
     "requiresPacks": [],
-    "conflictsWithPacks": [
-      "db"
-    ],
+    "conflictsWithPacks": [],
     "profiles": [
       "content",
       "internal-crud",
