@@ -71,7 +71,8 @@ function parse(argv) {
     else if (arg === '--mode') options.mode = rest[++index];
     else if (arg === '--level') options.level = rest[++index];
     else if (arg === '--file') options.file = rest[++index];
-    else if (arg === '--write') options.write = rest[++index];
+    // --write is a path for assess and a plain flag for lock/intake: take a value only when one follows
+    else if (arg === '--write') options.write = rest[index + 1] && !rest[index + 1].startsWith('--') ? rest[++index] : true;
     else throw new Error(`unknown option: ${arg}`);
   }
   if (!command && !options.help) throw new Error('command is required');
@@ -280,6 +281,7 @@ function commandDelegated(command, root, options) {
 function commandAssess(root, options) {
   const args = ['--root', root, '--json'];
   if (options.execute) args.push('--execute');
+  if (options.write === true) return envelope('assess', EXIT.INPUT, 'nowhere to write', {}, [], ['assess --write needs a path, e.g. --write docs/evidence/readiness.draft.json']);
   if (options.write) args.push('--write', options.write);
   if (options.level) args.push('--level', options.level);
   if (options.force) args.push('--force');

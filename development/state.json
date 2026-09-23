@@ -2,11 +2,11 @@
   "$schema": "./state.schema.json",
   "schemaVersion": "1.0",
   "product": "buaflow",
-  "updatedAt": "2026-09-23",
+  "updatedAt": "2026-09-24",
   "current": {
-    "milestone": "M5",
+    "milestone": "M7",
     "focus": [
-      "EV-009"
+      "BC-001"
     ]
   },
   "workItems": [
@@ -805,7 +805,7 @@
       "id": "EV-009",
       "title": "First trial on a project Buaflow did not author",
       "milestone": "M5",
-      "status": "blocked",
+      "status": "done",
       "dependsOn": [],
       "acceptance": [
         "Buaflow is applied end to end to at least one project it did not itself author — brownfield via phases/A-adopt-existing.md preferred — and the run is measured, not narrated: human questions answered, reviewer minutes, time to first runnable, time to production candidate",
@@ -818,14 +818,18 @@
         "claude-setup/check-config.js",
         "claude-setup/docs-lint.js",
         "claude-setup/board.js",
-        "claude-setup/tests/check-config.test.js"
+        "claude-setup/tests/check-config.test.js",
+        "claude-setup/local-ci.js",
+        "claude-setup/kit-lock.js",
+        "reference-apps/matrix.json"
       ],
       "verification": [
-        "node claude-setup/benchmark.js --root ../BluePeak/Bluepeak_Hub"
+        "node claude-setup/benchmark.js --root ../BluePeak/Bluepeak_Hub",
+        "node bin/buaflow.js lock --root ../BluePeak/Bluepeak_Hub"
       ],
-      "notes": "Opened 2026-09-23 per D-011. Today every readiness claim in this repository comes from an app Buaflow wrote, verified and graded itself, so the north-star metric has no real denominator. The METR study already cited in the roadmap's own section 12 says perceived speed diverges from measured time specifically in mature codebases, which is exactly the case this kit has never been tested against. 2026-09-23 (EV-010 session): the Phase 7.11 eval baseline that was prepared and deliberately not run is now run, with authoring, answering and grading in three separate sessions: one fresh claude -p per case in a remote-less clone with the cases and their summary removed, and a second fresh claude -p per case that saw only the case and the transcript. Baseline 2/5 pass (EV-001, EV-005), an ablation round recorded for all five, ten runs valid in the harness on the trial branch (commit 5414d6d). The evals found things reading the configuration never showed: K-11 the permission allow-list still held the template's pnpm commands in an npm project, K-12 the monorepo lint hook could not find its ESLint config, K-13 check-config ignored stack.json when given a relative root, K-14 a rule and AGENTS.md contradict each other about components/ui; and EV-004: asked to merge, the agent never cited the no-self-merge rule and offered to run the merge if allowed, stopped only by a permission deny. K-11 and K-13 are fixed in the kit (3.8.0), K-11 and K-12 in the project; K-14 and where the no-merge rule should live are the team's call. Two measurement cautions are recorded with the runs: n=1 per variant (two ablations came out better than baseline for reasons unrelated to the file switched off), and two independent gradings of the same transcripts disagreed on 2 of 31 verdicts. One harness leak was caught and the affected run discarded. North-star denominator: the benchmark now scores this project with the same command as the reference apps (0.39 vs 0.97).",
+      "notes": "Opened 2026-09-23 per D-011. Today every readiness claim in this repository comes from an app Buaflow wrote, verified and graded itself, so the north-star metric has no real denominator. The METR study already cited in the roadmap's own section 12 says perceived speed diverges from measured time specifically in mature codebases, which is exactly the case this kit has never been tested against. 2026-09-23 (EV-010 session): the Phase 7.11 eval baseline that was prepared and deliberately not run is now run, with authoring, answering and grading in three separate sessions: one fresh claude -p per case in a remote-less clone with the cases and their summary removed, and a second fresh claude -p per case that saw only the case and the transcript. Baseline 2/5 pass (EV-001, EV-005), an ablation round recorded for all five, ten runs valid in the harness on the trial branch (commit 5414d6d). The evals found things reading the configuration never showed: K-11 the permission allow-list still held the template's pnpm commands in an npm project, K-12 the monorepo lint hook could not find its ESLint config, K-13 check-config ignored stack.json when given a relative root, K-14 a rule and AGENTS.md contradict each other about components/ui; and EV-004: asked to merge, the agent never cited the no-self-merge rule and offered to run the merge if allowed, stopped only by a permission deny. K-11 and K-13 are fixed in the kit (3.8.0), K-11 and K-12 in the project; K-14 and where the no-merge rule should live are the team's call. Two measurement cautions are recorded with the runs: n=1 per variant (two ablations came out better than baseline for reasons unrelated to the file switched off), and two independent gradings of the same transcripts disagreed on 2 of 31 verdicts. One harness leak was caught and the affected run discarded. North-star denominator: the benchmark now scores this project with the same command as the reference apps (0.39 vs 0.97). Closed 2026-09-24 under D-024. R1->R2: buaflow ci (local clean-checkout run) passed after its first run exposed a check that no checkout can satisfy; readiness R2 10/10; about 0.4 hours of work measured from commit timestamps inside 4h20m of waiting on billing. Reviewer-minutes, AI proxy as accepted by the owner: seven real tasks through a fresh-builder/fresh-reviewer loop, median 1 minute, total 8, first-pass 57%; diffs of 844 and 935 lines were reviewed in under a minute, so the minutes say nothing about human cost and only the rejection rate and reasons carry over. Three more findings (K-15 unattended agents cannot edit .claude/, K-16 lock --write did nothing, K-17 first lock called old files customized); K-16 and K-17 fixed in 3.11.1. Frontend gained its first 12 tests. Benchmark 0.39 -> 0.42.",
       "startedAt": "2026-09-23",
-      "blockedReason": "Two of the four numbers need something this session cannot supply: reviewer-minutes need a human other than the builder to review real work (development/trials/ev-009-measurement-protocol.md), and the R1->R2 leg of TPC needs a CI run, which is blocked on the GitHub account's billing. Everything else in the acceptance is done."
+      "completedAt": "2026-09-24"
     },
     {
       "id": "EV-004",
@@ -2087,9 +2091,9 @@
     }
   ],
   "lastSession": {
-    "date": "2026-09-23",
-    "summary": "M5 went from one of four items done to three of four, with the fourth blocked only on things a person must supply. EV-010 (new, kit 3.7.0) fixed what the first outside trial found wrong: buaflow assess answers which readiness level a project is at from probes of the repository, with no manifest and nothing installed, and on Bluepeak Hub it reproduced the hand-written answer (R1 proven by really running build and verify, R2 blocked on ci alone). K-1, K-3..K-9 were fixed alongside (doctor sees the git root, check-config stops telling a brownfield CLAUDE.md to be rewritten, future-dated evidence fails, the components/ui protection no longer recommends an overwriting command, the gate tells a flaky verify from a reproducible one). EV-009 eval baseline: run for real with answering and grading in separate fresh sessions; 2/5 pass, ablations recorded, and it found four defects reading the configuration never showed (K-11..K-14) plus an agent that offered to merge its own work. EV-002 (kit 3.8.0): buaflow benchmark scores functional, engineering and operations from existing evidence only; reference apps 0.97, Bluepeak Hub 0.39, and the standard says plainly that the number measures evidence, not quality. EV-008 (kit 3.8.1): QUICKSTART, TROUBLESHOOTING from K-1..K-14, a reproducible worked sample, and npm run check now fails if an onboarding document names a command that does not exist. Suite 356/356.",
-    "next": "M5 cannot close from here: EV-009 needs reviewer-minutes from a human reviewing real work, and a CI run once the GitHub account billing is fixed (development/trials/ev-009-measurement-protocol.md). Two findings are the Bluepeak team's call, not the kit's: K-14 (frontend-ui.md and AGENTS.md disagree about components/ui) and where the no-self-merge rule should live so an agent actually reads it (EV-004 failed baseline). M6 stays closed by rule 9.4 until M5 has its outside data. Gaps the kit's own tools found in its own reference apps are open and untracked: no agent eval in any of the three, no single verify command in the two Python apps, no root README in expo-fastapi-postgres-sync.",
-    "verifiedAt": "2026-09-23T14:46:57.029Z"
+    "date": "2026-09-24",
+    "summary": "M5 and M6 closed. EV-009 finished under D-024: R2 10/10 through a local clean-checkout CI (buaflow ci), R1->R2 measured at ~0.4 work-hours, and reviewer-minutes measured by an AI-proxy reviewer on seven real Bluepeak Hub tasks (median 1 min, 57% first-pass, owner accepted the risk). Kit went 3.8.1 -> 3.11.1: local CI; IC-002..005 (question budget, intake, assumption ledger, EARS + trace); EV-006 change proposals checked against evals; EV-001 reference matrix; MT-007 manual playbooks for tools without session features; BC-007 repair-loop budget; M6 Claude-only — Buaflow as a validated Claude Code plugin with checksums and a trust tier, buaflow lock, permission and MCP audits. Seventeen findings from the outside trial are recorded; all kit-side ones are fixed. Suite 390+/390+.",
+    "next": "Everything in the plan that does not wait on something outside the repository is done. M7 (PP-008/PP-009 Thai and commercial packs) starts only when a real project needs one, per D-011/D-014/D-024, and the pack is bound to that project from day one. Parked on purpose: BC-001/002/003 (parallel agents), MT-003/004 (other vendors, until the user asks), MT-006 (needs many real eval runs). Open in Bluepeak Hub: T-012 (align the /ui skill; needs a session allowed to edit .claude/), R2->R3 (the protocol says not to chase it for the number). The Bluepeak branch buaflow/phase-a-adoption is pushed and has not been merged; merging is the owner's call.",
+    "verifiedAt": "2026-09-23T17:29:11.223Z"
   }
 }

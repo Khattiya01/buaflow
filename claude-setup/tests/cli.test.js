@@ -274,3 +274,21 @@ test('top-level help works before a command is selected', () => {
     cleanup(root);
   }
 });
+
+// Found while locking the trial project: --write was parsed as "take the next argument", so
+// `lock --write` wrote nothing and still reported no error.
+test('--write is a flag for lock and a path for assess, and assess refuses it without one', () => {
+  const root = temporaryProject('buaflow-cli-');
+  try {
+    write(path.join(root, '.claude', 'gate.js'), fs.readFileSync(path.join(repositoryRoot, 'claude-setup', 'gate.js'), 'utf8'));
+    const locked = runCli(root, ['lock', '--write']);
+    assert.equal(locked.status, 0, locked.stdout);
+    assert.ok(fs.existsSync(path.join(root, '.buaflow', 'lock.json')));
+    assert.equal(json(runCli(root, ['lock'])).data.result.counts.current, 1);
+    const assess = runCli(root, ['assess', '--write']);
+    assert.equal(assess.status, 2);
+    assert.match(json(assess).errors.join('\n'), /needs a path/);
+  } finally {
+    cleanup(root);
+  }
+});

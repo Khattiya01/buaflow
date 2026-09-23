@@ -44,6 +44,21 @@ function installedFiles(root) {
   return pairs;
 }
 
+// Did this exact content ever ship from the kit? If the kit is a git checkout, look back through
+// the source file's history. Without this, the first lock of a project installed from an older
+// kit reports every stale file as "customized" — found on the first outside trial.
+function shippedEarlier(source, digest) {
+  const { spawnSync } = require('node:child_process');
+  const rel = path.relative(KIT, source).replace(/\\/g, '/');
+  const log = spawnSync('git', ['log', '--format=%h', '-n', '60', '--', rel], { cwd: KIT, encoding: 'utf8' });
+  if (log.status !== 0) return null;
+  for (const commit of log.stdout.split(/\r?\n/).filter(Boolean)) {
+    const show = spawnSync('git', ['show', `${commit}:${rel}`], { cwd: KIT, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+    if (show.status === 0 && crypto.createHash('sha256').update(show.stdout.replace(/\r\n/g, '\n')).digest('hex') === digest) return commit;
+  }
+  return null;
+}
+
 function kitVersion() {
   return JSON.parse(fs.readFileSync(path.join(KIT, 'package.json'), 'utf8')).version;
 }
@@ -77,7 +92,13 @@ function compare(root) {
     else if (!locked) status = 'drifted';
     else if (now === locked) status = kit === locked ? 'current' : (lock.kitVersion === kitVersion() ? 'customized' : 'outdated');
     else status = 'drifted';
-    rows.push({ file: rel, status });
+    // Content the kit itself once shipped is an old version, not somebody's change.
+    let shippedIn = null;
+    if (status === 'customized' || status === 'drifted') {
+      shippedIn = shippedEarlier(source, now);
+      if (shippedIn) status = 'outdated';
+    }
+    rows.push({ file: rel, status, ...(shippedIn ? { shippedIn } : {}) });
   }
   const count = (s) => rows.filter((r) => r.status === s).length;
   return { lockedVersion: lock.kitVersion, kitVersion: kitVersion(), rows, counts: { current: count('current'), outdated: count('outdated'), customized: count('customized'), drifted: count('drifted') } };

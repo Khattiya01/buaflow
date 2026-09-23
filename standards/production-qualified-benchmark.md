@@ -49,11 +49,11 @@ control ทุกตัวของ R0–R3 อยู่ในมิติเด
 | nextjs-postgres-crud (Buaflow เขียน) | 1.00 | 0.90 | 1.00 | 0.97 | ✅ |
 | react-fastapi-postgres-crud (Buaflow เขียน) | 1.00 | 0.90 | 1.00 | 0.97 | ✅ |
 | expo-fastapi-postgres-sync (Buaflow เขียน) | 1.00 | 0.90 | 1.00 | 0.97 | ✅ |
-| **bluepeak-hub (โปรเจกต์จริง · EV-009)** | 0.72 | 0.24 | 0.21 | 0.39 | ❌ |
+| **bluepeak-hub (โปรเจกต์จริง · EV-009)** | 0.72 | 0.34 | 0.21 | 0.42 | ❌ |
 
 - reference app ทั้งสามเสียคะแนน engineering ข้อเดียวกัน: **ไม่มี agent eval เลย** — kit บอกทุกโปรเจกต์ให้ทำ
   eval baseline (Phase 7.11) แต่แอปของตัวเองไม่มีสักเคส
-- Bluepeak Hub: R2 ติด `ci` (GitHub billing) · ไม่มี artifact ของ EP-002..007 เลย · eval 2/5 เคสผ่าน
+- Bluepeak Hub: ไม่มี artifact ของ EP-002..007 เลย · eval 2/5 เคสผ่าน · 2026-09-24 ผ่าน R2 ด้วย local CI แล้ว 0.39 → 0.42 (engineering 0.24 → 0.34)
 
 ## สิ่งที่ benchmark นี้มองไม่เห็น และไม่ได้อ้างว่าเห็น
 
@@ -61,7 +61,7 @@ control ทุกตัวของ R0–R3 อยู่ในมิติเด
 
 - Bluepeak Hub มี rate limit ที่ auth, security headers และ logout ที่ทำให้ session ใช้ไม่ได้จริง ซึ่ง
   reference app ทั้งสามของ Buaflow **ไม่มี** (REQ-014/102/104 เป็น exception ที่ยอมรับไว้) แต่ reference app
-  ได้ 0.97 และ Bluepeak ได้ 0.39 เพราะ reference app **เขียนหลักฐานไว้ครบ** ว่ามันขาดอะไร
+  ได้ 0.97 และ Bluepeak ได้ 0.42 เพราะ reference app **เขียนหลักฐานไว้ครบ** ว่ามันขาดอะไร
 - reference app สองตัวที่เป็น Python **ไม่มีคำสั่ง verify เดียว** ตามที่ Phase A.2 ของ kit กำหนด
   (`buaflow assess` เจอ) แต่ได้ `verification` 1.0 เพราะ manifest อ้าง `evidence/ci-run.json` ที่ยืนยันได้
 - test suite ที่ผ่านโดยไม่ assert อะไร · หลักฐานที่มีจริงแต่ไม่เกี่ยวกับ control — เหมือนที่ `verifier.js` จับไม่ได้

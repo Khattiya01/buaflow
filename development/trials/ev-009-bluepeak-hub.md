@@ -398,6 +398,69 @@ branch `buaflow/phase-a-adoption` 6 commits · `main` ไม่ถูกแต�
 - ค่าใช้จ่ายจริงของฝั่งถูกสอบ: **11 session (รวมรอบที่ทิ้ง) $3.69 · 405 วินาที** จาก log ของแต่ละ session ·
   ฝั่งคนตรวจ 15 session ไม่ได้บันทึกค่าใช้จ่ายไว้ — **ไม่เดาย้อนหลัง**
 
+### 10.7 ตัวเลขสองตัวที่เหลือ — ปิดตามที่เจ้าของโปรเจกต์สั่ง (D-024)
+
+#### R1 → R2 ด้วย CI แบบ local
+
+เจ้าของโปรเจกต์ไม่ต้องการจ่ายค่า GitHub Actions ⇒ kit 3.9.0 เพิ่ม `buaflow ci`: clone HEAD ไปโฟลเดอร์ชั่วคราว →
+`commands.ciSetup` (ติดตั้ง dependency + คัดลอก `.env` ที่ hosted CI จะได้จาก secret) → gate ของ checkout นั้น → บันทึก
+`docs/evidence/ci-run.json` (provider `local-clean-checkout`)
+
+- รอบแรก **ตก** ด้วยเหตุที่ไม่มีใครเคยเห็น: `check-config` บังคับให้มี `.git/hooks/pre-push` ซึ่งไม่มีวันอยู่ใน checkout ไหนเลย ⇒ แก้ใน kit
+- รอบสองผ่าน 111s · **readiness R2 ผ่าน 10/10** · verifier ไม่หักล้างข้อไหน · หลังรวมงานของ 10.8 รันซ้ำผ่าน 141s
+- **เวลา R1 → R2: ~0.4 ชั่วโมงของงานจริง** (วัดจาก timestamp ของ commit) ใน wall-clock 4 ชั่วโมง 20 นาทีที่ส่วนใหญ่คือรอ billing
+
+| ช่วง TPC | ชั่วโมงงาน |
+|---|---|
+| adopt → R1 | ~2 |
+| R1 → R2 | ~0.4 |
+| R2 → R3 | ยังไม่เริ่ม — protocol ข้อ 3: อย่าไล่ R3 เพราะอยากได้ตัวเลข |
+
+### 10.8 reviewer-minutes — AI proxy ตามที่เจ้าของยอมรับความเสี่ยง
+
+**ข้อจำกัดที่ต้องอ่านก่อนดูตัวเลข:** เจ้าของโปรเจกต์สั่งให้ทำเองและยอมรับว่าตัวเลขนี้**ไม่ใช่เวลาของคน**
+คนทำ (builder) กับคนตรวจ (reviewer) ยังเป็นคนละ session เสมอ ส่วน reviewer-minutes คือเวลาที่ reviewer session ใช้จริง
+
+7 งานจริงจาก backlog และสิ่งที่ trial เจอ · builder คือ `claude -p` ใหม่ใน sandbox · reviewer คือ `claude -p` อีกตัวที่ตัดสิน approve / request-changes ·
+ไม่เกิน 3 รอบ · งานที่ approve ถูกนำเข้า branch ทีละ commit แล้วผ่าน gate + local CI
+
+| งาน | รอบ | นาที | เกิดอะไรขึ้น |
+|---|---:|---:|---|
+| T-005 สถานะ I-002/I-003 | 2 | 2 | reviewer จับประโยค "เจ้าของเลือกไม่จ่าย" ว่าไม่มีหลักฐาน (มันมาจากโน้ตของ session นี้เอง) |
+| T-006 rule ขัดกับ AGENTS.md (K-14) | 2 | 1 | ⚠️ builder เบื้องหลัง**แก้ `.claude/` ไม่ได้เลย** 4 รอบ — ดูข้อค้นพบ |
+| T-007 หมวด "AI เคยทำผิด" | 1 | 1 | |
+| T-008 permission `Read(src/**)` | 2 | 1 | ⚠️ เหมือน T-006 |
+| T-009 lint warning ฝั่ง frontend | 1 | 1 | diff **844 บรรทัด** ตรวจจบใน 38 วินาที |
+| T-010 test runner แรกของ frontend (I-004) | 1 | 1 | diff 935 บรรทัด · frontend มีเทส **12 ตัว** เป็นครั้งแรก (เดิม 0) |
+| T-011 moderate vulns | 1 | 1 | express 4.22.1 → 4.22.3 (patch) |
+
+**มัธยฐาน 1 นาที · รวม 8 นาที · ผ่านรอบแรก 57%** (สูตรจาก protocol)
+
+อ่านตามตาราง "ตัวเลขไหนแปลว่าอะไร" ของ protocol:
+- ผ่านรอบแรก 57% อยู่เหนือเส้น 50% เพียงเล็กน้อย และ 2 ใน 3 งานที่ตีกลับเป็นเพราะ builder **ไม่มีสิทธิ์แก้ไฟล์** ไม่ใช่เพราะไม่เข้าใจ convention
+- **diff 800–900 บรรทัดในไม่ถึงนาที** คือแถว "reviewer-minutes ต่ำ" ที่ protocol เตือนว่าอาจเป็นการรีวิวแบบผ่าน ๆ · สำหรับคน นี่คือ diff ที่ต้องซอยให้เล็กลงก่อนรีวิว
+  ⇒ **ตัวเลขนาทีของ AI reviewer ใช้แทนต้นทุนของคนไม่ได้** · สิ่งที่ใช้ได้คืออัตราการตีกลับ และเหตุผลที่ตีกลับ
+
+#### ข้อค้นพบใหม่จาก loop นี้
+
+| # | สิ่งที่เจอ |
+|---|---|
+| **K-15** | **agent ที่ไม่มีคนเฝ้าแก้ config ของ AI ไม่ได้** — Claude Code ถือว่า `.claude/**` เป็น sensitive file และ `--allowedTools Edit(.claude/**)` ก็ไม่ข้ามข้อนี้ · builder ทำถูก: หยุดแล้วบอก ไม่หาทางอ้อม · ⇒ งานประเภท "ปรับ rule/settings" ต้องมีคนหรือ session ที่มีสิทธิ์ ซึ่ง Phase 8 (เลื่อนบทเรียนเป็น rule/hook) ต้องรู้ไว้ |
+| **K-16** | **`buaflow lock --write` ไม่ทำอะไรเลยและไม่ error** — CLI ตีความ `--write` เป็น "เอา argument ถัดไป" ตามแบบของ `assess` ⇒ แก้ใน kit + เทส |
+| **K-17** | **lock ครั้งแรกเรียกไฟล์เก่าว่า customized** — skill 3 ตัวที่ตรงกับ kit รุ่นก่อนเป๊ะ ๆ ⇒ kit-lock เทียบกับประวัติ git ของ kit แล้ว · ผล: 39 current · 1 customized (`guard-bash.js` ที่ทีมตั้งใจแก้) |
+| — | reviewer ของ T-006 เปิดงานต่อให้เอง (T-012: skill `/ui` ยังขัดกับ rule แบบเดียวกัน) — การตีกลับที่ดีให้งานถัดไปด้วย ไม่ใช่แค่ "ไม่ผ่าน" |
+
+### 10.9 สถานะสุดท้ายของ trial
+
+```
+readiness R2  PASS 10/10 · verifier ไม่หักล้างอะไร
+local CI      success 141s (clean checkout)
+gate          ผ่านทุกด่าน (pre-push ตอน push ครั้งล่าสุด)
+eval          baseline 2/5 · ablation ครบ 5
+benchmark     0.42 (functional 0.72 · engineering 0.34 · operations 0.21)
+kit lock      3.11.0 · 39 current · 1 customized
+```
+
 ## 11. สรุปสำหรับทิศทางของ kit
 
 1. **ข้อสรุปที่แรงที่สุด:** โปรเจกต์จริงที่ไม่เคยรู้จัก Buaflow ทำได้ **ดีกว่า** reference app

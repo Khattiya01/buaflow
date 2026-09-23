@@ -1,4 +1,4 @@
-✅ **done** — marketplace หนึ่งรายการ |
+# Buaflow Product Roadmap
 
 > เอกสารแม่สำหรับพัฒนา Buaflow จาก AI-native SDLC kit ไปเป็นระบบผลิตแอปที่ตรวจสอบได้
 >
@@ -216,13 +216,13 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 
 | ID | งาน | ผลลัพธ์ |
 |---|---|---|
-| PE-001 | Plugin manifest v1 | id/version/compatibility/capability/permission/input/output/verification |
-| PE-002 | Lockfile and resolver | pin version, checksum, dependency conflict, reproducible install |
-| PE-003 | Permission model | filesystem/network/secret/tool scope + explicit consent |
-| PE-004 | MCP gateway policy | server trust, OAuth/token boundary, tool allowlist, audit event |
-| PE-005 | Plugin conformance kit | schema, fixture, security and lifecycle tests |
-| PE-006 | Trusted tiers/signing | local, verified publisher, signed/trusted distribution |
-| PE-007 | Catalog v1 | discovery metadata หลัง contract/conformance นิ่งแล้ว |
+| PE-001 | Plugin manifest v1 | ✅ **done** — Buaflow เป็น Claude Code plugin (`claude-plugin/`) · validate --strict ผ่าน · gate ยังอยู่ในโปรเจกต์ |
+| PE-002 | Lockfile and resolver | ✅ **done** — `buaflow lock`: current / outdated / customized / drifted · resolver ยังไม่มีอะไรให้ resolve |
+| PE-003 | Permission model | ✅ **done** — `check-config` ตรวจ permission ที่ commit |
+| PE-004 | MCP gateway policy | ✅ **done** — `check-config` ตรวจ `.mcp.json`: ตัดสินชัด · pin เวอร์ชัน · ไม่ฝัง secret |
+| PE-005 | Plugin conformance kit | ✅ **done** — `scripts/check-plugin.js` ใช้กับ plugin ไหนก็ได้ |
+| PE-006 | Trusted tiers/signing | ✅ **done** — tier local / verified จาก checksum + Claude Code validate · ไม่ทำ key signing (ผู้เผยแพร่รายเดียว) |
+| PE-007 | Catalog v1 | ✅ **done** — marketplace หนึ่งรายการ |
 
 ### Evaluation, Learning and Product Operations
 
@@ -236,7 +236,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | EV-006 | Feedback-to-change loop | ✅ **done** — `change-proposal` 1.0 · rollout ได้เมื่อ eval หลังแก้ผ่านและไม่ถดถอย |
 | EV-007 | Compatibility and release policy | semver, migration, deprecation, support matrix |
 | EV-008 | Documentation/onboarding | ✅ **done** — QUICKSTART · TROUBLESHOOTING จาก K-1..K-14 · worked sample · `npm run check` ตรวจว่าทุกคำสั่งในเอกสารมีจริง · workshop ยังไม่เขียนโดยตั้งใจ (ยังไม่เคยมีใครถูกสอน) |
-| EV-009 | Trial บนโปรเจกต์ที่ Buaflow ไม่ได้เขียนเอง | 🚧 **blocked** — TFR 113s · คำถาม 0/3 · K-1..K-14 · eval baseline 2/5 · benchmark 0.39 ได้แล้ว · เหลือ reviewer-minutes (ต้องมีคนรีวิว) และช่วง R1→R2 ของ TPC (CI ติด billing) |
+| EV-009 | Trial บนโปรเจกต์ที่ Buaflow ไม่ได้เขียนเอง | ✅ **done** — TFR 113s · คำถาม 0/3 · R2 10/10 ด้วย local CI · R1→R2 ~0.4 ชม. · reviewer-minutes (AI proxy, D-024) มัธยฐาน 1 นาที ผ่านรอบแรก 57% · K-1..K-17 · benchmark 0.42 |
 | EV-010 | แก้สิ่งที่ trial แรกเจอใน kit | ✅ **done** — `buaflow assess` (K-2) · doctor/check-config/readiness/guard/gate แก้ K-1, K-3..K-9 |
 
 ## 7. Milestones
@@ -277,7 +277,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
   ~~provenance/licenses (EP-004 ✅)~~, ~~restore rehearsal (EP-005 ✅)~~,
   ~~budget ที่มาจาก profile (EP-007 ✅)~~ — **M4 ปิดครบแล้ว**
 
-### M5 — Proven Outside (เป้าหมายปัจจุบัน · 3/4 · เหลือ EV-009 ที่ติดสิ่งที่ต้องใช้คน)
+### M5 — Proven Outside ✅
 
 เสร็จเมื่อ Buaflow ถูกใช้กับโปรเจกต์ที่ **ไม่ได้เขียนเอง** และมีตัวเลขจากของจริง:
 EV-009 (trial แรก), EV-004 (eval harness ที่ทำซ้ำได้), EV-002 (Production-Qualified App benchmark), EV-008 (onboarding)
@@ -293,9 +293,23 @@ EV-009 (trial แรก), EV-004 (eval harness ที่ทำซ้ำได้
 > ("ไม่สร้าง ecosystem surface ก่อน contract ด้านล่างจะนิ่ง") การเปิด PE-001…007 ตอนนี้คือการสร้าง
 > marketplace ให้ contract ที่ยังไม่เคยถูกใครนอกจากเราใช้
 
-### M7 — Domain Advantage
+### M7 — Domain Advantage (เป้าหมายปัจจุบัน — รอโปรเจกต์จริงที่ต้องใช้ pack)
 
 เสร็จเมื่อ Thailand/domain packs (PP-008, PP-009) อยู่ในรูป recipe + assertion ตาม D-011 และมีข้อมูลจากโปรเจกต์จริงพอให้ roadmap อิง evidence
+
+> **ยังไม่เริ่มโดยตั้งใจ (D-024)** — D-014 กำหนดว่า pack ที่ไม่มีแอปไหนพิสูจน์ recipe ห้ามมีอยู่ใน catalog
+> (บทเรียนจาก auth-rbac: bind ครั้งแรก เจอ recipe ผิดทันที) และ payment / PDPA / PromptPay / LINE คือเนื้อหาที่เก่าเร็วที่สุดในแผน
+> ⇒ pack แรกของ M7 เริ่มได้ **เมื่อมีโปรเจกต์จริงที่ต้องใช้มัน** และ pack ถูก bind กับโปรเจกต์นั้นตั้งแต่วันแรก
+> ไม่ใช่เขียนล่วงหน้าเผื่อ
+
+### งานที่พักไว้โดยตั้งใจ ไม่ใช่ลืม
+
+| งาน | เหตุผล | เปิดใหม่เมื่อ |
+|---|---|---|
+| BC-001 / BC-002 / BC-003 | parallel agent scheduling — D-011 พักไว้ verifier ให้คุณค่าด้วย agent ตัวเดียว | มีงานจริงที่ต้องรันหลาย agent พร้อมกันแล้วชนกัน |
+| MT-003 / MT-004 | adapter ของ Codex / Copilot / Kiro — D-006, D-024: Claude อย่างเดียว | ผู้ใช้ขอ · `manual/` (MT-007) คือทางที่เครื่องมืออื่นใช้ได้ระหว่างนี้ |
+| MT-006 | model routing ต้องมีข้อมูล eval จริงหลายรอบ (D-013) | eval run ของโปรเจกต์จริงมีมากพอจะเทียบโมเดล |
+| PP-008 / PP-009 | ดูข้างบน | โปรเจกต์จริงต้องใช้ |
 
 ## 8. ลำดับ 12–24 เดือนโดยประมาณ
 
