@@ -122,6 +122,21 @@ adoption mode ไม่บล็อก flaky · production mode บล็อก 
 นาฬิกาเครื่องผิด หรือ timestamp ไม่ได้มาจากการรันจริง — ก่อน 3.7.0 มันผ่านเงียบ ๆ พร้อมรายงานว่า "-2d old"
 ยอมให้คลาดได้ 5 นาที · แก้เวลาในไฟล์ให้เป็นเวลาที่สร้างหลักฐานจริง
 
+### ไม่มี hosted CI (ไม่อยากจ่าย / ติด billing / ไม่มี remote) แต่อยากผ่าน R2
+
+ใช้ CI จาก clean checkout บนเครื่องตัวเอง (kit 3.9.0+):
+
+```bash
+node buaflow/bin/buaflow.js ci
+```
+
+มัน clone HEAD ไปที่โฟลเดอร์ชั่วคราว รัน `commands.ciSetup` จาก `.claude/stack.json` (เช่น
+`cp {source}/backend/.env backend/.env && npm --prefix backend ci`) แล้วรัน gate ของ checkout นั้น และเขียน
+`docs/evidence/ci-run.json` · ใช้กับ Bluepeak Hub แล้ว R2 ผ่าน 10/10 · **ของที่ต้อง commit ก่อน**: `.claude/gate.js`
+และ `stack.json` — clone เห็นแค่สิ่งที่ commit แล้ว
+
+รอบแรกที่รันจริงเจอว่า `check-config` ตกใน clone เพราะ `.git/hooks/pre-push` ไม่เคยอยู่ใน git — 3.9.0+ ไม่ตรวจข้อนี้เมื่อรันใน CI
+
 ### `ci` ยังเป็น `fail` ทั้งที่ push workflow ขึ้นไปแล้ว
 
 workflow ที่ไม่เคยรันจนจบพิสูจน์อะไรไม่ได้ · ที่เจอจริง: GitHub สร้าง job แต่ไม่เริ่มสัก step เพราะ

@@ -3,6 +3,17 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.9.0 — 2026-09-23
+
+> โปรเจกต์ที่ใช้ v3.8.x → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.8.1 → v3.9.0) · **MINOR:** ไม่มี schema เปลี่ยน
+
+- **`buaflow ci` — CI จาก clean checkout บนเครื่องตัวเอง** (`claude-setup/local-ci.js`) — R2 ต้องการ "CI จาก clean checkout"
+  ไม่ใช่ "GitHub" · clone HEAD ไปโฟลเดอร์ชั่วคราว → `commands.ciSetup` (ใช้ `{source}/…` คัดลอก `.env` ที่ hosted CI
+  จะได้จาก secret) → gate ของ checkout นั้น → บันทึก `docs/evidence/ci-run.json` ที่ provider เป็น `local-clean-checkout`
+  · `assess` นับเป็นหลักฐานของ control `ci` · Bluepeak Hub ผ่าน R2 10/10 ด้วยวิธีนี้ โดยไม่ต้องจ่ายค่า GitHub Actions
+- **`check-config` ไม่ตก pre-push hook ใน checkout ของ CI** — `.git/hooks/*` ไม่เคยอยู่ใน git · local CI รอบแรกเจอเอง
+- **A.5: rule ต้องพูดตรงกับ `protected`** (K-14) — ไฟล์ไหนล็อกเป็นการตัดสินใจของแต่ละโปรเจกต์ แต่ต้องพูดตรงกันทุกไฟล์
+
 ## v3.8.1 — 2026-09-23
 
 > PATCH — เอกสาร + output แบบคนอ่าน · JSON ไม่เปลี่ยน · คัดลอกหรือข้ามก็ได้

@@ -4,6 +4,66 @@
   "_": "Support matrix ของ kit (EV-007) · newest release อยู่บนสุดเสมอ · scripts/check-compatibility.js บังคับให้ตรงกับ package.json และ schemas/registry.json · อธิบายที่ standards/release-policy.md",
   "releases": [
     {
+      "version": "3.9.0",
+      "releasedAt": "2026-09-23",
+      "change": "minor",
+      "summary": "Local clean-checkout CI (buaflow ci): clones HEAD into a temporary directory, runs commands.ciSetup (with {source} for untracked files such as .env that a hosted runner would get from secrets) and the checkout's own gate, and records docs/evidence/ci-run.json with provider local-clean-checkout. assess counts a successful local run as evidence for the ci control, so ciMode local-only is no longer a permanent R2 blocker. check-config no longer fails inside CI (CI=true or a buaflow ci run) for a pre-push hook under .git/hooks, which no checkout can ever contain. Phase A.5 now says to keep rules in step with protected paths, which each project decides. No artifact schema changed.",
+      "reads": {
+        "stack-config": [
+          "1.0"
+        ],
+        "readiness-manifest": [
+          "1.0"
+        ],
+        "prototype-flow": [
+          "1.0"
+        ],
+        "pixel-config": [
+          "1.0"
+        ],
+        "project-manifest": [
+          "1.0"
+        ],
+        "product-graph": [
+          "1.0"
+        ],
+        "application-profile": [
+          "1.0",
+          "1.1"
+        ],
+        "pack": [
+          "2.0"
+        ],
+        "evidence-bundle": [
+          "1.0"
+        ],
+        "failure-record": [
+          "1.0"
+        ],
+        "requirement-coverage": [
+          "1.0"
+        ],
+        "security-baseline": [
+          "1.0"
+        ],
+        "supply-chain": [
+          "1.0"
+        ],
+        "operational-readiness": [
+          "1.0"
+        ],
+        "budget-evidence": [
+          "1.0"
+        ],
+        "eval-case": [
+          "1.0"
+        ],
+        "eval-run": [
+          "1.0"
+        ]
+      }
+    },
+    {
       "version": "3.8.1",
       "releasedAt": "2026-09-23",
       "change": "patch",

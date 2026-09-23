@@ -218,3 +218,27 @@ test('CLI: buaflow assess works before any .claude/ control is installed, and --
     cleanup(root);
   }
 });
+
+// EV-009: hosted CI was unavailable (account billing). A clean-checkout run recorded by
+// `buaflow ci` answers what R2 asks, and turns local-only from a permanent fail into a pass.
+test('ciMode local-only passes ci once a local clean-checkout run succeeded, and says it was local', () => {
+  const root = temporaryProject('buaflow-assess-');
+  try {
+    brownfield(root);
+    let report = assess(root, { gitRunner: fakeGit(root) });
+    assert.equal(report.results.ci.status, 'fail');
+    assert.match(report.results.ci.next, /buaflow ci/);
+
+    writeJson(path.join(root, 'docs', 'evidence', 'ci-run.json'), { provider: 'local-clean-checkout', conclusion: 'success', commit: 'abc1234def', durationSeconds: 111 });
+    report = assess(root, { gitRunner: fakeGit(root) });
+    assert.equal(report.results.ci.status, 'pass');
+    assert.match(report.results.ci.reason, /local clean-checkout run passed/);
+    assert.match(report.results.ci.reason, /not HEAD/);
+    assert.equal(report.summary.reachable, 'R2');
+
+    writeJson(path.join(root, 'docs', 'evidence', 'ci-run.json'), { provider: 'local-clean-checkout', conclusion: 'failure', commit: HEAD });
+    assert.equal(assess(root, { gitRunner: fakeGit(root) }).results.ci.status, 'fail');
+  } finally {
+    cleanup(root);
+  }
+});

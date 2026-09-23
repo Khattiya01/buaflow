@@ -72,3 +72,20 @@ test('a relative root reads the same project configuration as an absolute one', 
     cleanup(root);
   }
 });
+
+// Found by the first local clean-checkout CI run (EV-009): .git/hooks/* is never in a checkout,
+// so "local-only needs an installed pre-push" failed every CI run, hosted or local, by construction.
+test('an uninstalled .git/hooks pre-push fails on a developer machine but not inside CI', () => {
+  const root = temporaryProject('buaflow-check-config-');
+  try {
+    write(path.join(root, 'CLAUDE.md'), '@AGENTS.md\n');
+    write(path.join(root, '.claude', 'stack-config.js'), require('node:fs').readFileSync(path.join(repositoryRoot, 'claude-setup', 'stack-config.js'), 'utf8'));
+    write(path.join(root, '.claude', 'stack.json'), JSON.stringify({ schemaVersion: '1.0', ciMode: 'local-only', preflightHookPath: '.git/hooks/pre-push' }));
+    const line = (env) => runNode(script, { args: [root], env }).stdout.split(/\r?\n/).find((l) => /pre-push/.test(l) && /(FAIL|ok)\s/.test(l)) || '';
+    assert.match(line({ CI: '', BUAFLOW_LOCAL_CI: '' }), /FAIL/);
+    assert.match(line({ CI: 'true' }), /^\s+ok\s/);
+    assert.match(line({ BUAFLOW_LOCAL_CI: '1' }), /^\s+ok\s/);
+  } finally {
+    cleanup(root);
+  }
+});

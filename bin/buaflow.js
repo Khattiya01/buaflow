@@ -17,7 +17,7 @@ const { spawnSync } = require('node:child_process');
 const KIT_ROOT = path.resolve(__dirname, '..');
 const PACKAGE = JSON.parse(fs.readFileSync(path.join(KIT_ROOT, 'package.json'), 'utf8'));
 const EXIT = Object.freeze({ OK: 0, FAILED: 1, INPUT: 2, UNAVAILABLE: 3 });
-const COMMANDS = Object.freeze(['init', 'doctor', 'assess', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'security', 'supply', 'operations', 'budgets', 'evals', 'resume']);
+const COMMANDS = Object.freeze(['init', 'doctor', 'assess', 'ci', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'security', 'supply', 'operations', 'budgets', 'evals', 'resume']);
 
 function usage() {
   return [
@@ -28,6 +28,7 @@ function usage() {
     '  doctor        inspect local prerequisites and installed Buaflow controls',
     '  assess        answer "which readiness level is this project at" from the repository itself,',
     '                without a manifest and before any control is installed',
+    '  ci            run the gate from a clean checkout on this machine and record it (no hosted CI needed)',
     '  benchmark     score functional, engineering and operations from existing evidence (EV-002)',
     '  verify        run the project standard verification command',
     '  readiness     validate an R0-R4 evidence manifest',
@@ -298,6 +299,23 @@ function commandBenchmark(root) {
   return out;
 }
 
+// EV-009: R2 needs CI from a clean checkout, and hosted CI can be unavailable for reasons that
+// have nothing to do with the project (the first trial: account billing). Runs the KIT's copy so it
+// also works where .claude/ predates this command; the gate itself is the checkout's own.
+function commandCi(root) {
+  const result = runNode(root, path.join(KIT_ROOT, 'claude-setup', 'local-ci.js'), ['--root', root, '--json']);
+  if (result.status === 2) return envelope('ci', EXIT.INPUT, 'local CI could not start', {}, [], [result.stderr.trim()]);
+  let record = null;
+  try { record = JSON.parse(result.stdout); } catch { /* reported below */ }
+  if (!record) return envelope('ci', EXIT.FAILED, 'local CI produced no record', {}, [], [result.stderr.trim() || `local-ci.js exited ${result.status}`]);
+  const failed = record.steps.find((s) => s.exitCode !== 0);
+  return envelope('ci', result.status === 0 ? EXIT.OK : EXIT.FAILED, `${record.conclusion} on a clean checkout of ${record.commit.slice(0, 12)} in ${record.durationSeconds}s`, {
+    record: 'docs/evidence/ci-run.json',
+    conclusion: record.conclusion,
+    result: record,
+  }, record.uncommittedChangesNotIncluded ? [`${record.uncommittedChangesNotIncluded} uncommitted change(s) were not part of this run`] : [], failed ? [`${failed.name}: ${failed.outputTail.split(/\r?\n/).slice(-3).join(' | ')}`] : []);
+}
+
 function commandResume(root) {
   const warnings = [];
   const data = { projectManifest: null, planning: null, inProgressTasks: [] };
@@ -357,6 +375,7 @@ function main(argv = process.argv.slice(2)) {
       : command === 'resume' ? commandResume(options.root)
         : command === 'assess' ? commandAssess(options.root, options)
           : command === 'benchmark' ? commandBenchmark(options.root)
+            : command === 'ci' ? commandCi(options.root)
         : commandDelegated(command, options.root, options);
   emit(result, options.json);
   return result.code;
@@ -364,4 +383,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { COMMANDS, EXIT, commandAssess, commandBenchmark, commandDoctor, commandInit, commandResume, main, parse };
+module.exports = { COMMANDS, EXIT, commandAssess, commandBenchmark, commandCi, commandDoctor, commandInit, commandResume, main, parse };

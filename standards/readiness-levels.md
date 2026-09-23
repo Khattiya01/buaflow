@@ -45,7 +45,7 @@ R1 อาจใช้ข้อมูลชั่วคราวและยั�
 - automated tests ครอบคลุม business path และ failure สำคัญ
 - persistence lifecycle ถูกกำหนด หรือระบุ `not-applicable` สำหรับแอปที่ไม่มี state จริง
 - authentication/authorization/ownership boundary ถูกทดสอบ หรือระบุ `not-applicable` พร้อมเหตุผล
-- CI รันชุดตรวจมาตรฐานจาก clean checkout
+- CI รันชุดตรวจมาตรฐานจาก clean checkout — hosted CI หรือ `buaflow ci` (clone ใหม่บนเครื่องตัวเอง แล้วรัน gate และบันทึก `docs/evidence/ci-run.json` ที่ระบุว่าเป็น `local-clean-checkout`) ก็ได้ สิ่งที่ R2 ต้องการคือ checkout ที่สะอาดกับบันทึกที่บอกได้ว่า commit ไหนผ่าน ไม่ใช่ผู้ให้บริการรายใดรายหนึ่ง · local run ไม่พิสูจน์ว่าเครื่องที่สองได้ผลเดียวกัน
 
 R2 ไม่ได้แปลว่ารับ production traffic ได้ เพราะ migration, rollback, observability และ supply-chain evidence อาจยังไม่ครบ
 

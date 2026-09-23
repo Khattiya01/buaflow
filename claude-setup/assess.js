@@ -292,8 +292,16 @@ function probe(root, options = {}) {
     return record && /success|pass/i.test(String(record.conclusion || record.status || record.outcome || ''));
   });
   const localFiles = (list) => list.filter((file) => !file.startsWith('<git root>')).map((value) => ({ type: 'file', value }));
-  if (stack.config?.ciMode === 'local-only') {
-    results.ci = verdict('fail', '.claude/stack.json declares ciMode "local-only"; R2 requires CI from a clean checkout', localFiles(workflows).slice(0, 1), 'get a CI run to execute, then record it');
+  // A clean-checkout run recorded by `buaflow ci` answers what R2 actually asks — the gate ran
+  // from a fresh clone and someone can check which commit — without a hosted runner. It is named
+  // as local in the reason, because it does not prove that a second machine agrees.
+  const localRun = ciRuns.find((file) => readJson(path.join(root, file))?.provider === 'local-clean-checkout');
+  if (localRun) {
+    const record = readJson(path.join(root, localRun));
+    const behind = commit && record.commit && record.commit !== commit ? `; it graded ${record.commit.slice(0, 12)}, not HEAD` : '';
+    results.ci = verdict('pass', `a local clean-checkout run passed (${localRun}, ${record.durationSeconds}s)${behind}`, [{ type: 'file', value: localRun }]);
+  } else if (stack.config?.ciMode === 'local-only') {
+    results.ci = verdict('fail', '.claude/stack.json declares ciMode "local-only" and no clean-checkout run is recorded', localFiles(workflows).slice(0, 1), 'run `buaflow ci` to run the gate from a clean checkout and record it');
   } else if (ciRuns.length && workflows.length) {
     results.ci = verdict('pass', `${workflows[0]} has a recorded successful run (${ciRuns[0]})`, [...localFiles(workflows).slice(0, 1), { type: 'file', value: ciRuns[0] }]);
   } else if (workflows.length) {

@@ -257,7 +257,14 @@ const preflight = stack.preflightHookPath;
 const ciMode = stack.ciMode || 'required';
 const localOnly = ciMode === 'local-only';
 
-if (exists(preflight)) {
+// ใน CI (hosted หรือ buaflow ci) checkout เป็น clone ใหม่ที่ไม่มีวันมี .git/hooks/* เพราะ hook ไม่อยู่ใน git
+// การติดตั้ง hook เป็นคุณสมบัติของเครื่องคน ไม่ใช่ของ checkout — ตรวจตรงนี้ใน CI ตกเสมอโดยไม่บอกอะไร
+// (เจอจริงตอน local CI ครั้งแรกของ trial EV-009) · husky ที่ commit .husky/pre-push ไว้ยังถูกตรวจตามปกติ
+const inCi = process.env.CI === 'true' || process.env.BUAFLOW_LOCAL_CI === '1';
+const untracked = /^\.git\//.test(preflight.replace(/\\/g, '/'));
+if (inCi && untracked && !exists(preflight)) {
+  ok(`${preflight} ไม่อยู่ใน git จึงไม่มีใน checkout ของ CI — ตรวจบนเครื่องคนแทน (รัน check-config นอก CI)`);
+} else if (exists(preflight)) {
   /gate\.js/.test(read(preflight))
     ? ok(`${preflight} เรียก gate.js`)
     : (localOnly ? bad : warn)(`${preflight} มีอยู่แต่ไม่ได้เรียก gate.js`);
