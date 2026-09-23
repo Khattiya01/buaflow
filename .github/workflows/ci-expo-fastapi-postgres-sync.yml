@@ -146,6 +146,14 @@ jobs:
           java-version: "17"
 
       - uses: android-actions/setup-android@v3
+        with:
+          # The action's own default ("tools platform-tools") includes the legacy,
+          # long-removed standalone "Android SDK Tools" package — Google dropped it from
+          # the SDK repository years ago, so requesting it makes sdkmanager exit non-zero
+          # before it even gets to platform-tools. Gradle resolves the actual
+          # platform/build-tools versions it needs itself once cmdline-tools +
+          # platform-tools are present and licenses are accepted.
+          packages: "platform-tools"
 
       - name: Generate the native Android project (expo prebuild)
         working-directory: reference-apps/expo-fastapi-postgres-sync/mobile
