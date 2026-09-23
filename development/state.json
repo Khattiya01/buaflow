@@ -5,7 +5,7 @@
   "updatedAt": "2026-09-23",
   "current": {
     "milestone": "M3",
-    "focus": ["BF-008"]
+    "focus": ["BF-008", "EP-010"]
   },
   "workItems": [
     {
@@ -606,16 +606,22 @@
         "The workflow fails closed: core/ to claude-setup/ drift, a state.json that check-roadmap.js rejects, or a failing regression test blocks the change",
         "Repository hygiene found in the 2026-09-23 direction review is resolved: the empty stray directory left by a broken shell command under reference-apps/ is removed, and AI_SDLC_COMPARISON.md and CLI.md are either committed or no longer referenced by tracked documents, so no tracked document points at an untracked file"
       ],
-      "artifacts": [],
+      "artifacts": [
+        ".github/workflows/kit-check.yml",
+        ".gitignore",
+        "AI_SDLC_COMPARISON.md",
+        "CLI.md"
+      ],
       "verification": ["npm run check"],
-      "notes": "Opened 2026-09-23 from the direction review recorded in D-011. The gap is narrow but load-bearing: scripts/check-repository.js already performs every check this item needs — none of it is new work — but no CI workflow has ever run it. All three workflows in .github/workflows/ target reference apps, which are examples, while the gate/validator/adapter-generator machinery that every other claim in this repository rests on had no automated enforcement at all. That is principle 1 of the roadmap (the machine decides status) not being applied to Buaflow itself."
+      "notes": "Opened 2026-09-23 from the direction review recorded in D-011. The gap is narrow but load-bearing: scripts/check-repository.js already performs every check this item needs — none of it is new work — but no CI workflow has ever run it. All three workflows in .github/workflows/ target reference apps, which are examples, while the gate/validator/adapter-generator machinery that every other claim in this repository rests on had no automated enforcement at all. That is principle 1 of the roadmap (the machine decides status) not being applied to Buaflow itself. Work done 2026-09-23: .github/workflows/kit-check.yml runs npm run check on push to main, on every pull request and on manual dispatch, with no path filter on purpose (check-repository.js syntax-checks every .js and parses every .json in the repository, reference apps included, so any change can break it) and with no install step, because the kit declares zero dependencies and that is itself part of the contract — the check must work from a bare checkout. Hygiene: the empty stray directory under reference-apps/, left by a shell command that broke on a Windows path on 2026-09-23, was removed; AI_SDLC_COMPARISON.md (referenced by this roadmap\u0027s section 12) and CLI.md (referenced twice by README.md) were committed, since tracked documents were pointing at untracked files; and a root .gitignore now covers node_modules/, .verify.log and aidlc-starter-template/ — the third-party starter reviewed in D-001 and deliberately not merged, which check-repository.js already skips. Kept in_progress rather than marked done: a CI workflow that has never run proves nothing, so this follows the same rule PP-003/004/005 followed — evidence stays provisional until a real run confirms it. Marking it done requires a green run of the kit check workflow recorded here."
     },
     {
       "id": "EP-010",
       "title": "Evidence freshness as a readiness control",
       "milestone": "M3",
-      "status": "ready",
+      "status": "in_progress",
       "dependsOn": ["BF-003", "EP-001"],
+      "startedAt": "2026-09-23",
       "acceptance": [
         "readiness.js gains an 'evidence-freshness' control: a manifest whose evidence is older than a declared window, or bound to a commit that is no longer an ancestor of HEAD, resolves to a distinct 'expired' outcome rather than 'pass'",
         "An expired R3 is reported as distinct from both a passing R3 and a failing one — the report states that the claim was proven at a point in time and is no longer proven, which is the honest state",

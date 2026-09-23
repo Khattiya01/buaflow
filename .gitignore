@@ -1,0 +1,9 @@
+node_modules/
+
+# Third-party AI-DLC starter kept locally for the comparison recorded in
+# AI_SDLC_COMPARISON.md and D-001 (which decided NOT to merge it). It is someone
+# else's code plus an installed dependency tree, not part of this repository.
+# scripts/check-repository.js already skips it for the same reason.
+aidlc-starter-template/
+
+.verify.log

@@ -1,0 +1,37 @@
+name: kit check
+
+# BF-008 — the Buaflow kit verifying itself.
+#
+# Every other workflow in this directory verifies a reference app, which is an example.
+# This one verifies the machinery every claim in the repository rests on: the roadmap
+# state validator, the artifact contracts, the core/ -> claude-setup/ adapter generators
+# and the regression suite. Principle 1 of BUAFLOW_PRODUCT_ROADMAP.md ("เครื่องตัดสินสถานะ")
+# applied to Buaflow itself — before this existed, `npm run check` ran only when a human
+# remembered to run it.
+#
+# No path filter on purpose: scripts/check-repository.js syntax-checks every .js and parses
+# every .json in the repository (reference apps included), so any change can break it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # No install step: the kit has zero runtime dependencies (package.json declares none),
+      # which is itself part of the contract — `npm run check` must work from a bare checkout.
+      - name: npm run check
+        run: npm run check
