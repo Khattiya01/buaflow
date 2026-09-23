@@ -4,7 +4,7 @@
   "project": "expo-fastapi-postgres-sync",
   "profile": "internal-crud",
   "targetLevel": "R3",
-  "commit": "0000000000000000000000000000000000000000",
+  "commit": "483d12900f54aeffd437dece267d7763f7efb001",
   "generatedAt": "2026-09-23T04:30:00.000Z",
   "controls": {
     "version-control": {
@@ -72,7 +72,7 @@
     "ci": {
       "status": "pass",
       "evidence": [
-        { "type": "url", "value": "https://github.com/Khattiya01/buaflow/actions" }
+        { "type": "url", "value": "https://github.com/Khattiya01/buaflow/actions/runs/35818912160" }
       ]
     },
     "deployment-package": {

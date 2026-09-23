@@ -1,6 +1,6 @@
 # Evidence bundle — expo-fastapi-postgres-sync
 
-commit: `0000000000000000000000000000000000000000` · generated: 2026-09-23T04:26:47.210Z · level: R3 · PASS (25/25)
+commit: `483d12900f54aeffd437dece267d7763f7efb001` · generated: 2026-09-23T04:44:49.809Z · level: R3 · PASS (25/25)
 
 tool versions: node v24.12.0, win32/x64
 
@@ -19,7 +19,7 @@ Readiness manifest: `docs/evidence/readiness.json` (profile: internal-crud, targ
 | automated-tests | pass | command: pytest<br>command: cd mobile && npm test<br>command: cd tests/e2e && npx playwright test |
 | persistence | pass | file: backend/app/models.py<br>file: evidence/migration-rollback-rehearsal.json<br>file: docs/sync-contract.md |
 | access-control | pass | file: backend/app/guard.py<br>command: pytest tests/integration |
-| ci | pass | url: https://github.com/Khattiya01/buaflow/actions |
+| ci | pass | url: https://github.com/Khattiya01/buaflow/actions/runs/35818912160 |
 | deployment-package | pass | file: Dockerfile<br>file: evidence/clean-environment-rehearsal.json<br>file: docs/runbook.md |
 | runtime-config | pass | file: backend/.env.example<br>file: mobile/.env.example |
 | database-migration | pass | file: evidence/migration-rollback-rehearsal.json |
