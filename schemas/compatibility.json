@@ -4,6 +4,66 @@
   "_": "Support matrix ของ kit (EV-007) · newest release อยู่บนสุดเสมอ · scripts/check-compatibility.js บังคับให้ตรงกับ package.json และ schemas/registry.json · อธิบายที่ standards/release-policy.md",
   "releases": [
     {
+      "version": "3.8.1",
+      "releasedAt": "2026-09-23",
+      "change": "patch",
+      "summary": "Onboarding (EV-008): QUICKSTART.md, TROUBLESHOOTING.md written from the findings of the first outside trial (K-1..K-14 and its eval baseline), and a worked sample on a reference app with real output. npm run check now fails when an onboarding document names a buaflow command, flag, script or link that does not exist. buaflow assess and buaflow benchmark print their per-control table in human mode; their JSON output is unchanged.",
+      "reads": {
+        "stack-config": [
+          "1.0"
+        ],
+        "readiness-manifest": [
+          "1.0"
+        ],
+        "prototype-flow": [
+          "1.0"
+        ],
+        "pixel-config": [
+          "1.0"
+        ],
+        "project-manifest": [
+          "1.0"
+        ],
+        "product-graph": [
+          "1.0"
+        ],
+        "application-profile": [
+          "1.0",
+          "1.1"
+        ],
+        "pack": [
+          "2.0"
+        ],
+        "evidence-bundle": [
+          "1.0"
+        ],
+        "failure-record": [
+          "1.0"
+        ],
+        "requirement-coverage": [
+          "1.0"
+        ],
+        "security-baseline": [
+          "1.0"
+        ],
+        "supply-chain": [
+          "1.0"
+        ],
+        "operational-readiness": [
+          "1.0"
+        ],
+        "budget-evidence": [
+          "1.0"
+        ],
+        "eval-case": [
+          "1.0"
+        ],
+        "eval-run": [
+          "1.0"
+        ]
+      }
+    },
+    {
       "version": "3.8.0",
       "releasedAt": "2026-09-23",
       "change": "minor",

@@ -118,6 +118,10 @@ flowchart LR
 
 ## เริ่มใน 60 วินาที
 
+> **ใหม่กับ kit?** [QUICKSTART.md](QUICKSTART.md) — 10 นาทีแรกด้วยคำสั่งจริง รวมถึง `assess` ที่ตอบว่าโปรเจกต์ของคุณ
+> อยู่ที่ R เท่าไรโดยไม่ต้องเขียนอะไรก่อน · ติดตรงไหน [TROUBLESHOOTING.md](TROUBLESHOOTING.md) ·
+> ทุกขั้นพร้อม output จริง [examples/worked-sample.md](examples/worked-sample.md)
+
 ### สิ่งที่ต้องมี
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview)

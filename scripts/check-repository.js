@@ -49,6 +49,8 @@ for (const file of jsonFiles) {
 }
 console.log(`json: PASS (${jsonFiles.length} files)`);
 
+// EV-008 — every command an onboarding document tells a reader to run must exist and parse.
+run('onboarding documents name only real commands', process.execPath, [path.join(root, 'scripts', 'check-docs-commands.js')]);
 run('roadmap state', process.execPath, [path.join(root, 'scripts', 'check-roadmap.js')]);
 run('artifact contracts', process.execPath, [path.join(root, 'scripts', 'check-artifacts.js')]);
 run('release compatibility matrix', process.execPath, [path.join(root, 'scripts', 'check-compatibility.js')]);

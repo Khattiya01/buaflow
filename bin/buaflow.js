@@ -17,6 +17,7 @@ const { spawnSync } = require('node:child_process');
 const KIT_ROOT = path.resolve(__dirname, '..');
 const PACKAGE = JSON.parse(fs.readFileSync(path.join(KIT_ROOT, 'package.json'), 'utf8'));
 const EXIT = Object.freeze({ OK: 0, FAILED: 1, INPUT: 2, UNAVAILABLE: 3 });
+const COMMANDS = Object.freeze(['init', 'doctor', 'assess', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'security', 'supply', 'operations', 'budgets', 'evals', 'resume']);
 
 function usage() {
   return [
@@ -101,6 +102,10 @@ function emit(result, json) {
     if (value === null || value === undefined || typeof value === 'object') continue;
     console.log(`  ${key}: ${value}`);
   }
+  // assess and benchmark are read by people first: their per-control table is the answer, the
+  // summary line alone is not. JSON consumers get the same content as data.result.
+  if (result.text) console.log(`
+${result.text}`);
 }
 
 function readJson(file) {
@@ -264,13 +269,15 @@ function commandAssess(root, options) {
   }
   const report = JSON.parse(result.stdout);
   const { proven, reachable, nextLevel, blockers } = report.summary;
-  return envelope('assess', EXIT.OK, `proven ${proven || 'none'}, reachable ${reachable || 'none'}${nextLevel ? `, next ${nextLevel}` : ''}`, {
+  const out = envelope('assess', EXIT.OK, `proven ${proven || 'none'}, reachable ${reachable || 'none'}${nextLevel ? `, next ${nextLevel}` : ''}`, {
     proven: proven || 'none',
     reachable: reachable || 'none',
     blocking: blockers.map((b) => b.control).join(', ') || undefined,
     draft: report.draft?.file,
     result: report,
   }, report.notes);
+  Object.defineProperty(out, 'text', { value: require(path.join(KIT_ROOT, 'claude-setup', 'assess.js')).render(report), enumerable: false });
+  return out;
 }
 
 // EV-002: the Production-Qualified App benchmark. Like assess it runs the KIT's copy, so a
@@ -282,11 +289,13 @@ function commandBenchmark(root) {
   }
   const report = JSON.parse(result.stdout);
   const d = report.dimensions;
-  return envelope('benchmark', EXIT.OK, `functional ${d.functional.score.toFixed(2)} · engineering ${d.engineering.score.toFixed(2)} · operations ${d.operations.score.toFixed(2)} · ${report.qualified ? 'production-qualified' : 'not production-qualified'}`, {
+  const out = envelope('benchmark', EXIT.OK, `functional ${d.functional.score.toFixed(2)} · engineering ${d.engineering.score.toFixed(2)} · operations ${d.operations.score.toFixed(2)} · ${report.qualified ? 'production-qualified' : 'not production-qualified'}`, {
     overall: report.overall,
     qualified: report.qualified,
     result: report,
   }, report.reasons);
+  Object.defineProperty(out, 'text', { value: require(path.join(KIT_ROOT, 'claude-setup', 'benchmark.js')).render([report]), enumerable: false });
+  return out;
 }
 
 function commandResume(root) {
@@ -333,7 +342,7 @@ function main(argv = process.argv.slice(2)) {
     else console.log(usage());
     return EXIT.OK;
   }
-  if (!['init', 'doctor', 'assess', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'security', 'supply', 'operations', 'budgets', 'evals', 'resume'].includes(command)) {
+  if (!COMMANDS.includes(command)) {
     const result = envelope(command || 'cli', EXIT.INPUT, 'unknown command', {}, [], [usage()]);
     emit(result, options.json);
     return EXIT.INPUT;
@@ -355,4 +364,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { EXIT, commandAssess, commandBenchmark, commandDoctor, commandInit, commandResume, main, parse };
+module.exports = { COMMANDS, EXIT, commandAssess, commandBenchmark, commandDoctor, commandInit, commandResume, main, parse };

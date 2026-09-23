@@ -225,4 +225,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { ARTIFACTS, DIMENSIONS, QUALIFY_FLOOR, benchmark, parseArgs, scoreControl };
+module.exports = { ARTIFACTS, DIMENSIONS, QUALIFY_FLOOR, benchmark, parseArgs, render, scoreControl };

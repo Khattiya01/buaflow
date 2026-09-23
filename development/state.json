@@ -6,7 +6,6 @@
   "current": {
     "milestone": "M5",
     "focus": [
-      "EV-008",
       "EV-009"
     ]
   },
@@ -909,7 +908,7 @@
       "id": "EV-008",
       "title": "Documentation and onboarding",
       "milestone": "M5",
-      "status": "in_progress",
+      "status": "done",
       "dependsOn": [
         "EV-010"
       ],
@@ -918,10 +917,25 @@
         "Troubleshooting is written from the findings EV-009 recorded against the kit (K-1..K-10), not from imagined problems",
         "Every command a reader is told to run is checked to exist and to be spelled the way the kit actually spells it"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "Dependency changed from EV-009 to EV-010 by D-023: the reason it waited on EV-009 was to write onboarding from what an outside adoption actually got wrong, and those findings (K-1..K-14 plus the eval baseline) are now recorded and the fixable ones fixed. What keeps EV-009 open (reviewer-minutes, a CI run) says nothing about where a reader gets stuck.",
-      "startedAt": "2026-09-23"
+      "artifacts": [
+        "QUICKSTART.md",
+        "TROUBLESHOOTING.md",
+        "examples/worked-sample.md",
+        "scripts/check-docs-commands.js",
+        "claude-setup/tests/docs-commands.test.js",
+        "scripts/check-repository.js",
+        "bin/buaflow.js",
+        "README.md",
+        "VERSION.md",
+        "schemas/compatibility.json"
+      ],
+      "verification": [
+        "npm run check",
+        "node scripts/check-docs-commands.js"
+      ],
+      "notes": "Dependency changed from EV-009 to EV-010 by D-023: the reason it waited on EV-009 was to write onboarding from what an outside adoption actually got wrong, and those findings (K-1..K-14 plus the eval baseline) are now recorded and the fixable ones fixed. What keeps EV-009 open (reviewer-minutes, a CI run) says nothing about where a reader gets stuck. Closed 2026-09-23 as kit 3.8.1 (PATCH). Three documents: QUICKSTART.md (doctor, assess, benchmark, init, then the AI prompt; ten minutes, no install), TROUBLESHOOTING.md organised by symptom in the order an adopter meets them, every entry traced to a recorded finding K-1..K-14 or to the eval baseline and marked with the kit version that fixed it, and examples/worked-sample.md, a walk through reference-apps/nextjs-postgres-crud that anyone can reproduce from this repository with the real output of each step, followed by the same commands on Bluepeak Hub. The third acceptance criterion is enforced, not asserted: scripts/check-docs-commands.js runs in npm run check and fails if a document names a buaflow command the CLI does not accept, a flag its parser rejects, a claude-setup script that does not exist or whose parseArgs rejects the arguments, or a relative link that does not resolve (22 commands, 14 links today). Writing the sample surfaced its own onboarding gap: buaflow assess printed only a one-line summary in human mode, so the per-control table, which is the actual answer, was reachable only through the script; assess and benchmark now print it. Deliberately not written: a workshop. The roadmap row lists one, but a workshop is taught to people, and nobody has yet been taught this kit; writing one now would be the imagined-problem documentation this item was told to avoid.",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23"
     },
     {
       "id": "EV-010",

@@ -513,4 +513,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { assess, draftManifest, execute, parseArgs, probe, summarize, workspaces };
+module.exports = { assess, draftManifest, execute, parseArgs, probe, render, summarize, workspaces };

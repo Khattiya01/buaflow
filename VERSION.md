@@ -3,6 +3,17 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.8.1 — 2026-09-23
+
+> PATCH — เอกสาร + output แบบคนอ่าน · JSON ไม่เปลี่ยน · คัดลอกหรือข้ามก็ได้
+
+- **Onboarding จากของจริง** (EV-008) — [QUICKSTART.md](QUICKSTART.md) 10 นาทีแรกด้วยคำสั่งจริง ·
+  [TROUBLESHOOTING.md](TROUBLESHOOTING.md) ทุกอาการมาจากสิ่งที่เกิดจริงใน trial แรก (K-1..K-14 + eval baseline)
+  ไม่ใช่ปัญหาที่คิดเอาเอง · [examples/worked-sample.md](examples/worked-sample.md) ทำตามได้จาก repo นี้พร้อม output จริง
+- **เอกสาร onboarding โกหกเรื่องคำสั่งไม่ได้** — `scripts/check-docs-commands.js` ใน `npm run check` ตรวจว่าทุก
+  `buaflow <command>` มีอยู่และทุก flag parse ได้ · ทุก `node .claude/<x>.js` มีไฟล์จริงและ argument parse ได้ · ทุกลิงก์ resolve
+- **`assess` และ `benchmark` แสดงตารางรายข้อ**ในโหมดคนอ่าน — เดิมเห็นแค่บรรทัดสรุป ซึ่งไม่ใช่คำตอบ
+
 ## v3.8.0 — 2026-09-23
 
 > โปรเจกต์ที่ใช้ v3.7.0 → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.7.0 → v3.8.0) · **MINOR:** ไม่มี schema เปลี่ยน
