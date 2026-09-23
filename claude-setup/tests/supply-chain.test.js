@@ -298,3 +298,19 @@ test('deriveLicenses reads the licence of every component, including the ones wi
     cleanup(directory);
   }
 });
+
+test('a digest recorded on a CRLF checkout matches the LF checkout of the same file, and a real change still fails', () => {
+  const { textDigests } = require('../supply-chain.js');
+  const hash = (text) => crypto.createHash('sha256').update(Buffer.from(text, 'latin1')).digest('hex');
+  const lf = 'fastapi==0.115.0\nuvicorn==0.30.0\n';
+  const crlf = lf.replace(/\n/g, '\r\n');
+  // Recorded on Windows (CRLF), checked on a Linux runner (LF) — and the other way round.
+  assert.ok(textDigests(Buffer.from(lf, 'latin1')).accepted.has(hash(crlf)));
+  assert.ok(textDigests(Buffer.from(crlf, 'latin1')).accepted.has(hash(lf)));
+  assert.equal(textDigests(Buffer.from(crlf, 'latin1')).canonical, hash(lf), 'the digest to record is the LF one');
+  assert.ok(!textDigests(Buffer.from(lf.replace('0.115.0', '0.115.1'), 'latin1')).accepted.has(hash(crlf)), 'a changed version is still a changed file');
+  // A binary file is compared byte for byte: a CR/LF pair inside it is data, not a line ending.
+  const binary = Buffer.from([0, 13, 10, 1]);
+  const converted = crypto.createHash('sha256').update(Buffer.from([0, 10, 1])).digest('hex');
+  assert.ok(!textDigests(binary).accepted.has(converted));
+});

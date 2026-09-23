@@ -41,8 +41,18 @@ function isPlainObject(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
-function sha256(file) {
-  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+// git rewrites line endings at checkout (core.autocrlf, .gitattributes text=auto), so the same
+// committed text file is CRLF on a Windows machine and LF on a Linux CI runner — a digest recorded
+// on one failed on the other (found when the kit's own CI first reached this step). For a text file
+// the recorded digest therefore matches its bytes as they are, with LF, or with CRLF line endings.
+// A file with a NUL byte is binary and is compared byte for byte only. `canonical` is the LF digest,
+// the one to record.
+function textDigests(bytes) {
+  const hash = (b) => crypto.createHash('sha256').update(b).digest('hex');
+  if (bytes.includes(0)) return { canonical: hash(bytes), accepted: new Set([hash(bytes)]) };
+  const lf = bytes.toString('latin1').replace(/\r\n/g, '\n');
+  const canonical = hash(Buffer.from(lf, 'latin1'));
+  return { canonical, accepted: new Set([hash(bytes), canonical, hash(Buffer.from(lf.replace(/\n/g, '\r\n'), 'latin1'))]) };
 }
 
 function insideRoot(root, candidate) {
@@ -113,11 +123,11 @@ function checkDigest(label, entry, root, errors) {
     errors.push(`${label}: sha256 must be 64 hex characters`);
     return false;
   }
-  const actual = sha256(resolved);
-  if (actual !== entry.sha256) {
+  const { canonical, accepted } = textDigests(fs.readFileSync(resolved));
+  if (!accepted.has(entry.sha256)) {
     // ข้อความนี้ตั้งใจให้ยาว เพราะอาการที่พบบ่อยที่สุดคือ "ไฟล์ถูก regenerate แล้วลืมอัปเดต digest"
     // ซึ่งไม่ใช่การโจมตี แต่ก็แปลว่าสรุปที่อยู่ในไฟล์นี้ไม่ได้มาจากไฟล์ที่อยู่ในเรพตอนนี้
-    errors.push(`${label}: ${entry.path} hashes to ${actual}, not the recorded ${entry.sha256} — the file changed after this record was written`);
+    errors.push(`${label}: ${entry.path} hashes to ${canonical}, not the recorded ${entry.sha256} — the file changed after this record was written`);
     return false;
   }
   return true;
@@ -384,4 +394,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { deriveLicenses, evaluateSupplyChain, licenseOf, parseArgs };
+module.exports = { deriveLicenses, evaluateSupplyChain, licenseOf, parseArgs, textDigests };

@@ -4,6 +4,72 @@
   "_": "Support matrix ของ kit (EV-007) · newest release อยู่บนสุดเสมอ · scripts/check-compatibility.js บังคับให้ตรงกับ package.json และ schemas/registry.json · อธิบายที่ standards/release-policy.md",
   "releases": [
     {
+      "version": "3.12.1",
+      "releasedAt": "2026-09-24",
+      "change": "patch",
+      "summary": "Recorded file digests in supply-chain and operational-readiness evidence match a text file whatever line endings git gave the checkout, so a record written on Windows (CRLF) passes on a Linux CI runner (LF). Binary files are still compared byte for byte, and a real content change still fails. Only more records pass; none that passed now fail.",
+      "reads": {
+        "stack-config": [
+          "1.0"
+        ],
+        "readiness-manifest": [
+          "1.0"
+        ],
+        "prototype-flow": [
+          "1.0"
+        ],
+        "pixel-config": [
+          "1.0"
+        ],
+        "project-manifest": [
+          "1.0"
+        ],
+        "product-graph": [
+          "1.0"
+        ],
+        "application-profile": [
+          "1.0",
+          "1.1"
+        ],
+        "pack": [
+          "2.0"
+        ],
+        "evidence-bundle": [
+          "1.0"
+        ],
+        "failure-record": [
+          "1.0"
+        ],
+        "requirement-coverage": [
+          "1.0"
+        ],
+        "security-baseline": [
+          "1.0"
+        ],
+        "supply-chain": [
+          "1.0"
+        ],
+        "operational-readiness": [
+          "1.0"
+        ],
+        "budget-evidence": [
+          "1.0"
+        ],
+        "eval-case": [
+          "1.0"
+        ],
+        "eval-run": [
+          "1.0"
+        ],
+        "assumption-ledger": [
+          "1.0"
+        ],
+        "change-proposal": [
+          "1.0"
+        ]
+      }
+    },
+    {
       "version": "3.12.0",
       "releasedAt": "2026-09-24",
       "change": "minor",

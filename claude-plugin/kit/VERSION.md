@@ -3,6 +3,17 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.12.1 — 2026-09-24
+
+> PATCH — `buaflow install --write` หรือคัดลอก `supply-chain.js` + `operational-readiness.js` ทับ
+
+- **digest ของไฟล์ข้อความไม่ขึ้นกับ line ending ที่ git ให้ตอน checkout** — CI ของ kit เองบน GitHub (Linux) ตกที่ supply-chain ของ
+  reference app สองตัว เพราะ digest ถูกบันทึกบน Windows (CRLF) แต่ runner ได้ไฟล์แบบ LF · SBOM ที่ digest ไม่ตรงถูกตัดออกจากการนับ licence
+  จึงลาม `"NONE" appears in no SBOM` ตามมาด้วย · ตอนนี้ record ตรงกับไฟล์ไม่ว่าเป็น CRLF หรือ LF · binary (มี NUL) ยังเทียบทีละ byte ·
+  เนื้อหาที่เปลี่ยนจริงยังตก · `operational-readiness.js` มีช่องโหว่เดียวกันที่ยังไม่เคยแสดงอาการ แก้พร้อมกัน
+- **`npm run check` ของ kit ผ่านบน GitHub Actions แล้ว** — ก่อนหน้านี้ตกที่ checksum ของ plugin (localeCompare เรียงต่างกันบน Windows/Linux)
+  แล้วซ่อนขั้นนี้ไว้
+
 ## v3.12.0 — 2026-09-24
 
 > โปรเจกต์ที่ใช้ v3.11.x → `buaflow install --write` จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.11.1 → v3.12.0) · **MINOR:** ไม่มี schema เปลี่ยน

@@ -89,8 +89,13 @@ function checkRehearsal(backup, root, errors) {
     return null;
   }
   const bytes = fs.readFileSync(resolved);
-  const actual = crypto.createHash('sha256').update(bytes).digest('hex');
-  if (actual !== rehearsal.sha256) {
+  // Same rule as supply-chain.js: git gives this text file CRLF on Windows and LF on Linux, so the
+  // recorded digest matches it with either line ending. The LF digest is the one reported to record.
+  const hash = (b) => crypto.createHash('sha256').update(b).digest('hex');
+  const lf = bytes.toString('latin1').replace(/\r\n/g, '\n');
+  const actual = hash(Buffer.from(lf, 'latin1'));
+  const accepted = new Set([hash(bytes), actual, hash(Buffer.from(lf.replace(/\n/g, '\r\n'), 'latin1'))]);
+  if (!accepted.has(rehearsal.sha256)) {
     errors.push(`backup.rehearsal: ${rehearsal.path} hashes to ${actual}, not the recorded ${rehearsal.sha256} — the rehearsal was re-run and this record still describes the old one`);
     return null;
   }
