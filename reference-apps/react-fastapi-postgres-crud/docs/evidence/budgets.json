@@ -1,0 +1,94 @@
+{
+  "$schema": "../../../../schemas/budget-evidence.schema.json",
+  "schemaVersion": "1.0",
+  "_": "EP-007 · ตัวเลขที่วัดได้ ไม่มีเพดานอยู่ในไฟล์นี้โดยตั้งใจ — เพดานอยู่ที่ application profile · ตรวจด้วย: node ../../claude-setup/budgets.js --root . --file docs/evidence/budgets.json --profiles ../../claude-setup/tests/fixtures/profiles",
+  "project": "react-fastapi-postgres-crud",
+  "generatedAt": "2026-09-24T00:05:00.000Z",
+  "profile": "internal-crud",
+  "measurements": [
+    {
+      "metric": "domContentLoadedMs",
+      "subject": "login",
+      "value": 24.8,
+      "command": "npx playwright test tests/e2e/performance.spec.ts",
+      "source": {
+        "type": "file",
+        "value": "evidence/performance-budget.json"
+      },
+      "path": "login.domContentLoaded"
+    },
+    {
+      "metric": "loadEventMs",
+      "subject": "login",
+      "value": 24.9,
+      "command": "npx playwright test tests/e2e/performance.spec.ts",
+      "source": {
+        "type": "file",
+        "value": "evidence/performance-budget.json"
+      },
+      "path": "login.loadEvent"
+    },
+    {
+      "metric": "domContentLoadedMs",
+      "subject": "tasks",
+      "value": 17.8,
+      "command": "npx playwright test tests/e2e/performance.spec.ts",
+      "source": {
+        "type": "file",
+        "value": "evidence/performance-budget.json"
+      },
+      "path": "tasks.domContentLoaded"
+    },
+    {
+      "metric": "loadEventMs",
+      "subject": "tasks",
+      "value": 18,
+      "command": "npx playwright test tests/e2e/performance.spec.ts",
+      "source": {
+        "type": "file",
+        "value": "evidence/performance-budget.json"
+      },
+      "path": "tasks.loadEvent"
+    },
+    {
+      "metric": "axeViolations",
+      "subject": "login",
+      "value": 0,
+      "command": "npx playwright test tests/e2e/accessibility.spec.ts",
+      "source": {
+        "type": "file",
+        "value": "evidence/axe-login.json"
+      }
+    },
+    {
+      "metric": "axeSeriousOrCritical",
+      "subject": "login",
+      "value": 0,
+      "command": "npx playwright test tests/e2e/accessibility.spec.ts",
+      "source": {
+        "type": "file",
+        "value": "evidence/axe-login.json"
+      }
+    },
+    {
+      "metric": "axeViolations",
+      "subject": "tasks",
+      "value": 0,
+      "command": "npx playwright test tests/e2e/accessibility.spec.ts",
+      "source": {
+        "type": "file",
+        "value": "evidence/axe-tasks.json"
+      }
+    },
+    {
+      "metric": "axeSeriousOrCritical",
+      "subject": "tasks",
+      "value": 0,
+      "command": "npx playwright test tests/e2e/accessibility.spec.ts",
+      "source": {
+        "type": "file",
+        "value": "evidence/axe-tasks.json"
+      }
+    }
+  ]
+}

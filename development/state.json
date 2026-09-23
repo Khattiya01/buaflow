@@ -2,11 +2,11 @@
   "$schema": "./state.schema.json",
   "schemaVersion": "1.0",
   "product": "buaflow",
-  "updatedAt": "2026-09-23",
+  "updatedAt": "2026-09-24",
   "current": {
     "milestone": "M4",
     "focus": [
-      "EP-007"
+      "EV-009"
     ]
   },
   "workItems": [
@@ -1177,7 +1177,7 @@
       "id": "EP-007",
       "title": "Performance and accessibility budgets driven by the application profile",
       "milestone": "M4",
-      "status": "backlog",
+      "status": "done",
       "dependsOn": [
         "PP-001"
       ],
@@ -1186,9 +1186,47 @@
         "A profile that demands a stricter budget fails an app that only meets the looser one",
         "The repeatable command and its threshold source are both recorded in the evidence"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "Narrowed by the D-013 audit. Measurement is done: performance and accessibility are required at R3, every app runs axe and a performance budget and ships the JSON evidence. What is missing is the word \"profile-specific\", which both the roadmap row and standards/deployment-ready-contract.md use. application-profile.schema.json carries controlOverride, architectureChoice and clarificationQuestion but no thresholds at all, so every budget today is a number chosen inside one app. That means a content site and a booking system are held to whatever each happened to pick, which is the opposite of what a profile contract is for."
+      "artifacts": [
+        "schemas/application-profile.schema.json",
+        "schemas/budget-evidence.schema.json",
+        "templates/application-profile.tpl.json",
+        "templates/budget-evidence.tpl.json",
+        "claude-setup/budgets.js",
+        "claude-setup/application-profile.js",
+        "claude-setup/tests/budgets.test.js",
+        "claude-setup/tests/artifact-migration.test.js",
+        "claude-setup/tests/fixtures/artifacts/v1_1/application-profile.json",
+        "claude-setup/tests/fixtures/profiles/content.json",
+        "claude-setup/tests/fixtures/profiles/internal-crud.json",
+        "claude-setup/tests/fixtures/profiles/saas.json",
+        "claude-setup/gate.js",
+        "bin/buaflow.js",
+        "scripts/check-repository.js",
+        "scripts/check-artifacts.js",
+        "schemas/registry.json",
+        "schemas/compatibility.json",
+        "standards/profile-budgets.md",
+        "standards/deployment-ready-contract.md",
+        "reference-apps/nextjs-postgres-crud/docs/evidence/budgets.json",
+        "reference-apps/react-fastapi-postgres-crud/docs/evidence/budgets.json",
+        "reference-apps/expo-fastapi-postgres-sync/docs/evidence/budgets.json",
+        "reference-apps/nextjs-postgres-crud/docs/evidence/readiness.json",
+        "reference-apps/react-fastapi-postgres-crud/docs/evidence/readiness.json",
+        "reference-apps/expo-fastapi-postgres-sync/docs/evidence/readiness.json",
+        "CLI.md",
+        "UPGRADE.md",
+        "VERSION.md",
+        "phases/07-handoff.md",
+        "claude-setup/README.md"
+      ],
+      "verification": [
+        "npm test",
+        "npm run check",
+        "node claude-setup/budgets.js --root reference-apps/nextjs-postgres-crud --file docs/evidence/budgets.json --profiles claude-setup/tests/fixtures/profiles"
+      ],
+      "notes": "Narrowed by the D-013 audit. Measurement is done: performance and accessibility are required at R3, every app runs axe and a performance budget and ships the JSON evidence. What is missing is the word \"profile-specific\", which both the roadmap row and standards/deployment-ready-contract.md use. application-profile.schema.json carries controlOverride, architectureChoice and clarificationQuestion but no thresholds at all, so every budget today is a number chosen inside one app. That means a content site and a booking system are held to whatever each happened to pick, which is the opposite of what a profile contract is for.\n\nWork done 2026-09-24. The split is the whole design: application-profile 1.1 holds the ceiling and why, and budget-evidence 1.0 holds what the app measured, the repeatable command that produced each number, and the file the number came out of. The evidence schema has no field for a threshold at all, deliberately — if it had one we would be back where we started, with an app setting its own exam and marking it. The old evidence literally read \"budgetMs\": 3000 next to a 47ms measurement, and nothing anywhere said where 3000 came from.\n\nMeasured numbers are re-derived from the cited evidence on every run, the same principle EP-004 applied to licence counts: timings are read by dot path out of the performance artifact, axeViolations is the length of the violations array and axeSeriousOrCritical counts the serious and critical impacts. Rounding is allowed, a different number is not. The metric vocabulary is closed, so a profile cannot set a ceiling on something no app measures, and the reverse is checked too: measuring a metric the profile does not budget is an error because it decides nothing. A budgeted metric nothing measures fails outright, because not measuring is not passing. A profile with no budgets at all is refused rather than treated as permissive, since a record citing it would look like a control while controlling nothing.\n\nThe behaviour EP-007 exists to produce is proven by test rather than by degrading a reference app: an app measuring 2200ms with two minor axe findings passes internal-crud and fails content on both axes, with identical measurements on both runs. The three real apps load in under 50ms with zero violations, so switching their profile would not have demonstrated anything.\n\nTwo smaller decisions worth keeping. The migrator moves a profile from 1.0 to 1.1 by raising the version and nothing else, and a test asserts it never invents budgets, because filling in defaults would be the kit deciding what somebody's application standards are. And internal-crud carries accessibility budgets even though the same profile marks the accessibility control not-applicable: if an app opts in, which all three reference apps did, that is the bar. axeSeriousOrCritical is 0 in all three shipped profiles, because a known internal audience is not a reason to ship a page a colleague cannot use at all.\n\nThe artifact-migration test had assumed every type's latest version was 1.0. It now reads the per-type latest, so the next minor bump fails loudly instead of quietly comparing against the wrong fixture.\n\nSuite 301/301 (was 288). Kit 3.5.0, MINOR. M4 is complete.",
+      "startedAt": "2026-09-24",
+      "completedAt": "2026-09-24"
     },
     {
       "id": "PP-006",
@@ -1485,12 +1523,19 @@
       "decision": "Closed EP-005 with an operational-readiness artifact and a backup/restore rehearsal that really drops the schema. The rehearsal fingerprints every row before and after and requires an exact match, and the validator reads the transcript rather than trusting a reference to it: ok must be true, the data must have come back identical, and the digest is recomputed. Incident hooks became a contract with a signal, a detector whose files exist, a severity, a named owner and a runbook anchor resolved against real headings; where a security baseline exists, every trust boundary it declares must be watched. Also corrected all three runbooks, which had been citing the delivery contract's responsibility table to disclaim a responsibility that table assigns to Buaflow. Kit 3.4.0, MINOR.",
       "reason": "The D-013 audit said nothing rehearses a restore and no evidence file records one, which was true, but the reason was a misread contract rather than an oversight: standards/deployment-ready-contract.md assigns the backup/restore PROCEDURE to Buaflow and the production data window to the platform, and the runbooks cited that table while claiming the whole subject was someone else's. Once the procedure is ours, it has to be rehearsed like the migration rollback is, and the rehearsal has to destroy something or it proves nothing. Comparing a content fingerprint rather than a table list is what makes it a data test: the failure mode worth catching is a restore that brings the schema back and not the rows. Requiring incident hooks to resolve to a real runbook heading follows the same reasoning as every other check added this week — the instruction that is wrong is the one nobody reads until the night it matters.",
       "impact": "Three things carry forward. The rehearsal is Docker-only by design, which makes it the first rehearsal in this repository that an adopter can run without matching the app's language environment, and the two migration-rollback rehearsals that shell out to python are now the odd ones out. The boundary-coverage rule ties EP-005 to EP-003 rather than duplicating it, so adding a trust boundary later fails the gate until someone says how its failure would be detected — which is the intended cost. And the anchor checker is reusable: any future artifact that points at a runbook section can use headingAnchors() instead of inventing a second, subtly different slug rule. The rehearsals were run against a standalone Postgres on a spare port because the machine already had an unrelated stack on 5432; the committed scripts default to docker compose and take BACKUP_REHEARSAL_CONTAINER only as an override."
+    },
+    {
+      "id": "D-019",
+      "date": "2026-09-24",
+      "decision": "Closed EP-007 by splitting the budget in two: application-profile 1.1 declares the ceiling and its reasoning, and a new budget-evidence 1.0 artifact records what the app measured, with the command and the source file for each number and no field for a threshold. Measured values are re-derived from the cited evidence, an unmeasured budgeted metric fails, and a profile with no budgets is refused. The migrator raises a profile from 1.0 to 1.1 without inventing budgets. Kit 3.5.0, MINOR. M4 is complete.",
+      "reason": "The D-013 audit found that measurement was done and enforced at R3 while the word profile-specific, used by both the roadmap and standards/deployment-ready-contract.md, had no implementation: application-profile.schema.json carried no thresholds, so every budget was a number one app chose for itself. The shipped evidence made it plain, with budgetMs 3000 sitting next to a 47ms result and nothing saying where 3000 came from. Putting the ceiling in the profile is what makes a content site and an internal tool different in a way a machine can act on, and leaving the ceiling out of the evidence artifact is what stops the split from collapsing back. Re-deriving the measured numbers follows EP-004: a figure typed by hand is a figure that can be optimistic.",
+      "impact": "Changing one line — the profile id in an app's budget record — now changes what that app must meet, with no code change, which is what profile-specific was always supposed to mean. Three consequences. The metric vocabulary is closed at four entries, so extending it is a deliberate schema change rather than a free-text field that quietly diverges per project. The migrator's refusal to invent budgets means every adopter on a 1.0 profile has to choose their own thresholds, which is slower and correct. And application-profile is the first artifact in this repository to take a minor version, which exposed that the migration test assumed 1.0 was universal; that test now follows the registry. Still deferred and worth its own item: the application profiles live in claude-setup/tests/fixtures/profiles, which is exactly the situation D-012 fixed for packs — a product catalogue under a test-fixture path — and EP-007 has just made them load-bearing at runtime for the first time. It was left alone here because moving them touches fourteen files including comments in reference-app source, which is a change the user should decide on rather than one folded into a budget item."
     }
   ],
   "lastSession": {
-    "date": "2026-09-23",
-    "summary": "Four items shipped in sequence, each one building on the last, and each one found something the documentation had not said. EP-002 gave an accepted risk somewhere to live, with an owner and an expiry, and refused manual-only proof. EP-003 mapped a pinned copy of OWASP ASVS 5.0.0 Level 1, recorded threat boundaries as data, and required anything unmet to cite a real exception — which surfaced that logout does not invalidate a captured session token and that seeded accounts with published passwords ship with every app, both high risk. EP-004 made the licence summary derive itself from the project's own SBOMs so it cannot drift, cross-checked provenance against evidence/ci-run.json and the graded revision, and recomputed every digest — which surfaced thirty components per FastAPI app with no resolvable licence grant. EP-005 corrected a misread contract (the backup/restore procedure is Buaflow's to deliver; only the schedule and retention are the platform's), then rehearsed restore for real in all three apps: fingerprint every row, dump, DROP SCHEMA CASCADE, verify empty, restore, require an identical fingerprint, then confirm the runbook's roll-forward instruction is a no-op. All three came back identical. Incident hooks are now a contract whose runbook links are resolved against real headings, and every trust boundary EP-003 declared must be watched by a hook. Kit 3.1.0 through 3.4.0, all MINOR. Suite 288/288, 45 work items, 38 done.",
-    "next": "M4 has one item left: EP-007, profile-driven performance and accessibility thresholds. application-profile.schema.json still carries no thresholds at all, so a content site and a booking system are held to whatever number each app happened to pick; the measurement half is already done and enforced at R3. current.focus is EP-007, and closing it closes M4. Outside M4: EV-009 stays parked at the user's request and is what M5 needs; BC-001 stays in backlog per D-011; capability-based pack dependencies still have no work item. Dates to watch: every exception in all three reference apps expires 2026-12-22, now 12-13 per app failing together, and the weekly cron EP-010 added has still not fired its first Monday. verifier.js --execute still has side effects — it once destroyed 238 lines of real evidence — so run it on a clean tree and check git status after.",
-    "verifiedAt": "2026-09-23T23:59:00.0000000+07:00"
+    "date": "2026-09-24",
+    "summary": "M4 is complete. Five items shipped back to back, each one finding something the documentation had not said. EP-002 gave an accepted risk somewhere to live, with an owner and an expiry, and refused manual-only proof; its first twelve exceptions were transcriptions of prose the reference apps already kept. EP-003 mapped a pinned copy of OWASP ASVS 5.0.0 Level 1 and made threat boundaries data, surfacing that logout does not invalidate a captured session token and that seeded accounts with published passwords ship with every app. EP-004 made the licence summary derive itself from the project's own SBOMs and cross-checked provenance against evidence/ci-run.json, surfacing thirty components per FastAPI app with no resolvable licence grant. EP-005 corrected a misread of the delivery contract — the backup/restore procedure is Buaflow's to deliver, only the schedule is the platform's — and rehearsed restore for real in all three apps, dropping the schema and requiring an identical row-level fingerprint. EP-007 split the budget in two so the ceiling lives in the application profile and the app records only what it measured, which means changing one line changes what an app must meet. The running theme across all five: derive rather than declare, and make the artifact fail when it stops matching what it describes. Kit 3.1.0 through 3.5.0, every one MINOR. Suite 301/301, 45 work items, 39 done.",
+    "next": "M4 is closed, so the next horizon is M5 and it needs EV-009: applying Buaflow end to end to a project it did not author, which stays parked at the user's request and is the only thing that gives the north-star metric a denominator that is not our own reference apps. current.focus points at it so the state does not reference a finished item, not because it has been started. Also open: BC-001 stays in backlog per D-011; capability-based pack dependencies still have no work item; and D-019 records a new one worth opening — the application profiles still live under claude-setup/tests/fixtures/profiles, which is the same test-fixture-path problem D-012 fixed for packs, and EP-007 just made them load-bearing at runtime. Dates to watch: every exception in all three reference apps expires 2026-12-22, now 12-13 per app coming due together, and the weekly cron EP-010 added has still not fired its first Monday. verifier.js --execute still has side effects — it once destroyed 238 lines of real evidence — so run it on a clean tree and check git status after.",
+    "verifiedAt": "2026-09-24T00:30:00.0000000+07:00"
   }
 }

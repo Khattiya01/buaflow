@@ -4,7 +4,8 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
-| **v3.3.0** | [v3.3.0 → v3.4.0](#v330--v340-minor--คัดลอกไฟล์-จบ) ข้างล่างนี้ | ~1 นาที |
+| **v3.4.0** | [v3.4.0 → v3.5.0](#v340--v350-minor--คัดลอกไฟล์--migrate-profile) ข้างล่างนี้ | ~3 นาที |
+| **v3.3.0** | [v3.3.0 → v3.4.0](#v330--v340-minor--คัดลอกไฟล์-จบ) แล้วต่อด้วย v3.5.0 | ~2 นาที |
 | **v3.2.0** | [v3.2.0 → v3.3.0](#v320--v330-minor--คัดลอกไฟล์-จบ) แล้วต่อด้วย v3.4.0 | ~2 นาที |
 | **v3.1.0** | [v3.1.0 → v3.2.0](#v310--v320-minor--คัดลอกไฟล์-จบ) แล้วต่อด้วย v3.3.0 | ~2 นาที |
 | **v3.0.0** | [v3.0.0 → v3.1.0](#v300--v310-minor--คัดลอกไฟล์-จบ) แล้วต่อด้วย v3.2.0, v3.3.0 | ~3 นาที |
@@ -16,6 +17,47 @@
 | **v2.2** | [v2.2 → v2.3](#v22--v23-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.1 | ~15 นาที |
 | **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) แล้วต่อด้วย v2.3 | ~15 นาที |
 | **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2, v2.3 | ~1 session |
+
+---
+
+## v3.4.0 → v3.5.0 (MINOR — คัดลอกไฟล์ + migrate profile)
+
+**ใครได้รับผลกระทบจริง:** โปรเจกต์ที่มี `.claude/profiles/*.json` จะได้ประโยชน์ แต่ไม่ถูกบังคับ —
+profile 1.0 ยังอ่านได้ปกติ มันแค่ไม่มี budget
+
+### 1. คัดลอกไฟล์
+
+```bash
+cp buaflow/claude-setup/budgets.js            .claude/budgets.js
+cp buaflow/claude-setup/application-profile.js .claude/application-profile.js
+cp buaflow/claude-setup/gate.js               .claude/gate.js
+```
+
+### 2. เลื่อน profile เป็น 1.1 แล้วใส่เพดานเอง
+
+```bash
+node buaflow/scripts/migrate-artifact.js --type application-profile --file .claude/profiles/<id>.json --write
+```
+
+migrator เลื่อนเลขเวอร์ชันให้อย่างเดียว **ไม่เติม budget ให้** และนั่นคือความตั้งใจ — การเติมคือ
+การตัดสินใจแทนคุณว่ามาตรฐานของแอปชนิดนี้คืออะไร เปิด `standards/profile-budgets.md` แล้วดู
+ตารางเพดานของ `content` / `saas` / `internal-crud` เป็นจุดตั้งต้น
+
+### 3. (ถ้าต้องการใช้) สร้าง budget record
+
+```bash
+cp buaflow/templates/budget-evidence.tpl.json docs/evidence/budgets.json
+node .claude/budgets.js --file docs/evidence/budgets.json
+```
+
+> ตัวตรวจ derive ตัวเลขจากไฟล์หลักฐานที่คุณชี้ให้เอง แล้วบอกค่าจริงมาในข้อความ error
+> ถ้าที่กรอกไว้ไม่ตรง — ไม่ต้องคัดลอกตัวเลขด้วยมือ
+
+### 4. ตรวจว่ายังผ่านเหมือนเดิม
+
+```bash
+node .claude/gate.js
+```
 
 ---
 

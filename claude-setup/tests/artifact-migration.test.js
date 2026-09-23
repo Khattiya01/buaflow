@@ -14,28 +14,51 @@ const fixtures = path.join(__dirname, 'fixtures', 'artifacts');
 // tests are below. Everything here is a type whose migration a program can perform.
 const types = ['stack-config', 'readiness-manifest', 'prototype-flow', 'pixel-config', 'project-manifest', 'product-graph', 'application-profile', 'evidence-bundle'];
 
+// Not every type sits at 1.0 any more: application-profile went to 1.1 when EP-007 gave it
+// budgets. The expected fixture follows the registry rather than assuming, so the next minor
+// bump fails here loudly instead of quietly comparing against the wrong shape.
+const LATEST = { 'application-profile': { version: '1.1', directory: 'v1_1' } };
+const latestOf = (type) => LATEST[type] ?? { version: '1.0', directory: 'v1' };
+
 function fixture(version, type) {
   return JSON.parse(fs.readFileSync(path.join(fixtures, version, `${type}.json`), 'utf8'));
 }
 
 for (const type of types) {
-  test(`${type} migrates unversioned fixture to canonical v1`, () => {
+  const latest = latestOf(type);
+
+  test(`${type} migrates unversioned fixture to canonical ${latest.version}`, () => {
     const before = fixture('v0', type);
-    const expected = fixture('v1', type);
+    const expected = fixture(latest.directory, type);
     const result = migrateArtifact(before, { type });
     assert.equal(result.fromVersion, 'unversioned');
-    assert.equal(result.toVersion, '1.0');
+    assert.equal(result.toVersion, latest.version);
     assert.equal(result.changed, true);
     assert.deepEqual(result.value, expected);
   });
 
-  test(`${type} v1 migration is idempotent`, () => {
-    const current = fixture('v1', type);
+  test(`${type} ${latest.version} migration is idempotent`, () => {
+    const current = fixture(latest.directory, type);
     const result = migrateArtifact(current, { type });
     assert.equal(result.changed, false);
     assert.deepEqual(result.value, current);
   });
 }
+
+// A minor is additive by definition, so migrating across one must not invent the new field.
+// A migrator that filled in default budgets would be choosing a profile's standards for it.
+test('application-profile 1.0 -> 1.1 only raises the version and never invents budgets', () => {
+  const before = fixture('v1', 'application-profile');
+  assert.equal(before.schemaVersion, '1.0');
+  assert.equal(before.budgets, undefined);
+
+  const result = migrateArtifact(before, { type: 'application-profile' });
+  assert.equal(result.fromVersion, '1.0');
+  assert.equal(result.toVersion, '1.1');
+  assert.equal(result.changed, true);
+  assert.equal(result.value.budgets, undefined, 'the migrator must not decide what a profile demands');
+  assert.deepEqual({ ...result.value, schemaVersion: '1.0' }, before);
+});
 
 // --- pack 1.0 -> 2.0 (PP-010 / D-011) ------------------------------------------------
 //

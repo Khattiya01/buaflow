@@ -1,0 +1,25 @@
+{
+  "$schema": "../../../buaflow/schemas/budget-evidence.schema.json",
+  "schemaVersion": "1.0",
+  "_": "EP-007 - keep at docs/evidence/budgets.json - check with node .claude/budgets.js - there is deliberately no threshold field here: the ceiling lives in the application profile, so changing what this app claims to be changes the bar without touching the app - every value is re-derived from the cited evidence file, so it cannot be written optimistically",
+  "project": "<project name>",
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "profile": "<the application profile id whose budgets apply>",
+  "measurements": [
+    {
+      "metric": "loadEventMs",
+      "subject": "<which page or flow>",
+      "value": 0,
+      "command": "<the repeatable command that produced the file below>",
+      "source": { "type": "file", "value": "evidence/performance-budget.json" },
+      "path": "<dot path to the number inside that file>"
+    },
+    {
+      "metric": "axeViolations",
+      "subject": "<which page>",
+      "value": 0,
+      "command": "<the repeatable command that produced the file below>",
+      "source": { "type": "file", "value": "evidence/axe-<page>.json" }
+    }
+  ]
+}

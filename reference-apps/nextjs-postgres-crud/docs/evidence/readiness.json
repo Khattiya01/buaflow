@@ -284,6 +284,10 @@
       "evidence": [
         {
           "type": "file",
+          "value": "docs/evidence/budgets.json"
+        },
+        {
+          "type": "file",
           "value": "evidence/performance-budget.json"
         }
       ]
@@ -291,6 +295,10 @@
     "accessibility": {
       "status": "pass",
       "evidence": [
+        {
+          "type": "file",
+          "value": "docs/evidence/budgets.json"
+        },
         {
           "type": "file",
           "value": "evidence/axe-login.json"

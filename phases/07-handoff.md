@@ -71,13 +71,14 @@ buaflow/claude-setup/requirement-coverage.js → .claude/requirement-coverage.js
 buaflow/claude-setup/security-baseline.js → .claude/security-baseline.js  threat boundary + mapping กับ control set ภายนอก (EP-003)
 buaflow/claude-setup/supply-chain.js  → .claude/supply-chain.js   licence ที่ derive จาก SBOM + provenance + checksum (EP-004)
 buaflow/claude-setup/operational-readiness.js → .claude/operational-readiness.js  restore ที่ซ้อมจริง + incident hook ที่เป็นสัญญา (EP-005)
+buaflow/claude-setup/budgets.js       → .claude/budgets.js        performance/accessibility budget ที่มาจาก profile (EP-007)
 buaflow/claude-setup/failure-taxonomy.js → .claude/failure-taxonomy.js  หมวดความล้มเหลว + ตรวจ failure record (EV-003)
 buaflow/claude-setup/convergence.js   →  .claude/convergence.js    กราฟความเชื่อมโยงของ artifact — อะไรลอยอยู่ อะไรยังไม่มีหลักฐาน (BC-004)
 buaflow/claude-setup/change-impact.js →  .claude/change-impact.js  แก้ตรงนี้แล้วอะไรต้องทบทวน — ลิงก์ที่ resolve ไม่ได้ = ไม่รู้ ไม่ใช่ไม่กระทบ (IC-006)
 buaflow/claude-setup/board.js        →  .claude/board.js          generate board.md จากไฟล์ task
 buaflow/claude-setup/prototype.js    →  .claude/prototype.js      click-through prototype จาก canvas baseline (เฉพาะโปรเจกต์ที่ใช้ canvas)
 buaflow/claude-setup/pixel.js        →  .claude/pixel.js          เทียบหน้าจริงกับ canvas baseline เป็นตัวเลข (เฉพาะโปรเจกต์ที่ใช้ canvas · ต้องมี pixelmatch + pngjs + Playwright เป็น dev dependency)
-buaflow/claude-setup/gate.js         →  .claude/gate.js           ด่านเดียว: verify + audit + secrets + check-config + docs-lint + requirement-coverage + security-baseline + supply-chain + operational-readiness
+buaflow/claude-setup/gate.js         →  .claude/gate.js           ด่านเดียว: verify + audit + secrets + check-config + docs-lint + requirement-coverage + security-baseline + supply-chain + operational-readiness + budgets
 buaflow/claude-setup/verify.js       →  .claude/verify.js         ทางเข้าเดียวของคำสั่งตรวจ
 buaflow/claude-setup/run.js          →  .claude/run.js            คำสั่งรอง: coverage / audit / apiTest
 buaflow/claude-setup/stack-config.js →  .claude/stack-config.js   ตัวอ่าน stack.json ที่สคริปต์อื่นใช้ร่วมกัน
@@ -90,6 +91,7 @@ buaflow/templates/requirement-coverage.tpl.json → docs/evidence/requirement-co
 buaflow/templates/security-baseline.tpl.json → docs/evidence/security-baseline.json (คู่กับ buaflow/standards/control-sets/)
 buaflow/templates/supply-chain.tpl.json → docs/evidence/supply-chain.json (เมื่อมี SBOM แล้ว)
 buaflow/templates/operational-readiness.tpl.json → docs/evidence/operational-readiness.json (หลังซ้อม restore แล้ว)
+buaflow/templates/budget-evidence.tpl.json → docs/evidence/budgets.json (คู่กับ profile ที่มี budgets)
 buaflow/templates/failure-record.tpl.json → docs/evidence/failures/F-00x.json (เมื่อมีเรื่องให้บันทึก)
 ```
 

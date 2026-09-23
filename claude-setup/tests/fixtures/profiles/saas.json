@@ -1,20 +1,84 @@
 {
   "$schema": "../../../../schemas/application-profile.schema.json",
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "id": "saas",
   "name": "Multi-tenant SaaS",
   "description": "A subscription product serving multiple paying customer organizations from shared infrastructure.",
   "controls": [
-    { "control": "persistence", "requirement": "required", "rationale": "Tenant, subscription and product data must persist reliably across the product's lifetime." },
-    { "control": "access-control", "requirement": "required", "rationale": "Cross-tenant data leakage is the top SaaS risk, so authorization and tenant isolation must be tested, never waived." },
-    { "control": "database-migration", "requirement": "required", "rationale": "Schema changes ship continuously to a shared production database with live paying tenants, so forward and backward migration evidence is mandatory." }
+    {
+      "control": "persistence",
+      "requirement": "required",
+      "rationale": "Tenant, subscription and product data must persist reliably across the product's lifetime."
+    },
+    {
+      "control": "access-control",
+      "requirement": "required",
+      "rationale": "Cross-tenant data leakage is the top SaaS risk, so authorization and tenant isolation must be tested, never waived."
+    },
+    {
+      "control": "database-migration",
+      "requirement": "required",
+      "rationale": "Schema changes ship continuously to a shared production database with live paying tenants, so forward and backward migration evidence is mandatory."
+    }
   ],
   "architectureChoices": [
-    { "area": "tenancy", "choice": "shared-schema-with-tenant-id", "rationale": "A shared schema with a tenant_id column scales to many small tenants without per-tenant infrastructure overhead." },
-    { "area": "billing", "choice": "usage-metered-subscription", "rationale": "Subscription SaaS needs recurring billing and usage metering wired in from the first paid tier." }
+    {
+      "area": "tenancy",
+      "choice": "shared-schema-with-tenant-id",
+      "rationale": "A shared schema with a tenant_id column scales to many small tenants without per-tenant infrastructure overhead."
+    },
+    {
+      "area": "billing",
+      "choice": "usage-metered-subscription",
+      "rationale": "Subscription SaaS needs recurring billing and usage metering wired in from the first paid tier."
+    }
   ],
   "clarificationQuestions": [
-    { "id": "tenant-isolation-level", "prompt": "ต้องแยกข้อมูลลูกค้าระดับ database แยก หรือ row-level ภายใน schema เดียวพอ?", "affects": ["architecture", "security", "cost"], "whyItMatters": "ระดับ isolation กำหนดทั้งต้นทุน infrastructure และความซับซ้อนของ authorization layer เปลี่ยนทีหลังคือ migration ใหญ่" },
-    { "id": "billing-provider", "prompt": "จะใช้ผู้ให้บริการ billing ภายนอก (เช่น Stripe) หรือทำระบบเก็บเงินเอง?", "affects": ["architecture", "cost", "compliance"], "whyItMatters": "ผู้ให้บริการภายนอกลดภาระ compliance ด้านการชำระเงิน แต่ผูก vendor และค่าธรรมเนียม เปลี่ยนทีหลังกระทบ billing history ทั้งหมด" }
-  ]
+    {
+      "id": "tenant-isolation-level",
+      "prompt": "ต้องแยกข้อมูลลูกค้าระดับ database แยก หรือ row-level ภายใน schema เดียวพอ?",
+      "affects": [
+        "architecture",
+        "security",
+        "cost"
+      ],
+      "whyItMatters": "ระดับ isolation กำหนดทั้งต้นทุน infrastructure และความซับซ้อนของ authorization layer เปลี่ยนทีหลังคือ migration ใหญ่"
+    },
+    {
+      "id": "billing-provider",
+      "prompt": "จะใช้ผู้ให้บริการ billing ภายนอก (เช่น Stripe) หรือทำระบบเก็บเงินเอง?",
+      "affects": [
+        "architecture",
+        "cost",
+        "compliance"
+      ],
+      "whyItMatters": "ผู้ให้บริการภายนอกลดภาระ compliance ด้านการชำระเงิน แต่ผูก vendor และค่าธรรมเนียม เปลี่ยนทีหลังกระทบ billing history ทั้งหมด"
+    }
+  ],
+  "budgets": {
+    "performance": [
+      {
+        "metric": "loadEventMs",
+        "max": 2000,
+        "rationale": "A multi-tenant product is chosen and compared against competitors, so first-load speed is part of what a prospect is evaluating rather than an internal concern."
+      },
+      {
+        "metric": "domContentLoadedMs",
+        "max": 1200,
+        "rationale": "Tenants reach the product from anywhere; the document has to be usable quickly without assuming a corporate network."
+      }
+    ],
+    "accessibility": [
+      {
+        "metric": "axeViolations",
+        "max": 0,
+        "rationale": "A product sold to organisations will be asked to answer a procurement accessibility questionnaire, and every automated finding is something that answer has to explain."
+      },
+      {
+        "metric": "axeSeriousOrCritical",
+        "max": 0,
+        "rationale": "Serious and critical findings block a paying tenant from completing the task, which is a functional defect rather than a polish item."
+      }
+    ]
+  }
 }

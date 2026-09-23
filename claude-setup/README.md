@@ -24,8 +24,9 @@ claude-setup/requirement-coverage.js →  .claude/requirement-coverage.js  requi
 claude-setup/security-baseline.js →  .claude/security-baseline.js  threat boundary + mapping กับ control set ภายนอก (EP-003)
 claude-setup/supply-chain.js     →  .claude/supply-chain.js    licence ที่ derive จาก SBOM + provenance + checksum (EP-004)
 claude-setup/operational-readiness.js →  .claude/operational-readiness.js  restore ที่ซ้อมจริง + incident hook (EP-005)
+claude-setup/budgets.js          →  .claude/budgets.js         performance/accessibility budget ที่มาจาก profile (EP-007)
 claude-setup/board.js            →  .claude/board.js           generate board.md จากไฟล์ task
-claude-setup/gate.js             →  .claude/gate.js            ด่านเดียว: verify + check-config + docs-lint + requirement-coverage + security-baseline + supply-chain + operational-readiness
+claude-setup/gate.js             →  .claude/gate.js            ด่านเดียว: verify + check-config + docs-lint + requirement-coverage + security-baseline + supply-chain + operational-readiness + budgets
 claude-setup/verify.js           →  .claude/verify.js          ทางเข้าเดียวของคำสั่งตรวจ (อ่านคำสั่งจริงจาก stack.json)
 claude-setup/run.js              →  .claude/run.js             คำสั่งรอง: coverage / audit / apiTest
 claude-setup/stack-config.js     →  .claude/stack-config.js    ตัวอ่าน stack.json ที่สคริปต์อื่นใช้ร่วมกัน
@@ -39,6 +40,7 @@ templates/requirement-coverage.tpl.json → docs/evidence/requirement-coverage.j
 templates/security-baseline.tpl.json → docs/evidence/security-baseline.json
 templates/supply-chain.tpl.json → docs/evidence/supply-chain.json
 templates/operational-readiness.tpl.json → docs/evidence/operational-readiness.json
+templates/budget-evidence.tpl.json → docs/evidence/budgets.json
 ```
 
 **ระหว่างคัดลอกต้องปรับให้ตรง stack จริง** อย่าคัดลอกดิบ ๆ — **เริ่มที่ `stack.json` ก่อนเสมอ** เพราะสคริปต์ที่เหลืออ่านค่าจากไฟล์นี้:

@@ -194,7 +194,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | EP-004 | Supply-chain evidence | ✅ **done** — `supply-chain` artifact v1: สรุป licence ถูก derive ใหม่จาก SBOM ทุกครั้ง (เขียนเองไม่ได้) · SBOM และ subject ผูกด้วย sha256 ที่คำนวณใหม่ · provenance ต้องตรงกับ `evidence/ci-run.json` และ commit ที่ manifest ตัดสิน · licence ที่ไม่มีคนรับรอง = ตก |
 | EP-005 | Operational readiness | ✅ **done** — `operational-readiness` artifact v1: restore ที่ซ้อมจริง (drop schema แล้วเทียบ fingerprint ทุกแถว) · incident hook ที่มี signal/detector/severity/เจ้าของ/anchor ที่ resolve จริง · ทุก trust boundary ของ EP-003 ต้องมีคนเฝ้า |
 | EP-006 | Migration/rollback qualification | ✅ **done (บันทึกย้อนหลังที่ D-013)** — ส่งมอบใน PP-003 และขยายผลโดย PP-004/PP-005 |
-| EP-007 | Performance/accessibility budgets | **เหลือเฉพาะ threshold ที่มาจาก profile** — การวัดเสร็จแล้ว แต่ application-profile.schema.json ยังไม่มี threshold เลย ทุก budget จึงเป็นเลขที่แต่ละแอปเลือกเอง |
+| EP-007 | Performance/accessibility budgets | ✅ **done** — `application-profile` 1.1 เก็บ **เพดาน** · `budget-evidence` v1 เก็บ **ตัวเลขที่วัดได้** (ไม่มีช่องใส่เพดานโดยตั้งใจ) · ตัวเลขถูก derive ใหม่จากไฟล์หลักฐาน · เปลี่ยน profile แล้วเส้นเปลี่ยนตามโดยไม่แตะแอป |
 | EP-008 | Deployable handoff | ✅ **done (บันทึกย้อนหลังที่ D-013)** — ขอบเขตที่ rehearsal ประกาศไว้เองคือ docker build/boot จากศูนย์ ไม่ใช่ fresh git clone ส่วนที่เหลือเป็นของ EV-009 |
 | EP-009 | R3 qualification gate | ✅ **done (บันทึกย้อนหลังที่ D-013)** — BF-005 (fail-closed) + readiness.js + EP-001 (report) ครอบไว้ครบแล้ว |
 | EP-011 | หลักฐานที่เครื่องตรวจได้สำหรับ control พื้นฐาน | ทุก control ต้องมี artifact ที่ตรวจได้จาก repository เอง ไม่ใช่มีแค่คำสั่งหรือ URL ที่ต้องเชื่อ |
@@ -265,7 +265,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 > ส่วน BC-001/002/003 รองรับ parallel build ที่ยังไม่มีใครรัน การผูก milestone ไว้กับ infrastructure
 > ที่จงใจไม่ทำ แปลว่า milestone นั้นจะไม่มีวันปิด
 
-### M4 — Evidence Maturity (เป้าหมายปัจจุบัน)
+### M4 — Evidence Maturity ✅
 
 เสร็จเมื่อคำว่า "พิสูจน์แล้ว" แข็งแรงพอจะทนการถูกตรวจซ้ำ:
 
@@ -274,9 +274,9 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 - **change impact + convergence graph** — รู้ว่าอะไรกระทบเมื่อของเปลี่ยน และอะไรไม่เชื่อมกับอะไรเลย (IC-006, BC-004)
 - **ส่วนที่เหลือจริงของ EP** หลัง audit: ~~exception ที่มีวันหมดอายุ (EP-002 ✅)~~, ~~ASVS mapping (EP-003 ✅)~~,
   ~~provenance/licenses (EP-004 ✅)~~, ~~restore rehearsal (EP-005 ✅)~~,
-  budget ที่มาจาก profile (EP-007)
+  ~~budget ที่มาจาก profile (EP-007 ✅)~~ — **M4 ปิดครบแล้ว**
 
-### M5 — Proven Outside
+### M5 — Proven Outside (เป้าหมายปัจจุบัน)
 
 เสร็จเมื่อ Buaflow ถูกใช้กับโปรเจกต์ที่ **ไม่ได้เขียนเอง** และมีตัวเลขจากของจริง:
 EV-009 (trial แรก), EV-004 (eval harness ที่ทำซ้ำได้), EV-002 (Production-Qualified App benchmark), EV-008 (onboarding)

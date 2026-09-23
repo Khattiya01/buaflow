@@ -54,8 +54,8 @@
 | `end-to-end-tests` | production-like E2E result | ไม่ |
 | `observability` | log/metric/trace contract and smoke evidence | ไม่ |
 | `health-check` | startup/readiness/liveness behavior as applicable | ไม่ |
-| `performance` | profile-specific budget result | ไม่ |
-| `accessibility` | UI accessibility result | ใช่ |
+| `performance` | profile-specific budget result — เพดานมาจาก `application-profile` 1.1 และการวัดอยู่ที่ `docs/evidence/budgets.json` ตั้งแต่ 3.5.0 ดู `standards/profile-budgets.md` (EP-007) | ไม่ |
+| `accessibility` | UI accessibility result — เพดานมาจาก `application-profile` 1.1 ดู `standards/profile-budgets.md` (EP-007) | ใช่ |
 | `sbom` | CycloneDX/SPDX or equivalent tied to build — licence, provenance และ checksum อยู่ที่ `docs/evidence/supply-chain.json` ตั้งแต่ 3.3.0 ดู `standards/supply-chain-evidence.md` (EP-004) | ไม่ |
 | `runbook` | deploy, diagnose, incident and recovery steps | ไม่ |
 | `clean-environment` | independent deployment rehearsal result | ไม่ |

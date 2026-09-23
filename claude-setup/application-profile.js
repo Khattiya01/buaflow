@@ -23,13 +23,17 @@ const { CONTROLS_BY_LEVEL, CONDITIONAL } = require('./readiness.js');
 const KNOWN_CONTROLS = new Set(Object.values(CONTROLS_BY_LEVEL).flat());
 const AFFECTS = new Set(['architecture', 'security', 'cost', 'compliance', 'ux']);
 const ID_PATTERN = /^[a-z][a-z0-9-]+$/;
+const KNOWN_MINORS = new Set(['1.0', '1.1']);
 
 function validateProfile(profile, options = {}) {
   const errors = [];
   if (!profile || typeof profile !== 'object' || Array.isArray(profile)) {
     return { ok: false, errors: ['profile must be a JSON object'] };
   }
-  if (profile.schemaVersion !== '1.0') errors.push(`unsupported schemaVersion "${profile.schemaVersion}"`);
+  // 1.0 stays readable inside the same major: it simply declares no budgets. A NEWER minor is
+  // refused, per standards/artifact-versioning.md, so a validator that does not know the latest
+  // fields cannot report a profile as fine while ignoring what they require.
+  if (!KNOWN_MINORS.has(profile.schemaVersion)) errors.push(`unsupported schemaVersion "${profile.schemaVersion}"`);
   if (!ID_PATTERN.test(profile.id || '')) errors.push('id must be lowercase-kebab-case');
   if (options.expectedId && profile.id !== options.expectedId) {
     errors.push(`id "${profile.id}" does not match filename "${options.expectedId}.json"`);

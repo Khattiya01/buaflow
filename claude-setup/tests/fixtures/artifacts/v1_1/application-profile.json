@@ -1,0 +1,30 @@
+{
+  "$schema": "../../buaflow/schemas/application-profile.schema.json",
+  "schemaVersion": "1.1",
+  "id": "fixture-profile",
+  "name": "Fixture profile",
+  "controls": [
+    {
+      "control": "persistence",
+      "requirement": "not-applicable",
+      "rationale": "Fixture profile has no runtime data store to migrate or back up."
+    }
+  ],
+  "architectureChoices": [
+    {
+      "area": "rendering",
+      "choice": "static",
+      "rationale": "Fixture uses static rendering for the migration test."
+    }
+  ],
+  "clarificationQuestions": [
+    {
+      "id": "sample-question",
+      "prompt": "Sample?",
+      "affects": [
+        "architecture"
+      ],
+      "whyItMatters": "Fixture question for migration test coverage."
+    }
+  ]
+}

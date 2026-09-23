@@ -104,6 +104,17 @@ for (const app of ['nextjs-postgres-crud', 'react-fastapi-postgres-crud', 'expo-
   ]);
 }
 
+// EP-007 — ตัวเลขที่วัดได้ต้องตรงกับไฟล์หลักฐานจริง และต้องอยู่ใต้เพดานที่ profile กำหนด
+// ไม่ใช่เพดานที่แอปเขียนให้ตัวเอง
+for (const app of ['nextjs-postgres-crud', 'react-fastapi-postgres-crud', 'expo-fastapi-postgres-sync']) {
+  run(`profile-driven performance and accessibility budgets (${app})`, process.execPath, [
+    path.join(root, 'claude-setup', 'budgets.js'),
+    '--root', path.join(root, 'reference-apps', app),
+    '--file', 'docs/evidence/budgets.json',
+    '--profiles', path.join(root, 'claude-setup', 'tests', 'fixtures', 'profiles'),
+  ]);
+}
+
 run('regression tests', process.execPath, [path.join(root, 'scripts', 'run-tests.js')]);
 
 console.log('\nrepository check: PASS');

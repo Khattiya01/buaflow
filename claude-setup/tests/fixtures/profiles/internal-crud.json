@@ -1,20 +1,82 @@
 {
   "$schema": "../../../../schemas/application-profile.schema.json",
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "id": "internal-crud",
   "name": "Internal CRUD tool",
   "description": "A back-office tool used by employees to create, read, update and delete operational records.",
   "controls": [
-    { "control": "persistence", "requirement": "required", "rationale": "The tool exists to create, read, update and delete records that must survive restarts, so a real persistence lifecycle is mandatory." },
-    { "control": "access-control", "requirement": "required", "rationale": "Internal tools still need to restrict who can view or change records, even behind a corporate network boundary." },
-    { "control": "accessibility", "requirement": "not-applicable", "rationale": "Users are a known, internal employee population; the team has not committed to a public accessibility budget for this tool." }
+    {
+      "control": "persistence",
+      "requirement": "required",
+      "rationale": "The tool exists to create, read, update and delete records that must survive restarts, so a real persistence lifecycle is mandatory."
+    },
+    {
+      "control": "access-control",
+      "requirement": "required",
+      "rationale": "Internal tools still need to restrict who can view or change records, even behind a corporate network boundary."
+    },
+    {
+      "control": "accessibility",
+      "requirement": "not-applicable",
+      "rationale": "Users are a known, internal employee population; the team has not committed to a public accessibility budget for this tool."
+    }
   ],
   "architectureChoices": [
-    { "area": "authentication", "choice": "sso-with-internal-identity-provider", "rationale": "Employees already have corporate accounts; reusing SSO avoids standing up a second credential store." },
-    { "area": "ui", "choice": "admin-table-with-inline-edit", "rationale": "CRUD-heavy workflows are fastest as data-dense tables rather than one-record-per-page forms." }
+    {
+      "area": "authentication",
+      "choice": "sso-with-internal-identity-provider",
+      "rationale": "Employees already have corporate accounts; reusing SSO avoids standing up a second credential store."
+    },
+    {
+      "area": "ui",
+      "choice": "admin-table-with-inline-edit",
+      "rationale": "CRUD-heavy workflows are fastest as data-dense tables rather than one-record-per-page forms."
+    }
   ],
   "clarificationQuestions": [
-    { "id": "record-volume", "prompt": "คาดว่าจะมีจำนวน record กี่รายการในปีแรก?", "affects": ["architecture", "cost"], "whyItMatters": "ปริมาณ record กำหนดว่าต้องมี pagination/indexing ตั้งแต่ต้น หรือ query ตรง ๆ ก็เพียงพอ" },
-    { "id": "audit-trail", "prompt": "ต้องเก็บ audit log ว่าใครแก้ record ไหนเมื่อไรไหม?", "affects": ["compliance", "architecture"], "whyItMatters": "ถ้าต้องมี audit trail ต้องออกแบบ schema แยกตั้งแต่ต้น ผูกเพิ่มทีหลังต้อง backfill ย้อนหลังซึ่งทำยาก" }
-  ]
+    {
+      "id": "record-volume",
+      "prompt": "คาดว่าจะมีจำนวน record กี่รายการในปีแรก?",
+      "affects": [
+        "architecture",
+        "cost"
+      ],
+      "whyItMatters": "ปริมาณ record กำหนดว่าต้องมี pagination/indexing ตั้งแต่ต้น หรือ query ตรง ๆ ก็เพียงพอ"
+    },
+    {
+      "id": "audit-trail",
+      "prompt": "ต้องเก็บ audit log ว่าใครแก้ record ไหนเมื่อไรไหม?",
+      "affects": [
+        "compliance",
+        "architecture"
+      ],
+      "whyItMatters": "ถ้าต้องมี audit trail ต้องออกแบบ schema แยกตั้งแต่ต้น ผูกเพิ่มทีหลังต้อง backfill ย้อนหลังซึ่งทำยาก"
+    }
+  ],
+  "budgets": {
+    "performance": [
+      {
+        "metric": "loadEventMs",
+        "max": 3000,
+        "rationale": "Employees on a corporate network open this tool deliberately and keep it open, so the cost of a slower first load is far lower than on a public site."
+      },
+      {
+        "metric": "domContentLoadedMs",
+        "max": 2000,
+        "rationale": "Data-dense admin tables are allowed to take longer to parse than a content page, but not so long that the tool feels broken on a first visit."
+      }
+    ],
+    "accessibility": [
+      {
+        "metric": "axeSeriousOrCritical",
+        "max": 0,
+        "rationale": "A known employee audience is not a reason to ship a page somebody on the team cannot use at all; serious and critical findings stay disallowed even where the control itself is optional."
+      },
+      {
+        "metric": "axeViolations",
+        "max": 5,
+        "rationale": "Minor and moderate findings are tolerated for an internal tool with a known audience, which is the difference this profile exists to express; the ceiling stops that tolerance from becoming unlimited."
+      }
+    ]
+  }
 }

@@ -65,7 +65,7 @@
     {
       "type": "application-profile",
       "classification": "public",
-      "latestVersion": "1.0",
+      "latestVersion": "1.1",
       "schema": "schemas/application-profile.schema.json",
       "paths": [
         ".claude/profiles/*.json"
@@ -160,6 +160,16 @@
       "schema": "schemas/operational-readiness.schema.json",
       "paths": [
         "docs/evidence/operational-readiness.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "budget-evidence",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/budget-evidence.schema.json",
+      "paths": [
+        "docs/evidence/budgets.json"
       ],
       "migration": "supported"
     }
