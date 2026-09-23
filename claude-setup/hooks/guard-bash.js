@@ -80,6 +80,17 @@ const RULES = [
     reason: 'Blocked: force push to main/master — if it is truly necessary, the user must do it themselves.',
   },
   {
+    // EV-009 K-8: shadcn is copy-in-you-own-it, not a dependency. With --overwrite, `add`
+    // replaces a component wholesale — on a customised component that silently deletes the
+    // project's design tokens and variants. Without the flag the CLI asks first, which is fine.
+    match: /\bshadcn(-ui)?(@\S+)?\s+add\b[^|;&]*(\s--overwrite\b|\s-o\b|\s-[a-z]*o[a-z]*\b)/,
+    reason: [
+      'Blocked: `shadcn add --overwrite` replaces the whole file; it does not merge.',
+      'Any customisation in that component (tokens, variants, loading states) would be lost silently.',
+      'Correct path: open the component on ui.shadcn.com, diff it against ours by hand, and port only the change you want.',
+    ].join('\n'),
+  },
+  {
     match: /\bgit\s+(checkout|restore)\s+(--\s+)?\.(\s|$)/,
     reason: [
       'Blocked: this discards every uncommitted change in the working tree.',

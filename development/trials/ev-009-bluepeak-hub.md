@@ -211,6 +211,26 @@ readiness --level R2  →  FAIL 9/10
 | **K-9** | **pre-push gate ตกแบบสุ่ม แล้วผ่านตอน retry โดยไม่ได้แก้อะไร** — push ถูกบล็อกเพราะ `verify` ตกใน 68s · รัน `verify:all` ซ้ำทันทีได้ exit 0 · push ซ้ำผ่าน · สาเหตุที่น่าจะเป็นคือ smoke ที่ยิง HTTP ปลุก server เองและรอบก่อนยังปล่อย port ไม่ทัน (โปรเจกต์นี้ใช้ `SMOKE_PORT` แยกอยู่แล้วเพื่อกันปัญหานี้ แต่ยังชนกันเอง) · **gate ที่ตกแบบสุ่มอันตรายกว่า gate ที่ไม่มี** เพราะมันสอนให้คน "ลองใหม่" แทนที่จะ "อ่าน error" ซึ่งคือจุดเริ่มของนิสัยมองข้าม error ที่ A.2 เตือนไว้เอง · kit ไม่มีอะไรช่วยแยก "ตกเพราะโค้ดพัง" ออกจาก "ตกเพราะสภาพแวดล้อม" | **high** |
 | **K-10** | **Phase A บอกว่า eval baseline สำคัญเป็นพิเศษกับโปรเจกต์เดิม แล้วลืมบอกให้ปรับเคส** — A.5 มีตารางว่าต้องปรับอะไรให้ตรงของจริง (stack.json, rules, skills, settings, AGENTS.md, verify.mjs, .gitignore, pre-push, board) · **ไม่มี `evals/` อยู่ในตารางนั้นเลย** ทั้งที่ A ปิดท้ายด้วยประโยคว่า *"7.11 สำคัญเป็นพิเศษสำหรับโปรเจกต์เดิม เพราะ eval รอบแรกจะบอกทันทีว่า AI เข้าใจ convention ของโค้ดเดิมจริงหรือแค่เดา"* · ของจริง: `EV-001` ที่ kit แจกมา hard-code `components/shared/` และสั่งให้ใช้ shadcn CLI ซึ่งที่นี่ไม่มีโฟลเดอร์นั้นและ `shadcn add` ถูกบล็อก ⇒ **เคสจะแดงด้วยเหตุผลที่ไม่เกี่ยวกับ config เลย** ขณะที่ 7.11 บอกว่า *"เคสไหนไม่ผ่านตั้งแต่วันแรก แปลว่า config ยังไม่ดีพอ"* · kit จึงชี้ให้ adopter แก้ของที่ไม่ได้ผิด | **high** |
 
+### สถานะการแก้ (EV-010 · kit 3.7.0)
+
+| # | แก้ที่ | หลักฐาน |
+|---|---|---|
+| K-1 | `doctor` มีเช็ก `repository` — ไม่อยู่ใน git = warn · subdirectory = บอก git root | `claude-setup/tests/cli.test.js` |
+| **K-2** | **`buaflow assess`** — probe repo เอง ไม่ต้องมี manifest · รันบน Bluepeak Hub (`--execute`, 66s, tree สะอาดหลังรัน) ได้ **proven: none (primary-flow ต้องให้คนชี้) · R1: build + verify ผ่านจริง · R2 ติด `ci` ข้อเดียว** = ผลเดียวกับที่หาด้วยมือในหัวข้อ 5 | `claude-setup/tests/assess.test.js` |
+| K-3 | A.2 และ Phase 2 บอกแล้วว่าเลข ~30 วินาทีเป็นเป้าตั้งต้น และข้อมูลจริงชุดแรกคือ 67 วินาที | `phases/A-adopt-existing.md` |
+| K-4 | A.1 เปิดด้วย `doctor` + `assess` · `/init` `/import` ถูกย้ายเป็นทางเลือกเมื่อ**คน**รัน session | `phases/A-adopt-existing.md` |
+| K-5 | แก้ไปแล้วตอนเจอ (checker จับได้เอง) | — |
+| K-6 | `check-config` บอกให้เติม `@AGENTS.md` บรรทัดเดียว ไม่รื้อ · A.5 มีแถว `CLAUDE.md` เดิม | `claude-setup/tests/check-config.test.js` |
+| K-7 | manifest ที่ลงวันที่ในอนาคตเกิน 5 นาที = ตก | `claude-setup/tests/readiness.test.js` |
+| K-8 | reason ของ `components/ui/**` เขียนใหม่ · `guard-bash` บล็อก `shadcn add --overwrite` · A.5 บอกให้ถอด protection เมื่อ `ui/` ถูกแก้แล้ว | `claude-setup/tests/hooks.test.js` |
+| K-9 | gate รัน verify ที่ตกซ้ำหนึ่งครั้ง · ตกแล้วผ่าน = `flaky` + `.verify-flakes.jsonl` | `claude-setup/tests/gate.test.js` |
+| K-10 | แก้ไปแล้วใน A.5 (commit `2041812`) | — |
+
+**ข้อค้นพบใหม่จากการรัน `assess` กับ reference app ของ kit เอง:** `react-fastapi-postgres-crud` และ
+`expo-fastapi-postgres-sync` **ไม่มีคำสั่ง verify เดียว** — การตรวจกระจายอยู่ใน step ของ CI 8–10 step
+ซึ่งขัดกับ A.2 ของ kit เอง ("คำสั่งเดียวที่บอกได้ว่างานพัง") · `expo-fastapi-postgres-sync` ไม่มี README
+ที่ root · โปรเจกต์จริงที่ไม่รู้จัก Buaflow ทำสองข้อนี้ได้ดีกว่า reference app อีกครั้ง
+
 ### ข้อที่ kit ทำได้ดี (ต้องบันทึกด้วย ไม่ใช่เก็บแต่ข้อเสีย)
 
 - **hook ทำงานถูกทั้งหมดกับ repo จริง** — `guard-edit` บล็อกการแก้ migration ตาม `protected` ที่ตั้งใหม่,

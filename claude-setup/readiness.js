@@ -109,6 +109,7 @@ function validateEvidence(controlId, evidence, root, errors, warnings) {
 }
 
 const DAY_MS = 86400000;
+const FUTURE_SKEW_MS = 5 * 60000;
 
 // Is the revision this evidence was produced from still part of the current history?
 // An orphaned commit (rebased away, force-pushed over, or from a branch that never
@@ -201,6 +202,16 @@ function validateManifest(manifest, options = {}) {
     errors.push(`cannot evaluate ${level}; manifest only targets ${manifest.targetLevel}`);
   }
   if (Number.isNaN(Date.parse(manifest.generatedAt))) errors.push('generatedAt must be an ISO-8601 timestamp');
+  else {
+    // EV-009 K-7: evidence dated after the moment it is read was reported "-2d old" and passed.
+    // It is either a wrong clock or a made-up timestamp, and neither may pass silently. Five
+    // minutes of skew is tolerated so two machines with honest clocks never disagree.
+    const now = options.now instanceof Date ? options.now : new Date();
+    const ahead = Date.parse(manifest.generatedAt) - now.getTime();
+    if (ahead > FUTURE_SKEW_MS) {
+      errors.push(`generatedAt ${manifest.generatedAt} is ${Math.ceil(ahead / 60000)} minutes in the future — a clock is wrong or the timestamp was not produced by a run`);
+    }
+  }
   if (LEVEL_ORDER.indexOf(level) >= LEVEL_ORDER.indexOf('R3') && !/^[0-9a-f]{7,64}$/i.test(manifest.commit || '')) {
     errors.push('R3+ requires commit to be a 7–64 character hexadecimal revision');
   } else if (typeof manifest.commit !== 'string' || manifest.commit.trim().length === 0) {

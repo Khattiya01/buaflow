@@ -104,10 +104,14 @@ if (exists('AGENTS.md')) {
   if (!/เคยทำผิด|gets wrong/i.test(read('AGENTS.md'))) warn('AGENTS.md ไม่มีหมวด "สิ่งที่ AI เคยทำผิด" — ระบบจะไม่เรียนรู้');
 }
 if (exists('CLAUDE.md')) {
-  const first = read('CLAUDE.md').split('\n')[0].trim();
-  first === '@AGENTS.md'
-    ? ok('CLAUDE.md import AGENTS.md ถูกต้อง')
-    : bad(`CLAUDE.md บรรทัดแรกต้องเป็น @AGENTS.md (เจอ: "${first}")`);
+  // EV-009 K-6: ข้อนี้เคยอ่านได้ว่า "CLAUDE.md ต้องเป็นชั้นบาง ๆ" ซึ่งถูกกับโปรเจกต์ใหม่ แต่กับ
+  // brownfield ที่ดูแล CLAUDE.md มาอย่างดี (trial แรกมี 153 บรรทัด) มันคือคำสั่งให้รื้อ · สิ่งที่ต้องการ
+  // จริงมีข้อเดียวคือ AGENTS.md ถูก import ก่อนเนื้อหาอื่น — เนื้อหาเดิมอยู่ต่อใต้บรรทัดนั้นได้ทั้งหมด
+  const lines = read('CLAUDE.md').split('\n').map((line) => line.trim());
+  const at = lines.indexOf('@AGENTS.md');
+  if (at === 0) ok('CLAUDE.md import AGENTS.md ถูกต้อง');
+  else if (at > 0) warn(`CLAUDE.md import AGENTS.md ที่บรรทัด ${at + 1} — ย้ายขึ้นไปบรรทัดแรกเพื่อให้กฎกลางถูกอ่านก่อนเนื้อหาเฉพาะของ Claude Code`);
+  else bad(`CLAUDE.md ไม่ได้ import AGENTS.md (บรรทัดแรก: "${lines[0]}") — เติม @AGENTS.md เป็นบรรทัดแรกบรรทัดเดียว เนื้อหาเดิมเก็บไว้ได้ทั้งหมด ไม่ต้องรื้อหรือย้ายไปไหน`);
 }
 
 // ── 3. Rules: paths ต้อง match ไฟล์จริง ───────────────────────────────

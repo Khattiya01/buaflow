@@ -240,3 +240,33 @@ test('the gate ignores a project with no eval cases, and fails one whose run is 
     cleanup(root);
   }
 });
+
+// EV-009 K-9: pre-push blocked on verify, an immediate retry passed with nothing changed, and
+// the push went through. The gate now re-runs a failed verify once and names what it saw.
+test('a verify that fails then passes on the same tree is reported flaky and recorded, not silently retried', () => {
+  const root = gateProject({ verifyCommand: 'node flip.js' });
+  try {
+    write(path.join(root, 'flip.js'), "const fs=require('fs');if(fs.existsSync('ran')){process.exit(0)}fs.writeFileSync('ran','');process.exit(1);\n");
+    const result = runGate(root);
+    assert.equal(result.status, 0, 'adoption mode records a flake without blocking');
+    assert.match(result.stdout, /FLAKY/);
+    assert.match(result.stdout, /flaky\s+verify/);
+    const log = fs.readFileSync(path.join(root, '.verify-flakes.jsonl'), 'utf8').trim().split('\n');
+    assert.equal(log.length, 1);
+    assert.equal(JSON.parse(log[0]).firstExit, 1);
+  } finally {
+    cleanup(root);
+  }
+});
+
+test('a verify that fails twice is reproducible and blocks, with no flake recorded', () => {
+  const root = gateProject({ verifyCommand: 'node -e "process.exit(3)"' });
+  try {
+    const result = runGate(root);
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, /reproducible/);
+    assert.equal(fs.existsSync(path.join(root, '.verify-flakes.jsonl')), false);
+  } finally {
+    cleanup(root);
+  }
+});

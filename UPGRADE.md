@@ -4,6 +4,7 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
+| **v3.6.0** | [v3.6.0 → v3.7.0](#v360--v370-minor--คัดลอกไฟล์ทับ-จบ) ข้างล่างนี้ | ~1 นาที |
 | **v3.5.0** | [v3.5.0 → v3.6.0](#v350--v360-minor--คัดลอกไฟล์--แปลง-eval-case) ข้างล่างนี้ | ~5 นาที |
 | **v3.4.0** | [v3.4.0 → v3.5.0](#v340--v350-minor--คัดลอกไฟล์--migrate-profile) แล้วต่อด้วย v3.6.0 | ~3 นาที |
 | **v3.3.0** | [v3.3.0 → v3.4.0](#v330--v340-minor--คัดลอกไฟล์-จบ) แล้วต่อด้วย v3.5.0 | ~2 นาที |
@@ -18,6 +19,27 @@
 | **v2.2** | [v2.2 → v2.3](#v22--v23-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.1 | ~15 นาที |
 | **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) แล้วต่อด้วย v2.3 | ~15 นาที |
 | **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2, v2.3 | ~1 session |
+
+---
+
+## v3.6.0 → v3.7.0 (MINOR — คัดลอกไฟล์ทับ จบ)
+
+```bash
+for f in readiness.js gate.js check-config.js stack-config.js; do cp buaflow/claude-setup/$f .claude/$f; done
+cp buaflow/claude-setup/hooks/guard-bash.js buaflow/claude-setup/hooks/guard-edit.js .claude/hooks/
+echo .verify-flakes.jsonl >> .gitignore
+```
+
+`buaflow assess` ไม่ต้องคัดลอก — มันรันจาก kit โดยตรง
+
+**สิ่งที่อาจเห็นต่างจากเดิม:**
+
+- `readiness` ตก ถ้า `generatedAt` ของ manifest อยู่ในอนาคตเกิน 5 นาที — แก้นาฬิกาเครื่องหรือ timestamp
+  ไม่มีทางอื่นที่ manifest แบบนั้นจะเป็นของจริง
+- verify ที่ตกใน gate จะถูกรันซ้ำหนึ่งครั้ง — ถ้า verify ของคุณช้าและอยากให้ตกทันที ตั้ง `BUAFLOW_NO_FLAKE_CHECK=1`
+- `stack.json` ที่คัดลอกข้อความ reason ของ `components/ui/**` จาก kit ไปไว้ ยังใช้ได้ แต่ข้อความเดิมแนะนำทางที่
+  เขียนทับ component ที่แก้แล้ว — คัดลอก reason ใหม่จาก `buaflow/claude-setup/stack.json` หรือถอด pattern ออก
+  ถ้า `ui/` ของคุณถูกแก้ไปแล้ว
 
 ---
 

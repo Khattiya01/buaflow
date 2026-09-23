@@ -4,6 +4,7 @@
 # ── ของ kit / Claude Code ──────────────────────────────────────────────
 # log เต็มของ scripts/verify.mjs (สรุปสั้นอยู่ใน terminal)
 .verify.log
+.verify-flakes.jsonl
 # permissions/hook ส่วนตัว — .claude/settings.json ของทีม commit ปกติ
 .claude/settings.local.json
 # กติกาส่วนตัวต่อเครื่อง

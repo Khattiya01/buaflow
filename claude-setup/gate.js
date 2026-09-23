@@ -177,6 +177,29 @@ for (const s of steps) {
   const r = spawnSync(s.cmd, s.cmdArgs, { cwd: ROOT, stdio: 'inherit', shell: !!s.shell });
   const sec = ((Date.now() - t0) / 1000).toFixed(1);
   const pass = r.status === 0;
+  if (!pass && s.name === 'verify' && process.env.BUAFLOW_NO_FLAKE_CHECK !== '1') {
+    // EV-009 K-9: pre-push blocked on verify, an immediate re-run passed with nothing changed,
+    // and the push went through. A gate that fails at random teaches people to retry instead
+    // of reading the error. So a failed verify is re-run once, on purpose, and the two outcomes
+    // are told apart: failing twice is reproducible (read the error); failing then passing is
+    // flaky — a defect in the tests or the environment, not in this change — and is recorded.
+    console.log('\n  verify ไม่ผ่าน — รันซ้ำหนึ่งครั้งบน tree เดิม เพื่อแยก "พังจริง" ออกจาก "ตกแบบสุ่ม"');
+    const again = spawnSync(s.cmd, s.cmdArgs, { cwd: ROOT, stdio: 'inherit', shell: !!s.shell });
+    if (again.status === 0) {
+      const log = path.join(ROOT, '.verify-flakes.jsonl');
+      let head = null;
+      try { head = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).stdout.trim() || null; } catch { /* no git */ }
+      try { fs.appendFileSync(log, `${JSON.stringify({ at: new Date().toISOString(), commit: head, command: VERIFY, firstExit: r.status })}\n`); } catch { /* read-only tree */ }
+      let count = 1;
+      try { count = fs.readFileSync(log, 'utf8').split('\n').filter(Boolean).length; } catch { /* ignore */ }
+      const verdict = PRODUCTION ? 'fail' : 'flaky';
+      results.push([s.name, verdict, sec]);
+      console.log(`\n  FLAKY: verify ตกแล้วผ่านเมื่อรันซ้ำโดยไม่มีอะไรเปลี่ยน — นี่คือ defect ของเทสหรือสภาพแวดล้อม ไม่ใช่ของงานนี้`);
+      console.log(`  บันทึกไว้ที่ .verify-flakes.jsonl (ครั้งที่ ${count}) — ${PRODUCTION ? 'production assurance ไม่ยอมรับ gate ที่ตกแบบสุ่ม: บล็อก' : 'ไม่บล็อกใน adoption mode แต่ต้องมีคนไล่สาเหตุ'}`);
+      continue;
+    }
+    console.log('\n  ตกซ้ำทั้งสองรอบ = reproducible — อ่าน error ข้างบน อย่าลองใหม่');
+  }
   results.push([s.name, pass ? 'pass' : s.warnOnly ? 'warn' : 'fail', sec]);
   if (!pass && s.warnOnly) console.log(`  warn: ${s.name} พบปัญหา แต่ตั้งเป็นรายงานอย่างเดียว (${s.name}Mode: warn ใน .claude/stack.json) — ไม่บล็อก`);
   if (!pass && s.name === 'verify') {

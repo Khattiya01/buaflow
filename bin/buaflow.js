@@ -25,6 +25,8 @@ function usage() {
     'Commands:',
     '  init          create .buaflow/project.json without touching source code',
     '  doctor        inspect local prerequisites and installed Buaflow controls',
+    '  assess        answer "which readiness level is this project at" from the repository itself,',
+    '                without a manifest and before any control is installed',
     '  verify        run the project standard verification command',
     '  readiness     validate an R0-R4 evidence manifest',
     '  audit         re-check that manifest independently, from artifacts and command output',
@@ -36,6 +38,9 @@ function usage() {
     '  evals         check eval cases and the runs that claim to have passed them',
     '  resume        summarize persisted project state for any human or AI tool',
     '',
+    'assess options: --execute  also run the build/verify/test commands it finds',
+    '                --write <path>  write a draft readiness manifest (never overwrites without --force)',
+    '',
     'audit options: --execute  re-run the declared command evidence (same trust level as the',
     '                          project\'s own scripts; without it commands stay unverified)',
     '',
@@ -45,9 +50,9 @@ function usage() {
 }
 
 function parse(argv) {
-  if (argv[0] === '--help' || argv[0] === '-h') return { command: 'help', options: { root: process.cwd(), json: false, help: true, force: false, strict: false, mode: 'new', level: null, file: null, execute: false } };
+  if (argv[0] === '--help' || argv[0] === '-h') return { command: 'help', options: { root: process.cwd(), json: false, help: true, force: false, strict: false, mode: 'new', level: null, file: null, execute: false, write: null } };
   const [command, ...rest] = argv;
-  const options = { root: process.cwd(), json: false, help: false, force: false, strict: false, mode: 'new', level: null, file: null, execute: false };
+  const options = { root: process.cwd(), json: false, help: false, force: false, strict: false, mode: 'new', level: null, file: null, execute: false, write: null };
   for (let index = 0; index < rest.length; index++) {
     const arg = rest[index];
     if (arg === '--root') options.root = rest[++index];
@@ -59,6 +64,7 @@ function parse(argv) {
     else if (arg === '--mode') options.mode = rest[++index];
     else if (arg === '--level') options.level = rest[++index];
     else if (arg === '--file') options.file = rest[++index];
+    else if (arg === '--write') options.write = rest[++index];
     else throw new Error(`unknown option: ${arg}`);
   }
   if (!command && !options.help) throw new Error('command is required');
@@ -150,6 +156,18 @@ function commandDoctor(root, options) {
   nodeMajor >= 22 ? pass('node', process.version) : fail('node', `Node ${process.version} is below the supported major 22`);
   const git = spawnSync('git', ['--version'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   git.status === 0 ? pass('git', git.stdout.trim()) : warning('git', 'Git is unavailable; initialize/source-control before Phase 6');
+  // EV-009 K-1: "git exists on this machine" is not "this project is in version control". The
+  // version-control control needs a commit identity, and hooks/CI install at the git root —
+  // pointed at frontend/ of a monorepo, doctor used to say nothing at all.
+  if (git.status === 0) {
+    const top = spawnSync('git', ['rev-parse', '--show-toplevel'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    if (top.status !== 0) warning('repository', 'this root is not inside a git work tree; readiness cannot bind evidence to a commit');
+    else if (path.resolve(top.stdout.trim()) !== path.resolve(root)) {
+      // A monorepo subdirectory is a valid layout (the kit's own reference apps are one), so this
+      // is said, not warned — a warning would fail --strict for a setup that is not wrong.
+      pass('repository', `this root is a subdirectory of the git repository at ${top.stdout.trim()}; hooks and CI install at the git root, and every path in .claude/stack.json is relative to this root`);
+    } else pass('repository', 'project root is the git root');
+  }
 
   const manifestFile = path.join(root, '.buaflow', 'project.json');
   if (!fs.existsSync(manifestFile)) warning('project-manifest', 'missing .buaflow/project.json; run buaflow init');
@@ -229,6 +247,31 @@ function commandDelegated(command, root, options) {
   }, [], result.status === 0 ? [] : [result.stderr.trim() || result.stdout.trim() || `${scriptName} exited ${result.status}`]);
 }
 
+// EV-009 K-2: the first question of anyone adopting an existing project is "where am I", and
+// readiness can only answer it once somebody has written the answer down. assess runs the KIT's
+// copy of the script, not the project's .claude/ copy, because it is meant for the first minute
+// of adoption — before Phase 7 has installed anything.
+function commandAssess(root, options) {
+  const args = ['--root', root, '--json'];
+  if (options.execute) args.push('--execute');
+  if (options.write) args.push('--write', options.write);
+  if (options.level) args.push('--level', options.level);
+  if (options.force) args.push('--force');
+  const result = runNode(root, path.join(KIT_ROOT, 'claude-setup', 'assess.js'), args);
+  if (result.status !== 0) {
+    return envelope('assess', result.status === 2 ? EXIT.INPUT : EXIT.FAILED, 'assessment could not run', {}, [], [result.stderr.trim() || `assess.js exited ${result.status}`]);
+  }
+  const report = JSON.parse(result.stdout);
+  const { proven, reachable, nextLevel, blockers } = report.summary;
+  return envelope('assess', EXIT.OK, `proven ${proven || 'none'}, reachable ${reachable || 'none'}${nextLevel ? `, next ${nextLevel}` : ''}`, {
+    proven: proven || 'none',
+    reachable: reachable || 'none',
+    blocking: blockers.map((b) => b.control).join(', ') || undefined,
+    draft: report.draft?.file,
+    result: report,
+  }, report.notes);
+}
+
 function commandResume(root) {
   const warnings = [];
   const data = { projectManifest: null, planning: null, inProgressTasks: [] };
@@ -273,7 +316,7 @@ function main(argv = process.argv.slice(2)) {
     else console.log(usage());
     return EXIT.OK;
   }
-  if (!['init', 'doctor', 'verify', 'readiness', 'audit', 'requirements', 'security', 'supply', 'operations', 'budgets', 'evals', 'resume'].includes(command)) {
+  if (!['init', 'doctor', 'assess', 'verify', 'readiness', 'audit', 'requirements', 'security', 'supply', 'operations', 'budgets', 'evals', 'resume'].includes(command)) {
     const result = envelope(command || 'cli', EXIT.INPUT, 'unknown command', {}, [], [usage()]);
     emit(result, options.json);
     return EXIT.INPUT;
@@ -286,6 +329,7 @@ function main(argv = process.argv.slice(2)) {
   const result = command === 'init' ? commandInit(options.root, options)
     : command === 'doctor' ? commandDoctor(options.root, options)
       : command === 'resume' ? commandResume(options.root)
+        : command === 'assess' ? commandAssess(options.root, options)
         : commandDelegated(command, options.root, options);
   emit(result, options.json);
   return result.code;
@@ -293,4 +337,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { EXIT, commandDoctor, commandInit, commandResume, main, parse };
+module.exports = { EXIT, commandAssess, commandDoctor, commandInit, commandResume, main, parse };

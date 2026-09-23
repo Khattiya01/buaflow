@@ -26,6 +26,28 @@ test('guard-bash blocks bypassing commit and push hooks', () => {
   }
 });
 
+// EV-009 K-8: `shadcn add` over an existing, customised component deletes the customisation.
+// Adding a new component stays allowed; forcing an overwrite does not.
+test('guard-bash blocks shadcn add --overwrite and allows adding a new component', () => {
+  const run = (command) => runNode(path.join(hooks, 'guard-bash.js'), { input: { tool_input: { command } } });
+  for (const command of ['npx shadcn@latest add button --overwrite', 'pnpm dlx shadcn add card -o', 'npx shadcn add dialog -yo']) {
+    const result = run(command);
+    assert.equal(result.status, 2, command);
+    assert.match(result.stderr, /does not merge/);
+  }
+  for (const command of ['npx shadcn@latest add tooltip', 'npx shadcn add sheet -y']) {
+    assert.equal(run(command).status, 0, command);
+  }
+});
+
+test('the default components/ui protection no longer recommends re-running the shadcn CLI over existing files', () => {
+  const { DEFAULTS } = require('../stack-config.js');
+  const reason = DEFAULTS.protected.find((entry) => entry.pattern === '**/components/ui/**').reason;
+  assert.doesNotMatch(reason, /install\/update through the shadcn CLI/);
+  assert.match(reason, /never re-run `shadcn add`/);
+  assert.match(reason, /remove the pattern/);
+});
+
 test('guard-edit reads protected patterns from project stack config', () => {
   const root = temporaryProject();
   try {

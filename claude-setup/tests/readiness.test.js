@@ -224,3 +224,22 @@ test('--max-age-days rejects nonsense instead of silently ignoring it', () => {
   assert.equal(result.status, 2);
   assert.match(result.stderr, /--max-age-days requires a non-negative number of days/);
 });
+
+// EV-009 K-7: a manifest dated 2026-09-24 on a machine whose clock said 2026-09-23 was reported
+// "-2d old" and passed. A timestamp after the moment of reading is a wrong clock or an invented
+// one, and neither may pass silently.
+test('evidence dated in the future fails, beyond five minutes of clock skew', () => {
+  const now = new Date('2026-09-23T12:00:00.000Z');
+  const value = manifest('R0');
+
+  value.generatedAt = '2026-09-24T00:00:00.000Z';
+  const future = validateManifest(value, { now });
+  assert.equal(future.outcome, 'fail');
+  assert.match(future.errors.join('\n'), /720 minutes in the future/);
+
+  value.generatedAt = '2026-09-23T12:04:00.000Z';
+  assert.equal(validateManifest(value, { now }).outcome, 'pass', 'honest clocks a few minutes apart must agree');
+
+  value.generatedAt = '2026-09-23T11:00:00.000Z';
+  assert.equal(validateManifest(value, { now }).outcome, 'pass');
+});

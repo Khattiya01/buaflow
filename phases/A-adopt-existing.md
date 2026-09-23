@@ -29,19 +29,24 @@
 
 ## A.1 สำรวจ — ให้ subagent อ่าน อย่าอ่านเองใน context หลัก
 
-**เริ่มด้วย built-in ก่อน** — 2 คำสั่งนี้ทำงานครึ่งหนึ่งของ A.1 ให้ฟรี:
+**ขั้นแรก — ถามเครื่องก่อนว่าโปรเจกต์อยู่ตรงไหน** (ไม่ต้องติดตั้งอะไร ไม่ต้องเขียน manifest):
 
 ```bash
-CLAUDE_CODE_NEW_INIT=1 claude      # แล้วพิมพ์ /init — flow interactive ที่ใช้ subagent สำรวจโค้ด
-                                   # ถามช่องว่าง แล้วเสนอ CLAUDE.md + skills + hooks ให้ดูก่อนเขียน
-/import                            # ถ้ามี AGENTS.md / .cursor/rules / copilot-instructions / MCP อยู่แล้ว
-                                   # ดูดเข้า CLAUDE.md + config ของ Claude Code ทีเดียว
+node buaflow/bin/buaflow.js doctor --root .     # root อยู่ใน git ไหม · เป็น git root หรือ subdirectory
+node buaflow/bin/buaflow.js assess --root .     # R0–R3 control ทุกตัว: pass / pending / fail + สิ่งที่ขวางระดับถัดไป
+node buaflow/bin/buaflow.js assess --root . --execute   # รัน build/verify/test ที่หาเจอจริง (มี side effect เท่า npm run build)
 ```
 
-ผลจาก `/init` คือ **ร่าง** — อย่ารับทั้งดุ้น เอาไปเทียบกับตารางข้างล่างแล้วเติมส่วนที่มันไม่รู้
-(convention ที่ใช้อยู่จริง, สิ่งที่ generate อัตโนมัติ, เอกสารที่โกหก)
+`assess` **ไม่เคยตัดสิน pass จากการเดา** — control ที่ต้องใช้คนอ่าน (primary flow, access control
+ถูกทดสอบไหม, requirement trace ไปถึง proof ไหม) จะเป็น `pending` พร้อมบอกว่าเจออะไรและต้องทำอะไรต่อ
+ผลที่ได้ใช้เป็นโครงของ A.1 และของ `docs/evidence/readiness.json` ได้เลย (`--write` เขียน draft ให้)
 
-ส่วนที่เหลือใช้ subagent `legacy-explorer` (haiku — ตั้งไว้แล้ว) ทำ inventory แล้วเอา**เฉพาะข้อสรุป**กลับมา
+> ⚠️ **ถ้า AI เป็นคนทำ Phase A เอง ข้าม `/init` และ `/import`** — สองคำสั่งนั้นเป็นคำสั่ง interactive
+> ของ Claude Code ที่คนต้องพิมพ์เอง agent เรียกไม่ได้ (EV-009 K-4) · ถ้า**คน**เป็นผู้รัน session อยู่
+> จะใช้ก็ได้ ผลเป็นแค่ **ร่าง**: `/init` สำรวจโค้ดแล้วเสนอ `CLAUDE.md` · `/import` ดูด `AGENTS.md` /
+> `.cursor/rules` / copilot-instructions ที่มีอยู่แล้วเข้ามา — เอาไปเทียบกับตารางข้างล่างก่อนรับ
+
+inventory ส่วนที่เหลือใช้ subagent `legacy-explorer` (haiku — ตั้งไว้แล้ว) แล้วเอา**เฉพาะข้อสรุป**กลับมา
 โปรเจกต์ที่มีอยู่แล้วมักใหญ่พอที่จะทำให้ context หลักบวมจนงานที่เหลือเสียคุณภาพ
 
 สิ่งที่ต้องได้กลับมา เขียนลง `docs/planning/A1-inventory.md`:
@@ -81,7 +86,12 @@ CLAUDE_CODE_NEW_INIT=1 claude      # แล้วพิมพ์ /init — flow 
 | **ตั้ง baseline** | error เยอะเกินไป → ตั้งค่า lint/tsc ให้ **ไม่ล้มกับของเก่า แต่จับของใหม่** (เช่น `--max-warnings` เท่าของเดิม, หรือ `ignore` ไฟล์เก่าเป็นรายชื่อ) แล้วเปิด intent สำหรับค่อย ๆ ลด |
 | **verify แค่ส่วนที่มี** | ไม่มีเทสเลย → `verify = typecheck && lint` ไปก่อน แล้วเปิด intent "เพิ่มเทสให้ส่วนที่แตะบ่อย" |
 
-3. ตั้งคำสั่งนั้นเป็น `verifyCommand` ใน `.claude/stack.json` — ต้อง**รันจบใน ~30 วินาที**และ exit non-zero เมื่อพัง
+3. ตั้งคำสั่งนั้นเป็น `verifyCommand` ใน `.claude/stack.json` — exit non-zero เมื่อพัง และ**จดเวลาที่วัดได้จริงไว้**
+   > **เรื่องเวลา:** เป้า ~30 วินาทีมาจากโปรเจกต์ใหม่ที่ยังเล็ก ไม่ใช่จากข้อมูล · โปรเจกต์เดิมตัวแรกที่วัดจริง
+   > (EV-009) ใช้ **67 วินาที** กับ pipeline ที่ดี (typecheck + lint + smoke 14 ตัวบน DB จริง) —
+   > **อย่าตัดของจริงออกเพื่อให้ทันเลข** verify ที่เร็วเพราะไม่ได้ตรวจคือ verify ที่โกหก ·
+   > ถ้าช้าจนขวางการวนแก้จริง ๆ ให้แยก verify เร็ว (typecheck + lint + unit) ไว้ใช้ระหว่างทำงาน
+   > และให้ pre-push/CI รันชุดเต็ม
    (JS/TS: `pnpm verify` · Python: `uv run poe verify` หรือ `pytest && ruff check && mypy` · .NET: `dotnet test`)
    ตรวจด้วย `node .claude/verify.js` แล้วทุกที่ในระบบจะเรียกคำสั่งเดียวกันนี้เอง — ไม่ต้องไล่แก้ skill ทีละตัว
 4. **แปะ output ตอนผ่านไว้** — จะไปใส่ `AGENTS.md`
@@ -125,7 +135,8 @@ AI ที่ไม่รู้ว่า "ทำไมถึงเป็นแบ
 
 | ไฟล์ | ปรับอะไร | อิงจาก |
 |---|---|---|
-| `.claude/stack.json` | **ทำข้อนี้ก่อนเพื่อน** — `verifyCommand`, `commands` (coverage/audit/apiTest — ไม่มีให้ตั้ง `null`), `codeFilePattern`, `formatCommands`, `preflightHookPath`, `protected` (ลบ `components/ui/**` ถ้าไม่ได้ใช้ shadcn) · stack ที่ไม่ใช่ JS/TS แก้ที่ไฟล์นี้ที่เดียว แทนการไล่แก้ไส้สคริปต์ | A.1 ทั้งหมด |
+| `.claude/stack.json` | **ทำข้อนี้ก่อนเพื่อน** — `verifyCommand`, `commands` (coverage/audit/apiTest — ไม่มีให้ตั้ง `null`), `codeFilePattern`, `formatCommands`, `preflightHookPath`, `protected` · **`components/ui/**`: ลบออกถ้าไม่ได้ใช้ shadcn และลบออกเช่นกันถ้า component ใน `ui/` ถูกแก้ไปแล้ว** (เคสปกติของโปรเจกต์เดิม — ไฟล์เป็นของโปรเจกต์แล้ว และ `shadcn add` เขียนทับทั้งไฟล์ไม่ merge · kit บล็อก `shadcn add --overwrite` ให้อยู่แล้ว ถ้าอยากกันเข้มกว่านั้นให้เพิ่มกฎใน `guard-bash.js`) · stack ที่ไม่ใช่ JS/TS แก้ที่ไฟล์นี้ที่เดียว แทนการไล่แก้ไส้สคริปต์ | A.1 ทั้งหมด |
+| `CLAUDE.md` เดิม | **อย่ารื้อ** — ถ้าทีมดูแล `CLAUDE.md` อยู่แล้ว ให้เติม `@AGENTS.md` เป็น**บรรทัดแรกบรรทัดเดียว** เนื้อหาเดิมอยู่ต่อข้างใต้ได้ทั้งหมด · ย้ายเฉพาะสิ่งที่ใช้กับ AI ทุกตัว (stack, convention, คำสั่ง verify) ไป `AGENTS.md` ส่วนของที่เป็นของ Claude Code ล้วน ๆ ให้อยู่ที่เดิม | — |
 | `.claude/rules/*.md` | `paths:` ให้ตรงโครงจริง **ลบ pattern ที่ไม่ match ทิ้ง** และแก้เนื้อหาที่อ้าง library ที่ไม่ได้ใช้ · rule ที่ไม่มีของจริงให้คุ้มครอง = ลบ ไม่ใช่เก็บไว้ | A.1 โครงโฟลเดอร์ |
 | `.claude/skills/*/SKILL.md` | ตัดขั้นตอนที่ไม่เกี่ยว (เช่น Postman ถ้าไม่มี API) · **คำสั่ง verify ไม่ต้องแก้** — เรียกผ่าน `node .claude/verify.js` ซึ่งอ่านจาก `stack.json` | A.1 คำสั่ง |
 | `docs/evals/*.json` | **เขียนเคสใหม่ให้ตรง stack จริง ⛔ อย่าใช้ของที่ kit แจกมาดิบ ๆ** — เคสตั้งต้นอ้าง `components/shared/` และ shadcn CLI · โปรเจกต์ที่ไม่มีของพวกนั้นจะได้เคสที่**แดงด้วยเหตุผลที่ไม่เกี่ยวกับ config** ขณะที่ 7.11 บอกว่า "แดงวันแรก = config ยังไม่ดีพอ" ⇒ จะไล่แก้ของที่ไม่ได้ผิด · เพิ่มเคสที่เป็นกับดักเฉพาะของโปรเจกต์นี้ด้วย | A.1 convention + A.5 ทั้งหมด |

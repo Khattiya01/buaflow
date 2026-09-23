@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const { spawnSync } = require('node:child_process');
 const path = require('node:path');
 const test = require('node:test');
 
@@ -66,6 +67,28 @@ test('doctor is vendor-neutral and exposes structured setup gaps', () => {
     assert.ok(output.warnings.some((warning) => warning.includes('project-manifest')));
   } finally {
     cleanup(root);
+  }
+});
+
+// EV-009 K-1: pointed at frontend/ of a monorepo, doctor used to report only that git was
+// installed. It now says where the repository is, because hooks and CI live there.
+test('doctor names the git root when the project root is below it, and warns when there is no repository', { skip: spawnSync('git', ['--version']).status !== 0 }, () => {
+  const top = temporaryProject('buaflow-cli-');
+  try {
+    const repositoryCheck = (root) => json(runCli(root, ['doctor'])).data.checks.find((check) => check.name === 'repository');
+    assert.match(repositoryCheck(top).detail, /not inside a git work tree/);
+
+    spawnSync('git', ['init', '-q'], { cwd: top });
+    assert.equal(repositoryCheck(top).status, 'pass');
+
+    const sub = path.join(top, 'frontend');
+    fs.mkdirSync(sub);
+    const check = repositoryCheck(sub);
+    // Said, not warned: a monorepo subdirectory is valid, and --strict must not fail it.
+    assert.equal(check.status, 'pass');
+    assert.match(check.detail, /subdirectory of the git repository/);
+  } finally {
+    cleanup(top);
   }
 });
 

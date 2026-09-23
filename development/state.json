@@ -897,6 +897,53 @@
       "notes": "Not started, and deliberately dependent on EV-009 rather than parallel to it: the first adoption by someone outside is the only place that shows which instructions were unclear. Writing onboarding before that data exists means guessing at where readers get stuck."
     },
     {
+      "id": "EV-010",
+      "title": "Fix what trial 1 found wrong in the kit (K-1..K-9)",
+      "milestone": "M5",
+      "status": "done",
+      "startedAt": "2026-09-23",
+      "dependsOn": [],
+      "acceptance": [
+        "K-2: a project with no readiness manifest can ask which level it is at and get an answer derived from probes of the repository itself; a control the probes cannot prove is reported pending, never pass, and a draft it writes fails readiness.js honestly until a human closes the gaps",
+        "The assessment run on Bluepeak Hub reproduces what the trial found by hand (R1 reachable, R2 blocked on ci) without anyone writing a manifest first",
+        "K-1, K-6, K-7 and K-8 are fixed in code with regression tests: doctor sees a root that is not the git root, check-config tells a brownfield CLAUDE.md to prepend rather than rewrite, a future-dated manifest fails, and the default protected reason no longer recommends a command that overwrites customised components",
+        "K-9: a verify failure that passes on an immediate re-run of the same tree is reported as flaky and recorded, so it is distinguishable from a reproducible failure instead of teaching people to retry",
+        "K-3 and K-4 are corrected in the phase documents: the verify time ceiling states what it is based on, and A.1 no longer opens with commands an agent cannot run"
+      ],
+      "artifacts": [
+        "claude-setup/assess.js",
+        "claude-setup/tests/assess.test.js",
+        "bin/buaflow.js",
+        "claude-setup/tests/cli.test.js",
+        "claude-setup/readiness.js",
+        "claude-setup/tests/readiness.test.js",
+        "claude-setup/check-config.js",
+        "claude-setup/tests/check-config.test.js",
+        "claude-setup/hooks/guard-bash.js",
+        "claude-setup/hooks/guard-edit.js",
+        "claude-setup/stack-config.js",
+        "claude-setup/stack.json",
+        "claude-setup/tests/hooks.test.js",
+        "claude-setup/gate.js",
+        "claude-setup/tests/gate.test.js",
+        "templates/gitignore.tpl",
+        "phases/A-adopt-existing.md",
+        "phases/02-stack-decision.md",
+        "phases/07-handoff.md",
+        "CLI.md",
+        "VERSION.md",
+        "UPGRADE.md",
+        "schemas/compatibility.json",
+        "development/trials/ev-009-bluepeak-hub.md"
+      ],
+      "verification": [
+        "npm run check",
+        "node claude-setup/assess.js --root ../BluePeak/Bluepeak_Hub --execute"
+      ],
+      "notes": "Opened 2026-09-23 after EV-009 recorded ten findings against the kit (development/trials/ev-009-bluepeak-hub.md section 6). K-10 was already fixed in phases/A-adopt-existing.md A.5. Split from EV-009 because EV-009 cannot close without a human measuring reviewer-minutes, and the fixes should not wait on that. Closed 2026-09-23 as kit 3.7.0 (MINOR). buaflow assess on Bluepeak Hub with --execute: build and verify really ran green in 66s and the tree was clean afterwards; R1 reachable, R2 blocked on ci alone — the same answer the trial reached by writing a manifest by hand, now reached without one. proven stays none because primary-flow is a human choice, which is the correct answer rather than a gap. Running assess on the kit own reference apps surfaced two new findings recorded in the trial file: the two Python reference apps have no single verify command (verification is spread across CI steps, against Phase A.2), and expo-fastapi-postgres-sync has no root README. Classification choices: a root below the git root is reported as a pass with the git root named, not a warning, because monorepo subdirectories are valid and --strict must not fail them; a flaky verify does not block in adoption mode but does in production mode.",
+      "completedAt": "2026-09-23"
+    },
+    {
       "id": "EP-011",
       "title": "Machine-checkable evidence for the six controls nothing could verify",
       "milestone": "M3",

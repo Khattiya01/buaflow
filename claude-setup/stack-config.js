@@ -108,8 +108,9 @@ const DEFAULTS = {
     {
       pattern: '**/components/ui/**',
       reason:
-        'This file is under components/ui/, which shadcn generates. Do not hand-edit it.\n' +
-        'Correct path: install/update through the shadcn CLI, or create a wrapper in components/shared/ instead.',
+        'This file is under components/ui/, copied in from shadcn. Edits are routed elsewhere so customisation lives in one visible place.\n' +
+        'Correct path: wrap it in components/shared/. Use the shadcn CLI only to add a component that does not exist here yet — never re-run `shadcn add` for one that does: it replaces the whole file and does not merge.\n' +
+        'If this project has already customised components/ui/ (usual when adopting an existing project), this protection is wrong for it: remove the pattern from .claude/stack.json (Phase A.5).',
     },
   ],
 };

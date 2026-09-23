@@ -15,7 +15,8 @@ node buaflow/bin/buaflow.js <command>
 | Command | หน้าที่ | การเขียนไฟล์ |
 |---|---|---|
 | `init --mode new\|extend` | สร้าง `.buaflow/project.json` ที่เป็น metadata กลางของโปรเจกต์ | สร้างเฉพาะ manifest; ปฏิเสธ overwrite ถ้าไม่ระบุ `--force` |
-| `doctor [--strict]` | ตรวจ Node, Git, manifest, lifecycle state และ installed controls | ไม่เขียน |
+| `doctor [--strict]` | ตรวจ Node, Git, manifest, lifecycle state และ installed controls · บอกว่า root อยู่ใน git work tree ไหม และเป็น git root หรือ subdirectory (EV-009 K-1) | ไม่เขียน |
+| `assess [--execute] [--write path [--level R0-R3] [--force]]` | ตอบว่า **"โปรเจกต์นี้อยู่ที่ R เท่าไร"** จากการ probe repository เอง — ไม่ต้องมี manifest และไม่ต้องติดตั้ง `.claude/` ก่อน (รัน `claude-setup/assess.js` ของ kit) · ทุก control ได้ `pass` / `pending` / `fail` พร้อมเหตุผลและสิ่งที่ต้องทำต่อ · ตอบสองระดับ: **proven** (ทุก control ผ่าน) กับ **reachable** (ไม่มี control ไหน fail) · `pass` เฉพาะเมื่อ probe เป็นข้อยุติหรือคำสั่งถูกรันจริงด้วย `--execute` · ไม่มีอะไรถูกตัดสิน `not-applicable` ให้ (EV-009 K-2) | ไม่เขียน เว้นแต่ `--write` (draft manifest ที่ pending ยังเป็น pending ⇒ `readiness` ตกจนกว่าคนจะปิดช่องว่าง · ไม่เขียนทับถ้าไม่ใส่ `--force`) และ `--execute` รัน build/verify/test จริงของโปรเจกต์ |
 | `verify` | รัน `.claude/verify.js` ของโปรเจกต์ | ไม่เขียนโดย CLI |
 | `readiness [--file path] [--level R0-R4]` | รัน `.claude/readiness.js` | ไม่เขียน |
 | `audit [--file path] [--level R0-R4] [--execute]` | รัน `.claude/verifier.js` — ตรวจซ้ำจาก artifact และผลการรันจริง ไม่อ่าน `control.status` เป็นข้อมูลเข้า (BC-006) | ไม่เขียน เว้นแต่ใส่ `--execute` ซึ่งรันคำสั่งจริงของโปรเจกต์ และคำสั่งพวกนั้นเขียนไฟล์ทับได้ |
