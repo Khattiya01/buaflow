@@ -5,7 +5,7 @@
   "updatedAt": "2026-09-23",
   "current": {
     "milestone": "M3",
-    "focus": ["BC-001"]
+    "focus": ["BF-008"]
   },
   "workItems": [
     {
@@ -425,7 +425,7 @@
       "id": "BC-001",
       "title": "Agent task I/O contract",
       "milestone": "M3",
-      "status": "ready",
+      "status": "backlog",
       "dependsOn": [],
       "acceptance": [
         "A schema defines what an agent task input/output looks like: allowed scope, proof requirements, and retry/abort rules, per BUAFLOW_PRODUCT_ROADMAP.md's BC-001 row",
@@ -433,7 +433,7 @@
       ],
       "artifacts": [],
       "verification": [],
-      "notes": "Not started. current.focus moved here only because PP-005 is now done and current.focus cannot be empty or reference a done item — this is the roadmap's own next-listed item toward M3's still-unmet criteria (scheduler under contract, independent verifier catching seeded defects both need this first). Scope is a real, foundational design decision — the shape of every future agent task, not a narrow slice like DV-001..003 were — and should be confirmed with the user before starting, the same pattern PP-005's own stack choice and EP-001/BC-005's scope followed."
+      "notes": "Not started, and deliberately DEMOTED from 'ready' to 'backlog' on 2026-09-23 per D-011 — it is infrastructure for parallel agent builds, which nothing needs yet, while BC-006 (independent verifier) delivers value with a single agent and becomes MORE valuable as models improve. The original note follows. current.focus previously pointed here only because PP-005 was done and current.focus cannot be empty or reference a done item — this is the roadmap's own next-listed item toward M3's still-unmet criteria (scheduler under contract, independent verifier catching seeded defects both need this first). Scope is a real, foundational design decision — the shape of every future agent task, not a narrow slice like DV-001..003 were — and should be confirmed with the user before starting, the same pattern PP-005's own stack choice and EP-001/BC-005's scope followed."
     },
     {
       "id": "MT-001",
@@ -593,6 +593,85 @@
       "artifacts": ["templates/outcome-review.tpl.md", "phases/08-tune-and-evolve.md", "phases/07-handoff.md"],
       "verification": ["node scripts/check-roadmap.js"],
       "notes": "Adopted from an external research review on 2026-09-23 (see D-005). New §8.9 in phases/08-tune-and-evolve.md opens with an explicit contrast against §8.1 (config-learning loop) — different question (did the AI/process behave correctly vs. did the business pain point actually get fixed), different evidence (AI behavior vs. real business/user metrics), and states plainly that passing §8.1 does not imply §8.9 would pass, so the two cannot be conflated by a reader skimming just one of them. Added a trigger row to the phase's own 'ทำเมื่อไหร่' table (same table DV-002/other triggers already live in) rather than inventing a separate mechanism. The template deliberately reuses the SAME metric named in process-flow.tpl.md's to-be 'success metric' column (not a newly-invented one at review time) — changing what's measured after the fact would let a failing initiative redefine success post-hoc; a metric change is treated as a lesson about the original to-be estimate, not a fresh start. gated the same opt-in way as DV-001/DV-002: only for initiatives that actually have discovery-layer artifacts (docs/discovery/) to review against; ordinary features skip it. phases/07-handoff.md's install map was updated (not in the original artifacts list, same gap-closing reasoning as DV-001) so outcome-review.tpl.md actually reaches adopter projects instead of sitting unused in buaflow/. This closes out all of DV-001..003 (Discovery and Validation workstream) in one session."
+    },
+    {
+      "id": "BF-008",
+      "title": "Continuous verification of the Buaflow kit itself",
+      "milestone": "M3",
+      "status": "in_progress",
+      "dependsOn": ["BF-004"],
+      "startedAt": "2026-09-23",
+      "acceptance": [
+        "A CI workflow runs 'npm run check' (syntax, JSON parse, check-roadmap, check-artifacts, core-to-Claude adapter drift for rules/skills/agents, and the full regression suite) on every push and pull request touching the kit itself, so the kit's own machine-checkable claims are enforced by a machine rather than by whoever remembers to run it locally",
+        "The workflow fails closed: core/ to claude-setup/ drift, a state.json that check-roadmap.js rejects, or a failing regression test blocks the change",
+        "Repository hygiene found in the 2026-09-23 direction review is resolved: the empty stray directory left by a broken shell command under reference-apps/ is removed, and AI_SDLC_COMPARISON.md and CLI.md are either committed or no longer referenced by tracked documents, so no tracked document points at an untracked file"
+      ],
+      "artifacts": [],
+      "verification": ["npm run check"],
+      "notes": "Opened 2026-09-23 from the direction review recorded in D-011. The gap is narrow but load-bearing: scripts/check-repository.js already performs every check this item needs — none of it is new work — but no CI workflow has ever run it. All three workflows in .github/workflows/ target reference apps, which are examples, while the gate/validator/adapter-generator machinery that every other claim in this repository rests on had no automated enforcement at all. That is principle 1 of the roadmap (the machine decides status) not being applied to Buaflow itself."
+    },
+    {
+      "id": "EP-010",
+      "title": "Evidence freshness as a readiness control",
+      "milestone": "M3",
+      "status": "ready",
+      "dependsOn": ["BF-003", "EP-001"],
+      "acceptance": [
+        "readiness.js gains an 'evidence-freshness' control: a manifest whose evidence is older than a declared window, or bound to a commit that is no longer an ancestor of HEAD, resolves to a distinct 'expired' outcome rather than 'pass'",
+        "An expired R3 is reported as distinct from both a passing R3 and a failing one — the report states that the claim was proven at a point in time and is no longer proven, which is the honest state",
+        "A scheduled CI workflow re-runs each reference app's own verification commands on a fixed cadence, so a stale pinned dependency or a newly published advisory turns CI red without a human deciding to look",
+        "The control is additive: manifests that predate it are reported, not retroactively failed, per the artifact migration policy in BF-006"
+      ],
+      "artifacts": [],
+      "verification": ["npm test", "npm run check"],
+      "notes": "Opened 2026-09-23 per D-011; this is the concrete answer to D-010's second open question ('this golden stack's pinned dependencies are now a year old, how does an adopter know'). Deliberately NOT implemented as the pack.schema.json 'upgrade' field it was originally imagined as: a hand-written upgrade[] ledger is a promise a human has to keep writing, and every fixture proves nobody does — all nine are still []. A freshness control plus a scheduled re-verify makes staleness a machine-detected fact instead, which is what principle 7 (evidence over confidence) actually asks for. Whether upgrade[] survives at all is PP-010's call, not this item's."
+    },
+    {
+      "id": "PP-010",
+      "title": "Pack contract v2: recipe and assertion, not template",
+      "milestone": "M3",
+      "status": "ready",
+      "dependsOn": ["PP-002", "PP-003"],
+      "acceptance": [
+        "pack.schema.json v2 expresses a pack as a recipe plus assertions: the framework-owned CLI commands to run (unpinned, e.g. 'create-next-app@latest'), the configuration to apply, the verification commands that must pass, and the artifacts that must EXIST when the work is finished",
+        "'generatedArtifacts' changes meaning from 'files this pack writes' to 'files that must be present afterwards', making it a checkable assertion rather than an unkept promise",
+        "A pack is bound to something real: a deterministic check fails when a pack's asserted artifact paths do not exist in the reference app that claims to implement it — closing the gap found on 2026-09-23, where no code anywhere linked a pack to a reference app",
+        "All nine existing pack fixtures migrate to v2 through the BF-006 artifact migration policy, with v1 fixtures retained and the migration path tested, rather than being rewritten in place",
+        "phases/06-scaffold.md's existing rule (always use the framework owner's CLI, never hand-write the scaffold, check real versions before installing) and the pack contract state the same thing, instead of the two halves of the repository contradicting each other"
+      ],
+      "artifacts": [],
+      "verification": ["npm test", "npm run check"],
+      "notes": "Opened 2026-09-23 per D-011, which resolves D-010's first open question by choosing the opposite of the obvious answer: Buaflow will NOT build a template generator that stamps code out of a pack. A template generator freezes a dependency snapshot at authoring time and so manufactures staleness on every run; it duplicates what create-*/cookiecutter/Yeoman have done for fifteen years; and it directly contradicts phases/06-scaffold.md, which already tells the AI to use the framework's own CLI precisely so the scaffold is current rather than remembered from last year. The durable asset is the assertion set, not the code."
+    },
+    {
+      "id": "BC-006",
+      "title": "Independent verifier role",
+      "milestone": "M3",
+      "status": "backlog",
+      "dependsOn": ["BF-005", "EP-001"],
+      "acceptance": [
+        "A verifier reaches a pass/fail decision from artifacts and command output alone and never treats the builder's self-report as evidence",
+        "The claim 'the verifier works' is itself evidence-backed: it catches seeded defects across a seeded-defect corpus at a stated threshold",
+        "It runs with a single agent — BC-001, BC-002 and BC-003 (agent I/O contract, work isolation, scheduler) serve parallel builds and are explicitly NOT prerequisites for verifying one build"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Pulled ahead of BC-001/BC-002/BC-003 on 2026-09-23 per D-011. The rationale is the model-durability test applied to the whole backlog: as models improve, work that tells an AI how to write code loses value, while work that independently proves what was produced gains value, because the better the model the less a human reads its output. By that test this is the highest-value unbuilt item in the repository. Left at 'backlog' rather than 'ready' only to respect the WIP limit while BF-008 is in progress."
+    },
+    {
+      "id": "EV-009",
+      "title": "First trial on a project Buaflow did not author",
+      "milestone": "M4",
+      "status": "backlog",
+      "dependsOn": [],
+      "acceptance": [
+        "Buaflow is applied end to end to at least one project it did not itself author — brownfield via phases/A-adopt-existing.md preferred — and the run is measured, not narrated: human questions answered, reviewer minutes, time to first runnable, time to production candidate",
+        "Every point where the kit was wrong, silent or in the way is recorded as evidence, and feeds the decision about which of PP-006..009, BC-* and EP-* are actually worth building",
+        "The north-star metric gains a denominator that is not Buaflow's own reference apps"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Opened 2026-09-23 per D-011. Today every readiness claim in this repository comes from an app Buaflow wrote, verified and graded itself, so the north-star metric has no real denominator. The METR study already cited in the roadmap's own section 12 says perceived speed diverges from measured time specifically in mature codebases, which is exactly the case this kit has never been tested against."
     }
   ],
   "decisions": [
@@ -665,12 +744,19 @@
       "decision": "Recorded two open, UNRESOLVED design questions raised by the user in a post-PP-005 discussion, deliberately without acting on either yet. (1) Whether a PP-005-style finding (a specific, narrow implementation bug found while building one reference app) should be promoted into a core/rules/*.md rule that auto-loads for future work — decided NOT to, for now: a single occurrence is not enough signal to justify a rule every future session pays a (small but nonzero) token/maintenance cost for; revisit only if the same class of mistake recurs across multiple future builds, not preemptively from n=1. (2) A more fundamental question about what reference apps are actually FOR and whether the current design is sound at all, which surfaced two real gaps: reference apps are not meant to be re-read in full for every new project (the schemas/pack.schema.json contract — inputs/generatedArtifacts/verification/operationalEvidence — is the intended compact, reusable artifact), but Buaflow has no generator that actually consumes a pack to stamp out a new project yet (per PP-002's own notes), so today a reference app is the de facto fallback to fork/reference, not the intended end state; and reference apps/packs have NO staleness or drift detection at all — pack.schema.json's own `upgrade` field exists exactly for recording how to move a pack from one version to the next, but every fixture (nextjs-postgres, react-fastapi-postgres, expo-fastapi-postgres-sync, and all capability packs) has `\"upgrade\": []` — nothing has ever populated it, so there is no answer yet to 'this golden stack's pinned dependencies are now a year old, how does an adopter know or fix that.'",
       "reason": "The user is going to consult a different/more capable model to analyze direction before deciding anything, specifically instructed not to act yet ('บันทึกไว้งั้น ผมจะไปเปลี่ยน model ที่เก่งกว่ามาวิเคราะห์ว่าควรจะไปทางไหนต่อ'). This decision exists purely to make sure the two gaps aren't lost or silently re-discovered from scratch in a future session, per the roadmap's own section 10 rule ('ห้ามเขียนทับเหตุผลเดิมแบบเงียบๆ — เพิ่มรายการใน decisions').",
       "impact": "No work item was created and no roadmap edit was made — per BUAFLOW_PRODUCT_ROADMAP.md section 10's own rule, the roadmap itself should only change when product scope genuinely changes, not for every internal discussion, and nothing has actually been decided yet. A future session (with the user, possibly informed by the other model's analysis) should treat gap (2) — no generator, no pack-freshness/upgrade mechanism — as a real, load-bearing open question before assuming PP-006..009 (more packs) or further golden-stack work is the right next investment; it may be more valuable than adding more reference apps on the current foundation. Do not silently start building a generator or an upgrade-detection mechanism without that conversation happening first — this decision records the question, not a mandate to solve it."
+    },
+    {
+      "id": "D-011",
+      "date": "2026-09-23",
+      "decision": "Resolved both open questions recorded in D-010, after a full direction review of the repository with the user. (1) PACKS ARE RECIPES AND ASSERTIONS, NOT TEMPLATES — Buaflow will NOT build a generator that stamps project code out of a pack. A pack v2 declares the framework-owned CLI commands to run unpinned, the configuration to apply, the verification commands that must pass, and the artifacts that must EXIST afterwards; the AI of the day does the building and Buaflow does the proving (PP-010). (2) STALENESS BECOMES A READINESS CONTROL, NOT A HAND-WRITTEN LEDGER — an 'evidence-freshness' control plus a scheduled re-verification workflow replaces the unused pack.schema.json 'upgrade' field as the answer to aging pinned dependencies (EP-010). Three further items came out of the same review: BF-008 (CI for the kit itself, opened and started immediately), BC-006 pulled ahead of BC-001/002/003, and EV-009 (a first trial on a project Buaflow did not author). BC-001 was demoted from 'ready' to 'backlog' as a direct consequence.",
+      "reason": "The review examined the repository rather than its documentation, and several checkable facts contradicted the stated direction. 261 of 464 tracked files (56%) are reference apps. backend/app/config.py and backend/app/db.py are byte-identical between react-fastapi-postgres-crud and expo-fastapi-postgres-sync, and auth.py differs by 10 of 53 lines: the reference apps are being hand-copied, which is exactly the O(n) maintenance cost a golden-stack strategy is supposed to avoid. No file under scripts/ or claude-setup/ mentions reference-apps at all, so no code anywhere binds a pack to the app that implements it — a pack today validates its own shape and nothing else. The three CI workflows all cover reference apps while scripts/check-repository.js, which already checks roadmap state, artifact contracts, core-to-adapter drift and the full test suite, is run by no workflow at all. And phases/06-scaffold.md has said since before this workstream existed that the AI must always use the framework owner's CLI and check real versions, precisely so the scaffold is current rather than remembered — meaning the repository already contained the answer to the staleness question, and the pack/reference-app direction had been drifting against it. The selection rule applied throughout was: if the next model generation is ten times better, does this work become more valuable or less? Gates, validators, evidence and independent verification become more valuable; frozen code and prompts that teach an AI how to write code become less.",
+      "impact": "PP-002's contract is superseded by PP-010 rather than extended, and PP-006/PP-008/PP-009 should be reconsidered in recipe-and-assertion form before any of them is built as example code — commercial and Thailand packs (payment, subscription, PDPA, PromptPay, LINE) are the fastest-aging content in the plan and are the worst candidates for frozen code. No fourth golden stack should be added: PP-003, PP-004 and PP-005 already show diminishing returns, and the existing three are most useful reclassified as conformance fixtures that prove the gates catch real defects, not as things an adopter forks. The roadmap tables gain BF-008, EP-010, PP-010 and EV-009 because product scope genuinely changed here, per section 10's own rule. Nothing in the readiness model, the evidence bundle format or the R0-R4 definitions changes — that core was found sound and is the part of Buaflow that survives model turnover."
     }
   ],
   "lastSession": {
     "date": "2026-09-23",
-    "summary": "A new session picked up the roadmap fresh (previous DV-001..003 work was already committed, contrary to the prior lastSession.next's note). PP-005 (mobile golden stack) was the only ready/in_progress item, so it was built end to end. Confirmed Expo (React Native + TypeScript) over Flutter with the user via AskUserQuestion first. Built reference-apps/expo-fastapi-postgres-sync: a FastAPI + PostgreSQL sync backend (GET /api/sync/pull cursor-based, POST /api/sync/push batched with server-clock last-write-wins conflict resolution — reused PP-004's Task model almost directly, since its existing updated_at/deleted_at pair already was the sync cursor + tombstone this needed) plus bearer-token auth (React Native has no cookie jar); an Expo mobile client with an offline-first local store split via Metro's platform-extension convention (expo-sqlite on native, localStorage on the web export, since expo-sqlite's web target needs COOP/COEP headers this app's setup doesn't provide — a runtime Platform.OS branch was tried first and broke the web bundle by statically pulling in expo-sqlite's WASM worker regardless); a pure, unit-tested client-side sync engine; Playwright e2e tests including a genuine offline/online round trip via real browser-context network emulation; Docker packaging (single image serving the mobile web export); migration/rollback and clean-environment rehearsals; SBOMs and dependency/secrets scans; docs/sync-contract.md (the required documented sync/offline contract) plus runbook/security-notes/requirements-traceability; and a CI workflow with a dedicated android job (expo prebuild + gradlew assembleDebug) run only in CI, not locally — no Android SDK/JDK was installed on the user's own machine, a deliberate choice to avoid a multi-GB footprint on their personal Windows machine for a demo build. Two real bugs were found and fixed, not hidden: (1) a genuine data-loss race in the mobile sync hook (a sync triggered right after a local mutation could read a stale state snapshot and silently overwrite the just-made edit), caught by e2e tests actually failing and root-caused through two wrong fix attempts before the correct one (an eagerly-updated ref as the single synchronous source of truth, not a useEffect-mirrored ref and not a React setState 'peek', which does not run synchronously); (2) npm audit found 10 moderate findings in the mobile production dependency tree, all one transitive uuid advisory via Expo's own iOS-tooling chain, fixed with a targeted npm overrides pin. Pushed twice with the user's confirmation each time: the first push's CI failed only in the android job (android-actions/setup-android@v3's own default packages input requests a legacy 'tools' SDK package Google removed from its repository years ago); fixed by overriding packages to 'platform-tools' only, added a workflow_dispatch trigger (the path-filtered push trigger doesn't fire for workflow-only edits), and re-dispatched — the second run was fully green (verify, android, docker all pass) on https://github.com/Khattiya01/buaflow/actions/runs/35818912160, one fix-iterate round total (better than PP-003's three). Finalized docs/evidence/readiness.json's commit and ci evidence to the real values afterward (same PP-003/004 pattern: evidence is provisional until a real CI run confirms it, then corrected). PP-005 is marked done in this same update. This work IS committed (three commits: the main feature, the CI fix, the workflow_dispatch addition) but the very last edits — readiness.json's real commit/CI-URL correction, the eval fixture's ciRun field, the evidence bundle regeneration, and this state.json update itself — are not yet committed as of writing this.",
-    "next": "PP-005 is done and its finalization commits are pushed (verify/android/docker all green in CI, including on the final evidence-correction commit — see D-009). M3 as a milestone is NOT yet complete: BC-003 (parallel scheduler) and BC-006 (independent verifier catching seeded defects) both remain, and both depend on BC-001/BC-002 which don't exist as state.json work items yet. current.focus points at BC-001 (Agent task I/O contract), added as 'ready'/not-started only because current.focus cannot be empty or reference a done item — its scope is a real, foundational design decision and should be confirmed with the user before any code, the same way PP-005's stack choice was. Do not start implementing BC-001 without that conversation. MORE IMPORTANTLY, per D-010: the user is taking two open questions to a different/more capable model to analyze before deciding direction — (1) whether Buaflow should build an actual generator that consumes pack contracts, rather than reference apps being the de facto thing to fork, and (2) how (or whether) to detect/handle golden-stack packs going stale as pinned dependencies age, since pack.schema.json's own `upgrade` field is unused in every fixture today. Read D-010 in full before assuming the current reference-app-centric approach (more PP-00x reference apps, more packs) is still the right next investment — the user may come back with a different direction entirely. Do not start BC-001, a generator, or an upgrade-detection mechanism speculatively; wait for that conversation. MT-003/MT-004 (Codex/Copilot adapters) remain untouched per the standing vendor-scope preference. Canonicalizing hooks/settings.json into core/ remains a closed investigation per D-008.",
-    "verifiedAt": "2026-09-23T12:10:00.0000000+07:00"
+    "summary": "A direction-review session, opened because D-010 had parked two unresolved questions for a more capable model to analyse. The review read the repository rather than its documentation and found several checkable facts that contradicted the stated direction: 261 of 464 tracked files (56%) are reference apps; backend/app/config.py and db.py are byte-identical between the react-fastapi and expo-fastapi reference apps and auth.py differs by 10 of 53 lines, so the apps are being hand-copied; no file under scripts/ or claude-setup/ mentions reference-apps at all, so nothing binds a pack to the app implementing it; all three CI workflows cover reference apps while scripts/check-repository.js (roadmap state, artifact contracts, core-to-adapter drift, full test suite) is run by no workflow at all; and phases/06-scaffold.md has always required using the framework owner's CLI and checking real versions, which is the answer to the staleness question the pack direction had been drifting away from. Both D-010 questions are now resolved in D-011: packs become recipes and assertions rather than templates (PP-010, no code generator will be built), and staleness becomes an evidence-freshness readiness control plus scheduled re-verification rather than the unused pack upgrade[] ledger (EP-010). Five work items were added — BF-008 (CI for the kit itself, in_progress), EP-010, PP-010, BC-006 (pulled ahead of BC-001/002/003) and EV-009 (first trial on a project Buaflow did not author) — and BC-001 was demoted from ready to backlog. This commit is the plan only; no implementation yet.",
+    "next": "Work BF-008 first, it is in_progress and current.focus points at it: add a CI workflow that runs 'npm run check' on push and pull request for the kit itself, and clear the hygiene items (the empty stray directory under reference-apps/ left by a broken shell command, and AI_SDLC_COMPARISON.md and CLI.md being referenced by tracked docs while untracked). Then EP-010 (evidence-freshness control plus scheduled re-verify), then PP-010 (pack contract v2), then promote BC-006 to ready. Each item is independent and must be committed on its own so a lost session costs nothing. Read D-011 before questioning any of this — the reasoning and the rejected alternatives are recorded there, including why no template generator will be built and why no fourth golden stack should be added.",
+    "verifiedAt": "2026-09-23T13:05:00.0000000+07:00"
   }
 }

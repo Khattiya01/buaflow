@@ -120,6 +120,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | BF-005 | Fail-closed production mode | production mode ห้าม skip verify/scanner ที่ required |
 | BF-006 | Canonical artifact schemas | schema versioning/migration policy สำหรับ state, intent, plan, proof |
 | BF-007 | CLI shell | `buaflow init`, `doctor`, `verify`, `readiness`, `resume` |
+| BF-008 | CI ของ kit เอง | workflow ที่รัน `npm run check` ทุก push/PR — gate/validator/adapter drift ของ Buaflow ถูกบังคับด้วยเครื่อง ไม่ใช่ด้วยความจำของคนรัน |
 
 ### Discovery and Validation — จับปัญหาให้ถูกก่อนเข้า Intent Compiler
 
@@ -157,6 +158,14 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | PP-007 | Core capability packs | auth, RBAC/ownership, DB, storage, notification, background jobs, audit log |
 | PP-008 | Commercial capability packs | payment, subscription, search, analytics, AI/RAG, i18n |
 | PP-009 | Thailand packs | PDPA, PromptPay/payment providers, LINE integration, Thai localization |
+| PP-010 | Pack contract v2: recipe + assertion | pack ประกาศ "คำสั่ง CLI ของเจ้าของ framework ที่ต้องรัน (ไม่ pin เวอร์ชัน) + config + verification + ไฟล์ที่ต้องมีอยู่จริงหลังทำเสร็จ" แทนการเป็น template — ดู D-011 |
+
+> **ทิศทางของ pack เปลี่ยนที่ D-011 (23 กันยายน 2026)** — Buaflow จะ **ไม่** สร้าง generator ที่ stamp โค้ดออกมาจาก pack
+> template generator แช่แข็ง dependency ไว้ที่วันที่เขียน จึงผลิต staleness ทุกครั้งที่รัน และขัดกับ `phases/06-scaffold.md`
+> ที่สั่งไว้ตั้งแต่ต้นว่าให้ใช้ CLI ของเจ้าของ framework เสมอและเช็กเวอร์ชันจริงก่อนติดตั้ง
+> สินทรัพย์ที่ทนต่อเวลาคือ **ชุด assertion และ verification** ไม่ใช่โค้ด — AI รุ่นไหนก็ได้เป็นคนลงมือ Buaflow เป็นคนพิสูจน์
+> ผลที่ตามมา: PP-006/PP-008/PP-009 ต้องทบทวนให้อยู่ในรูป recipe + assertion ก่อนลงมือ โดยเฉพาะ payment/subscription/PDPA/PromptPay/LINE
+> ซึ่งเป็นเนื้อหาที่เก่าเร็วที่สุดในแผนทั้งหมด และไม่ควรถูกแช่ไว้เป็นโค้ดตัวอย่าง
 
 ### Build and Convergence — ให้หลาย agent ทำเร็วโดยไม่ประกอบกันแล้วพัง
 
@@ -187,6 +196,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | EP-007 | Performance/accessibility budgets | profile-specific threshold และ repeatable command |
 | EP-008 | Deployable handoff | image/package/manifests/config contract; clean-environment rehearsal |
 | EP-009 | R3 qualification gate | fail-closed decision และ human-readable report จาก machine state |
+| EP-010 | Evidence freshness | control `evidence-freshness` + scheduled re-verify — หลักฐานที่เก่าเกินหน้าต่างที่ประกาศไว้ หรือผูกกับ commit ที่ไม่ใช่บรรพบุรุษของ HEAD จะเป็น `expired` ไม่ใช่ `pass` |
 
 ### Model and Tool Independence
 
@@ -224,6 +234,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | EV-006 | Feedback-to-change loop | evidence → proposal → eval → rollout/rollback |
 | EV-007 | Compatibility and release policy | semver, migration, deprecation, support matrix |
 | EV-008 | Documentation/onboarding | quickstart, workshop, troubleshooting และ complete sample |
+| EV-009 | Trial บนโปรเจกต์ที่ Buaflow ไม่ได้เขียนเอง | north-star metric ได้ตัวหารที่ไม่ใช่ reference app ของตัวเอง พร้อมตัวเลขคำถาม/เวลา/จุดที่ kit ผิดหรือเงียบ |
 
 ## 7. Milestones
 
