@@ -76,7 +76,10 @@ for (const id of items.keys()) visit(id);
 
 const focus = state.current?.focus;
 if (!/^M\d+$/.test(state.current?.milestone || '')) fail('current.milestone is invalid');
-if (!Array.isArray(focus) || focus.length === 0) fail('current.focus must be a non-empty array');
+// An empty focus is honest only when nothing is left open; otherwise it hides the next item.
+const open = [...items.values()].filter((item) => !['done', 'dropped'].includes(item.status));
+if (!Array.isArray(focus)) fail('current.focus must be an array');
+else if (focus.length === 0 && open.length) fail(`current.focus is empty while ${open.length} item(s) are open (${open.map((item) => item.id).join(', ')})`);
 for (const id of focus || []) {
   if (!items.has(id)) fail(`current.focus references unknown item ${id}`);
   else if (['done', 'dropped'].includes(items.get(id).status)) fail(`current.focus cannot reference ${items.get(id).status} item ${id}`);

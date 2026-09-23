@@ -4,10 +4,8 @@
   "product": "buaflow",
   "updatedAt": "2026-09-24",
   "current": {
-    "milestone": "M8",
-    "focus": [
-      "BC-001"
-    ]
+    "milestone": "M6",
+    "focus": []
   },
   "workItems": [
     {
@@ -484,15 +482,14 @@
       "id": "BC-001",
       "title": "Agent task I/O contract",
       "milestone": "M8",
-      "status": "backlog",
+      "status": "dropped",
       "dependsOn": [],
       "acceptance": [
-        "A schema defines what an agent task input/output looks like: allowed scope, proof requirements, and retry/abort rules, per BUAFLOW_PRODUCT_ROADMAP.md's BC-001 row",
-        "When drafted for real, references the agent contract (permission/write-scope/budget/stop_when), autonomy/risk tier (A0-A4) and agent-run-record format from the 'AI-Native SDLC + Agentic Engineering' research reviewed in D-004/D-005, per the roadmap's own pointer note after the BC-* table, rather than inventing an unrelated shape"
+        "Dropped by D-026: coordination belongs to Claude Code and the model; the gate on the merged result is the proof"
       ],
       "artifacts": [],
       "verification": [],
-      "notes": "Not started, and deliberately DEMOTED from 'ready' to 'backlog' on 2026-09-23 per D-011 — it is infrastructure for parallel agent builds, which nothing needs yet, while BC-006 (independent verifier) delivers value with a single agent and becomes MORE valuable as models improve. The original note follows. current.focus previously pointed here only because PP-005 was done and current.focus cannot be empty or reference a done item — this is the roadmap's own next-listed item toward M3's still-unmet criteria (scheduler under contract, independent verifier catching seeded defects both need this first). Scope is a real, foundational design decision — the shape of every future agent task, not a narrow slice like DV-001..003 were — and should be confirmed with the user before starting, the same pattern PP-005's own stack choice and EP-001/BC-005's scope followed. 2026-09-24 (D-025): moved to M8 after M7 was dropped. The user runs several agents at once as a habit, which is the reopen condition the roadmap names; the scope is still to be confirmed with the user before it starts, so the status stays backlog."
+      "notes": "Not started, and deliberately DEMOTED from 'ready' to 'backlog' on 2026-09-23 per D-011 — it is infrastructure for parallel agent builds, which nothing needs yet, while BC-006 (independent verifier) delivers value with a single agent and becomes MORE valuable as models improve. The original note follows. current.focus previously pointed here only because PP-005 was done and current.focus cannot be empty or reference a done item — this is the roadmap's own next-listed item toward M3's still-unmet criteria (scheduler under contract, independent verifier catching seeded defects both need this first). Scope is a real, foundational design decision — the shape of every future agent task, not a narrow slice like DV-001..003 were — and should be confirmed with the user before starting, the same pattern PP-005's own stack choice and EP-001/BC-005's scope followed. 2026-09-24 (D-025): moved to M8 after M7 was dropped. The user runs several agents at once as a habit, which is the reopen condition the roadmap names; the scope is still to be confirmed with the user before it starts, so the status stays backlog. 2026-09-24 (D-026): dropped. The coordination half (which agent touches what, retry/abort) is the orchestrator's job and Claude Code already owns it: subagents, workflows and agent teams plan and split work, and a stronger model plans it better. The proof half this item also named is already covered: the gate and buaflow ci run on the merged result from a clean checkout, so parallel work that is green alone and broken together is caught where it matters."
     },
     {
       "id": "MT-001",
@@ -1944,6 +1941,32 @@
       "artifacts": [],
       "verification": [],
       "notes": "Dropped by D-025 at the user's direction. What a pack would have added is the provider recipe, which is exactly what a current model plus a docs fetch at task time already does better and fresher. The part that is not the AI's job to remember — proving the result (webhook signature checked, idempotent payment handling, amounts computed on the server, PDPA consent and deletion) — is not domain-specific machinery; it belongs in the project's own requirements, security baseline (EP-003) and evals, which the kit already enforces."
+    },
+    {
+      "id": "BC-002",
+      "title": "Work isolation adapter",
+      "milestone": "M8",
+      "status": "dropped",
+      "dependsOn": [],
+      "acceptance": [
+        "Dropped by D-026: Claude Code isolates agents in worktrees natively"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Dropped by D-026. Claude Code already isolates parallel agents in their own git worktree (Agent isolation: \"worktree\", EnterWorktree). A kit adapter would wrap a feature the tool ships natively and track its changes."
+    },
+    {
+      "id": "BC-003",
+      "title": "Parallel scheduler",
+      "milestone": "M8",
+      "status": "dropped",
+      "dependsOn": [],
+      "acceptance": [
+        "Dropped by D-026: scheduling agents is the orchestrator's and model's job"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Dropped by D-026. Dependency ordering, concurrency and conflict avoidance between agents are planning, which is what the model and Claude Code's own orchestration improve at fastest. A kit scheduler would be the kind of machinery D-011 says the AI should own; Buaflow keeps the part it owns — proving the merged result."
     }
   ],
   "decisions": [
@@ -2121,12 +2144,19 @@
       "decision": "PP-008 and PP-009 are dropped and M7 (Domain Advantage) is closed without work. MT-006 is recorded as dropped everywhere. The next milestone is M8 (parallel build, BC-001..003), still awaiting the user's confirmation of scope.",
       "reason": "The user pointed out that when an app needs payment, PDPA or LINE, the building agent already chooses the tool and fetches its current documentation during the task, and models keep getting better at it, so a pack proven in advance adds a stale copy rather than knowledge. D-011 (the AI builds, Buaflow proves) supports this: the proof side — signature checks, idempotency, consent and deletion — is generic and already lives in requirements, the security baseline and evals. MT-006 was inconsistent between state.json (dropped by D-013) and the roadmap's parked table. The user also runs several agents in parallel, which is the reopen condition written for BC-001..003.",
       "impact": "The catalog stays at the packs that are already proven. current.focus moves from M7 (which has no items left) to BC-001 under M8, status backlog; nothing starts until the user confirms the scope."
+    },
+    {
+      "id": "D-026",
+      "date": "2026-09-24",
+      "decision": "BC-001, BC-002 and BC-003 are dropped and M8 (Parallel Build) closes without work. With nothing left open, current.focus is empty and current.milestone stays at M6, the last milestone that closed with work; check-roadmap.js now allows an empty focus only when no item is open.",
+      "reason": "The user asked whether a much stronger Claude Code would handle parallel agents by itself, and to drop the items if so. It largely does already: worktree isolation is native, and subagents, workflows and agent teams split and schedule work — planning is where models improve fastest. Under D-011 the AI builds and Buaflow proves, and the proof for parallel work already exists: the pre-push gate and buaflow ci verify the merged result from a clean checkout. The same reasoning dropped PP-008/009 in D-025.",
+      "impact": "The roadmap has no open work items. MT-003/004 remain parked until the user asks. New work starts as a fresh item written from a real need (a failure seen in a real project, or a user request), not from this plan."
     }
   ],
   "lastSession": {
     "date": "2026-09-24",
     "summary": "M5 and M6 closed. EV-009 finished under D-024: R2 10/10 through a local clean-checkout CI (buaflow ci), R1->R2 measured at ~0.4 work-hours, and reviewer-minutes measured by an AI-proxy reviewer on seven real Bluepeak Hub tasks (median 1 min, 57% first-pass, owner accepted the risk). Kit went 3.8.1 -> 3.11.1: local CI; IC-002..005 (question budget, intake, assumption ledger, EARS + trace); EV-006 change proposals checked against evals; EV-001 reference matrix; MT-007 manual playbooks for tools without session features; BC-007 repair-loop budget; M6 Claude-only — Buaflow as a validated Claude Code plugin with checksums and a trust tier, buaflow lock, permission and MCP audits. Seventeen findings from the outside trial are recorded; all kit-side ones are fixed. Suite 390+/390+.",
-    "next": "D-025: M7 dropped (PP-008/009 — the agent reads current provider docs at task time; proof stays generic in requirements/security baseline/evals). MT-006 aligned to dropped. Next is M8 parallel build (BC-001..003); scope must be confirmed with the user before BC-001 starts. Open in Bluepeak Hub: T-012 (needs a session allowed to edit .claude/); merging buaflow/phase-a-adoption is the owner's call.",
+    "next": "No open items. D-025 dropped M7 (domain packs) and D-026 dropped M8 (parallel build) — the model and Claude Code own those; Buaflow keeps proving the result. Parked until asked: MT-003/004. Open in Bluepeak Hub: T-012 (needs a session allowed to edit .claude/); merging buaflow/phase-a-adoption is the owner's call. New work should come from a failure seen in a real project.",
     "verifiedAt": "2026-09-23T17:29:11.223Z"
   }
 }

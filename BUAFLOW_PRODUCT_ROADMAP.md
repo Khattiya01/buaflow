@@ -172,9 +172,9 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 
 | ID | งาน | ผลลัพธ์ |
 |---|---|---|
-| BC-001 | Agent task I/O contract | input/output schema, allowed scope, proof, retry/abort rules |
-| BC-002 | Work isolation adapter | branch/worktree/container strategy ตาม environment |
-| BC-003 | Parallel scheduler | dependency graph, concurrency budget, conflict prevention |
+| ~~BC-001~~ | ~~Agent task I/O contract~~ | **dropped (D-026)** — การแบ่งงานให้ agent เป็นหน้าที่ของ Claude Code และโมเดล · ฝั่งพิสูจน์มีแล้ว: gate และ `buaflow ci` ตรวจผลที่ merge รวมจาก clean checkout |
+| ~~BC-002~~ | ~~Work isolation adapter~~ | **dropped (D-026)** — Claude Code แยก agent ใน git worktree ได้เองอยู่แล้ว |
+| ~~BC-003~~ | ~~Parallel scheduler~~ | **dropped (D-026)** — ลำดับงาน/การชนกันระหว่าง agent คือการวางแผน ซึ่งเป็นสิ่งที่โมเดลเก่งขึ้นเร็วที่สุด |
 | BC-004 | Convergence graph | requirement ↔ design ↔ data/API ↔ UI ↔ tests ↔ deployment |
 | BC-005 | Contract mismatch detectors | schema/API/migration/UI/requirement drift checks |
 | BC-006 | Independent verifier role | verifier ไม่ใช้ self-report จาก builder เป็นหลักฐานเดียว |
@@ -307,10 +307,12 @@ EV-009 (trial แรก), EV-004 (eval harness ที่ทำซ้ำได้
 > ⇒ pack แรกของ M7 เริ่มได้ **เมื่อมีโปรเจกต์จริงที่ต้องใช้มัน** และ pack ถูก bind กับโปรเจกต์นั้นตั้งแต่วันแรก
 > ไม่ใช่เขียนล่วงหน้าเผื่อ
 
-### M8 — Parallel Build (เป้าหมายถัดไป — รอผู้ใช้ยืนยัน scope)
+### ~~M8 — Parallel Build~~ — dropped (D-026, 24 กันยายน 2026)
 
-BC-001 / BC-002 / BC-003 — ผู้ใช้รันหลาย agent พร้อมกันเป็นปกติ ซึ่งคือเงื่อนไขเปิดที่เขียนไว้ตั้งแต่ D-011
-ยังเป็น backlog จนกว่าผู้ใช้จะยืนยัน scope ของ BC-001 (รูปร่างของทุก agent task ในอนาคต — ต้องตกลงก่อนเริ่ม)
+> **ปิดโดยไม่ทำ** เหตุผลเดียวกับ M7: การรันหลาย agent พร้อมกัน (แยก worktree, แบ่งงาน, จัดลำดับ) Claude Code และโมเดล
+> ทำเองได้และจะเก่งขึ้นเร็วกว่าที่ kit จะตามทัน · สิ่งที่ Buaflow ถือไว้คือการพิสูจน์ผลที่ merge รวมแล้ว ซึ่ง
+> pre-push gate และ `buaflow ci` ทำอยู่แล้ว ⇒ **roadmap ไม่มีงานเปิดเหลือ** งานใหม่ให้เขียนเป็น item ใหม่จากความล้มเหลว
+> ที่เจอในโปรเจกต์จริงหรือคำขอของผู้ใช้ ไม่ใช่ดึงจากแผนนี้
 
 ### งานที่พักไว้โดยตั้งใจ ไม่ใช่ลืม
 
