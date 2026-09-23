@@ -1,6 +1,6 @@
 # EV-009 — Trial 1: Bluepeak Hub
 
-> **สถานะ: กำลังดำเนินการ** · เริ่ม 2026-09-24 · ยังไม่จบ Phase A
+> **สถานะ: Phase A เสร็จแล้ว** · 2026-09-23 · ยังเหลือ Phase 7 ข้อ 7.11 (eval baseline)
 > โปรเจกต์ทดลองตัวแรกที่ **Buaflow ไม่ได้เขียนเอง** — north-star metric ได้ตัวหารที่ไม่ใช่
 > reference app ของตัวเองเป็นครั้งแรก
 
@@ -139,34 +139,99 @@ frontend 195 ไฟล์ · **0 เทส** · smoke ของ backend เป�
 
 ---
 
-## 5. จุดที่ kit ผิด เงียบ หรือขวางทาง
+## 5. Phase A — ทำจนจบแล้ว
+
+| ขั้น | ผล |
+|---|---|
+| A.1 inventory | ✅ `docs/planning/A1-inventory.md` |
+| A.2 verify | ✅ ผ่านทั้งสองฝั่งตั้งแต่ครั้งแรก → ตั้งเป็น `verifyCommand` |
+| A.3 ADR ย้อนหลัง | ✅ **โดยการไม่เขียน** — `docs/architecture.md` มีทะเบียน Decision 43+ ข้ออยู่แล้ว |
+| A.4 ธรรมนูญ | ✅ มาตรา 9 จากของจริง + 9.1 เปิดใช้ |
+| A.5 config | ✅ `check-config` → **ต้องแก้: 0** |
+| A.6 source of truth | ❌ **ยังไม่ตัดสิน** — เป็นคำถามที่ต้องให้ทีมตอบ |
+| A.7 intents | ✅ I-001…I-004 |
+| A.8 checklist | 🚧 5/7 · ค้างที่ "ทีมยืนยัน inventory" กับ "ตัดสิน source of truth" |
+
+### gate เต็มของ Buaflow รันบนโปรเจกต์จริง — ผ่าน
+
+```
+gate
+  pass  verify  (54.5s)      warn  audit   (0.9s)     skip  secrets
+  pass  check-config (4.1s)  pass  docs-lint (0.0s)
+ผ่านทุกด่าน                                            exit 0 · 60s
+```
+
+`audit` เป็น warn ถูกต้องแล้ว — ยังมี high ค้างจริง และตั้ง `auditMode: warn` ไว้ตามที่
+A.5 แนะนำสำหรับโปรเจกต์เดิม · `secrets` skip เพราะยังไม่ได้ติดตั้ง gitleaks
+
+### 🎯 คำตอบที่ EV-009 ต้องการ: โปรเจกต์นี้อยู่ที่ระดับไหน
+
+```
+readiness --level R1  →  PASS 5/5
+readiness --level R2  →  FAIL 9/10
+```
+
+> **R1 ผ่านเต็ม · R2 ติดข้อเดียวคือ `ci`**
+>
+> ไม่มี `.github/` เลยทั้ง repo ⇒ `verify:all` กับ `gate:phase0` ที่เขียนไว้ดีพอจะเป็น
+> CI pipeline อยู่แล้ว **รันเมื่อมีคนนึกได้เท่านั้น** · แก้ข้อเดียวนี้ = ถึง R2
+
+นี่คือตัวเลขแรกของ north-star metric ที่ตัวหารไม่ใช่ reference app ของ Buaflow เอง
+
+---
+
+## 6. จุดที่ kit ผิด เงียบ หรือขวางทาง
 
 > acceptance ข้อ 2 ของ EV-009 — บันทึกทุกจุดที่ kit ผิด เงียบ หรือขวางทาง
 
 | # | สิ่งที่เจอ | ความรุนแรง |
 |---|---|---|
-| **K-1** | **`buaflow doctor` ไม่รู้ว่า project root อยู่ใน git repo หรือเปล่า** — มันเช็กแค่ `git --version` (ว่าเครื่องมี git ไหม) ตอนที่ชี้ไปที่ `frontend/` ซึ่ง git root อยู่สูงขึ้นไปหนึ่งชั้น kit ไม่ได้เอะใจเลย ทั้งที่ control `version-control` ที่ R0 ต้องการ commit identity | medium |
-| **K-2** | **ไม่มีทางถามว่า "โปรเจกต์นี้อยู่ที่ R เท่าไร"** — `buaflow readiness` ต้องมี manifest ก่อน คำถามแรกของคนทำ brownfield คือ *"ตอนนี้ฉันอยู่ตรงไหน"* คำตอบของ kit คือ *"เขียนคำตอบมาก่อน แล้วเดี๋ยวฉันตรวจเลขให้"* → **kit ขวางทางตรงจุดที่ควรช่วยมากที่สุด** | **high** |
-| **K-3** | **เพดาน verify ~30 วินาทีของ A.2 ไม่สอดคล้องกับของจริง** — `verify:all` ของเขา = **59s** คือ 2 เท่าของเพดาน และมันคือ pipeline ที่ดี ไม่ใช่ pipeline ที่ช้าเพราะเขียนแย่ · ฝั่ง frontend อย่างเดียว (`typecheck && lint`) = 24s เหลือที่ว่าง 6 วินาทีโดยที่ยังไม่มีเทสสักตัว → เลขนี้ kit ยืนยันไว้เองโดยไม่เคยมีข้อมูล และนี่คือข้อมูลชุดแรกที่ขัดกับมัน | medium |
-| **K-4** | **A.1 บอกให้ใช้ built-in `/init` และ `/import` ก่อน** แต่ทั้งสองเป็นคำสั่ง interactive ของ Claude Code ที่ agent ใน session เดียวกันเรียกเองไม่ได้ → ขั้นแรกสุดของ Phase A เป็นขั้นที่ AI ทำตามไม่ได้ | low |
-| **K-5** | **state ของ kit เองมี milestone ค้าง** — `EV-009` ถูก tag เป็น M4 ทั้งที่ roadmap จัดมันอยู่ M5 พอ `current.milestone` ขยับเป็น M5 แล้ว `check-roadmap` ถึงจับได้ · **gate ของ kit จับของตัวเองได้ ถือว่าทำงานถูก** แต่ก็แปลว่าฟิลด์นี้เคยผิดมาตลอดโดยไม่มีใครเห็น | low |
+| **K-1** | **`buaflow doctor` ไม่รู้ว่า project root อยู่ใน git repo หรือเปล่า** — เช็กแค่ `git --version` (ว่าเครื่องมี git ไหม) · ตอนชี้ไปที่ `frontend/` ซึ่ง git root อยู่สูงขึ้นไปหนึ่งชั้น kit ไม่เอะใจเลย ทั้งที่ control `version-control` ที่ R0 ต้องการ commit identity | medium |
+| **K-2** | **ไม่มีทางถามว่า "โปรเจกต์นี้อยู่ที่ R เท่าไร"** — `buaflow readiness` ต้องมี manifest ก่อน คำถามแรกของคนทำ brownfield คือ *"ตอนนี้ฉันอยู่ตรงไหน"* คำตอบของ kit คือ *"เขียนคำตอบมาก่อน เดี๋ยวตรวจเลขให้"* · **ผมต้องเขียน manifest 10 control ด้วยมือเพื่อให้ได้คำตอบ ซึ่งเครื่องควรประเมินเองได้เกือบหมด** (build/verify/persistence/access-control/ci ล้วนตรวจได้จากการรันจริง) | **high** |
+| **K-3** | **เพดาน verify ~30 วินาทีของ A.2 ไม่สอดคล้องกับของจริง** — verify เต็มของโปรเจกต์นี้ **วัดได้ 67 วินาที** = 2.2 เท่าของเพดาน และเป็น pipeline ที่ดี ไม่ใช่ช้าเพราะเขียนแย่ · ฝั่ง frontend ลำพัง 24s เหลือที่ว่าง 6 วินาทีโดยยังไม่มีเทสสักตัว → เลขนี้ kit ยืนยันไว้เองโดยไม่เคยมีข้อมูล นี่คือข้อมูลชุดแรกที่ขัดกับมัน | medium |
+| **K-4** | **A.1 บอกให้เริ่มด้วย `/init` และ `/import`** ซึ่งเป็นคำสั่ง interactive ของ Claude Code ที่ agent เรียกเองไม่ได้ → ขั้นแรกสุดของ Phase A เป็นขั้นที่ AI ทำตามไม่ได้ | low |
+| **K-5** | **state ของ kit เองมี milestone ค้าง** — `EV-009` ถูก tag เป็น M4 ทั้งที่ roadmap จัดอยู่ M5 · `check-roadmap` จับได้ตอน `current.milestone` ขยับเป็น M5 — **gate ของ kit จับของตัวเองได้ ถือว่าทำงานถูก** แต่แปลว่าฟิลด์นี้ผิดมาตลอดโดยไม่มีใครเห็น | low |
+| **K-6** | **`check-config` บังคับให้บรรทัดแรกของ `CLAUDE.md` เป็น `@AGENTS.md`** — โปรเจกต์นี้มี `CLAUDE.md` ที่ดูแลมาอย่างดี 153 บรรทัด (สถานะรายเฟสที่แม่นกว่า `docs/INDEX.md` เสียอีก + ตาราง "5 กฎที่ห้ามละเมิด") · kit มองว่า `CLAUDE.md` เป็นชั้นบาง ๆ เหนือ `AGENTS.md` ซึ่งถูกสำหรับโปรเจกต์ใหม่ แต่สำหรับ brownfield ที่ลงทุนกับ `CLAUDE.md` ไปแล้ว มันคือคำสั่งให้รื้อ · **A.5 ไม่เตือนเรื่องนี้เลย** — แก้ด้วยการเติมบรรทัด import ไว้ข้างบนโดยไม่ลบของเดิม แต่ kit ควรบอกทางนี้เอง | **high** |
+| **K-7** | **`readiness.js` รับหลักฐานที่ลงวันที่ในอนาคตโดยไม่ทักเลย** — manifest ลงวันที่ 2026-09-24 บนเครื่องที่นาฬิกาเป็น 2026-09-23 · รายงานว่า `-2d old` แล้ว **PASS** · EP-010 สร้าง freshness control ไว้จับ "เก่าเกินไป" แต่ไม่จับ "ใหม่เกินกว่าจะเป็นไปได้" ซึ่งเป็นได้ทั้งนาฬิกาเพี้ยนและ timestamp ที่แต่งขึ้น — ไม่ควรผ่านเงียบ ๆ ทั้งสองกรณี | medium |
+
+### ข้อที่ kit ทำได้ดี (ต้องบันทึกด้วย ไม่ใช่เก็บแต่ข้อเสีย)
+
+- **hook ทำงานถูกทั้งหมดกับ repo จริง** — `guard-edit` บล็อกการแก้ migration ตาม `protected` ที่ตั้งใหม่,
+  `guard-bash` ปล่อยคำสั่ง verify ที่ยาวผ่าน, บล็อก push เข้า main, บล็อก `--no-verify`
+- **`check-config` วินิจฉัยตรงจุด** — บอกว่า rule ไหน `paths:` ไม่ match อะไรเลย พร้อมบอกว่า
+  pattern ไหนตาย ⇒ ทำให้ลบ `testing.md` และตัด 6 pattern ที่ตายเงียบได้อย่างมั่นใจ
+- **`check-roadmap` จับ milestone ที่ค้างของตัวเองได้** (K-5)
 
 ---
 
-## 6. ยังไม่ได้ทำ
+## 7. สิ่งที่เขียนลงโปรเจกต์ผู้ใช้
 
-- A.1 `docs/planning/A1-inventory.md` (รวบรวมข้อมูลแล้ว ยังไม่ได้เขียนลงโปรเจกต์)
-- A.3–A.8 (ADR ย้อนหลัง, ธรรมนูญ, `.claude/stack.json`, source of truth ของงาน)
-- Phase 7 (ติดตั้ง `.claude/` ทั้งชุด)
-- ประเมิน readiness level อย่างเป็นทางการ + `docs/evidence/readiness.json`
-- **reviewer-minutes และ TPC** — ยังวัดไม่ได้จนกว่าจะจบ Phase A
+อยู่บน branch `buaflow/phase-a-adoption` · commit `b828385` · **ไม่แตะ production code เลย**
 
-## 7. สิ่งที่เขียนลงโปรเจกต์ผู้ใช้แล้ว
-
-| ไฟล์ | สถานะ |
+| | |
 |---|---|
-| `backend/.env` | สร้างจาก `.env.example` + JWT secret สุ่ม 2 ตัว · **git ignore อยู่แล้ว** |
-| `frontend/node_modules/`, `backend/node_modules/` | ติดตั้งจาก lockfile · git ignore อยู่แล้ว |
-| container `bphub_postgres` + volume `bphub_db_data` | สร้างใหม่ทั้งคู่ (ไม่มีมาก่อน) · migrate + seed แล้ว |
+| แก้ไฟล์เดิม | **2 ไฟล์เท่านั้น** — `.gitignore` (เติม 4 บรรทัด) · `CLAUDE.md` (เติม `@AGENTS.md` ข้างบน เนื้อหาเดิม 153 บรรทัดอยู่ครบ) |
+| เพิ่มใหม่ | `.claude/` ทั้งชุด · `AGENTS.md` · `REVIEW.md` · `docs/constitution.md` · `docs/planning/{A1-inventory,_state}.md` · `docs/intents/I-001..004` · `docs/evidence/readiness.json` · โฟลเดอร์ artifact chain |
+| ไม่ได้ commit | `backend/.env` (gitignore) · `node_modules/` · container `bphub_postgres` + volume |
 
-**ไม่มีไฟล์ที่ git ติดตามถูกแก้แม้แต่ไฟล์เดียว** — `git status` ว่างตลอดการทดลอง
+---
+
+## 8. ยังเหลือ
+
+- **ทีมยืนยัน A1-inventory** และตอบ 3 คำถาม (shadcn? · source of truth? · แก้ INDEX.md?)
+- A.6 ตัดสิน source of truth แล้วบันทึกเป็น ADR
+- import `docs/roadmap.md` เดิมเป็น intent
+- Phase 7 ข้อ 7.11 — **eval baseline** ซึ่ง Phase A บอกว่าสำคัญเป็นพิเศษกับโปรเจกต์เดิม
+  เพราะรอบแรกจะบอกทันทีว่า AI เข้าใจ convention ของโค้ดเดิมจริงหรือแค่เดา
+- **reviewer-minutes และ TPC** — ยังวัดไม่ได้จนกว่าจะมีงานจริงไหลผ่าน loop
+
+## 9. สรุปสำหรับทิศทางของ kit
+
+1. **ข้อสรุปที่แรงที่สุด:** โปรเจกต์จริงที่ไม่เคยรู้จัก Buaflow ทำได้ **ดีกว่า** reference app
+   ของ Buaflow ใน 3 control ที่ M4 เพิ่งบันทึกเป็นความเสี่ยงที่ยอมรับไว้ (REQ-014/102/104)
+   ⇒ **reference app ไม่ใช่ตัวแทนของ "โปรเจกต์จริง" และไม่ควรถูกใช้เป็นตัวหารของ metric อีก**
+2. สิ่งที่ Buaflow ให้ค่าจริง ๆ กับโปรเจกต์นี้คือ **สิ่งที่มองไม่เห็น**: ช่องโหว่ dependency ที่ไม่มีใคร
+   เคยรายงาน, การไม่มี CI, และคำตอบว่าอยู่ที่ R เท่าไร — ไม่ใช่ convention หรือโครงสร้าง
+   ซึ่งเขามีดีอยู่แล้ว
+3. **K-2 คือของที่ควรทำต่อที่สุด** — ถ้า kit ประเมิน readiness เองได้จากการรันจริง
+   (build/verify/persistence/access-control/ci ตรวจได้หมด) ค่าที่ adopter ได้ในนาทีแรกจะต่างกันมาก

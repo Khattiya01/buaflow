@@ -5,7 +5,7 @@
   "releases": [
     {
       "version": "3.5.0",
-      "releasedAt": "2026-09-24",
+      "releasedAt": "2026-09-23",
       "change": "minor",
       "summary": "Profile-driven budgets (EP-007): application-profile gains an optional budgets field at schema 1.1, and a new public artifact, budget-evidence 1.0, records what an app measured without recording what it is allowed to be. The ceiling lives in the profile, so the same app passes or fails depending on what it claims to be. Measured numbers are re-derived from the cited evidence files, and a budgeted metric nothing measures fails. Additive: 1.0 profiles stay readable and simply declare no budgets, and a project without docs/evidence/budgets.json is not checked.",
       "reads": {
