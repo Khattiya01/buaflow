@@ -387,4 +387,4 @@ MT-006 (model routing) เป็น **dropped** ตาม D-013 ตรงกั�
 - [MCP](https://modelcontextprotocol.io/specification/draft/server/index): เหมาะกับ tool/context integration แต่ไม่แทน runtime SDK หรือ application integration contract
 - [OWASP ASVS](https://owasp.org/projects/asvs), [CycloneDX](https://www.cyclonedx.org/) และ [SLSA](https://slsa.dev/spec/v1.2/): ใช้เป็นฐาน security/supply-chain evidence แทนการคิด checklist เองทั้งหมด
 
-รายละเอียดการเปรียบเทียบเดิมอยู่ใน `AI_SDLC_COMPARISON.md`
+การเปรียบเทียบกับ AI-DLC Starter Template (D-001: ไม่ merge) ถูกลบออกจาก repo เมื่อ 24 กันยายน 2026 หลังงานจบ — ดูได้จาก git history (`git log -- AI_SDLC_COMPARISON.md`)
