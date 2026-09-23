@@ -17,7 +17,7 @@ The session context has a line `Buaflow kit <version> (from the buaflow plugin) 
 - Wherever a Buaflow document says `buaflow/<path>`, read `<KIT>/<path>`.
 - Run the CLI as `node "<KIT>/bin/buaflow.js" <command>`.
 
-If that line is missing, the plugin's SessionStart hook did not run. Tell the user to restart the session, or to check `/plugin` shows buaflow enabled. Then stop.
+If that line is missing, the plugin's SessionStart hook did not run. Tell the user to restart the session, or to check that buaflow is enabled with `/plugin` or, in the VS Code extension where `/plugin` is unavailable, `claude plugin list` in a terminal. Then stop.
 
 ## 2. Read the project's state
 
@@ -66,4 +66,4 @@ Before reporting Phase 7 complete, all of these must hold:
 - `node .claude/check-config.js` passes. Run it with `BUAFLOW_HOOKS_DIR="<KIT>/claude-setup/hooks"` so the hooks are tested against this project's `stack.json`.
 - `node .claude/gate.js` runs.
 
-Tell the user one thing plainly: each teammate runs `/plugin install buaflow@buaflow` once. The marketplace is added for them automatically, but the plugin is not installed automatically. The gate protects `main` either way.
+Tell the user one thing plainly: each teammate installs the plugin once: `/plugin install buaflow@buaflow` in the terminal app, or `claude plugin install buaflow@buaflow` in a terminal when using the VS Code extension. The marketplace is added for them automatically, but the plugin is not installed automatically. The gate protects `main` either way.

@@ -97,6 +97,18 @@ AI จะเลือกเชื่อข้างใดข้างหนึ�
 
 ---
 
+### `/plugin isn't available in this environment` ตอนติดตั้ง Buaflow ใน VS Code
+
+extension ของ Claude Code ใน VS Code ไม่มีคำสั่ง `/plugin` · CLI ของ Claude Code ทำสิ่งเดียวกันได้ รันใน terminal:
+
+```bash
+claude plugin marketplace add Khattiya01/buaflow
+claude plugin install buaflow@buaflow
+```
+
+แล้วเปิด session ใหม่ใน VS Code (ปิดแท็บแชทแล้วเปิดใหม่) — plugin โหลดตอนเริ่ม session · `/buaflow:start` ควรขึ้นในรายการคำสั่ง
+อัปเดตรุ่นใหม่ภายหลัง: `claude plugin marketplace update buaflow` แล้ว `claude plugin update buaflow@buaflow`
+
 ## gate
 
 ### verify ใช้เวลาเกิน ~30 วินาทีที่เอกสารแนะนำ (K-3)

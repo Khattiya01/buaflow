@@ -173,6 +173,9 @@ flowchart LR
 /buaflow:start
 ```
 
+> **ใช้ Claude Code ใน VS Code?** extension ขึ้นว่า `/plugin isn't available in this environment` — ติดตั้งจาก terminal แทน
+> (`claude plugin marketplace add Khattiya01/buaflow` แล้ว `claude plugin install buaflow@buaflow`) จากนั้นเปิด session ใหม่แล้วพิมพ์ `/buaflow:start`
+
 `/buaflow:start` ดูสถานะของโปรเจกต์เองแล้วเลือกทางเดียวที่ตรง:
 
 | โปรเจกต์ | สิ่งที่เกิดขึ้น |

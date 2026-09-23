@@ -7,6 +7,9 @@
 /buaflow:start
 ```
 
+In the VS Code extension `/plugin` is not available — run `claude plugin marketplace add Khattiya01/buaflow` and
+`claude plugin install buaflow@buaflow` in a terminal, then start a new session.
+
 No `buaflow/` folder is needed in the project: the whole kit ships under `kit/`, and a SessionStart hook tells
 each session where it is. `/buaflow:start` starts Phase 0, resumes a project, or upgrades one.
 
