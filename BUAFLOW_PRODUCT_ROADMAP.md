@@ -156,8 +156,8 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | PP-005 | Mobile golden stack | Expo หรือ Flutter + API + sync/offline contract |
 | ~~PP-006~~ | ~~Capability pack contract~~ | **dropped (D-013)** — PP-002 รวม stack/capability เป็นสัญญาเดียวตั้งแต่แรก และ PP-010 เขียนใหม่เป็น v2 แล้ว ไม่มีสัญญาแยกให้เขียนอีก |
 | PP-007 | Core capability packs | **เหลือ auth-rbac + audit-log** — db, storage, notification, background-jobs ถูกตัดที่ D-014 เพราะไม่มี reference app ไหนพิสูจน์ recipe ของมัน และ `db` ประกอบกับ stack ใน catalog ไม่ได้เลย |
-| PP-008 | Commercial capability packs | payment, subscription, search, analytics, AI/RAG, i18n |
-| PP-009 | Thailand packs | PDPA, PromptPay/payment providers, LINE integration, Thai localization |
+| ~~PP-008~~ | ~~Commercial capability packs~~ | **dropped (D-025)** — agent ที่ลงมือเลือก provider และอ่าน docs ปัจจุบันเองตอนทำ task อยู่แล้ว pack ของ kit จะเป็นแค่สำเนาที่เก่ากว่า |
+| ~~PP-009~~ | ~~Thailand packs~~ | **dropped (D-025)** — เหตุผลเดียวกัน · ส่วนที่ต้องพิสูจน์ (consent/การลบข้อมูลของ PDPA, signature ของ webhook, idempotency) อยู่ใน requirement, security baseline (EP-003) และ eval ของโปรเจกต์ |
 | PP-011 | ผูก capability pack เข้ากับ reference app ที่พิสูจน์มันจริง | pack ที่ยังไม่มีอะไรพิสูจน์ต้อง "มองเห็นได้ด้วยเครื่อง" ไม่ใช่เขียนไว้ในเอกสารเฉย ๆ |
 | PP-010 | Pack contract v2: recipe + assertion | pack ประกาศ "คำสั่ง CLI ของเจ้าของ framework ที่ต้องรัน (ไม่ pin เวอร์ชัน) + config + verification + ไฟล์ที่ต้องมีอยู่จริงหลังทำเสร็จ" แทนการเป็น template — ดู D-011 |
 
@@ -293,23 +293,33 @@ EV-009 (trial แรก), EV-004 (eval harness ที่ทำซ้ำได้
 > ("ไม่สร้าง ecosystem surface ก่อน contract ด้านล่างจะนิ่ง") การเปิด PE-001…007 ตอนนี้คือการสร้าง
 > marketplace ให้ contract ที่ยังไม่เคยถูกใครนอกจากเราใช้
 
-### M7 — Domain Advantage (เป้าหมายปัจจุบัน — รอโปรเจกต์จริงที่ต้องใช้ pack)
+### ~~M7 — Domain Advantage~~ — dropped (D-025, 24 กันยายน 2026)
 
-เสร็จเมื่อ Thailand/domain packs (PP-008, PP-009) อยู่ในรูป recipe + assertion ตาม D-011 และมีข้อมูลจากโปรเจกต์จริงพอให้ roadmap อิง evidence
+> **ปิดโดยไม่ทำ** ตามที่ผู้ใช้ชี้: เมื่อแอปต้องมี payment / PDPA / LINE agent ที่ลงมือเลือกเครื่องมือและ fetch docs
+> ปัจจุบันเองตอนทำ task และโมเดลเก่งขึ้นเรื่อย ๆ — pack ที่พิสูจน์ล่วงหน้าจะเพิ่มแค่สำเนาที่เก่า ไม่ใช่ความรู้
+> ตรงกับ D-011 (AI สร้าง Buaflow พิสูจน์): ฝั่งพิสูจน์ของงานพวกนี้ไม่ได้เฉพาะโดเมน และ kit บังคับอยู่แล้วผ่าน
+> requirement coverage, security baseline และ eval ของแต่ละโปรเจกต์ · นิยามเดิมเก็บไว้ข้างล่างเพื่อประวัติ
+
+นิยามเดิม: เสร็จเมื่อ Thailand/domain packs (PP-008, PP-009) อยู่ในรูป recipe + assertion ตาม D-011 และมีข้อมูลจากโปรเจกต์จริงพอให้ roadmap อิง evidence
 
 > **ยังไม่เริ่มโดยตั้งใจ (D-024)** — D-014 กำหนดว่า pack ที่ไม่มีแอปไหนพิสูจน์ recipe ห้ามมีอยู่ใน catalog
 > (บทเรียนจาก auth-rbac: bind ครั้งแรก เจอ recipe ผิดทันที) และ payment / PDPA / PromptPay / LINE คือเนื้อหาที่เก่าเร็วที่สุดในแผน
 > ⇒ pack แรกของ M7 เริ่มได้ **เมื่อมีโปรเจกต์จริงที่ต้องใช้มัน** และ pack ถูก bind กับโปรเจกต์นั้นตั้งแต่วันแรก
 > ไม่ใช่เขียนล่วงหน้าเผื่อ
 
+### M8 — Parallel Build (เป้าหมายถัดไป — รอผู้ใช้ยืนยัน scope)
+
+BC-001 / BC-002 / BC-003 — ผู้ใช้รันหลาย agent พร้อมกันเป็นปกติ ซึ่งคือเงื่อนไขเปิดที่เขียนไว้ตั้งแต่ D-011
+ยังเป็น backlog จนกว่าผู้ใช้จะยืนยัน scope ของ BC-001 (รูปร่างของทุก agent task ในอนาคต — ต้องตกลงก่อนเริ่ม)
+
 ### งานที่พักไว้โดยตั้งใจ ไม่ใช่ลืม
 
 | งาน | เหตุผล | เปิดใหม่เมื่อ |
 |---|---|---|
-| BC-001 / BC-002 / BC-003 | parallel agent scheduling — D-011 พักไว้ verifier ให้คุณค่าด้วย agent ตัวเดียว | มีงานจริงที่ต้องรันหลาย agent พร้อมกันแล้วชนกัน |
 | MT-003 / MT-004 | adapter ของ Codex / Copilot / Kiro — D-006, D-024: Claude อย่างเดียว | ผู้ใช้ขอ · `manual/` (MT-007) คือทางที่เครื่องมืออื่นใช้ได้ระหว่างนี้ |
-| MT-006 | model routing ต้องมีข้อมูล eval จริงหลายรอบ (D-013) | eval run ของโปรเจกต์จริงมีมากพอจะเทียบโมเดล |
-| PP-008 / PP-009 | ดูข้างบน | โปรเจกต์จริงต้องใช้ |
+
+MT-006 (model routing) เป็น **dropped** ตาม D-013 ตรงกับ `state.json` — ถ้าวันหนึ่งมี eval run ของโปรเจกต์จริงมากพอจะเทียบโมเดล
+ให้เปิดเป็น item ใหม่ที่เขียนจากข้อมูลนั้น ไม่ใช่ปลุก row เดิม
 
 ## 8. ลำดับ 12–24 เดือนโดยประมาณ
 
