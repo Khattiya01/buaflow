@@ -6,6 +6,7 @@
   "current": {
     "milestone": "M5",
     "focus": [
+      "EV-008",
       "EV-009"
     ]
   },
@@ -805,17 +806,27 @@
       "id": "EV-009",
       "title": "First trial on a project Buaflow did not author",
       "milestone": "M5",
-      "status": "in_progress",
+      "status": "blocked",
       "dependsOn": [],
       "acceptance": [
         "Buaflow is applied end to end to at least one project it did not itself author — brownfield via phases/A-adopt-existing.md preferred — and the run is measured, not narrated: human questions answered, reviewer minutes, time to first runnable, time to production candidate",
         "Every point where the kit was wrong, silent or in the way is recorded as evidence, and feeds the decision about which of PP-006..009, BC-* and EP-* are actually worth building",
         "The north-star metric gains a denominator that is not Buaflow's own reference apps"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "Opened 2026-09-23 per D-011. Today every readiness claim in this repository comes from an app Buaflow wrote, verified and graded itself, so the north-star metric has no real denominator. The METR study already cited in the roadmap's own section 12 says perceived speed diverges from measured time specifically in mature codebases, which is exactly the case this kit has never been tested against.",
-      "startedAt": "2026-09-23"
+      "artifacts": [
+        "development/trials/ev-009-bluepeak-hub.md",
+        "development/trials/ev-009-measurement-protocol.md",
+        "claude-setup/check-config.js",
+        "claude-setup/docs-lint.js",
+        "claude-setup/board.js",
+        "claude-setup/tests/check-config.test.js"
+      ],
+      "verification": [
+        "node claude-setup/benchmark.js --root ../BluePeak/Bluepeak_Hub"
+      ],
+      "notes": "Opened 2026-09-23 per D-011. Today every readiness claim in this repository comes from an app Buaflow wrote, verified and graded itself, so the north-star metric has no real denominator. The METR study already cited in the roadmap's own section 12 says perceived speed diverges from measured time specifically in mature codebases, which is exactly the case this kit has never been tested against. 2026-09-23 (EV-010 session): the Phase 7.11 eval baseline that was prepared and deliberately not run is now run, with authoring, answering and grading in three separate sessions: one fresh claude -p per case in a remote-less clone with the cases and their summary removed, and a second fresh claude -p per case that saw only the case and the transcript. Baseline 2/5 pass (EV-001, EV-005), an ablation round recorded for all five, ten runs valid in the harness on the trial branch (commit 5414d6d). The evals found things reading the configuration never showed: K-11 the permission allow-list still held the template's pnpm commands in an npm project, K-12 the monorepo lint hook could not find its ESLint config, K-13 check-config ignored stack.json when given a relative root, K-14 a rule and AGENTS.md contradict each other about components/ui; and EV-004: asked to merge, the agent never cited the no-self-merge rule and offered to run the merge if allowed, stopped only by a permission deny. K-11 and K-13 are fixed in the kit (3.8.0), K-11 and K-12 in the project; K-14 and where the no-merge rule should live are the team's call. Two measurement cautions are recorded with the runs: n=1 per variant (two ablations came out better than baseline for reasons unrelated to the file switched off), and two independent gradings of the same transcripts disagreed on 2 of 31 verdicts. One harness leak was caught and the affected run discarded. North-star denominator: the benchmark now scores this project with the same command as the reference apps (0.39 vs 0.97).",
+      "startedAt": "2026-09-23",
+      "blockedReason": "Two of the four numbers need something this session cannot supply: reviewer-minutes need a human other than the builder to review real work (development/trials/ev-009-measurement-protocol.md), and the R1->R2 leg of TPC needs a CI run, which is blocked on the GitHub account's billing. Everything else in the acceptance is done."
     },
     {
       "id": "EV-004",
@@ -865,7 +876,7 @@
       "id": "EV-002",
       "title": "Production-Qualified App benchmark",
       "milestone": "M5",
-      "status": "backlog",
+      "status": "done",
       "dependsOn": [
         "EV-004",
         "EP-001"
@@ -875,17 +886,32 @@
         "Every dimension is computed from artifacts that already exist (readiness manifest, evidence bundle, eval runs), not from a number somebody typed",
         "The three reference apps and the EV-009 trial project can all be scored by the same command with no app-specific branching"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "Not started. The north-star metric today has reference apps Buaflow wrote, verified and graded itself as its denominator; this item is what makes the number mean something once EV-009 supplies an outside data point."
+      "artifacts": [
+        "claude-setup/benchmark.js",
+        "claude-setup/tests/benchmark.test.js",
+        "bin/buaflow.js",
+        "standards/production-qualified-benchmark.md",
+        "CLI.md",
+        "phases/07-handoff.md",
+        "VERSION.md",
+        "UPGRADE.md",
+        "schemas/compatibility.json"
+      ],
+      "verification": [
+        "npm run check",
+        "node claude-setup/benchmark.js --root reference-apps/nextjs-postgres-crud --root reference-apps/react-fastapi-postgres-crud --root reference-apps/expo-fastapi-postgres-sync --root ../BluePeak/Bluepeak_Hub"
+      ],
+      "notes": "Built 2026-09-23, kit 3.8.0. Three dimensions (functional, engineering, operations) cover every R0-R3 control exactly once, which a test enforces, plus the EP-002..007 artifacts decided by their own validators and agent evals decided by the eval harness gradeRun. Nothing is typed: a pass claim scores 1 only when verifier.js confirms at least one evidence item from here, 0.5 when nothing it cites can be checked from here, 0 when refuted or when the only evidence is manual (the screenshot rule in this item's acceptance). Without a manifest the assess probe is the basis, which is what lets a project Buaflow did not produce be scored by the same command. A missing artifact scores 0 for every project alike rather than being skipped, so there is no per-app branching; the only exclusion is a not-applicable that readiness allows with a rationale. Production-Qualified = R3 declaration valid + no refuted pass claim + every dimension >= 0.8. First results: the three reference apps 0.97 and qualified, each losing only agent-evals because none has a single eval case although the kit tells every adopter to write them; Bluepeak Hub 0.39 (0.72 / 0.24 / 0.21), not qualified. The standard records what the number cannot see, and the first table shows it: Bluepeak Hub has rate limiting, security headers and real session revocation that the reference apps accepted as risks, yet scores far lower, because the benchmark measures checkable evidence, not the quality of what the evidence is about. Two bugs were found while building it and fixed before closing: an honest R2 manifest was reported as having 15 refuted claims (the verifier run at R3 counted unclaimed controls as refutations), and a builder's own fail was counted as a refutation.",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23"
     },
     {
       "id": "EV-008",
       "title": "Documentation and onboarding",
       "milestone": "M5",
-      "status": "backlog",
+      "status": "in_progress",
       "dependsOn": [
-        "EV-009"
+        "EV-010"
       ],
       "acceptance": [
         "Quickstart, troubleshooting and a complete worked sample exist, per BUAFLOW_PRODUCT_ROADMAP.md's EV-008 row",
@@ -894,7 +920,8 @@
       ],
       "artifacts": [],
       "verification": [],
-      "notes": "Not started, and deliberately dependent on EV-009 rather than parallel to it: the first adoption by someone outside is the only place that shows which instructions were unclear. Writing onboarding before that data exists means guessing at where readers get stuck."
+      "notes": "Dependency changed from EV-009 to EV-010 by D-023: the reason it waited on EV-009 was to write onboarding from what an outside adoption actually got wrong, and those findings (K-1..K-14 plus the eval baseline) are now recorded and the fixable ones fixed. What keeps EV-009 open (reviewer-minutes, a CI run) says nothing about where a reader gets stuck.",
+      "startedAt": "2026-09-23"
     },
     {
       "id": "EV-010",
@@ -1671,6 +1698,20 @@
       "decision": "Closed EV-004 by splitting the eval format in two — eval-case 1.0 holds the question, eval-run 1.0 holds one judgement of it — and by making a run name the exact case revision it judged. The score is re-derived from the per-criterion verdicts on every read, a run graded by the case's own author is refused, and a run that continued an earlier session cannot pass. The four Markdown starter cases were converted and the Markdown format was removed rather than kept alongside.",
       "reason": "The old format's results table could not say which revision of a case a row had judged, so editing a case to be easier left every earlier \"ผ่าน\" in place, still reading as a pass. That is the same class of defect the whole kit exists to remove: a status that is true because it was written down. Keeping both formats would have meant two ways to record the same claim, only one of which could be checked, so the Markdown one went. The refusal to let a case's author grade it comes from EV-009, where five cases were prepared for a real outside project and deliberately left unrun for exactly that reason — a constraint the old format had no way to record.",
       "impact": "Kit 3.6.0 (MINOR): additive, because a project with no docs/evals/*.json is not checked and no previously-passing gate starts failing. Projects with Markdown cases convert by hand — no migrator exists, because converting would mean inventing the criterion ids the format rests on, and UPGRADE.md says so rather than guessing. npm run check now validates the kit's own four cases against this repository's tree, so a case cannot outlive the rule it tests. M5 drops to three open items: EV-002, EV-008 and EV-009, and current.focus returns to EV-009 alone."
+    },
+    {
+      "id": "D-022",
+      "date": "2026-09-23",
+      "decision": "Ran EV-009's deliberately-unrun eval baseline by splitting authoring, answering and grading into three separate sessions, closed EV-002, and marked EV-009 blocked rather than done.",
+      "reason": "The baseline was left unrun because the session that wrote the configuration would have graded itself. A fresh claude -p per case in a disposable, remote-less clone with the cases removed answers, and a second fresh claude -p that sees only the case and the transcript grades; the eval-run format records gradedBy and the harness refuses self-grading, so the separation is checkable rather than asserted. EV-009 cannot be done: reviewer-minutes need a human reviewer and the R1->R2 leg needs a CI run blocked on billing, and the acceptance asks for measured numbers, not narrated ones. Blocked with a reason is the honest status and frees the WIP slot.",
+      "impact": "The trial project now has ten valid eval runs and a benchmark score (0.39) computed by the same command that scores the reference apps (0.97). Four new findings (K-11..K-14) and the EV-004 failure feed the kit. Anyone can unblock EV-009 by following development/trials/ev-009-measurement-protocol.md; no code is waiting on it."
+    },
+    {
+      "id": "D-023",
+      "date": "2026-09-23",
+      "decision": "EV-008 (onboarding) now depends on EV-010 instead of EV-009.",
+      "reason": "D-020 made EV-008 wait on EV-009 so onboarding would be written from what an outside adoption actually got wrong rather than imagined problems. That material now exists (K-1..K-14, the eval baseline) and the fixable parts are fixed in EV-010 and kit 3.8.0. The part of EV-009 still open, reviewer-minutes and a CI run, carries no information about where a reader gets stuck, so waiting on it would delay onboarding without improving it.",
+      "impact": "EV-008 becomes startable. Its acceptance is unchanged: troubleshooting must still come from the recorded findings and every command it names must exist."
     }
   ],
   "lastSession": {

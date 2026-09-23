@@ -20,7 +20,7 @@ const path = require('node:path');
 
 const args = process.argv.slice(2);
 const CHECK = args.includes('--check');
-const ROOT = args.find((a) => !a.startsWith('--')) || process.cwd();
+const ROOT = path.resolve(args.find((a) => !a.startsWith('--')) || process.cwd());
 const rel = (p) => path.join(ROOT, p);
 const exists = (p) => fs.existsSync(rel(p));
 const read = (p) => fs.readFileSync(rel(p), 'utf8');

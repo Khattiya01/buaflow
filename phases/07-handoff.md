@@ -67,6 +67,7 @@ buaflow/claude-setup/check-config.js →  .claude/check-config.js
 buaflow/claude-setup/docs-lint.js    →  .claude/docs-lint.js      ตรวจว่า artifact chain ยังตรงกัน
 buaflow/claude-setup/readiness.js    →  .claude/readiness.js      ตรวจ R0-R4 จาก evidence manifest
 buaflow/claude-setup/assess.js       →  (ไม่ต้องคัดลอก) `buaflow assess` รันจาก kit โดยตรง เพราะใช้ตอนก่อนติดตั้งอะไรเลย (EV-009 K-2)
+buaflow/claude-setup/benchmark.js    →  (ไม่ต้องคัดลอก) `buaflow benchmark` รันจาก kit โดยตรง (EV-002)
 buaflow/claude-setup/verifier.js     →  .claude/verifier.js       ตรวจซ้ำ evidence ของ manifest นั้นอย่างอิสระ ไม่เชื่อคำประกาศของผู้สร้าง (BC-006)
 buaflow/claude-setup/requirement-coverage.js → .claude/requirement-coverage.js  requirement ทุกข้อมี proof หรือ approved exception ที่ยังไม่หมดอายุ (EP-002)
 buaflow/claude-setup/security-baseline.js → .claude/security-baseline.js  threat boundary + mapping กับ control set ภายนอก (EP-003)

@@ -27,6 +27,7 @@ function usage() {
     '  doctor        inspect local prerequisites and installed Buaflow controls',
     '  assess        answer "which readiness level is this project at" from the repository itself,',
     '                without a manifest and before any control is installed',
+    '  benchmark     score functional, engineering and operations from existing evidence (EV-002)',
     '  verify        run the project standard verification command',
     '  readiness     validate an R0-R4 evidence manifest',
     '  audit         re-check that manifest independently, from artifacts and command output',
@@ -272,6 +273,22 @@ function commandAssess(root, options) {
   }, report.notes);
 }
 
+// EV-002: the Production-Qualified App benchmark. Like assess it runs the KIT's copy, so a
+// project Buaflow did not produce can be scored with the same command as its own apps.
+function commandBenchmark(root) {
+  const result = runNode(root, path.join(KIT_ROOT, 'claude-setup', 'benchmark.js'), ['--root', root, '--json']);
+  if (result.status !== 0) {
+    return envelope('benchmark', result.status === 2 ? EXIT.INPUT : EXIT.FAILED, 'benchmark could not run', {}, [], [result.stderr.trim() || `benchmark.js exited ${result.status}`]);
+  }
+  const report = JSON.parse(result.stdout);
+  const d = report.dimensions;
+  return envelope('benchmark', EXIT.OK, `functional ${d.functional.score.toFixed(2)} · engineering ${d.engineering.score.toFixed(2)} · operations ${d.operations.score.toFixed(2)} · ${report.qualified ? 'production-qualified' : 'not production-qualified'}`, {
+    overall: report.overall,
+    qualified: report.qualified,
+    result: report,
+  }, report.reasons);
+}
+
 function commandResume(root) {
   const warnings = [];
   const data = { projectManifest: null, planning: null, inProgressTasks: [] };
@@ -316,7 +333,7 @@ function main(argv = process.argv.slice(2)) {
     else console.log(usage());
     return EXIT.OK;
   }
-  if (!['init', 'doctor', 'assess', 'verify', 'readiness', 'audit', 'requirements', 'security', 'supply', 'operations', 'budgets', 'evals', 'resume'].includes(command)) {
+  if (!['init', 'doctor', 'assess', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'security', 'supply', 'operations', 'budgets', 'evals', 'resume'].includes(command)) {
     const result = envelope(command || 'cli', EXIT.INPUT, 'unknown command', {}, [], [usage()]);
     emit(result, options.json);
     return EXIT.INPUT;
@@ -330,6 +347,7 @@ function main(argv = process.argv.slice(2)) {
     : command === 'doctor' ? commandDoctor(options.root, options)
       : command === 'resume' ? commandResume(options.root)
         : command === 'assess' ? commandAssess(options.root, options)
+          : command === 'benchmark' ? commandBenchmark(options.root)
         : commandDelegated(command, options.root, options);
   emit(result, options.json);
   return result.code;
@@ -337,4 +355,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { EXIT, commandAssess, commandDoctor, commandInit, commandResume, main, parse };
+module.exports = { EXIT, commandAssess, commandBenchmark, commandDoctor, commandInit, commandResume, main, parse };

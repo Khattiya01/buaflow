@@ -33,3 +33,42 @@ test('CLAUDE.md: imported first passes, imported later warns, missing tells you 
     cleanup(root);
   }
 });
+
+// EV-009 K-11: the first trial kept the template's Bash(pnpm verify) entries in an npm project,
+// so its real verify command was never allowed. In a session nobody is watching, that is a
+// silent denial, and an eval failed for it.
+test('permissions.allow naming a package manager the project does not use is warned about', () => {
+  const root = temporaryProject('buaflow-check-config-');
+  try {
+    write(path.join(root, 'CLAUDE.md'), '@AGENTS.md\n');
+    write(path.join(root, '.claude', 'settings.json'), JSON.stringify({ permissions: { allow: ['Bash(pnpm verify)', 'Bash(node .claude/verify.js*)'] } }));
+    write(path.join(root, 'package-lock.json'), '{}\n');
+    const warned = () => runNode(script, { args: [root] }).stdout.split(/\r?\n/).find((line) => /lockfile ของ pnpm/.test(line));
+    assert.match(warned() || '', /^\s+warn\s.*1 รายการของ pnpm/);
+
+    write(path.join(root, 'pnpm-lock.yaml'), 'lockfileVersion: 9\n');
+    assert.equal(warned(), undefined);
+  } finally {
+    cleanup(root);
+  }
+});
+
+// Found while running the kit against the EV-009 trial: `check-config.js .` made
+// require(path.join('.', '.claude', 'stack-config.js')) resolve '.claude' as a package, so the
+// project's stack.json was silently ignored and a guard-edit self-test failed for no reason.
+test('a relative root reads the same project configuration as an absolute one', () => {
+  const root = temporaryProject('buaflow-check-config-');
+  try {
+    write(path.join(root, 'CLAUDE.md'), '@AGENTS.md\n');
+    write(path.join(root, '.claude', 'stack-config.js'), require('node:fs').readFileSync(path.join(repositoryRoot, 'claude-setup', 'stack-config.js'), 'utf8'));
+    write(path.join(root, '.claude', 'stack.json'), JSON.stringify({ schemaVersion: '1.0', ciMode: 'local-only', preflightHookPath: '.git/hooks/pre-push' }));
+    // The worktree self-test names a temporary branch and folder after the clock; nothing else may differ.
+    const stable = (text) => text.replace(/check-config-wt-[\w-]+/g, 'check-config-wt-*');
+    const absolute = stable(runNode(script, { args: [root] }).stdout);
+    const relative = stable(runNode(script, { cwd: root, args: ['.'] }).stdout);
+    assert.equal(relative, absolute);
+    assert.doesNotMatch(relative, /ไม่มี \.husky\/pre-push/);
+  } finally {
+    cleanup(root);
+  }
+});

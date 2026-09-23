@@ -17,7 +17,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
-const ROOT = process.argv[2] || process.cwd();
+// resolve: a relative root such as '.' made require(path.join(ROOT, '.claude', ...)) look for a
+// package named '.claude', so the project's stack.json was silently ignored (found during EV-010)
+const ROOT = path.resolve(process.argv[2] || process.cwd());
 const CLAUDE = path.join(ROOT, '.claude');
 
 // stack ของโปรเจกต์มาจาก .claude/stack.json — ถ้าไม่มีก็เป็นค่าเริ่มต้นเดิมของ kit (JS/TS)
@@ -306,6 +308,16 @@ if (settings?.hooks) {
   onDisk.filter((f) => !wired.has(f)).forEach((f) => warn(`hooks/${f} มีไฟล์แต่ไม่ได้ผูกใน settings.json = ไม่ทำงาน`));
 } else if (settings) {
   warn('settings.json ไม่มี hooks เลย — กฎทั้งหมดเป็นแค่คำแนะนำ ไม่มีอะไรบังคับ');
+}
+// EV-009 K-11: trial แรกยังมี Bash(pnpm verify) ฯลฯ จาก template ทั้งที่โปรเจกต์ใช้ npm ⇒ คำสั่งตรวจจริง
+// ไม่มีตัวไหนอยู่ใน allow · ใน session ที่ไม่มีคนกดอนุญาต (eval, CI, agent เบื้องหลัง) มันถูกปฏิเสธเงียบ ๆ
+// และ eval EV-003 ตกเพราะ AI รัน verify ไม่ได้ ไม่ใช่เพราะไม่อยากรัน
+const LOCKFILES = { pnpm: /(^|\/)pnpm-lock\.yaml$/, yarn: /(^|\/)yarn\.lock$/, bun: /(^|\/)bun\.lockb?$/ };
+for (const [manager, lockfile] of Object.entries(LOCKFILES)) {
+  const entries = (settings?.permissions?.allow || []).filter((entry) => new RegExp(`^Bash\\(${manager}\\b`).test(entry));
+  if (entries.length && !allFiles.some((file) => lockfile.test(file))) {
+    warn(`permissions.allow มี ${entries.length} รายการของ ${manager} (${entries[0]}…) แต่ไม่มี lockfile ของ ${manager} ในโปรเจกต์ — คำสั่งตรวจจริงไม่ได้รับอนุญาต ใส่คำสั่งที่โปรเจกต์ใช้จริงแทน (A.5)`);
+  }
 }
 
 const ppFile = ['.claude/stack.json', '.claude/protected-paths.json'].find(exists);

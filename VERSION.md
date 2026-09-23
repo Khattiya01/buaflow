@@ -3,6 +3,22 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.8.0 — 2026-09-23
+
+> โปรเจกต์ที่ใช้ v3.7.0 → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.7.0 → v3.8.0) · **MINOR:** ไม่มี schema เปลี่ยน
+
+- **`buaflow benchmark` — Production-Qualified App benchmark** (`claude-setup/benchmark.js`, EV-002) — สามมิติ
+  functional · engineering · operations คำนวณจาก manifest, คำตัดสินของ verifier, probe ของ `assess`,
+  ตัวตรวจของ EP-002..007 และ eval run · **ไม่มีช่องให้ใครพิมพ์ตัวเลข** · คำประกาศ `pass` ได้คะแนนเต็มก็ต่อเมื่อ
+  มีหลักฐานที่ยืนยันได้จากที่นี่ · หลักฐาน manual อย่างเดียว = 0 · ไม่มีไฟล์ = 0 เหมือนกันทุกแอป ·
+  reference app ทั้งสาม 0.97 ✅ · Bluepeak Hub 0.39 ❌ · ดู `standards/production-qualified-benchmark.md`
+  ซึ่งเขียนไว้ด้วยว่าตัวเลขนี้**มองไม่เห็นอะไร**
+- **`check-config` เตือนเมื่อ `permissions.allow` มีคำสั่งของ package manager ที่โปรเจกต์ไม่มี lockfile** (K-11) —
+  trial แรกยังมี `Bash(pnpm verify)` จาก template ในโปรเจกต์ npm ⇒ verify จริงไม่ได้รับอนุญาต
+  และ eval ตกเพราะรันไม่ได้ ไม่ใช่เพราะไม่อยากรัน
+- **`check-config` / `docs-lint` / `board.js` resolve root ที่เป็น relative แล้ว** (K-13) — `check-config.js .`
+  เคยอ่าน `stack.json` ของโปรเจกต์ไม่ได้เลยโดยไม่มีอะไรฟ้อง
+
 ## v3.7.0 — 2026-09-23
 
 > โปรเจกต์ที่ใช้ v3.6.0 → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.6.0 → v3.7.0)
