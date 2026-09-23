@@ -68,6 +68,8 @@ buaflow/claude-setup/docs-lint.js    →  .claude/docs-lint.js      ตรวจ
 buaflow/claude-setup/readiness.js    →  .claude/readiness.js      ตรวจ R0-R4 จาก evidence manifest
 buaflow/claude-setup/verifier.js     →  .claude/verifier.js       ตรวจซ้ำ evidence ของ manifest นั้นอย่างอิสระ ไม่เชื่อคำประกาศของผู้สร้าง (BC-006)
 buaflow/claude-setup/failure-taxonomy.js → .claude/failure-taxonomy.js  หมวดความล้มเหลว + ตรวจ failure record (EV-003)
+buaflow/claude-setup/convergence.js   →  .claude/convergence.js    กราฟความเชื่อมโยงของ artifact — อะไรลอยอยู่ อะไรยังไม่มีหลักฐาน (BC-004)
+buaflow/claude-setup/change-impact.js →  .claude/change-impact.js  แก้ตรงนี้แล้วอะไรต้องทบทวน — ลิงก์ที่ resolve ไม่ได้ = ไม่รู้ ไม่ใช่ไม่กระทบ (IC-006)
 buaflow/claude-setup/board.js        →  .claude/board.js          generate board.md จากไฟล์ task
 buaflow/claude-setup/prototype.js    →  .claude/prototype.js      click-through prototype จาก canvas baseline (เฉพาะโปรเจกต์ที่ใช้ canvas)
 buaflow/claude-setup/pixel.js        →  .claude/pixel.js          เทียบหน้าจริงกับ canvas baseline เป็นตัวเลข (เฉพาะโปรเจกต์ที่ใช้ canvas · ต้องมี pixelmatch + pngjs + Playwright เป็น dev dependency)

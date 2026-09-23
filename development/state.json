@@ -5,7 +5,7 @@
   "updatedAt": "2026-09-23",
   "current": {
     "milestone": "M4",
-    "focus": ["IC-006"]
+    "focus": ["EV-009"]
   },
   "workItems": [
     {
@@ -1052,37 +1052,49 @@
       "id": "IC-006",
       "title": "Change impact engine",
       "milestone": "M4",
-      "status": "ready",
-      "dependsOn": [
-        "IC-001",
-        "DV-002"
-      ],
+      "status": "done",
+      "dependsOn": ["IC-001","DV-002"],
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
       "acceptance": [
         "Changing an intent identifies the artifacts, contracts and tests that must be reviewed, from recorded links rather than from a guess",
         "Impact is reported as a list a human or an agent can act on, not as a warning to read carefully",
         "A link that cannot be resolved is reported as unknown impact, never as no impact"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "Chosen as the next item on 2026-09-23. It scores highest on the model-durability test in D-011: the better the model, the more it changes per session and the less a human reads, so knowing what a change touches becomes more valuable rather than less. The links it needs largely exist — docs-lint already enforces the intent/spec/task chain, DV-002 extended traceability upstream to pain points, and readiness manifests tie controls to files and commands — so this is mostly making an existing graph queryable. The third acceptance criterion matters most: an unresolved link must read as unknown impact, because a change-impact tool that silently reports nothing is worse than none."
+      "artifacts": [
+        "claude-setup/change-impact.js",
+        "claude-setup/tests/change-impact.test.js",
+        "phases/07-handoff.md"
+      ],
+      "verification": [
+        "npm test",
+        "npm run check"
+      ],
+      "notes": "Chosen as the next item on 2026-09-23. It scores highest on the model-durability test in D-011: the better the model, the more it changes per session and the less a human reads, so knowing what a change touches becomes more valuable rather than less. The links it needs largely exist — docs-lint already enforces the intent/spec/task chain, DV-002 extended traceability upstream to pain points, and readiness manifests tie controls to files and commands — so this is mostly making an existing graph queryable. The third acceptance criterion matters most: an unresolved link must read as unknown impact, because a change-impact tool that silently reports nothing is worse than none. Built 2026-09-23 on BC-004's graph. Impact travels in both directions, because changing a task affects the intent above it and not only what it points at; a one-directional walk would miss the thing most worth re-reading. Every affected artifact comes back with a specific action rather than a warning to read carefully, and with the path it was reached by, so the output is a list someone can work through. --depth bounds the blast radius for large graphs. The third acceptance criterion drove the design: an unresolved link inside the radius is reported as UNKNOWN impact and the CLI exits non-zero, so a script cannot read silence as safety. Three distinct cases are separated rather than flattened into \"not found\" — a node id that does not exist, a file that exists but that no artifact references (unknown, and it says so in those words), and a genuinely unaffected start. A start can be given as a file path as well as a node id, because what someone holds after editing is a filename, not a node id. Scores highest on the model-durability test from D-011: the better the model, the more it changes per session and the less a human reads, so knowing what a change touches gains value rather than losing it. 11 tests."
     },
     {
       "id": "BC-004",
       "title": "Convergence graph",
       "milestone": "M4",
-      "status": "ready",
-      "dependsOn": [
-        "BC-005",
-        "PP-001"
-      ],
+      "status": "done",
+      "dependsOn": ["BC-005","PP-001"],
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
       "acceptance": [
         "Requirement, design, data, API, UI, test and deployment artifacts are related in one machine-readable graph",
         "A node with no path to a proof is reported, since an unconnected artifact is the shape most integration failures take",
         "The graph is derived from artifacts that already exist, never maintained by hand"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "Chosen as the next item on 2026-09-23. BC-005 already built a narrow slice of this — profile versus composed packs — and proved the approach works by reading two existing contracts rather than inventing a new one; PP-010 added a third edge by binding packs to the reference apps that implement them. This item generalizes that instead of starting over. It pairs with IC-006: the change-impact engine answers what a change touches, the convergence graph answers what is connected to nothing, and both read the same links."
+      "artifacts": [
+        "claude-setup/convergence.js",
+        "claude-setup/tests/convergence.test.js",
+        "phases/07-handoff.md"
+      ],
+      "verification": [
+        "npm test",
+        "npm run check"
+      ],
+      "notes": "Chosen as the next item on 2026-09-23. BC-005 already built a narrow slice of this — profile versus composed packs — and proved the approach works by reading two existing contracts rather than inventing a new one; PP-010 added a third edge by binding packs to the reference apps that implement them. This item generalizes that instead of starting over. It pairs with IC-006: the change-impact engine answers what a change touches, the convergence graph answers what is connected to nothing, and both read the same links. Built 2026-09-23 alongside IC-006, which reads the same graph. The graph is derived on every run from artifacts that already exist — intent and task frontmatter, pain-point ids cited in intent bodies, readiness controls and their evidence, packs and profiles and the controls they touch — so nobody maintains it by hand; a hand-maintained graph would be wrong inside a week. Two reports that are deliberately not merged: unconnected (no edges at all, in or out) and unproven (connected, but no path reaches a commit or an evidence node). Collapsing them would drown the real signal, because every not-yet-finished intent would read as an orphan and nobody would look at the list twice. Proof is reached in either direction on purpose: an intent counts as proven because a task points AT it and that task carries a commit, not because the intent points anywhere itself. A link whose target does not exist is recorded in unresolved and the target is never invented as a node, which is what IC-006 depends on — a silently dropped link becomes \"no impact\" later, the most dangerous answer a change-impact tool can give. This generalizes BC-005 rather than replacing it: that item proved the approach on one edge (profile versus composed packs) by reading two existing contracts instead of inventing a new one. All three reference apps come back fully connected with no unresolved links, asserted by a test. 11 tests."
     }
   ],
   "decisions": [
@@ -1180,8 +1192,8 @@
   ],
   "lastSession": {
     "date": "2026-09-23",
-    "summary": "PP-011 closed the last gap that did not need the user: the six capability packs that carried no implementedBy, meaning no reference app had ever proved those recipes work. Two of the six turned out to be implemented already by reference-apps/nextjs-postgres-crud and only needed their assertions corrected to what that app really contains — auth-rbac now asserts lib/auth.ts, lib/guard.ts, proxy.ts (Next.js 16 renamed middleware to proxy) and prisma/migrations, and audit-log asserts lib/audit.ts, prisma/schema.prisma and prisma/migrations. Binding auth-rbac paid for the whole exercise immediately by exposing a defect in the recipe PP-010 had itself written: it installed iron-session and bcrypt, and the only app implementing this capability uses neither, signing session cookies with a node:crypto HMAC and hashing passwords with scrypt deliberately so the capability adds no third-party auth library and no supply-chain surface. The old recipe would have sent the next project to install two packages it does not need; both packs went to 2.1.0 with corrected recipes. The remaining four (db, storage, notification, background-jobs) were not bound, because nothing here implements them and an invented binding is the exact lie the mechanism exists to prevent. Their status is now machine-enforced instead of documented: pack.js prints a bound/unproven summary on every --repo-root run, currently 5/9, and a test pins the exact unproven set so binding one fails until the list shrinks and adding an unproven one fails until it is written down. A second test re-checks every bound pack against its app inside the suite, so the binding survives even if the check is removed from scripts/check-repository.js. A latent contract problem was found and deliberately left unfixed with the reasoning recorded: all six capability packs assert Node/Next.js paths and therefore only work on nextjs-postgres, yet only auth-rbac declares requiresPacks, and db is worse still — it conflicts with nextjs-postgres, so it targets a Node stack lacking persistence that does not exist in the catalog, making it unusable with anything currently shipped. Fixing that needs capability-based dependencies rather than the identity-based requiresPacks the contract has today, which is a contract change and not a fixture edit. Suite 182/182, npm run check passes, 27 of 29 work items done.",
-    "next": "Everything actionable without the user is finished. EV-009 stays parked at the user's request. BC-001 stays in backlog per D-011 and should not be started without a conversation — it is parallel-agent infrastructure nothing needs yet, and D-011's whole argument was that BC-006 delivers value with a single agent while BC-001/002/003 serve builds nobody is running. The open items that need a decision rather than more code: capability-based pack dependencies (what db and the Node-only capability packs actually need, recorded in packs/README.md as a known limitation), and whether the four unproven packs should be proved by extending an existing reference app or dropped. Also still unconfirmed: the weekly cron EP-010 added to the three reference-app workflows has not yet fired its first Monday. And before running anything, verifier.js --execute has side effects and once destroyed 238 lines of real evidence by re-running a Playwright suite over its own report file — clean working tree, and check git status afterwards.",
-    "verifiedAt": "2026-09-23T20:15:00.0000000+07:00"
+    "summary": "Five pieces of work the user chose after the roadmap list, all closed. (1) D-013 audited the whole roadmap against the repository: EP-002..EP-009 had never been opened as work items while much of their content had shipped under PP-003/004/005, so EP-006, EP-008 and EP-009 were recorded done retroactively and EP-002, EP-003, EP-004, EP-005 and EP-007 were opened with narrowed scopes naming only what genuinely does not exist — no waiver record anywhere, ASVS cited in two files with nothing producing a mapping, provenance and SLSA appearing only in the roadmap, no restore ever rehearsed although migration rollback is, and application-profile.schema.json carrying no thresholds so every budget is a number one app chose. M3 and M4 were unclosable by their own definitions (M3 wanted the scheduler D-011 parked, M4 wanted three vendor adapters and an ecosystem rule 9.4 forbids opening), so M3 became Mobile + Independent Verification and is complete, M4 became Evidence Maturity, M5 Proven Outside, M6 the old ecosystem scope with an explicit precondition, M7 domain packs. PP-006, MT-005, MT-006 and EV-005 were dropped with reasons and left visible rather than deleted. (2) EV-003 shipped a failure taxonomy of nine classes, each citing a real failure from this repository, with a test that every citation resolves against state.json or the filesystem; detectedBy is required on every record with 'nothing caught it' allowed, and reading it across the nine produces a work list from data — the pack binding check and the e2e tests earn their keep, while spec-gap was caught only by a human reading a contract and evidence-defect only by git status after the damage. No operations class exists because nothing here has run in production, and the hole is declared with EV-009 named as what closes it. (3) EV-007 gave the kit a release policy with one test for MAJOR written from the adopter side, applied it immediately by bumping to 3.0.0 because pack 1.0 to 2.0 forces adopters to rewrite .claude/packs by hand, and put the support matrix in data with a checker that makes it unable to lie — it caught package.json still saying 2.3.4 on its first run. The pack v1 deprecation is recorded honestly as announced and removed together with no notice, with a note, rather than backdated. (4) BC-004 built the convergence graph, derived on every run from artifacts that already exist, reporting unconnected and unproven separately and recording unresolved links rather than dropping them. (5) IC-006 built the change-impact engine on that graph, travelling in both directions, giving each affected artifact a specific action, and reporting UNKNOWN with a non-zero exit when a link cannot be resolved. 45 work items, 34 done, suite 233/233, npm run check passes.",
+    "next": "Only backlog items remain and none of them is unblocked work. EV-009 (first trial on a project Buaflow did not author) is parked at the user's request and is what M5 needs, what would give the north-star metric a real denominator, and what closes the declared operations gap in the failure taxonomy. BC-001 stays in backlog per D-011. The five narrowed EP items (EP-002 exceptions with expiry, EP-003 ASVS mapping, EP-004 provenance and licences, EP-005 restore rehearsal, EP-007 profile-driven thresholds) are each small and each says in its notes exactly what exists and what does not, so none of them re-does a finished half; EP-005 in particular can copy the rehearsal pattern EP-006 already established. Two questions still need a decision rather than code: capability-based pack dependencies, which db needs before it can work with anything in the catalog, and whether the four unproven capability packs get proved by extending a reference app or dropped. Still unconfirmed: the weekly cron EP-010 added has not yet fired its first Monday. And verifier.js --execute has side effects — it once destroyed 238 lines of real evidence — so run it on a clean working tree and check git status afterwards.",
+    "verifiedAt": "2026-09-23T22:40:00.0000000+07:00"
   }
 }
