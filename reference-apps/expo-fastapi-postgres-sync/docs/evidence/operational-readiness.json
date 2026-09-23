@@ -1,0 +1,125 @@
+{
+  "$schema": "../../../../schemas/operational-readiness.schema.json",
+  "schemaVersion": "1.0",
+  "_": "EP-005 · restore ที่ซ้อมจริง + incident hook ที่เป็นสัญญา · ตรวจด้วย: node ../../claude-setup/operational-readiness.js --root . --file docs/evidence/operational-readiness.json · ทุก trust boundary ใน security-baseline.json ต้องมี hook เฝ้า",
+  "project": "expo-fastapi-postgres-sync",
+  "generatedAt": "2026-09-23T23:55:00.000Z",
+  "backup": {
+    "procedure": "pg_dump -Fc against the application database, run by the platform on its own schedule",
+    "restore": "pg_restore --no-owner into an empty schema, then roll forward with the app migration command",
+    "documentedIn": "docs/runbook.md",
+    "owner": "the platform team that owns the database instance; this app owns the procedure and the rehearsal, not the production schedule or retention window",
+    "rehearsal": {
+      "path": "evidence/backup-restore-rehearsal.json",
+      "sha256": "8dd76e2c5145b5259c525e07c7a9addf664ebffa3eb1ef4f7284fb1b79a67ace"
+    }
+  },
+  "incidentHooks": [
+    {
+      "id": "IH-001",
+      "name": "The application is not serving",
+      "signal": "GET /api/health returns a non-2xx status, or does not respond at all, from outside the container",
+      "severity": "critical",
+      "detectedBy": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/health.py"
+        },
+        {
+          "type": "file",
+          "value": "evidence/clean-environment-rehearsal.json"
+        }
+      ],
+      "firstResponse": "docs/runbook.md#diagnose",
+      "owner": "khattiya dokbua",
+      "boundary": "TB-001"
+    },
+    {
+      "id": "IH-002",
+      "name": "The database is unreachable",
+      "signal": "The health endpoint reports 503 and the structured log carries health.database_unreachable entries",
+      "severity": "critical",
+      "detectedBy": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/health.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/log.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/db.py"
+        }
+      ],
+      "firstResponse": "docs/runbook.md#incident-response",
+      "owner": "khattiya dokbua",
+      "boundary": "TB-001",
+      "note": "The app has no failover logic of its own, so this hook exists to route the incident to Postgres diagnostics rather than to an application investigation."
+    },
+    {
+      "id": "IH-003",
+      "name": "Ownership boundary breached",
+      "signal": "access.forbidden log entries cluster around one actor or one resource, or an audit_logs row records a change by a subject who does not own the task",
+      "severity": "critical",
+      "detectedBy": [
+        {
+          "type": "file",
+          "value": "backend/app/guard.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/log.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/audit.py"
+        }
+      ],
+      "firstResponse": "docs/runbook.md#incident-response",
+      "owner": "khattiya dokbua",
+      "boundary": "TB-001"
+    },
+    {
+      "id": "IH-004",
+      "name": "Session signing key suspected compromised",
+      "signal": "Sessions are accepted that the application never issued, or the signing secret is exposed in a log, a backup or a support channel",
+      "severity": "high",
+      "detectedBy": [
+        {
+          "type": "file",
+          "value": "backend/app/auth.py"
+        },
+        {
+          "type": "file",
+          "value": "docs/security-notes.md"
+        }
+      ],
+      "firstResponse": "docs/runbook.md#incident-response",
+      "owner": "khattiya dokbua",
+      "boundary": "TB-001",
+      "note": "Rotating the secret is the documented response and invalidates every session at once, which is REQ-016 and REQ-020 in the coverage record — the response is known to be blunt."
+    },
+    {
+      "id": "IH-005",
+      "name": "Sync push accepted for a row the caller does not own",
+      "signal": "A sync push mutates a task whose owner differs from the authenticated subject, or the conflict resolver applies a client edit older than the stored server timestamp",
+      "severity": "critical",
+      "detectedBy": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/tests/integration/test_sync.py"
+        }
+      ],
+      "firstResponse": "docs/runbook.md#incident-response",
+      "owner": "khattiya dokbua",
+      "boundary": "TB-002",
+      "note": "The sync surface replays mutations queued while offline, so a single authorization or ordering defect can rewrite rows in bulk rather than one request at a time."
+    }
+  ]
+}

@@ -94,6 +94,16 @@ for (const app of ['nextjs-postgres-crud', 'react-fastapi-postgres-crud', 'expo-
   ]);
 }
 
+// EP-005 — restore ต้องถูกซ้อมจริงและข้อมูลกลับมาเหมือนเดิม · incident hook ทุกตัวต้องชี้ไป
+// หัวข้อ runbook ที่มีอยู่จริง และทุก trust boundary ของ EP-003 ต้องมีคนเฝ้า
+for (const app of ['nextjs-postgres-crud', 'react-fastapi-postgres-crud', 'expo-fastapi-postgres-sync']) {
+  run(`operational readiness: restore rehearsal and incident hooks (${app})`, process.execPath, [
+    path.join(root, 'claude-setup', 'operational-readiness.js'),
+    '--root', path.join(root, 'reference-apps', app),
+    '--file', 'docs/evidence/operational-readiness.json',
+  ]);
+}
+
 run('regression tests', process.execPath, [path.join(root, 'scripts', 'run-tests.js')]);
 
 console.log('\nrepository check: PASS');

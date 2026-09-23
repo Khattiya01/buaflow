@@ -1,0 +1,98 @@
+{
+  "_": "EP-005 · backup/restore rehearsal · produced by scripts/rehearse-backup-restore.mjs against the local docker-compose Postgres · the public schema really is dropped between the backup and the restore",
+  "startedAt": "2026-09-23T11:22:27.848Z",
+  "finishedAt": "2026-09-23T11:22:34.967Z",
+  "totalDurationMs": 7119,
+  "procedure": {
+    "backup": "pg_dump -Fc inside the database container",
+    "restore": "pg_restore --no-owner inside the database container",
+    "documentedIn": "docs/runbook.md"
+  },
+  "backupArtifact": {
+    "bytes": 7223,
+    "sha256": "9d48f319872c21ead4c1044983fd73c454c15d172a9330b731279d3d114de0b3"
+  },
+  "fingerprint": {
+    "before": "4eb396d3cbe15865b08c9eecab24d025824981420932c2dd37b49975217f5f13",
+    "after": "4eb396d3cbe15865b08c9eecab24d025824981420932c2dd37b49975217f5f13",
+    "identical": true
+  },
+  "rollForwardAfterRestore": true,
+  "steps": [
+    {
+      "name": "fingerprint the database before backup",
+      "durationMs": 1738,
+      "tables": [
+        "alembic_version",
+        "audit_logs",
+        "tasks",
+        "users"
+      ],
+      "rows": {
+        "alembic_version": 1,
+        "audit_logs": 0,
+        "tasks": 1,
+        "users": 2
+      },
+      "combined": "4eb396d3cbe15865b08c9eecab24d025824981420932c2dd37b49975217f5f13",
+      "ok": true
+    },
+    {
+      "name": "take a backup with pg_dump",
+      "durationMs": 408,
+      "format": "custom (pg_dump -Fc)",
+      "bytes": 7223,
+      "sha256": "9d48f319872c21ead4c1044983fd73c454c15d172a9330b731279d3d114de0b3",
+      "ok": true
+    },
+    {
+      "name": "destroy the database: drop the public schema",
+      "durationMs": 392,
+      "destroyed": true
+    },
+    {
+      "name": "verify the data is really gone",
+      "durationMs": 180,
+      "remainingTables": [],
+      "ok": true
+    },
+    {
+      "name": "restore from the backup with pg_restore",
+      "durationMs": 407,
+      "from": "backup.dump",
+      "ok": true
+    },
+    {
+      "name": "fingerprint the database after restore",
+      "durationMs": 1638,
+      "tables": [
+        "alembic_version",
+        "audit_logs",
+        "tasks",
+        "users"
+      ],
+      "rows": {
+        "alembic_version": 1,
+        "audit_logs": 0,
+        "tasks": 1,
+        "users": 2
+      },
+      "combined": "4eb396d3cbe15865b08c9eecab24d025824981420932c2dd37b49975217f5f13"
+    },
+    {
+      "name": "compare: the restored data is the same data",
+      "durationMs": 0,
+      "fingerprint": "4eb396d3cbe15865b08c9eecab24d025824981420932c2dd37b49975217f5f13",
+      "identical": true,
+      "ok": true
+    },
+    {
+      "name": "roll forward after restore, as the runbook instructs",
+      "durationMs": 2351,
+      "noPendingMigrations": true,
+      "dataUnchanged": true,
+      "ok": true
+    }
+  ],
+  "ok": true
+}

@@ -192,7 +192,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | EP-002 | Requirement coverage | ✅ **done** — `requirement-coverage` artifact v1 + `.claude/requirement-coverage.js`: requirement หนึ่งข้อมี proof หรือ approved exception (owner/reason/risk/expiry) อย่างใดอย่างหนึ่ง · exception ที่หมดอายุทำให้ gate ตก · 12 exception จริงในสาม reference app มาจาก "Known limitations" ที่เคยเป็น prose |
 | EP-003 | Security baseline | ✅ **done** — `security-baseline` artifact v1 + สำเนา OWASP ASVS 5.0.0 L1 ที่ `standards/control-sets/` (70 ข้อ พร้อม sha256 ต้นฉบับรายบท) · threat boundary เป็นข้อมูลที่ไฟล์ต้องมีจริง · ทุก control ต้องมีคำตอบ · `not-met` ต้องชี้ไป approved exception ของ EP-002 |
 | EP-004 | Supply-chain evidence | ✅ **done** — `supply-chain` artifact v1: สรุป licence ถูก derive ใหม่จาก SBOM ทุกครั้ง (เขียนเองไม่ได้) · SBOM และ subject ผูกด้วย sha256 ที่คำนวณใหม่ · provenance ต้องตรงกับ `evidence/ci-run.json` และ commit ที่ manifest ตัดสิน · licence ที่ไม่มีคนรับรอง = ตก |
-| EP-005 | Operational readiness | **เหลือ restore rehearsal + incident hooks ที่เป็นสัญญา** — health/logs/runbook เสร็จและถูกบังคับที่ R3 แล้ว · ลอกแบบจาก EP-006 ได้ |
+| EP-005 | Operational readiness | ✅ **done** — `operational-readiness` artifact v1: restore ที่ซ้อมจริง (drop schema แล้วเทียบ fingerprint ทุกแถว) · incident hook ที่มี signal/detector/severity/เจ้าของ/anchor ที่ resolve จริง · ทุก trust boundary ของ EP-003 ต้องมีคนเฝ้า |
 | EP-006 | Migration/rollback qualification | ✅ **done (บันทึกย้อนหลังที่ D-013)** — ส่งมอบใน PP-003 และขยายผลโดย PP-004/PP-005 |
 | EP-007 | Performance/accessibility budgets | **เหลือเฉพาะ threshold ที่มาจาก profile** — การวัดเสร็จแล้ว แต่ application-profile.schema.json ยังไม่มี threshold เลย ทุก budget จึงเป็นเลขที่แต่ละแอปเลือกเอง |
 | EP-008 | Deployable handoff | ✅ **done (บันทึกย้อนหลังที่ D-013)** — ขอบเขตที่ rehearsal ประกาศไว้เองคือ docker build/boot จากศูนย์ ไม่ใช่ fresh git clone ส่วนที่เหลือเป็นของ EV-009 |
@@ -273,8 +273,8 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 - **release policy ของ kit เอง** — เลขเวอร์ชันของ Buaflow ต้องแปลว่าอะไรสักอย่างกับผู้ใช้ (EV-007)
 - **change impact + convergence graph** — รู้ว่าอะไรกระทบเมื่อของเปลี่ยน และอะไรไม่เชื่อมกับอะไรเลย (IC-006, BC-004)
 - **ส่วนที่เหลือจริงของ EP** หลัง audit: ~~exception ที่มีวันหมดอายุ (EP-002 ✅)~~, ~~ASVS mapping (EP-003 ✅)~~,
-  ~~provenance/licenses (EP-004 ✅)~~, restore rehearsal,
-  budget ที่มาจาก profile (EP-005, EP-007)
+  ~~provenance/licenses (EP-004 ✅)~~, ~~restore rehearsal (EP-005 ✅)~~,
+  budget ที่มาจาก profile (EP-007)
 
 ### M5 — Proven Outside
 

@@ -19,7 +19,8 @@
     "rehearse:migration-rollback": "node --env-file-if-exists=.env scripts/rehearse-migration-rollback.mjs",
     "rehearse:clean-environment": "node --env-file-if-exists=.env scripts/rehearse-clean-environment.mjs",
     "audit:dependencies": "node scripts/check-dependency-audit.mjs",
-    "verify": "npm run typecheck && npm run lint && npm run test"
+    "verify": "npm run typecheck && npm run lint && npm run test",
+    "rehearse:backup-restore": "node --env-file-if-exists=.env scripts/rehearse-backup-restore.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",

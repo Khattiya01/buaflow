@@ -4,6 +4,56 @@
   "_": "Support matrix ของ kit (EV-007) · newest release อยู่บนสุดเสมอ · scripts/check-compatibility.js บังคับให้ตรงกับ package.json และ schemas/registry.json · อธิบายที่ standards/release-policy.md",
   "releases": [
     {
+      "version": "3.4.0",
+      "releasedAt": "2026-09-23",
+      "change": "minor",
+      "summary": "Operational readiness (EP-005): a new public artifact, operational-readiness 1.0, plus .claude/operational-readiness.js. A backup procedure must cite a rehearsal that really destroyed and restored the database with identical data, and incident hooks become a contract — each with a signal precise enough to alert on, a detector whose files exist, a severity, an owner, and a runbook anchor the validator resolves against the real headings. Where a security baseline exists, every trust boundary it declares must be watched by a hook. Additive: a project without docs/evidence/operational-readiness.json is not checked.",
+      "reads": {
+        "stack-config": [
+          "1.0"
+        ],
+        "readiness-manifest": [
+          "1.0"
+        ],
+        "prototype-flow": [
+          "1.0"
+        ],
+        "pixel-config": [
+          "1.0"
+        ],
+        "project-manifest": [
+          "1.0"
+        ],
+        "product-graph": [
+          "1.0"
+        ],
+        "application-profile": [
+          "1.0"
+        ],
+        "pack": [
+          "2.0"
+        ],
+        "evidence-bundle": [
+          "1.0"
+        ],
+        "failure-record": [
+          "1.0"
+        ],
+        "requirement-coverage": [
+          "1.0"
+        ],
+        "security-baseline": [
+          "1.0"
+        ],
+        "supply-chain": [
+          "1.0"
+        ],
+        "operational-readiness": [
+          "1.0"
+        ]
+      }
+    },
+    {
       "version": "3.3.0",
       "releasedAt": "2026-09-23",
       "change": "minor",

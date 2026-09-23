@@ -6,7 +6,7 @@
   "current": {
     "milestone": "M4",
     "focus": [
-      "EP-005"
+      "EP-007"
     ]
   },
   "workItems": [
@@ -1121,7 +1121,7 @@
       "id": "EP-005",
       "title": "Operational readiness: backup, restore and incident hooks",
       "milestone": "M4",
-      "status": "backlog",
+      "status": "done",
       "dependsOn": [
         "PP-003"
       ],
@@ -1130,9 +1130,48 @@
         "Incident hooks are declared as a contract rather than described in a runbook paragraph",
         "The operational controls cite that evidence instead of prose"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "Narrowed by the D-013 audit. Health, logs and runbook are done and enforced: observability, health-check and runbook are required at R3, and every app ships a health endpoint, structured logging and docs/runbook.md. Backup and restore are mentioned in two of the three runbooks and in the db-migration rule, but nothing rehearses a restore and no evidence file records one, so the strongest operational claim in the model rests on a paragraph. The pattern to copy already exists in this repository — EP-006 rehearses migration rollback and writes machine-readable evidence — which is why this is narrow rather than open-ended."
+      "artifacts": [
+        "schemas/operational-readiness.schema.json",
+        "templates/operational-readiness.tpl.json",
+        "claude-setup/operational-readiness.js",
+        "claude-setup/tests/operational-readiness.test.js",
+        "claude-setup/gate.js",
+        "bin/buaflow.js",
+        "scripts/check-repository.js",
+        "scripts/check-artifacts.js",
+        "schemas/registry.json",
+        "schemas/compatibility.json",
+        "standards/operational-readiness.md",
+        "standards/deployment-ready-contract.md",
+        "reference-apps/nextjs-postgres-crud/scripts/rehearse-backup-restore.mjs",
+        "reference-apps/react-fastapi-postgres-crud/scripts/rehearse-backup-restore.mjs",
+        "reference-apps/expo-fastapi-postgres-sync/scripts/rehearse-backup-restore.mjs",
+        "reference-apps/nextjs-postgres-crud/evidence/backup-restore-rehearsal.json",
+        "reference-apps/react-fastapi-postgres-crud/evidence/backup-restore-rehearsal.json",
+        "reference-apps/expo-fastapi-postgres-sync/evidence/backup-restore-rehearsal.json",
+        "reference-apps/nextjs-postgres-crud/docs/evidence/operational-readiness.json",
+        "reference-apps/react-fastapi-postgres-crud/docs/evidence/operational-readiness.json",
+        "reference-apps/expo-fastapi-postgres-sync/docs/evidence/operational-readiness.json",
+        "reference-apps/nextjs-postgres-crud/docs/runbook.md",
+        "reference-apps/react-fastapi-postgres-crud/docs/runbook.md",
+        "reference-apps/expo-fastapi-postgres-sync/docs/runbook.md",
+        "reference-apps/nextjs-postgres-crud/docs/evidence/readiness.json",
+        "reference-apps/react-fastapi-postgres-crud/docs/evidence/readiness.json",
+        "reference-apps/expo-fastapi-postgres-sync/docs/evidence/readiness.json",
+        "CLI.md",
+        "UPGRADE.md",
+        "VERSION.md",
+        "phases/07-handoff.md",
+        "claude-setup/README.md"
+      ],
+      "verification": [
+        "npm test",
+        "npm run check",
+        "docker compose up -d db && node scripts/rehearse-backup-restore.mjs (in each reference app)"
+      ],
+      "notes": "Narrowed by the D-013 audit. Health, logs and runbook are done and enforced: observability, health-check and runbook are required at R3, and every app ships a health endpoint, structured logging and docs/runbook.md. Backup and restore are mentioned in two of the three runbooks and in the db-migration rule, but nothing rehearses a restore and no evidence file records one, so the strongest operational claim in the model rests on a paragraph. The pattern to copy already exists in this repository — EP-006 rehearses migration rollback and writes machine-readable evidence — which is why this is narrow rather than open-ended.\n\nWork done 2026-09-23. The audit's framing turned out to be half the story. standards/deployment-ready-contract.md's responsibility table says Buaflow delivers \"migrations, rollback and backup/restore procedure\" while the platform owns the production data window, and all three reference-app runbooks cited that same table to say \"this repository has no automated backup step; that is an infrastructure/platform responsibility\". That reads the table backwards: the procedure is ours, the schedule and retention and data policy are theirs. Collapsing the two is what left the strongest claim in the whole model — lose the data and you can get it back — resting on a paragraph nobody had to prove. All three runbooks now say what the contract says, and each gained a Backup and restore section with the real commands.\n\nThe rehearsal destroys things on purpose, because one that never destroys anything proves nothing. It fingerprints every row of every table (md5 of the ordered contents per table, combined into one sha256), takes a pg_dump -Fc and records the artifact's size and digest, runs DROP SCHEMA public CASCADE, verifies zero tables remain, restores with pg_restore, fingerprints again and requires an exact match. A restore that recreated empty tables would sail through a \"do the tables exist\" check and fails this one. It finishes by running the migration command the runbook's Recovery section tells an operator to run after a restore, confirming it is a no-op — an instruction that is only safe if it is. Everything runs through docker compose exec, so the rehearsal needs no Postgres client and no language environment of its own, unlike the existing migration-rollback rehearsals which shell out to python.\n\nAll three apps were really rehearsed in this session, against their own docker-compose Postgres, and all three came back identical. Nothing here is a transcript that was written rather than produced.\n\nIncident hooks became a contract with five checkable parts: a signal specific enough to build an alert from, a detector whose files must exist, a severity, an owner that is a person rather than a team, and a firstResponse of the form file.md#anchor that the validator resolves against the real headings — a link to a heading somebody renamed fails at 2am otherwise, which is the worst possible time to find it. The anchor generator follows the rendered form including duplicate suffixes, and deliberately does not collapse runs of spaces: \"web / backend\" renders as \"web--backend\", and a collapsing version would be self-consistent here while producing links that 404 on the page where they are actually clicked. That was caught by a test expectation disagreeing with the implementation, and the implementation was the one that was wrong.\n\nThe completeness rule answers D-016's note instead of duplicating it: where a security baseline exists, every trust boundary it declares must be watched by at least one hook, and a hook naming a boundary that does not exist fails too. EP-005 therefore never restates a threat boundary — it makes the gap between knowing a boundary is there and knowing how you would find out it broke visible to a machine.\n\nSuite 288/288 (was 277). Kit 3.4.0, MINOR.",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23"
     },
     {
       "id": "EP-007",
@@ -1439,12 +1478,19 @@
       "decision": "Closed EP-004 with a supply-chain artifact whose licence summary is derived from the project's own SBOMs on every run rather than written by hand, whose SBOMs and subjects are pinned by a sha256 the validator recomputes, and whose provenance must agree with evidence/ci-run.json and with the revision the readiness manifest graded. Every licence expression must be blanket-allowed, individually reviewed with a note, or accepted-risk citing an approved exception from EP-002. Malformed expressions are recorded verbatim instead of normalised. Kit 3.3.0, MINOR.",
       "reason": "The D-013 audit found that of the four things EP-004's row named, lockfiles and SBOMs had shipped and were enforced at R3, while the words provenance, SLSA and license appeared only in the roadmap itself. An SBOM answers what is in the tree and answers none of the three questions that actually matter to a consumer: under what licence, from which build, and can I check it myself. Deriving the licence summary rather than accepting a written one is the same principle as re-deriving pack bindings in D-014: a second hand-maintained copy of a fact is a copy that drifts. Recording malformed licence expressions verbatim follows from the same place — a normaliser that turns 'MIT and ISC' into something tidy hides that the publisher ships a field nothing can parse.",
       "impact": "Three consequences worth carrying forward. The unlicensed components are a real obligation rather than a formatting complaint — thirty per FastAPI app, because the SBOM generator resolves nothing for Python distributions that declare their licence only in free-text classifiers, which makes improving that generator a concrete piece of future work rather than a vague wish. The dual-licensed dependency now records which option this project takes, and any future baseline that omits that choice will read as carrying a GPL obligation it does not have. And the LGPL clearances are conditional in writing: they hold because these apps are deployed rather than redistributed, so publishing an image would require revisiting them. The provenance cross-check also gives EP-011's evidence/ci-run.json a second consumer, which makes it harder to let that file go stale unnoticed."
+    },
+    {
+      "id": "D-018",
+      "date": "2026-09-23",
+      "decision": "Closed EP-005 with an operational-readiness artifact and a backup/restore rehearsal that really drops the schema. The rehearsal fingerprints every row before and after and requires an exact match, and the validator reads the transcript rather than trusting a reference to it: ok must be true, the data must have come back identical, and the digest is recomputed. Incident hooks became a contract with a signal, a detector whose files exist, a severity, a named owner and a runbook anchor resolved against real headings; where a security baseline exists, every trust boundary it declares must be watched. Also corrected all three runbooks, which had been citing the delivery contract's responsibility table to disclaim a responsibility that table assigns to Buaflow. Kit 3.4.0, MINOR.",
+      "reason": "The D-013 audit said nothing rehearses a restore and no evidence file records one, which was true, but the reason was a misread contract rather than an oversight: standards/deployment-ready-contract.md assigns the backup/restore PROCEDURE to Buaflow and the production data window to the platform, and the runbooks cited that table while claiming the whole subject was someone else's. Once the procedure is ours, it has to be rehearsed like the migration rollback is, and the rehearsal has to destroy something or it proves nothing. Comparing a content fingerprint rather than a table list is what makes it a data test: the failure mode worth catching is a restore that brings the schema back and not the rows. Requiring incident hooks to resolve to a real runbook heading follows the same reasoning as every other check added this week — the instruction that is wrong is the one nobody reads until the night it matters.",
+      "impact": "Three things carry forward. The rehearsal is Docker-only by design, which makes it the first rehearsal in this repository that an adopter can run without matching the app's language environment, and the two migration-rollback rehearsals that shell out to python are now the odd ones out. The boundary-coverage rule ties EP-005 to EP-003 rather than duplicating it, so adding a trust boundary later fails the gate until someone says how its failure would be detected — which is the intended cost. And the anchor checker is reusable: any future artifact that points at a runbook section can use headingAnchors() instead of inventing a second, subtly different slug rule. The rehearsals were run against a standalone Postgres on a spare port because the machine already had an unrelated stack on 5432; the committed scripts default to docker compose and take BACKUP_REHEARSAL_CONTAINER only as an override."
     }
   ],
   "lastSession": {
     "date": "2026-09-23",
-    "summary": "Three items shipped in sequence, each building on the one before. EP-002 gave a known, accepted gap somewhere to live: a requirement answers with proof or with an exception carrying an owner, a reason, a risk and an expiry, a lapsed exception fails the gate, and manual-only proof is refused. EP-003 mapped a real external control set — a pinned copy of OWASP ASVS 5.0.0 Level 1, 70 requirements taken from tag v5.0.0 with a sha256 per upstream chapter — recorded threat boundaries as data whose files must exist, required every control of every non-excluded chapter to be answered, and required anything not met to cite a real exception from EP-002. EP-004 then did the same for the supply chain: the licence summary is re-derived from the project's own SBOMs on every run so it cannot be written optimistically, SBOMs and subjects are pinned by a sha256 the validator recomputes, provenance must agree with evidence/ci-run.json and with the graded revision, and an unreviewed licence fails. Each one found real things the prose never said: logout not invalidating a captured session token and seeded accounts with published passwords (both high risk), and thirty components per FastAPI app with no resolvable licence grant at all. The user was asked before any newly found gap was recorded as accepted, and chose to record rather than fix; everything expires 2026-12-22. Kit 3.1.0, 3.2.0 and 3.3.0, all MINOR. Suite 277/277, 45 work items, 37 done.",
-    "next": "M4 has two items left: EP-005 (restore rehearsal and incident hooks — copy the rehearsal pattern EP-006 established for migration rollback, and cite the threat boundaries EP-003 recorded rather than describing them again) and EP-007 (profile-driven thresholds — application-profile.schema.json still carries none at all, so every performance and accessibility budget is a number one app chose for itself). current.focus is EP-005. Outside M4: EV-009 stays parked at the user's request and is what M5 needs; BC-001 stays in backlog per D-011; capability-based pack dependencies still have no work item. Dates to watch: every exception in all three reference apps expires 2026-12-22, now 12-13 per app failing together, and the weekly cron EP-010 added has still not fired its first Monday. verifier.js --execute still has side effects — it once destroyed 238 lines of real evidence — so run it on a clean tree and check git status after.",
+    "summary": "Four items shipped in sequence, each one building on the last, and each one found something the documentation had not said. EP-002 gave an accepted risk somewhere to live, with an owner and an expiry, and refused manual-only proof. EP-003 mapped a pinned copy of OWASP ASVS 5.0.0 Level 1, recorded threat boundaries as data, and required anything unmet to cite a real exception — which surfaced that logout does not invalidate a captured session token and that seeded accounts with published passwords ship with every app, both high risk. EP-004 made the licence summary derive itself from the project's own SBOMs so it cannot drift, cross-checked provenance against evidence/ci-run.json and the graded revision, and recomputed every digest — which surfaced thirty components per FastAPI app with no resolvable licence grant. EP-005 corrected a misread contract (the backup/restore procedure is Buaflow's to deliver; only the schedule and retention are the platform's), then rehearsed restore for real in all three apps: fingerprint every row, dump, DROP SCHEMA CASCADE, verify empty, restore, require an identical fingerprint, then confirm the runbook's roll-forward instruction is a no-op. All three came back identical. Incident hooks are now a contract whose runbook links are resolved against real headings, and every trust boundary EP-003 declared must be watched by a hook. Kit 3.1.0 through 3.4.0, all MINOR. Suite 288/288, 45 work items, 38 done.",
+    "next": "M4 has one item left: EP-007, profile-driven performance and accessibility thresholds. application-profile.schema.json still carries no thresholds at all, so a content site and a booking system are held to whatever number each app happened to pick; the measurement half is already done and enforced at R3. current.focus is EP-007, and closing it closes M4. Outside M4: EV-009 stays parked at the user's request and is what M5 needs; BC-001 stays in backlog per D-011; capability-based pack dependencies still have no work item. Dates to watch: every exception in all three reference apps expires 2026-12-22, now 12-13 per app failing together, and the weekly cron EP-010 added has still not fired its first Monday. verifier.js --execute still has side effects — it once destroyed 238 lines of real evidence — so run it on a clean tree and check git status after.",
     "verifiedAt": "2026-09-23T23:59:00.0000000+07:00"
   }
 }

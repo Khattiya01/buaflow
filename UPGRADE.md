@@ -4,7 +4,8 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
-| **v3.2.0** | [v3.2.0 → v3.3.0](#v320--v330-minor--คัดลอกไฟล์-จบ) ข้างล่างนี้ | ~1 นาที |
+| **v3.3.0** | [v3.3.0 → v3.4.0](#v330--v340-minor--คัดลอกไฟล์-จบ) ข้างล่างนี้ | ~1 นาที |
+| **v3.2.0** | [v3.2.0 → v3.3.0](#v320--v330-minor--คัดลอกไฟล์-จบ) แล้วต่อด้วย v3.4.0 | ~2 นาที |
 | **v3.1.0** | [v3.1.0 → v3.2.0](#v310--v320-minor--คัดลอกไฟล์-จบ) แล้วต่อด้วย v3.3.0 | ~2 นาที |
 | **v3.0.0** | [v3.0.0 → v3.1.0](#v300--v310-minor--คัดลอกไฟล์-จบ) แล้วต่อด้วย v3.2.0, v3.3.0 | ~3 นาที |
 | **v2.3.4** | [v2.3.4 → v3.0.0](#v234--v300-major--ต้องลงมือถ้าเคยใช้-pack) แล้วต่อด้วย v3.1.0, v3.2.0 | ~2 นาที หรือนานกว่านั้นถ้ามี pack |
@@ -15,6 +16,44 @@
 | **v2.2** | [v2.2 → v2.3](#v22--v23-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.1 | ~15 นาที |
 | **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) แล้วต่อด้วย v2.3 | ~15 นาที |
 | **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2, v2.3 | ~1 session |
+
+---
+
+## v3.3.0 → v3.4.0 (MINOR — คัดลอกไฟล์ จบ)
+
+**ใครได้รับผลกระทบจริง:** ไม่มีใครถูกบังคับ — ไม่มี `docs/evidence/operational-readiness.json` = ไม่ถูกตรวจ
+
+### 1. คัดลอกไฟล์
+
+```bash
+cp buaflow/claude-setup/operational-readiness.js .claude/operational-readiness.js
+cp buaflow/claude-setup/gate.js                  .claude/gate.js
+```
+
+### 2. ซ้อม restore ก่อน แล้วค่อยเขียน record
+
+ลอก `reference-apps/nextjs-postgres-crud/scripts/rehearse-backup-restore.mjs` มาปรับให้ตรงกับ
+ฐานข้อมูลของโปรเจกต์ — มันทำงานผ่าน `docker compose exec` ทั้งหมด จึงไม่ต้องมี Postgres client
+บนเครื่อง สิ่งที่ห้ามตัดออกคือ **ขั้นที่ drop schema จริง** และ **ขั้นเทียบ fingerprint ก่อน/หลัง**
+การซ้อมที่ไม่ได้ทำลายอะไรเลยไม่ได้พิสูจน์อะไรเลย
+
+```bash
+docker compose up -d db
+node scripts/rehearse-backup-restore.mjs
+cp buaflow/templates/operational-readiness.tpl.json docs/evidence/operational-readiness.json
+node .claude/operational-readiness.js --file docs/evidence/operational-readiness.json
+```
+
+> ตัวตรวจบอก sha256 ที่ถูกต้องมาให้ในข้อความ error ไม่ต้องคำนวณเอง
+
+ถ้าโปรเจกต์มี `security-baseline.json` (จาก 3.2.0) **ทุก trust boundary ต้องมี hook เฝ้า**
+อ่าน `standards/operational-readiness.md` ก่อนเขียน hook ตัวแรก
+
+### 3. ตรวจว่ายังผ่านเหมือนเดิม
+
+```bash
+node .claude/gate.js
+```
 
 ---
 

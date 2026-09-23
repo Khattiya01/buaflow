@@ -22,6 +22,7 @@ node buaflow/bin/buaflow.js <command>
 | `requirements [--file path]` | รัน `.claude/requirement-coverage.js` — requirement ทุกข้อต้องมี proof หรือ approved exception ที่ยังไม่หมดอายุ (EP-002) ค่า default ของ `--file` คือ `docs/evidence/requirement-coverage.json` | ไม่เขียน |
 | `security [--file path]` | รัน `.claude/security-baseline.js` — ทุก control ของ control set ภายนอกต้องมีคำตอบ และ control ที่ not-met ต้องชี้ไป approved exception (EP-003) | ไม่เขียน |
 | `supply [--file path]` | รัน `.claude/supply-chain.js` — สรุป licence ถูก derive ใหม่จาก SBOM, provenance ต้องตรงกับ CI run จริง, subject ทุกตัวถูกคำนวณ sha256 ใหม่ (EP-004) | ไม่เขียน |
+| `operations [--file path]` | รัน `.claude/operational-readiness.js` — restore ต้องถูกซ้อมจริงและข้อมูลกลับมาเหมือนเดิม, incident hook ต้องชี้ไปหัวข้อ runbook ที่มีอยู่จริง, ทุก trust boundary ต้องมีคนเฝ้า (EP-005) | ไม่เขียน |
 | `resume` | สรุป `.buaflow/project.json`, `docs/planning/_state.md` และ task ที่ in-progress | ไม่เขียน |
 
 ทุก command รับ `--root <path>` เพื่อกำหนด project root และ `--json` เพื่อ output ที่ agent/CI parse ได้

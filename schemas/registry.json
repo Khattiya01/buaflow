@@ -152,6 +152,16 @@
         "docs/evidence/supply-chain.json"
       ],
       "migration": "supported"
+    },
+    {
+      "type": "operational-readiness",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/operational-readiness.schema.json",
+      "paths": [
+        "docs/evidence/operational-readiness.json"
+      ],
+      "migration": "supported"
     }
   ]
 }

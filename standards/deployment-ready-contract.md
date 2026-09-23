@@ -47,7 +47,7 @@
 | `deployment-package` | image/package identity + manifest | ไม่ |
 | `runtime-config` | config schema/example without live secrets | ไม่ |
 | `database-migration` | forward/backward/compatibility evidence | ใช่ |
-| `rollback` | rehearsed rollback/recovery report | ไม่ |
+| `rollback` | rehearsed rollback/recovery report — รวม restore rehearsal ที่ `docs/evidence/operational-readiness.json` ตั้งแต่ 3.4.0 ดู `standards/operational-readiness.md` (EP-005) | ไม่ |
 | `secrets-scan` | scanner result for relevant history/artifact | ไม่ |
 | `dependency-scan` | dependency vulnerability report/policy | ไม่ |
 | `security-controls` | threat boundary + applicable ASVS/control proof — เป็น artifact ที่ `docs/evidence/security-baseline.json` ตั้งแต่ 3.2.0 ดู `standards/security-baseline.md` (EP-003) | ไม่ |

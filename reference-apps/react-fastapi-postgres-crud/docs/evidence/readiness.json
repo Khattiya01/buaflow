@@ -197,6 +197,10 @@
       "evidence": [
         {
           "type": "file",
+          "value": "docs/evidence/operational-readiness.json"
+        },
+        {
+          "type": "file",
           "value": "backend/alembic/versions/2e65734c6b45_init.py"
         },
         {
@@ -206,6 +210,10 @@
         {
           "type": "file",
           "value": "docs/runbook.md"
+        },
+        {
+          "type": "file",
+          "value": "evidence/backup-restore-rehearsal.json"
         }
       ]
     },
@@ -260,6 +268,10 @@
     "observability": {
       "status": "pass",
       "evidence": [
+        {
+          "type": "file",
+          "value": "docs/evidence/operational-readiness.json"
+        },
         {
           "type": "file",
           "value": "backend/app/log.py"
@@ -321,6 +333,10 @@
     "runbook": {
       "status": "pass",
       "evidence": [
+        {
+          "type": "file",
+          "value": "docs/evidence/operational-readiness.json"
+        },
         {
           "type": "file",
           "value": "docs/runbook.md"

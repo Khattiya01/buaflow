@@ -1,0 +1,98 @@
+{
+  "_": "EP-005 · backup/restore rehearsal · produced by scripts/rehearse-backup-restore.mjs against the local docker-compose Postgres · the public schema really is dropped between the backup and the restore",
+  "startedAt": "2026-09-23T11:21:01.402Z",
+  "finishedAt": "2026-09-23T11:21:06.635Z",
+  "totalDurationMs": 5233,
+  "procedure": {
+    "backup": "pg_dump -Fc inside the database container",
+    "restore": "pg_restore --no-owner inside the database container",
+    "documentedIn": "docs/runbook.md"
+  },
+  "backupArtifact": {
+    "bytes": 8957,
+    "sha256": "454cc616c65e9cfa481b47a90e23ad79019557ef846df078df0bcb410f0fe39f"
+  },
+  "fingerprint": {
+    "before": "49ef577d6a43860544d7d9248dc6cfdb7cad556f5701e24330ecff44dcc494e2",
+    "after": "49ef577d6a43860544d7d9248dc6cfdb7cad556f5701e24330ecff44dcc494e2",
+    "identical": true
+  },
+  "rollForwardAfterRestore": true,
+  "steps": [
+    {
+      "name": "fingerprint the database before backup",
+      "durationMs": 985,
+      "tables": [
+        "_prisma_migrations",
+        "audit_logs",
+        "tasks",
+        "users"
+      ],
+      "rows": {
+        "_prisma_migrations": 1,
+        "audit_logs": 0,
+        "tasks": 1,
+        "users": 2
+      },
+      "combined": "49ef577d6a43860544d7d9248dc6cfdb7cad556f5701e24330ecff44dcc494e2",
+      "ok": true
+    },
+    {
+      "name": "take a backup with pg_dump",
+      "durationMs": 183,
+      "format": "custom (pg_dump -Fc)",
+      "bytes": 8957,
+      "sha256": "454cc616c65e9cfa481b47a90e23ad79019557ef846df078df0bcb410f0fe39f",
+      "ok": true
+    },
+    {
+      "name": "destroy the database: drop the public schema",
+      "durationMs": 241,
+      "destroyed": true
+    },
+    {
+      "name": "verify the data is really gone",
+      "durationMs": 109,
+      "remainingTables": [],
+      "ok": true
+    },
+    {
+      "name": "restore from the backup with pg_restore",
+      "durationMs": 261,
+      "from": "backup.dump",
+      "ok": true
+    },
+    {
+      "name": "fingerprint the database after restore",
+      "durationMs": 983,
+      "tables": [
+        "_prisma_migrations",
+        "audit_logs",
+        "tasks",
+        "users"
+      ],
+      "rows": {
+        "_prisma_migrations": 1,
+        "audit_logs": 0,
+        "tasks": 1,
+        "users": 2
+      },
+      "combined": "49ef577d6a43860544d7d9248dc6cfdb7cad556f5701e24330ecff44dcc494e2"
+    },
+    {
+      "name": "compare: the restored data is the same data",
+      "durationMs": 0,
+      "fingerprint": "49ef577d6a43860544d7d9248dc6cfdb7cad556f5701e24330ecff44dcc494e2",
+      "identical": true,
+      "ok": true
+    },
+    {
+      "name": "roll forward after restore, as the runbook instructs",
+      "durationMs": 2467,
+      "noPendingMigrations": true,
+      "dataUnchanged": true,
+      "ok": true
+    }
+  ],
+  "ok": true
+}

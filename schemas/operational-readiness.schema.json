@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/operational-readiness-v1.json",
+  "title": "Buaflow operational readiness v1",
+  "description": "The backup and restore procedure with the rehearsal that proves it, and the incident hooks as a contract rather than a runbook paragraph. Every hook says what detects it, how bad it is, who owns it, and which runbook section the responder opens first — and the validator checks that the detector and the section both still exist.",
+  "type": "object",
+  "required": ["schemaVersion", "project", "generatedAt", "backup", "incidentHooks"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "_": { "type": "string" },
+    "project": { "type": "string", "minLength": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "backup": { "$ref": "#/$defs/backup" },
+    "incidentHooks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/hook" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "backup": {
+      "type": "object",
+      "required": ["procedure", "restore", "documentedIn", "rehearsal"],
+      "properties": {
+        "procedure": { "type": "string", "minLength": 10 },
+        "restore": { "type": "string", "minLength": 10 },
+        "documentedIn": { "type": "string", "minLength": 1 },
+        "owner": {
+          "description": "Who runs backups in production. A reference app that does not own production backups says so here rather than leaving the field out.",
+          "type": "string",
+          "minLength": 1
+        },
+        "rehearsal": {
+          "description": "The transcript of an actual destroy-and-restore. The validator recomputes its digest and reads its verdict, so a failed rehearsal cannot be cited as a passing one.",
+          "type": "object",
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "hook": {
+      "type": "object",
+      "required": ["id", "name", "signal", "severity", "detectedBy", "firstResponse", "owner"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^IH-[0-9]{3,}$" },
+        "name": { "type": "string", "minLength": 1 },
+        "signal": {
+          "description": "The observable condition, specific enough that someone could build an alert from it without asking a follow-up question.",
+          "type": "string",
+          "minLength": 20
+        },
+        "severity": { "enum": ["critical", "high", "medium", "low"] },
+        "detectedBy": {
+          "description": "What produces the signal — the health endpoint, the logger, a test. Files must exist, so a hook cannot point at a detector that was deleted.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidence" }
+        },
+        "firstResponse": {
+          "description": "file.md#anchor pointing at the runbook section a responder opens first. Both the file and the heading are checked.",
+          "type": "string",
+          "pattern": "^[^#]+\\.md#[a-z0-9-]+$"
+        },
+        "owner": { "type": "string", "minLength": 1 },
+        "boundary": {
+          "description": "The trust boundary in docs/evidence/security-baseline.json this hook watches, when that record exists.",
+          "type": "string",
+          "pattern": "^TB-[0-9]{3,}$"
+        },
+        "note": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["type", "value"],
+      "properties": {
+        "type": { "enum": ["command", "file", "url", "manual"] },
+        "value": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  }
+}

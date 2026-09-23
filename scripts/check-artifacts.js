@@ -22,6 +22,7 @@ const expectedSources = {
   'requirement-coverage': 'templates/requirement-coverage.tpl.json',
   'security-baseline': 'templates/security-baseline.tpl.json',
   'supply-chain': 'templates/supply-chain.tpl.json',
+  'operational-readiness': 'templates/operational-readiness.tpl.json',
   'control-set': 'standards/control-sets/owasp-asvs-5.0.0-l1.json',
   'product-development-state': 'development/state.json',
 };

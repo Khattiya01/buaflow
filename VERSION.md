@@ -3,6 +3,33 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.4.0 — 2026-09-23
+
+> โปรเจกต์ที่ใช้ v3.3.0 → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.3.0 → v3.4.0)
+> **MINOR:** ไม่มี `docs/evidence/operational-readiness.json` = ไม่ถูกตรวจ
+
+- **Operational readiness: restore ที่ซ้อมจริง + incident hook ที่เป็นสัญญา**
+  (`schemas/operational-readiness.schema.json`, `claude-setup/operational-readiness.js`, EP-005)
+- **ความขัดแย้งที่ถูกแก้** — `standards/deployment-ready-contract.md` เขียนไว้ว่า Buaflow ต้องส่งมอบ
+  "backup/restore **procedure**" แต่ runbook ของ reference app ทั้งสามอ้างตารางเดียวกันนั้นแล้วบอกว่า
+  "this repository has no automated backup step" ซึ่งอ่านตารางผิด · **procedure เป็นของเรา ·
+  schedule/retention/data policy เป็นของ platform** ตอนนี้ runbook ทั้งสามพูดตรงกับสัญญาแล้ว
+- **การซ้อมต้องทำลายของจริง** — `scripts/rehearse-backup-restore.mjs` ปั๊ม fingerprint ของทุกแถว
+  ทุกตาราง, `pg_dump`, **`DROP SCHEMA public CASCADE`**, ยืนยันว่าเหลือ 0 ตาราง, `pg_restore`,
+  แล้วเทียบ fingerprint ว่า**เท่าเดิมเป๊ะ** · การ restore ที่ได้ตารางเปล่ากลับมาจะผ่านการเช็ก
+  "ตารางครบไหม" และตกข้อนี้ · จบด้วยการรันคำสั่ง migration ตามที่ runbook สั่ง เพื่อยืนยันว่าเป็น no-op
+  · รันด้วย Docker อย่างเดียว ไม่ต้องมี Postgres client บนเครื่อง
+- **transcript ถูกอ่านจริง ไม่ใช่แค่ชี้ถึง** — `ok` ต้องเป็น true, `fingerprint.identical` ต้องเป็น true,
+  และ sha256 ถูกคำนวณใหม่ · รันซ้ำแล้วไม่อัปเดต record = ตก
+- **incident hook** ต้องมี signal ที่เจาะจงพอจะสร้าง alert ได้, detector ที่ไฟล์ยังอยู่จริง, severity,
+  **เจ้าของที่เป็นชื่อคน** และ `firstResponse` ที่ชี้ไป `ไฟล์.md#anchor` ซึ่ง**ตัวตรวจ resolve กับหัวข้อจริง**
+  — ลิงก์ที่ชี้ไปหัวข้อที่ถูกเปลี่ยนชื่อจะพังตอนตีสองพอดี
+- **ทุก trust boundary ของ EP-003 ต้องมี hook เฝ้า** — EP-005 ไม่เขียน threat boundary ใหม่
+  แต่ทำให้ช่องว่างระหว่าง "รู้ว่ามีเขตแดนตรงนี้" กับ "รู้ว่าจะรู้ได้ยังไงว่ามันพัง" มองเห็นด้วยเครื่อง
+- **`buaflow operations`** — คำสั่งใหม่
+- หลักฐานจริง: ทั้งสามแอปซ้อมแล้วจริงในรอบนี้ ข้อมูลกลับมาเหมือนเดิมทุกตัว
+  (`evidence/backup-restore-rehearsal.json`)
+
 ## v3.3.0 — 2026-09-23
 
 > โปรเจกต์ที่ใช้ v3.2.0 → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.2.0 → v3.3.0)

@@ -66,15 +66,41 @@ is gone → `alembic upgrade head` to roll forward again → verify schema + see
 Every future migration gets the same rehearsal run before being trusted.
 
 **Before rolling back schema in a real environment:** take a fresh backup first —
-`downgrade()` is destructive (it drops tables) and this repository has no automated backup
-step; that is an infrastructure/platform responsibility per
-`standards/deployment-ready-contract.md`'s responsibility table, not something this app
-manages itself.
+`downgrade()` is destructive (it drops tables). The backup and restore procedure this
+repository owns is in "Backup and restore" below, and it is rehearsed; what belongs to the
+platform is the schedule, the retention window and the production data policy.
 
 **Rolling back the application** (bad deploy, not a schema problem): redeploy the previous
 image tag. Additive schema changes (new nullable columns, new tables) are safe to leave in
 place while running an older image version; only revert the schema itself if the new
 migration is the actual cause.
+
+## Backup and restore
+
+The **procedure** is this repository's to deliver, per `standards/deployment-ready-contract.md`'s
+responsibility table; the **schedule, retention window and production data policy** belong to
+whoever owns the database instance. Those are different things, and an earlier version of this
+runbook collapsed them into "not our problem".
+
+```bash
+# backup (run against the database, not from inside the app container)
+pg_dump -U app -d app -Fc -f backup.dump
+
+# restore into an empty schema, then roll forward in case the snapshot predates a migration
+pg_restore -U app -d app --no-owner backup.dump
+python -m alembic upgrade head
+```
+
+**This has been rehearsed, not just written down.** `node scripts/rehearse-backup-restore.mjs` takes a real
+dump against the local docker-compose Postgres, **drops the entire public schema**, restores from
+the dump, and compares a content hash of every table before and after — a restore that recreated
+empty tables would pass a "do the tables exist" check and fail this one. It then runs the
+roll-forward command above to confirm it is a no-op against an up-to-date restore, because the
+Recovery section below tells an operator to do exactly that.
+
+The transcript is `evidence/backup-restore-rehearsal.json` and
+`docs/evidence/operational-readiness.json` cites it by digest, so re-running the rehearsal without
+updating that record fails the gate rather than going unnoticed.
 
 ## Recovery
 

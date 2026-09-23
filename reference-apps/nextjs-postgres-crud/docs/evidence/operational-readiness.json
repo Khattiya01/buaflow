@@ -1,0 +1,125 @@
+{
+  "$schema": "../../../../schemas/operational-readiness.schema.json",
+  "schemaVersion": "1.0",
+  "_": "EP-005 · restore ที่ซ้อมจริง + incident hook ที่เป็นสัญญา · ตรวจด้วย: node ../../claude-setup/operational-readiness.js --root . --file docs/evidence/operational-readiness.json · ทุก trust boundary ใน security-baseline.json ต้องมี hook เฝ้า",
+  "project": "nextjs-postgres-crud",
+  "generatedAt": "2026-09-23T23:55:00.000Z",
+  "backup": {
+    "procedure": "pg_dump -Fc against the application database, run by the platform on its own schedule",
+    "restore": "pg_restore --no-owner into an empty schema, then roll forward with the app migration command",
+    "documentedIn": "docs/runbook.md",
+    "owner": "the platform team that owns the database instance; this app owns the procedure and the rehearsal, not the production schedule or retention window",
+    "rehearsal": {
+      "path": "evidence/backup-restore-rehearsal.json",
+      "sha256": "6e8f2b7acdd4942026d41001fb702c9432d6ea8bd8a98ed688db843927d9d8a6"
+    }
+  },
+  "incidentHooks": [
+    {
+      "id": "IH-001",
+      "name": "The application is not serving",
+      "signal": "GET /api/health returns a non-2xx status, or does not respond at all, from outside the container",
+      "severity": "critical",
+      "detectedBy": [
+        {
+          "type": "file",
+          "value": "app/api/health/route.ts"
+        },
+        {
+          "type": "file",
+          "value": "evidence/clean-environment-rehearsal.json"
+        }
+      ],
+      "firstResponse": "docs/runbook.md#diagnose",
+      "owner": "khattiya dokbua",
+      "boundary": "TB-001"
+    },
+    {
+      "id": "IH-002",
+      "name": "The database is unreachable",
+      "signal": "The health endpoint reports 503 and the structured log carries health.database_unreachable entries",
+      "severity": "critical",
+      "detectedBy": [
+        {
+          "type": "file",
+          "value": "app/api/health/route.ts"
+        },
+        {
+          "type": "file",
+          "value": "lib/log.ts"
+        },
+        {
+          "type": "file",
+          "value": "lib/db.ts"
+        }
+      ],
+      "firstResponse": "docs/runbook.md#incident-response",
+      "owner": "khattiya dokbua",
+      "boundary": "TB-001",
+      "note": "The app has no failover logic of its own, so this hook exists to route the incident to Postgres diagnostics rather than to an application investigation."
+    },
+    {
+      "id": "IH-003",
+      "name": "Ownership boundary breached",
+      "signal": "access.forbidden log entries cluster around one actor or one resource, or an audit_logs row records a change by a subject who does not own the task",
+      "severity": "critical",
+      "detectedBy": [
+        {
+          "type": "file",
+          "value": "lib/guard.ts"
+        },
+        {
+          "type": "file",
+          "value": "lib/log.ts"
+        },
+        {
+          "type": "file",
+          "value": "lib/audit.ts"
+        }
+      ],
+      "firstResponse": "docs/runbook.md#incident-response",
+      "owner": "khattiya dokbua",
+      "boundary": "TB-001"
+    },
+    {
+      "id": "IH-004",
+      "name": "Session signing key suspected compromised",
+      "signal": "Sessions are accepted that the application never issued, or the signing secret is exposed in a log, a backup or a support channel",
+      "severity": "high",
+      "detectedBy": [
+        {
+          "type": "file",
+          "value": "lib/auth.ts"
+        },
+        {
+          "type": "file",
+          "value": "docs/security-notes.md"
+        }
+      ],
+      "firstResponse": "docs/runbook.md#incident-response",
+      "owner": "khattiya dokbua",
+      "boundary": "TB-001",
+      "note": "Rotating the secret is the documented response and invalidates every session at once, which is REQ-016 and REQ-020 in the coverage record — the response is known to be blunt."
+    },
+    {
+      "id": "IH-005",
+      "name": "Unauthenticated page shell served for an authenticated route",
+      "signal": "A request to /tasks without a valid session cookie returns 200 with page HTML instead of a redirect to /login",
+      "severity": "high",
+      "detectedBy": [
+        {
+          "type": "file",
+          "value": "proxy.ts"
+        },
+        {
+          "type": "file",
+          "value": "tests/e2e/primary-flow.spec.ts"
+        }
+      ],
+      "firstResponse": "docs/runbook.md#incident-response",
+      "owner": "khattiya dokbua",
+      "boundary": "TB-002",
+      "note": "The edge guard is the only thing standing between an unauthenticated browser and the rendered task list, and it is a separate mechanism from the API-layer check, so it can fail on its own."
+    }
+  ]
+}
