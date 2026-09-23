@@ -1,0 +1,125 @@
+{
+  "_": "Durable record of the CI run this project cites as evidence. Generated from the GitHub API, not written by hand. A URL is another system's attestation and can rot or become private; this file is checkable from the repository itself, and its commit is asserted to match the readiness manifest's.",
+  "generatedAt": "2026-09-23T06:58:24.453Z",
+  "provider": "github-actions",
+  "repository": "Khattiya01/buaflow",
+  "runId": 35758419510,
+  "url": "https://github.com/Khattiya01/buaflow/actions/runs/35758419510",
+  "workflow": "nextjs-postgres-crud CI",
+  "event": "push",
+  "branch": "main",
+  "commit": "ef0a5d196032c56478659deeb03c15512fdfc41a",
+  "conclusion": "success",
+  "startedAt": "2026-09-22T17:05:34Z",
+  "finishedAt": "2026-09-22T17:08:23Z",
+  "jobs": [
+    {
+      "name": "verify",
+      "conclusion": "success",
+      "startedAt": "2026-09-22T17:05:37Z",
+      "completedAt": "2026-09-22T17:07:22Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Typecheck",
+          "conclusion": "success"
+        },
+        {
+          "name": "Lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Unit tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Apply migrations",
+          "conclusion": "success"
+        },
+        {
+          "name": "Integration tests (build + real Postgres)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install Playwright browsers",
+          "conclusion": "success"
+        },
+        {
+          "name": "E2E tests (primary flow, accessibility, performance)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Production dependency audit",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload evidence",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "docker",
+      "conclusion": "success",
+      "startedAt": "2026-09-22T17:07:25Z",
+      "completedAt": "2026-09-22T17:08:22Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build production image",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ]
+}

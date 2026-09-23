@@ -196,6 +196,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | EP-007 | Performance/accessibility budgets | profile-specific threshold และ repeatable command |
 | EP-008 | Deployable handoff | image/package/manifests/config contract; clean-environment rehearsal |
 | EP-009 | R3 qualification gate | fail-closed decision และ human-readable report จาก machine state |
+| EP-011 | หลักฐานที่เครื่องตรวจได้สำหรับ control พื้นฐาน | ทุก control ต้องมี artifact ที่ตรวจได้จาก repository เอง ไม่ใช่มีแค่คำสั่งหรือ URL ที่ต้องเชื่อ |
 | EP-010 | Evidence freshness | control `evidence-freshness` + scheduled re-verify — หลักฐานที่เก่าเกินหน้าต่างที่ประกาศไว้ หรือผูกกับ commit ที่ไม่ใช่บรรพบุรุษของ HEAD จะเป็น `expired` ไม่ใช่ `pass` |
 
 ### Model and Tool Independence

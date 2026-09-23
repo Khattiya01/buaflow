@@ -1,0 +1,149 @@
+{
+  "_": "Durable record of the CI run this project cites as evidence. Generated from the GitHub API, not written by hand. A URL is another system's attestation and can rot or become private; this file is checkable from the repository itself, and its commit is asserted to match the readiness manifest's.",
+  "generatedAt": "2026-09-23T06:58:26.135Z",
+  "provider": "github-actions",
+  "repository": "Khattiya01/buaflow",
+  "runId": 35765907597,
+  "url": "https://github.com/Khattiya01/buaflow/actions/runs/35765907597",
+  "workflow": "react-fastapi-postgres-crud CI",
+  "event": "push",
+  "branch": "main",
+  "commit": "0867902176e09cbc43159d5076723f39969c3faa",
+  "conclusion": "success",
+  "startedAt": "2026-09-22T18:14:54Z",
+  "finishedAt": "2026-09-22T18:17:23Z",
+  "jobs": [
+    {
+      "name": "verify",
+      "conclusion": "success",
+      "startedAt": "2026-09-22T18:14:57Z",
+      "completedAt": "2026-09-22T18:16:49Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install backend dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend typecheck",
+          "conclusion": "success"
+        },
+        {
+          "name": "Apply migrations",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend unit + integration tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend production dependency audit",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install frontend dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Frontend typecheck",
+          "conclusion": "success"
+        },
+        {
+          "name": "Frontend lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Frontend production dependency audit",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install e2e dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install Playwright browsers",
+          "conclusion": "success"
+        },
+        {
+          "name": "E2E tests (primary flow, accessibility, performance)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload evidence",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "docker",
+      "conclusion": "success",
+      "startedAt": "2026-09-22T18:16:51Z",
+      "completedAt": "2026-09-22T18:17:22Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build production image",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ]
+}

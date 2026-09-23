@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "project": "nextjs-postgres-crud",
   "commit": "ef0a5d196032c56478659deeb03c15512fdfc41a",
-  "generatedAt": "2026-09-23T02:20:59.039Z",
+  "generatedAt": "2026-09-23T06:59:21.277Z",
   "readinessManifestPath": "docs/evidence/readiness.json",
   "reportIndexPath": "docs/evidence/bundle-index.md",
   "toolVersions": {

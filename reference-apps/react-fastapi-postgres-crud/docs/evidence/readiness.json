@@ -9,147 +9,320 @@
   "controls": {
     "version-control": {
       "status": "pass",
-      "evidence": [{ "type": "command", "value": "git rev-parse HEAD" }]
+      "evidence": [
+        {
+          "type": "command",
+          "value": "git rev-parse HEAD"
+        },
+        {
+          "type": "file",
+          "value": "evidence/ci-run.json"
+        }
+      ]
     },
     "start-path": {
       "status": "pass",
       "evidence": [
-        { "type": "command", "value": "docker compose up -d" },
-        { "type": "command", "value": "python -m uvicorn app.main:app --reload" }
+        {
+          "type": "command",
+          "value": "docker compose up -d"
+        },
+        {
+          "type": "command",
+          "value": "python -m uvicorn app.main:app --reload"
+        },
+        {
+          "type": "file",
+          "value": "evidence/clean-environment-rehearsal.json"
+        }
       ]
     },
     "primary-flow": {
       "status": "pass",
       "evidence": [
-        { "type": "file", "value": "tests/e2e/primary-flow.spec.ts" },
-        { "type": "command", "value": "npx playwright test primary-flow.spec.ts" }
+        {
+          "type": "file",
+          "value": "tests/e2e/primary-flow.spec.ts"
+        },
+        {
+          "type": "command",
+          "value": "npx playwright test primary-flow.spec.ts"
+        }
       ]
     },
     "build": {
       "status": "pass",
-      "evidence": [{ "type": "command", "value": "docker build -t react-fastapi-postgres-crud ." }]
+      "evidence": [
+        {
+          "type": "command",
+          "value": "docker build -t react-fastapi-postgres-crud ."
+        },
+        {
+          "type": "file",
+          "value": "evidence/ci-run.json"
+        }
+      ]
     },
     "verification": {
       "status": "pass",
       "evidence": [
-        { "type": "command", "value": "pytest" },
-        { "type": "command", "value": "ruff check app scripts tests" },
-        { "type": "command", "value": "mypy app" },
-        { "type": "command", "value": "npm run typecheck && npm run lint && npm run build" }
+        {
+          "type": "command",
+          "value": "pytest"
+        },
+        {
+          "type": "command",
+          "value": "ruff check app scripts tests"
+        },
+        {
+          "type": "command",
+          "value": "mypy app"
+        },
+        {
+          "type": "command",
+          "value": "npm run typecheck && npm run lint && npm run build"
+        },
+        {
+          "type": "file",
+          "value": "evidence/ci-run.json"
+        }
       ]
     },
     "requirements-traceability": {
       "status": "pass",
-      "evidence": [{ "type": "file", "value": "docs/requirements-traceability.md" }]
+      "evidence": [
+        {
+          "type": "file",
+          "value": "docs/requirements-traceability.md"
+        }
+      ]
     },
     "automated-tests": {
       "status": "pass",
       "evidence": [
-        { "type": "command", "value": "pytest" },
-        { "type": "command", "value": "npx playwright test" }
+        {
+          "type": "command",
+          "value": "pytest"
+        },
+        {
+          "type": "command",
+          "value": "npx playwright test"
+        },
+        {
+          "type": "file",
+          "value": "evidence/ci-run.json"
+        },
+        {
+          "type": "file",
+          "value": "evidence/playwright-report.json"
+        }
       ]
     },
     "persistence": {
       "status": "pass",
       "evidence": [
-        { "type": "file", "value": "backend/app/models.py" },
-        { "type": "file", "value": "evidence/migration-rollback-rehearsal.json" }
+        {
+          "type": "file",
+          "value": "backend/app/models.py"
+        },
+        {
+          "type": "file",
+          "value": "evidence/migration-rollback-rehearsal.json"
+        }
       ]
     },
     "access-control": {
       "status": "pass",
       "evidence": [
-        { "type": "file", "value": "backend/app/guard.py" },
-        { "type": "command", "value": "pytest tests/integration" }
+        {
+          "type": "file",
+          "value": "backend/app/guard.py"
+        },
+        {
+          "type": "command",
+          "value": "pytest tests/integration"
+        }
       ]
     },
     "ci": {
       "status": "pass",
       "evidence": [
-        { "type": "url", "value": "https://github.com/Khattiya01/buaflow/actions/runs/35765907597" }
+        {
+          "type": "url",
+          "value": "https://github.com/Khattiya01/buaflow/actions/runs/35765907597"
+        },
+        {
+          "type": "file",
+          "value": "evidence/ci-run.json"
+        }
       ]
     },
     "deployment-package": {
       "status": "pass",
       "evidence": [
-        { "type": "file", "value": "Dockerfile" },
-        { "type": "file", "value": "evidence/clean-environment-rehearsal.json" }
+        {
+          "type": "file",
+          "value": "Dockerfile"
+        },
+        {
+          "type": "file",
+          "value": "evidence/clean-environment-rehearsal.json"
+        }
       ]
     },
     "runtime-config": {
       "status": "pass",
-      "evidence": [{ "type": "file", "value": "backend/.env.example" }]
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/.env.example"
+        }
+      ]
     },
     "database-migration": {
       "status": "pass",
-      "evidence": [{ "type": "file", "value": "evidence/migration-rollback-rehearsal.json" }]
+      "evidence": [
+        {
+          "type": "file",
+          "value": "evidence/migration-rollback-rehearsal.json"
+        }
+      ]
     },
     "rollback": {
       "status": "pass",
       "evidence": [
-        { "type": "file", "value": "backend/alembic/versions/2e65734c6b45_init.py" },
-        { "type": "file", "value": "evidence/migration-rollback-rehearsal.json" },
-        { "type": "file", "value": "docs/runbook.md" }
+        {
+          "type": "file",
+          "value": "backend/alembic/versions/2e65734c6b45_init.py"
+        },
+        {
+          "type": "file",
+          "value": "evidence/migration-rollback-rehearsal.json"
+        },
+        {
+          "type": "file",
+          "value": "docs/runbook.md"
+        }
       ]
     },
     "secrets-scan": {
       "status": "pass",
-      "evidence": [{ "type": "file", "value": "evidence/gitleaks-report.json" }]
+      "evidence": [
+        {
+          "type": "file",
+          "value": "evidence/gitleaks-report.json"
+        }
+      ]
     },
     "dependency-scan": {
       "status": "pass",
       "evidence": [
-        { "type": "file", "value": "evidence/pip-audit.json" },
-        { "type": "file", "value": "evidence/npm-audit.json" }
+        {
+          "type": "file",
+          "value": "evidence/pip-audit.json"
+        },
+        {
+          "type": "file",
+          "value": "evidence/npm-audit.json"
+        }
       ]
     },
     "security-controls": {
       "status": "pass",
-      "evidence": [{ "type": "file", "value": "docs/security-notes.md" }]
+      "evidence": [
+        {
+          "type": "file",
+          "value": "docs/security-notes.md"
+        }
+      ]
     },
     "end-to-end-tests": {
       "status": "pass",
       "evidence": [
-        { "type": "file", "value": "evidence/playwright-report.json" },
-        { "type": "command", "value": "npx playwright test" }
+        {
+          "type": "file",
+          "value": "evidence/playwright-report.json"
+        },
+        {
+          "type": "command",
+          "value": "npx playwright test"
+        }
       ]
     },
     "observability": {
       "status": "pass",
       "evidence": [
-        { "type": "file", "value": "backend/app/log.py" },
-        { "type": "file", "value": "backend/app/routers/health.py" }
+        {
+          "type": "file",
+          "value": "backend/app/log.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/routers/health.py"
+        }
       ]
     },
     "health-check": {
       "status": "pass",
-      "evidence": [{ "type": "file", "value": "evidence/clean-environment-rehearsal.json" }]
+      "evidence": [
+        {
+          "type": "file",
+          "value": "evidence/clean-environment-rehearsal.json"
+        }
+      ]
     },
     "performance": {
       "status": "pass",
-      "evidence": [{ "type": "file", "value": "evidence/performance-budget.json" }]
+      "evidence": [
+        {
+          "type": "file",
+          "value": "evidence/performance-budget.json"
+        }
+      ]
     },
     "accessibility": {
       "status": "pass",
       "evidence": [
-        { "type": "file", "value": "evidence/axe-login.json" },
-        { "type": "file", "value": "evidence/axe-tasks.json" }
+        {
+          "type": "file",
+          "value": "evidence/axe-login.json"
+        },
+        {
+          "type": "file",
+          "value": "evidence/axe-tasks.json"
+        }
       ]
     },
     "sbom": {
       "status": "pass",
       "evidence": [
-        { "type": "file", "value": "evidence/sbom-backend.cdx.json" },
-        { "type": "file", "value": "evidence/sbom-frontend.cdx.json" }
+        {
+          "type": "file",
+          "value": "evidence/sbom-backend.cdx.json"
+        },
+        {
+          "type": "file",
+          "value": "evidence/sbom-frontend.cdx.json"
+        }
       ]
     },
     "runbook": {
       "status": "pass",
-      "evidence": [{ "type": "file", "value": "docs/runbook.md" }]
+      "evidence": [
+        {
+          "type": "file",
+          "value": "docs/runbook.md"
+        }
+      ]
     },
     "clean-environment": {
       "status": "pass",
-      "evidence": [{ "type": "file", "value": "evidence/clean-environment-rehearsal.json" }]
+      "evidence": [
+        {
+          "type": "file",
+          "value": "evidence/clean-environment-rehearsal.json"
+        }
+      ]
     }
   }
 }

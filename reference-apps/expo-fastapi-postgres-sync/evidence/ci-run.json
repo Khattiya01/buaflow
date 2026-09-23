@@ -1,0 +1,213 @@
+{
+  "_": "Durable record of the CI run this project cites as evidence. Generated from the GitHub API, not written by hand. A URL is another system's attestation and can rot or become private; this file is checkable from the repository itself, and its commit is asserted to match the readiness manifest's.",
+  "generatedAt": "2026-09-23T06:58:27.711Z",
+  "provider": "github-actions",
+  "repository": "Khattiya01/buaflow",
+  "runId": 35818912160,
+  "url": "https://github.com/Khattiya01/buaflow/actions/runs/35818912160",
+  "workflow": "expo-fastapi-postgres-sync CI",
+  "event": "workflow_dispatch",
+  "branch": "main",
+  "commit": "483d12900f54aeffd437dece267d7763f7efb001",
+  "conclusion": "success",
+  "startedAt": "2026-09-23T04:34:53Z",
+  "finishedAt": "2026-09-23T04:44:19Z",
+  "jobs": [
+    {
+      "name": "verify",
+      "conclusion": "success",
+      "startedAt": "2026-09-23T04:34:57Z",
+      "completedAt": "2026-09-23T04:37:10Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install backend dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend typecheck",
+          "conclusion": "success"
+        },
+        {
+          "name": "Apply migrations",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend unit + integration tests (sync push/pull, conflict resolution, ownership)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backend production dependency audit",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install mobile dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Mobile typecheck",
+          "conclusion": "success"
+        },
+        {
+          "name": "Mobile lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Mobile sync-engine unit tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Mobile production dependency audit",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install e2e dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install Playwright browsers",
+          "conclusion": "success"
+        },
+        {
+          "name": "E2E tests (primary flow, accessibility, performance, offline sync)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload evidence",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "android",
+      "conclusion": "success",
+      "startedAt": "2026-09-23T04:37:13Z",
+      "completedAt": "2026-09-23T04:44:18Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install mobile dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-java@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run android-actions/setup-android@v3",
+          "conclusion": "success"
+        },
+        {
+          "name": "Generate the native Android project (expo prebuild)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build a debug APK",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload the debug APK",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-java@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "docker",
+      "conclusion": "success",
+      "startedAt": "2026-09-23T04:37:12Z",
+      "completedAt": "2026-09-23T04:37:47Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build production image (backend + mobile web export, one deployable image)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ]
+}

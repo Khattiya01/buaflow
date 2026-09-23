@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "project": "expo-fastapi-postgres-sync",
   "commit": "483d12900f54aeffd437dece267d7763f7efb001",
-  "generatedAt": "2026-09-23T04:44:49.809Z",
+  "generatedAt": "2026-09-23T06:59:21.402Z",
   "readinessManifestPath": "docs/evidence/readiness.json",
   "reportIndexPath": "docs/evidence/bundle-index.md",
   "toolVersions": {

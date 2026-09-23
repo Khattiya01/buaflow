@@ -293,14 +293,25 @@ test('CLI: rejects a manifest path outside the project root', () => {
   assert.match(result.stderr, /must stay inside the project root/);
 });
 
-test('every shipped reference app agrees with its own manifest on what can be checked statically', () => {
-  // Not an execution run: this asserts the verifier finds no refutable claim in any shipped
-  // reference app, so a drifted or placeholder evidence file would fail the kit's own CI.
+test('every shipped reference app has all 25 R3 controls confirmable without a full environment', () => {
+  // Not an execution run. Two assertions, and the second is the one with teeth: every control
+  // must be CONFIRMED statically, not merely un-refuted. Until EP-011 that was false — six
+  // controls per app (version-control, start-path, build, verification, automated-tests, ci)
+  // carried only commands or a URL, so nothing could check them without a full environment,
+  // and the verifier honestly called them unverifiable. Requiring zero unverifiable here means
+  // a future control added with nothing but a command reintroduces the gap loudly instead of
+  // quietly.
   for (const app of ['nextjs-postgres-crud', 'react-fastapi-postgres-crud', 'expo-fastapi-postgres-sync']) {
     const root = path.join(repositoryRoot, 'reference-apps', app);
     const value = JSON.parse(fs.readFileSync(path.join(root, 'docs', 'evidence', 'readiness.json'), 'utf8'));
     const result = verifyManifest(value, { root });
     assert.deepEqual(result.disagreements, [], `${app} has a refutable claim`);
     assert.equal(result.ok, true, `${app}: ${JSON.stringify(result.verdicts.filter((v) => v.verdict === 'refuted'))}`);
+    assert.equal(
+      result.counts.unverifiable,
+      0,
+      `${app} has statically unverifiable controls: ${result.verdicts.filter((v) => v.verdict === 'unverifiable').map((v) => v.control).join(', ')}`
+    );
+    assert.equal(result.counts.confirmed, 25, `${app} should confirm all 25 R3 controls`);
   }
 });

@@ -1,6 +1,6 @@
 # Evidence bundle — expo-fastapi-postgres-sync
 
-commit: `483d12900f54aeffd437dece267d7763f7efb001` · generated: 2026-09-23T04:44:49.809Z · level: R3 · PASS (25/25)
+commit: `483d12900f54aeffd437dece267d7763f7efb001` · generated: 2026-09-23T06:59:21.402Z · level: R3 · PASS (25/25)
 
 tool versions: node v24.12.0, win32/x64
 
@@ -10,16 +10,16 @@ Readiness manifest: `docs/evidence/readiness.json` (profile: internal-crud, targ
 
 | control | status | evidence |
 | --- | --- | --- |
-| version-control | pass | command: git rev-parse HEAD |
-| start-path | pass | command: docker compose up -d<br>command: python -m uvicorn app.main:app --reload<br>command: cd mobile && npx expo start |
+| version-control | pass | command: git rev-parse HEAD<br>file: evidence/ci-run.json |
+| start-path | pass | command: docker compose up -d<br>command: python -m uvicorn app.main:app --reload<br>command: cd mobile && npx expo start<br>file: evidence/clean-environment-rehearsal.json |
 | primary-flow | pass | file: tests/e2e/primary-flow.spec.ts<br>command: npx playwright test primary-flow.spec.ts |
-| build | pass | command: docker build -t expo-fastapi-postgres-sync .<br>command: cd mobile && npx expo prebuild --platform android && cd android && ./gradlew assembleDebug |
-| verification | pass | command: pytest<br>command: ruff check app scripts tests<br>command: mypy app<br>command: cd mobile && npm run typecheck && npm run lint && npm test |
+| build | pass | command: docker build -t expo-fastapi-postgres-sync .<br>command: cd mobile && npx expo prebuild --platform android && cd android && ./gradlew assembleDebug<br>file: evidence/ci-run.json |
+| verification | pass | command: pytest<br>command: ruff check app scripts tests<br>command: mypy app<br>command: cd mobile && npm run typecheck && npm run lint && npm test<br>file: evidence/ci-run.json |
 | requirements-traceability | pass | file: docs/requirements-traceability.md |
-| automated-tests | pass | command: pytest<br>command: cd mobile && npm test<br>command: cd tests/e2e && npx playwright test |
+| automated-tests | pass | command: pytest<br>command: cd mobile && npm test<br>command: cd tests/e2e && npx playwright test<br>file: evidence/ci-run.json<br>file: evidence/playwright-report.json |
 | persistence | pass | file: backend/app/models.py<br>file: evidence/migration-rollback-rehearsal.json<br>file: docs/sync-contract.md |
 | access-control | pass | file: backend/app/guard.py<br>command: pytest tests/integration |
-| ci | pass | url: https://github.com/Khattiya01/buaflow/actions/runs/35818912160 |
+| ci | pass | url: https://github.com/Khattiya01/buaflow/actions/runs/35818912160<br>file: evidence/ci-run.json |
 | deployment-package | pass | file: Dockerfile<br>file: evidence/clean-environment-rehearsal.json<br>file: docs/runbook.md |
 | runtime-config | pass | file: backend/.env.example<br>file: mobile/.env.example |
 | database-migration | pass | file: evidence/migration-rollback-rehearsal.json |
