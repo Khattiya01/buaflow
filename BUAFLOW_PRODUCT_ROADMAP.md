@@ -229,14 +229,15 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | ID | งาน | ผลลัพธ์ |
 |---|---|---|
 | EV-001 | Reference app matrix | greenfield/brownfield, web/mobile, simple/complex |
-| EV-002 | Production-Qualified App benchmark | วัด functional + engineering + operations ไม่ใช่ screenshot อย่างเดียว |
+| EV-002 | Production-Qualified App benchmark | ✅ **done** — `buaflow benchmark`: สามมิติจาก manifest + verifier + probe + ตัวตรวจ EP + eval run · ไม่มีช่องพิมพ์ตัวเลข · reference app 0.97 · Bluepeak Hub 0.39 · `standards/production-qualified-benchmark.md` บอกด้วยว่ามองไม่เห็นอะไร |
 | EV-003 | Failure taxonomy | spec, implementation, integration, security, operations, tool failure |
-| EV-004 | Reproducible eval harness | fixed tasks, seeds where possible, artifact retention, score rubric |
+| EV-004 | Reproducible eval harness | ✅ **done** — eval-case / eval-run 1.0 · run ตรึง revision ของเคส · คนเขียนเคสตรวจเองไม่ได้ |
 | ~~EV-005~~ | ~~Opt-in telemetry~~ | **dropped (D-013)** — ยังไม่มีผู้ใช้ให้เก็บ เหลือแต่เราวัดตัวเอง ซึ่ง north-star metric ก็ติดปัญหานี้อยู่แล้ว |
 | EV-006 | Feedback-to-change loop | evidence → proposal → eval → rollout/rollback |
 | EV-007 | Compatibility and release policy | semver, migration, deprecation, support matrix |
-| EV-008 | Documentation/onboarding | quickstart, workshop, troubleshooting และ complete sample |
-| EV-009 | Trial บนโปรเจกต์ที่ Buaflow ไม่ได้เขียนเอง | north-star metric ได้ตัวหารที่ไม่ใช่ reference app ของตัวเอง พร้อมตัวเลขคำถาม/เวลา/จุดที่ kit ผิดหรือเงียบ |
+| EV-008 | Documentation/onboarding | ✅ **done** — QUICKSTART · TROUBLESHOOTING จาก K-1..K-14 · worked sample · `npm run check` ตรวจว่าทุกคำสั่งในเอกสารมีจริง · workshop ยังไม่เขียนโดยตั้งใจ (ยังไม่เคยมีใครถูกสอน) |
+| EV-009 | Trial บนโปรเจกต์ที่ Buaflow ไม่ได้เขียนเอง | 🚧 **blocked** — TFR 113s · คำถาม 0/3 · K-1..K-14 · eval baseline 2/5 · benchmark 0.39 ได้แล้ว · เหลือ reviewer-minutes (ต้องมีคนรีวิว) และช่วง R1→R2 ของ TPC (CI ติด billing) |
+| EV-010 | แก้สิ่งที่ trial แรกเจอใน kit | ✅ **done** — `buaflow assess` (K-2) · doctor/check-config/readiness/guard/gate แก้ K-1, K-3..K-9 |
 
 ## 7. Milestones
 
@@ -276,7 +277,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
   ~~provenance/licenses (EP-004 ✅)~~, ~~restore rehearsal (EP-005 ✅)~~,
   ~~budget ที่มาจาก profile (EP-007 ✅)~~ — **M4 ปิดครบแล้ว**
 
-### M5 — Proven Outside (เป้าหมายปัจจุบัน)
+### M5 — Proven Outside (เป้าหมายปัจจุบัน · 3/4 · เหลือ EV-009 ที่ติดสิ่งที่ต้องใช้คน)
 
 เสร็จเมื่อ Buaflow ถูกใช้กับโปรเจกต์ที่ **ไม่ได้เขียนเอง** และมีตัวเลขจากของจริง:
 EV-009 (trial แรก), EV-004 (eval harness ที่ทำซ้ำได้), EV-002 (Production-Qualified App benchmark), EV-008 (onboarding)
