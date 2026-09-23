@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/eval-run-v1.json",
+  "title": "Buaflow eval run v1",
+  "description": "One recorded run of one eval case (EV-004). The field that makes the format reproducible is caseRevision: it pins the exact revision of the case that was judged, so editing the case afterwards turns every run that claimed to pass it stale instead of leaving a passing record behind. outcome is declared and then re-derived from the per-criterion verdicts; a run whose conclusion disagrees with its own verdicts fails.",
+  "type": "object",
+  "required": ["schemaVersion", "caseId", "caseRevision", "runAt", "model", "commit", "session", "gradedBy", "variant", "results", "outcome"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "_": { "type": "string" },
+    "caseId": { "type": "string", "pattern": "^EV-[0-9]{3,}$" },
+    "caseRevision": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Print it with: node claude-setup/eval-harness.js --revision <case file>"
+    },
+    "runAt": { "type": "string", "format": "date" },
+    "model": { "type": "string", "minLength": 3 },
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,40}$",
+      "description": "The repository revision the configuration was in when the case ran. Two runs at the same commit, case revision and model are supposed to agree; when they do not, the case is non-deterministic and the harness says so."
+    },
+    "session": {
+      "enum": ["clean", "continued"],
+      "description": "clean means a fresh session. continued is recorded honestly and always fails: a case that passes because the conversation already discussed it proves nothing about the configuration."
+    },
+    "gradedBy": {
+      "type": "string",
+      "minLength": 3,
+      "description": "Who judged the criteria. Must differ from the case's authoredBy."
+    },
+    "variant": {
+      "enum": ["baseline", "ablation"],
+      "description": "ablation is the comparison round with the case's ablation.disable paths switched off."
+    },
+    "results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["criterionId", "verdict"],
+        "properties": {
+          "criterionId": { "type": "string", "pattern": "^C[0-9]{1,2}$" },
+          "verdict": {
+            "enum": ["pass", "fail", "unclear"],
+            "description": "unclear scores as a failure and is counted separately: it is a report about the criterion's wording, not about the run."
+          },
+          "note": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "uniqueItems": false,
+      "items": {
+        "type": "object",
+        "required": ["name", "path"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      },
+      "description": "Retained evidence. Paths are resolved against --root and checked for existence, the same way readiness evidence is."
+    },
+    "outcome": { "enum": ["pass", "fail"] },
+    "notes": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

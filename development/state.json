@@ -6,8 +6,7 @@
   "current": {
     "milestone": "M5",
     "focus": [
-      "EV-009",
-      "EV-004"
+      "EV-009"
     ]
   },
   "workItems": [
@@ -822,7 +821,7 @@
       "id": "EV-004",
       "title": "Reproducible eval harness",
       "milestone": "M5",
-      "status": "in_progress",
+      "status": "done",
       "startedAt": "2026-09-23",
       "dependsOn": [
         "EV-003"
@@ -834,9 +833,33 @@
         "The four cases the kit already ships in claude-setup/evals/ are represented without losing what they test, including each case's ablation round",
         "Retained artifacts are checked for existence the same way readiness evidence is, so a run that cites a transcript nobody kept cannot pass"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "Added to state.json on 2026-09-23 together with EV-002 and EV-008: BUAFLOW_PRODUCT_ROADMAP.md section 7 names four items as M5's completion criteria and state.json tracked only EV-009, so the milestone could not be closed by the check that is supposed to close it (D-020). Chosen first of the three because EV-002 needs a harness to score against, and because EV-009 has just produced the exact failure this item exists to prevent: five eval cases were prepared for Bluepeak Hub and deliberately not run, since the session that wrote the config would have been grading its own homework. Nothing in the current format records that constraint, so nothing can enforce it."
+      "artifacts": [
+        "schemas/eval-case.schema.json",
+        "schemas/eval-run.schema.json",
+        "templates/eval-case.tpl.json",
+        "templates/eval-run.tpl.json",
+        "schemas/registry.json",
+        "claude-setup/eval-harness.js",
+        "claude-setup/tests/eval-harness.test.js",
+        "claude-setup/evals/EV-001.json",
+        "claude-setup/evals/EV-002.json",
+        "claude-setup/evals/EV-003.json",
+        "claude-setup/evals/EV-004.json",
+        "claude-setup/evals/README.md",
+        "claude-setup/gate.js",
+        "claude-setup/tests/gate.test.js",
+        "scripts/check-artifacts.js",
+        "scripts/check-repository.js",
+        "bin/buaflow.js",
+        "CLI.md",
+        "phases/07-handoff.md"
+      ],
+      "verification": [
+        "npm run check",
+        "node claude-setup/eval-harness.js --cases claude-setup/evals --root ."
+      ],
+      "notes": "Built 2026-09-23. Two public artifacts, eval-case 1.0 and eval-run 1.0, replacing the Markdown eval format whose \"ผลการรันล่าสุด\" table was filled in by hand. The defect that format had was not that it was Markdown: it was that a row saying \"ผ่าน\" could not name the revision of the case it had judged, so loosening a case left the old pass standing and still reading as a pass. caseRevision fixes that by hashing only the fields that decide an outcome — prompt, criteria, passWhen, tests, setup, ablation, retain — so editing the title or retiring a case does NOT invalidate history, while touching the question does. Retirement was deliberately kept cheap for that reason: a format where retiring a case voids its record is a format where nobody retires anything, which is the failure claude-setup/evals/README.md warns about in its own last paragraph. Three refusals are the substance: a run graded by the case's own authoredBy, a run recorded as session \"continued\", and a run whose declared outcome disagrees with the outcome re-derived from its own per-criterion verdicts. The first comes straight out of EV-009, where five eval cases were prepared for a real outside project and deliberately left unrun because the session that wrote the configuration would have been grading itself — nothing in the old format could record that constraint, let alone enforce it. Two findings only exist across runs and are reported as warnings rather than errors: ablation-inconclusive (switching off the file under test changed nothing, so that file is not what produces the behaviour — the README already prescribed this comparison and nothing had ever performed it) and nondeterministic (same case revision, commit, model and variant producing both pass and fail, which is information about the case's wording, not the model). unclear is a first-class verdict that scores as a miss and is counted separately, so an undecidable criterion reports itself instead of being rounded to a pass. Additive per the release policy: a project with no docs/evals/*.json is not checked, so no previously-passing gate fails; kit 3.6.0, MINOR. The four starter cases moved to JSON without losing what they test, each with an ablation round, and npm run check now validates them against this repository's own tree, so a case cannot outlive the rule it was written for. --render prints a case as Markdown and self-checks that no value was dropped (the technique from claude-setup/product-graph.js), because machine-readable must not mean humans read JSON. Deliberately NOT done: no runner that calls a model. The harness checks the shape and the bookkeeping of evals and never executes one, which is why it is cheap enough to sit in the normal gate; actually running cases stays manual or goes through `claude plugin eval`, as claude-setup/evals/README.md says. No migrator from the Markdown format either, and UPGRADE.md says why: converting would mean inventing criterion ids, which is the one decision the whole format rests on.",
+      "completedAt": "2026-09-23"
     },
     {
       "id": "EV-002",
@@ -1594,12 +1617,19 @@
       "decision": "Registered EV-002, EV-004 and EV-008 as work items in development/state.json, and started EV-004 first. M5's completion criteria in BUAFLOW_PRODUCT_ROADMAP.md section 7 name four items — EV-009, EV-004, EV-002, EV-008 — and state.json contained only EV-009. The other three existed solely as rows in the section 6 workstream table, which scripts/check-roadmap.js does not read.",
       "reason": "A milestone whose criteria are invisible to the checker is the same failure this product was built to stop: a status that is true because it is written down rather than because it was derived. Reading state.json alone gave 'M5 has one item left', which is wrong by three. EV-004 goes first because EV-002 needs something to score against, and because EV-009 just demonstrated the gap it closes — five eval cases prepared for a real outside project were deliberately left unrun, since the session that wrote the config could not credibly grade it, and no part of the current Markdown eval format can record or enforce that.",
       "impact": "M5 now shows four tracked items instead of one. current.focus holds EV-009 and EV-004, which is the WIP limit of 2, so no third item can start until one of them closes. EV-008 depends on EV-009 on purpose, so onboarding cannot be written before the first outside trial has said where readers get stuck."
+    },
+    {
+      "id": "D-021",
+      "date": "2026-09-23",
+      "decision": "Closed EV-004 by splitting the eval format in two — eval-case 1.0 holds the question, eval-run 1.0 holds one judgement of it — and by making a run name the exact case revision it judged. The score is re-derived from the per-criterion verdicts on every read, a run graded by the case's own author is refused, and a run that continued an earlier session cannot pass. The four Markdown starter cases were converted and the Markdown format was removed rather than kept alongside.",
+      "reason": "The old format's results table could not say which revision of a case a row had judged, so editing a case to be easier left every earlier \"ผ่าน\" in place, still reading as a pass. That is the same class of defect the whole kit exists to remove: a status that is true because it was written down. Keeping both formats would have meant two ways to record the same claim, only one of which could be checked, so the Markdown one went. The refusal to let a case's author grade it comes from EV-009, where five cases were prepared for a real outside project and deliberately left unrun for exactly that reason — a constraint the old format had no way to record.",
+      "impact": "Kit 3.6.0 (MINOR): additive, because a project with no docs/evals/*.json is not checked and no previously-passing gate starts failing. Projects with Markdown cases convert by hand — no migrator exists, because converting would mean inventing the criterion ids the format rests on, and UPGRADE.md says so rather than guessing. npm run check now validates the kit's own four cases against this repository's tree, so a case cannot outlive the rule it tests. M5 drops to three open items: EV-002, EV-008 and EV-009, and current.focus returns to EV-009 alone."
     }
   ],
   "lastSession": {
     "date": "2026-09-23",
-    "summary": "M4 is complete. Five items shipped back to back, each one finding something the documentation had not said. EP-002 gave an accepted risk somewhere to live, with an owner and an expiry, and refused manual-only proof; its first twelve exceptions were transcriptions of prose the reference apps already kept. EP-003 mapped a pinned copy of OWASP ASVS 5.0.0 Level 1 and made threat boundaries data, surfacing that logout does not invalidate a captured session token and that seeded accounts with published passwords ship with every app. EP-004 made the licence summary derive itself from the project's own SBOMs and cross-checked provenance against evidence/ci-run.json, surfacing thirty components per FastAPI app with no resolvable licence grant. EP-005 corrected a misread of the delivery contract — the backup/restore procedure is Buaflow's to deliver, only the schedule is the platform's — and rehearsed restore for real in all three apps, dropping the schema and requiring an identical row-level fingerprint. EP-007 split the budget in two so the ceiling lives in the application profile and the app records only what it measured, which means changing one line changes what an app must meet. The running theme across all five: derive rather than declare, and make the artifact fail when it stops matching what it describes. Kit 3.1.0 through 3.5.0, every one MINOR. Suite 301/301, 45 work items, 39 done.",
-    "next": "M4 is closed, so the next horizon is M5 and it needs EV-009: applying Buaflow end to end to a project it did not author, which stays parked at the user's request and is the only thing that gives the north-star metric a denominator that is not our own reference apps. current.focus points at it so the state does not reference a finished item, not because it has been started. Also open: BC-001 stays in backlog per D-011; capability-based pack dependencies still have no work item; and D-019 records a new one worth opening — the application profiles still live under claude-setup/tests/fixtures/profiles, which is the same test-fixture-path problem D-012 fixed for packs, and EP-007 just made them load-bearing at runtime. Dates to watch: every exception in all three reference apps expires 2026-12-22, now 12-13 per app coming due together, and the weekly cron EP-010 added has still not fired its first Monday. verifier.js --execute still has side effects — it once destroyed 238 lines of real evidence — so run it on a clean tree and check git status after.",
-    "verifiedAt": "2026-09-23T23:59:00.0000000+07:00"
+    "summary": "M5 became measurable. The roadmap named four items as M5's completion criteria and state.json tracked one, so the milestone could not be closed by the check meant to close it; EV-002, EV-004 and EV-008 are now work items (D-020). EV-004 then shipped: eval cases and eval runs are separate machine-readable artifacts, and a run pins the revision of the case it judged, so loosening a case no longer leaves an old \"ผ่าน\" standing. Only the fields that decide an outcome enter that hash, which keeps retiring a case cheap — a format where retirement voids history is one where nobody retires anything. Three refusals carry the weight: a run graded by the case's own author, a run that continued an earlier session, and a run whose declared outcome disagrees with its own verdicts. The first is EV-009's lesson made enforceable. Two more findings only appear across runs: an ablation round that changed nothing (the file under test is not what produces the behaviour) and the same case, commit and model disagreeing with itself. The four Markdown starter cases moved to JSON with their ablation rounds intact, and npm run check now proves their tests[] paths still exist here. Kit 3.6.0, MINOR. Suite 328/328, 48 work items, 40 done.",
+    "next": "M5 has three open items. EV-002 (Production-Qualified App benchmark) is next and now has a harness to score against: it must compute functional, engineering and operations dimensions from artifacts that already exist — readiness manifests, evidence bundles, eval runs — and score the three reference apps and Bluepeak Hub with the same command. EV-008 (onboarding) deliberately waits on EV-009, because the first outside adoption is the only place that shows which instructions were unclear. EV-009 itself cannot close here: reviewer-minutes and TPC need a human other than this session, and development/trials/ev-009-measurement-protocol.md says how to collect them.",
+    "verifiedAt": "2026-09-23T13:51:51.435Z"
   }
 }

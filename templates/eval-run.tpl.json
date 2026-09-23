@@ -1,0 +1,22 @@
+{
+  "$schema": "../../../buaflow/schemas/eval-run.schema.json",
+  "schemaVersion": "1.0",
+  "_": "ผลการรัน eval หนึ่งครั้ง (EV-004) · เก็บที่ docs/evals/runs/<case>-<วันที่>.json · caseRevision เอามาจาก: node .claude/eval-harness.js --revision docs/evals/EV-0xx.json ⇒ พอเคสถูกแก้ run นี้กลายเป็น stale ทันที ไม่ใช่หลักฐานผ่านที่ตกค้าง · outcome ถูกคำนวณใหม่จาก results ทุกครั้ง ประกาศไม่ตรงกับ verdict ของตัวเอง = ไม่ผ่าน",
+  "caseId": "EV-001",
+  "caseRevision": "sha256:<64 hex จาก --revision>",
+  "runAt": "2026-01-01",
+  "model": "<ชื่อโมเดลที่รันจริง>",
+  "commit": "<git rev-parse --short HEAD ตอนที่รัน>",
+  "session": "clean",
+  "gradedBy": "<คนที่ตัดสิน — ต้องไม่ใช่ authoredBy ของเคส และต้องไม่ใช่ session ที่เพิ่งเขียน config นั้น>",
+  "variant": "baseline",
+  "results": [
+    { "criterionId": "C1", "verdict": "pass" },
+    { "criterionId": "C2", "verdict": "fail", "note": "<เกิดอะไรขึ้นจริง — unclear ใช้ได้และแปลว่าเกณฑ์ข้อนั้นเขียนไม่ชัด>" }
+  ],
+  "artifacts": [
+    { "name": "transcript", "path": "docs/evals/artifacts/EV-001-2026-01-01.md" }
+  ],
+  "outcome": "fail",
+  "notes": "<ข้อสังเกตที่ไม่เข้าเกณฑ์ข้อไหน — ตัดออกได้>"
+}

@@ -185,3 +185,58 @@ test('production gate passes only with required scanners and R3 readiness eviden
     cleanup(root);
   }
 });
+
+// --- EV-004 ---------------------------------------------------------------------------
+//
+// The eval step is additive the same way EP-002..007's are: a project with no docs/evals
+// is not checked at all, so no previously-passing gate starts failing on upgrade.
+
+test('the gate ignores a project with no eval cases, and fails one whose run is stale', () => {
+  const root = gateProject();
+  try {
+    fs.copyFileSync(path.join(repositoryRoot, 'claude-setup', 'eval-harness.js'), path.join(root, '.claude', 'eval-harness.js'));
+    const untouched = runGate(root);
+    assert.equal(untouched.status, 0, `${untouched.stdout}\n${untouched.stderr}`);
+    assert.doesNotMatch(untouched.stdout, /evals/);
+
+    write(path.join(root, 'AGENTS.md'), '# AGENTS\n');
+    const evalCase = {
+      schemaVersion: '1.0',
+      id: 'EV-001',
+      title: 'ต้องถามก่อนสร้าง component ใหม่',
+      authoredBy: 'the person who wrote the rules',
+      origin: 'designed',
+      tests: ['AGENTS.md'],
+      prompt: 'สร้าง component สำหรับการ์ดสรุปยอดขายหน่อย',
+      criteria: [
+        { id: 'C1', kind: 'must-happen', statement: 'ค้นหาของเดิมก่อนแล้วรายงานว่าเจออะไร' },
+        { id: 'C2', kind: 'must-not-happen', statement: 'เขียนไฟล์ทันทีโดยไม่ถามอะไรเลย' },
+      ],
+      passWhen: { minScore: 1 },
+    };
+    writeJson(path.join(root, 'docs', 'evals', 'EV-001.json'), evalCase);
+    const casesOnly = runGate(root);
+    assert.equal(casesOnly.status, 0, `${casesOnly.stdout}\n${casesOnly.stderr}`);
+    assert.match(casesOnly.stdout, /pass\s+evals/);
+
+    // a run recorded against a revision of the case that no longer exists
+    writeJson(path.join(root, 'docs', 'evals', 'runs', 'EV-001-2026-09-23.json'), {
+      schemaVersion: '1.0',
+      caseId: 'EV-001',
+      caseRevision: `sha256:${'0'.repeat(64)}`,
+      runAt: '2026-09-23',
+      model: 'some-model-1',
+      commit: 'abc1234',
+      session: 'clean',
+      gradedBy: 'a reviewer who did not write the rules',
+      variant: 'baseline',
+      results: [{ criterionId: 'C1', verdict: 'pass' }, { criterionId: 'C2', verdict: 'pass' }],
+      outcome: 'pass',
+    });
+    const stale = runGate(root);
+    assert.equal(stale.status, 1);
+    assert.match(stale.stdout, /fail\s+evals/);
+  } finally {
+    cleanup(root);
+  }
+});

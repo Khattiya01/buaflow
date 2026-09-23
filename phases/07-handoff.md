@@ -73,12 +73,13 @@ buaflow/claude-setup/supply-chain.js  → .claude/supply-chain.js   licence ท�
 buaflow/claude-setup/operational-readiness.js → .claude/operational-readiness.js  restore ที่ซ้อมจริง + incident hook ที่เป็นสัญญา (EP-005)
 buaflow/claude-setup/budgets.js       → .claude/budgets.js        performance/accessibility budget ที่มาจาก profile (EP-007)
 buaflow/claude-setup/failure-taxonomy.js → .claude/failure-taxonomy.js  หมวดความล้มเหลว + ตรวจ failure record (EV-003)
+buaflow/claude-setup/eval-harness.js  → .claude/eval-harness.js   eval case + run ที่ตรึงเวอร์ชันของเคสไว้ (EV-004)
 buaflow/claude-setup/convergence.js   →  .claude/convergence.js    กราฟความเชื่อมโยงของ artifact — อะไรลอยอยู่ อะไรยังไม่มีหลักฐาน (BC-004)
 buaflow/claude-setup/change-impact.js →  .claude/change-impact.js  แก้ตรงนี้แล้วอะไรต้องทบทวน — ลิงก์ที่ resolve ไม่ได้ = ไม่รู้ ไม่ใช่ไม่กระทบ (IC-006)
 buaflow/claude-setup/board.js        →  .claude/board.js          generate board.md จากไฟล์ task
 buaflow/claude-setup/prototype.js    →  .claude/prototype.js      click-through prototype จาก canvas baseline (เฉพาะโปรเจกต์ที่ใช้ canvas)
 buaflow/claude-setup/pixel.js        →  .claude/pixel.js          เทียบหน้าจริงกับ canvas baseline เป็นตัวเลข (เฉพาะโปรเจกต์ที่ใช้ canvas · ต้องมี pixelmatch + pngjs + Playwright เป็น dev dependency)
-buaflow/claude-setup/gate.js         →  .claude/gate.js           ด่านเดียว: verify + audit + secrets + check-config + docs-lint + requirement-coverage + security-baseline + supply-chain + operational-readiness + budgets
+buaflow/claude-setup/gate.js         →  .claude/gate.js           ด่านเดียว: verify + audit + secrets + check-config + docs-lint + requirement-coverage + security-baseline + supply-chain + operational-readiness + budgets + evals
 buaflow/claude-setup/verify.js       →  .claude/verify.js         ทางเข้าเดียวของคำสั่งตรวจ
 buaflow/claude-setup/run.js          →  .claude/run.js            คำสั่งรอง: coverage / audit / apiTest
 buaflow/claude-setup/stack-config.js →  .claude/stack-config.js   ตัวอ่าน stack.json ที่สคริปต์อื่นใช้ร่วมกัน
@@ -174,14 +175,16 @@ buaflow/templates/plan.tpl.md          →  docs/templates/
 buaflow/templates/spec.tpl.md          →  docs/templates/
 buaflow/templates/task.tpl.md          →  docs/templates/
 buaflow/templates/adr.tpl.md           →  docs/templates/
-buaflow/templates/eval-case.tpl.md     →  docs/templates/
+buaflow/templates/eval-case.tpl.json   →  docs/templates/
+buaflow/templates/eval-run.tpl.json    →  docs/templates/
 buaflow/templates/design-brief.tpl.md  →  docs/templates/
 buaflow/templates/prototype-flow.tpl.json →  docs/templates/
 buaflow/templates/evidence-register.tpl.md    →  docs/templates/
 buaflow/templates/process-flow.tpl.md         →  docs/templates/
 buaflow/templates/pain-point-register.tpl.md  →  docs/templates/
 buaflow/templates/outcome-review.tpl.md       →  docs/templates/
-buaflow/claude-setup/evals/*.md        →  docs/evals/
+buaflow/claude-setup/evals/*.json      →  docs/evals/   (แก้ tests[] ให้ชี้ไฟล์จริงของโปรเจกต์)
+buaflow/claude-setup/evals/README.md   →  docs/evals/
 ```
 
 ระหว่าง copy ให้ **ปรับเนื้อหาให้ตรงกับ stack จริง** อย่า copy ดิบ ๆ
@@ -244,8 +247,18 @@ buaflow/claude-setup/evals/*.md        →  docs/evals/
 
 ## 7.11 รัน eval ชุดแรก
 
-รัน `docs/evals/EV-001` ถึง `EV-004` ใน session ใหม่ที่สะอาด แล้วบันทึกผล
-**นี่คือ baseline** ที่จะใช้เทียบทุกครั้งที่แก้ config ในอนาคต
+รัน `docs/evals/EV-001.json` ถึง `EV-004.json` ใน session ใหม่ที่สะอาด แล้วบันทึกผลเป็น
+**eval run record** ที่ `docs/evals/runs/` — **นี่คือ baseline** ที่จะใช้เทียบทุกครั้งที่แก้ config
+
+```bash
+node .claude/eval-harness.js --render docs/evals/EV-001.json   # อ่านเคสแบบคน
+node .claude/eval-harness.js --revision docs/evals/EV-001.json # เอา caseRevision ไปใส่ใน run
+node .claude/eval-harness.js --cases docs/evals --runs docs/evals/runs
+```
+
+> ⛔ **คนที่เขียน config ในเฟสนี้ ตรวจ eval ของตัวเองไม่ได้** — `gradedBy` ต้องไม่ใช่
+> `authoredBy` ของเคส และ harness ปฏิเสธให้เอง · ถ้ายังไม่มีคนอื่นมาตรวจ ให้ปล่อยไว้เป็น
+> baseline ที่ยังไม่ได้รัน แล้วบอกผู้ใช้ตรง ๆ ดีกว่าได้ตัวเลขที่ไม่มีความหมาย
 
 ถ้าอยากให้รันซ้ำได้โดยไม่ต้องนั่งวาง prompt เอง: ใช้ skill `skill-creator` แปลงเคสเป็น eval suite แล้วรันด้วย `claude plugin eval` (ดู `docs/evals/README.md`)
 

@@ -4,7 +4,8 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
-| **v3.4.0** | [v3.4.0 → v3.5.0](#v340--v350-minor--คัดลอกไฟล์--migrate-profile) ข้างล่างนี้ | ~3 นาที |
+| **v3.5.0** | [v3.5.0 → v3.6.0](#v350--v360-minor--คัดลอกไฟล์--แปลง-eval-case) ข้างล่างนี้ | ~5 นาที |
+| **v3.4.0** | [v3.4.0 → v3.5.0](#v340--v350-minor--คัดลอกไฟล์--migrate-profile) แล้วต่อด้วย v3.6.0 | ~3 นาที |
 | **v3.3.0** | [v3.3.0 → v3.4.0](#v330--v340-minor--คัดลอกไฟล์-จบ) แล้วต่อด้วย v3.5.0 | ~2 นาที |
 | **v3.2.0** | [v3.2.0 → v3.3.0](#v320--v330-minor--คัดลอกไฟล์-จบ) แล้วต่อด้วย v3.4.0 | ~2 นาที |
 | **v3.1.0** | [v3.1.0 → v3.2.0](#v310--v320-minor--คัดลอกไฟล์-จบ) แล้วต่อด้วย v3.3.0 | ~2 นาที |
@@ -17,6 +18,62 @@
 | **v2.2** | [v2.2 → v2.3](#v22--v23-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.1 | ~15 นาที |
 | **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) แล้วต่อด้วย v2.3 | ~15 นาที |
 | **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2, v2.3 | ~1 session |
+
+---
+
+## v3.5.0 → v3.6.0 (MINOR — คัดลอกไฟล์ + แปลง eval case)
+
+**ใครได้รับผลกระทบจริง:** โปรเจกต์ที่มี `docs/evals/*.md` · ไฟล์เดิมไม่พัง มันแค่ไม่มีอะไรตรวจให้
+ถ้าไม่มีโฟลเดอร์ `docs/evals/` เลย ข้ามหัวข้อนี้ได้ทั้งหัวข้อ
+
+### 1. คัดลอกไฟล์
+
+```bash
+cp buaflow/claude-setup/eval-harness.js       .claude/eval-harness.js
+cp buaflow/templates/eval-case.tpl.json       docs/templates/
+cp buaflow/templates/eval-run.tpl.json        docs/templates/
+cp buaflow/claude-setup/evals/README.md       docs/evals/README.md
+mkdir -p docs/evals/runs
+```
+
+### 2. แปลงเคสเดิมเป็น JSON
+
+ไม่มี migrator ให้ และนั่นคือความตั้งใจ — เคส Markdown เก็บ checklist ไว้เป็นบรรทัดร้อยแก้ว
+ที่ไม่มี id · การแปลงอัตโนมัติจะต้อง**ตั้ง id ให้เกณฑ์แต่ละข้อเอง** ซึ่งเป็นสิ่งที่ทั้งรูปแบบนี้
+ตั้งอยู่บนมัน ⇒ ให้คน (หรือ agent ที่เปิดไฟล์เดิมอยู่ตรงหน้า) เป็นคนตัดสิน
+
+เปิด `docs/templates/eval-case.tpl.json` แล้วย้ายทีละเคส:
+
+| ของเดิม | ไปเป็น |
+|---|---|
+| หัวข้อ "สิ่งที่ต้องเกิด" | `criteria[]` ที่ `kind: "must-happen"` |
+| หัวข้อ "สิ่งที่ต้องไม่เกิด" | `criteria[]` ที่ `kind: "must-not-happen"` |
+| หัวข้อ "ที่มา" | `origin` + `observedIn` (ถ้าเป็นความพลาดจริง) |
+| `tests:` ใน frontmatter | `tests[]` — **ต้องเป็น path ที่มีอยู่จริง** |
+| หัวข้อ "รอบเปรียบเทียบ" | `ablation` |
+| ตาราง "ผลการรันล่าสุด" | **ทิ้ง** — ดูข้อ 3 |
+
+```bash
+node .claude/eval-harness.js --cases docs/evals --root .
+node .claude/eval-harness.js --render docs/evals/EV-001.json   # ทานกับของเดิม
+```
+
+### 3. ผลเก่าในตารางนั้นแปลงไม่ได้ และไม่ควรแปลง
+
+แถวเดิมไม่ได้บอกว่าตัดสิน**เคสเวอร์ชันไหน** ไม่ได้บอกว่า**ใครตัดสิน** และไม่ได้บอกว่า
+**session สะอาดไหม** — สามอย่างนี้คือทั้งหมดที่ทำให้ผลมีความหมาย
+
+⇒ **เริ่ม run record ใหม่จากศูนย์** แล้วเก็บไฟล์ `.md` เดิมไว้เป็นบันทึกประวัติถ้าอยากเก็บ
+การยกตัวเลขเก่ามาใส่ในรูปแบบใหม่ คือการทำให้ข้อมูลที่ตรวจกลับไม่ได้ดูเหมือนตรวจกลับได้
+
+> ⛔ ถ้าคนที่แปลงเคสคือคนเดียวกับที่เขียน `AGENTS.md`/rules อยู่ตอนนี้
+> **อย่าเพิ่งรันเอง** — `gradedBy` ต้องไม่ใช่ `authoredBy` และ harness ปฏิเสธให้เอง
+
+### 4. ตรวจว่ายังผ่านเหมือนเดิม
+
+```bash
+node .claude/gate.js
+```
 
 ---
 
@@ -547,7 +604,7 @@ cp buaflow/claude-setup/ci/github-actions.yml.tpl .github/workflows/gate.yml   #
 ```bash
 mkdir -p docs/intents docs/plans docs/evals docs/incidents docs/releases && touch docs/{intents,plans,incidents,releases}/.gitkeep
 cp buaflow/templates/{intent,plan,eval-case}.tpl.md docs/templates/
-cp buaflow/claude-setup/evals/*.md docs/evals/
+cp buaflow/claude-setup/evals/*.json docs/evals/ && mkdir -p docs/evals/runs
 ```
 
 ### 9. standards + workflow

@@ -2,7 +2,7 @@
 /**
  * gate.js — ประตูเดียวที่ทุกอย่างต้องผ่านก่อนเข้า main
  *
- *   node .claude/gate.js               รันครบ: verify → check-config → docs-lint → requirement-coverage → security-baseline → supply-chain → operational-readiness → budgets
+ *   node .claude/gate.js               รันครบ: verify → check-config → docs-lint → requirement-coverage → security-baseline → supply-chain → operational-readiness → budgets → evals
  *   node .claude/gate.js --docs-only   ข้าม verify (ใช้กับ commit ที่แตะแต่ docs/)
  *   node .claude/gate.js --release M1  เพิ่มเงื่อนไข release ของ milestone
  *
@@ -143,6 +143,18 @@ if (fs.existsSync(path.join(ROOT, 'docs', 'evidence', 'operational-readiness.jso
 // EP-007 — เพดานอยู่ที่ profile ไม่ใช่ที่แอป · ไม่มีไฟล์ = ไม่ตรวจ
 if (fs.existsSync(path.join(ROOT, 'docs', 'evidence', 'budgets.json'))) {
   add('budgets', process.execPath, [path.join(CLAUDE, 'budgets.js'), '--file', 'docs/evidence/budgets.json']);
+}
+// EV-004 — เงื่อนไขเดียวกัน: ไม่มี docs/evals/*.json = ไม่ตรวจ · ตัวตรวจนี้ไม่เรียกโมเดล
+// มันตรวจว่าเคสยังชี้ไฟล์ที่มีอยู่จริง และ run ที่อ้างว่าผ่านยังตัดสินเคสเวอร์ชันปัจจุบันอยู่
+// ⇒ แก้เคสให้ง่ายลงแล้วไม่รันใหม่ gate ตก ซึ่งเป็นทั้งหมดที่รูปแบบ Markdown เดิมทำไม่ได้
+if (fs.existsSync(path.join(ROOT, 'docs', 'evals')) &&
+    fs.readdirSync(path.join(ROOT, 'docs', 'evals')).some((name) => name.endsWith('.json'))) {
+  add('evals', process.execPath, [
+    path.join(CLAUDE, 'eval-harness.js'),
+    '--cases', 'docs/evals',
+    ...(fs.existsSync(path.join(ROOT, 'docs', 'evals', 'runs')) ? ['--runs', 'docs/evals/runs'] : []),
+    '--root', '.',
+  ]);
 }
 if (PRODUCTION) {
   add('readiness', process.execPath, [

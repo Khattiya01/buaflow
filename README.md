@@ -416,7 +416,8 @@ buaflow/
 │   ├── CLAUDE.md.tpl
 │   ├── design-brief.tpl.md
 │   ├── prototype-flow.tpl.json
-│   ├── eval-case.tpl.md
+│   ├── eval-case.tpl.json
+│   ├── eval-run.tpl.json
 │   ├── backlog-board.tpl.md
 │   ├── verify.mjs.tpl
 │   └── ...

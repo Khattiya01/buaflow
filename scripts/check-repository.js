@@ -60,6 +60,14 @@ run('pack contracts and their binding to reference apps', process.execPath, [
   '--dir', path.join(root, 'packs'),
   '--repo-root', root,
 ]);
+// EV-004 — the four starter eval cases the kit ships are checked against the kit's own tree,
+// so a case cannot outlive the rule it was written for: `tests` paths must still exist here.
+// No runs are checked, because the kit has no grader who did not write these cases.
+run("the kit's own eval cases", process.execPath, [
+  path.join(root, 'claude-setup', 'eval-harness.js'),
+  '--cases', path.join(root, 'claude-setup', 'evals'),
+  '--root', root,
+]);
 // EP-002 — every reference app answers for each of its requirements with proof or with an
 // exception a named owner accepted until a date. The 90-day window is the kit's policy as the
 // verifier, the same one evidence-freshness.yml supplies, not something a record may declare
