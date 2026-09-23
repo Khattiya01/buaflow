@@ -66,6 +66,7 @@ buaflow/claude-setup/hooks/*         →  .claude/hooks/
 buaflow/claude-setup/check-config.js →  .claude/check-config.js
 buaflow/claude-setup/docs-lint.js    →  .claude/docs-lint.js      ตรวจว่า artifact chain ยังตรงกัน
 buaflow/claude-setup/readiness.js    →  .claude/readiness.js      ตรวจ R0-R4 จาก evidence manifest
+buaflow/claude-setup/verifier.js     →  .claude/verifier.js       ตรวจซ้ำ evidence ของ manifest นั้นอย่างอิสระ ไม่เชื่อคำประกาศของผู้สร้าง (BC-006)
 buaflow/claude-setup/board.js        →  .claude/board.js          generate board.md จากไฟล์ task
 buaflow/claude-setup/prototype.js    →  .claude/prototype.js      click-through prototype จาก canvas baseline (เฉพาะโปรเจกต์ที่ใช้ canvas)
 buaflow/claude-setup/pixel.js        →  .claude/pixel.js          เทียบหน้าจริงกับ canvas baseline เป็นตัวเลข (เฉพาะโปรเจกต์ที่ใช้ canvas · ต้องมี pixelmatch + pngjs + Playwright เป็น dev dependency)

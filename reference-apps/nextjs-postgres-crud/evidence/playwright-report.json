@@ -3,7 +3,8 @@
     "argv": [
       "C:\\nvm4w\\nodejs\\node.exe",
       "C:\\Projects\\buaflow\\reference-apps\\nextjs-postgres-crud\\node_modules\\@playwright\\test\\cli.js",
-      "test"
+      "test",
+      "tests/e2e/primary-flow.spec.ts"
     ],
     "configFile": "C:\\Projects\\buaflow\\reference-apps\\nextjs-postgres-crud\\playwright.config.ts",
     "rootDir": "C:/Projects/buaflow/reference-apps/nextjs-postgres-crud/tests/e2e",
@@ -16,18 +17,14 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {
-      "actualWorkers": 1
-    },
+    "metadata": {},
     "preserveOutput": "always",
     "projects": [
       {
         "outputDir": "C:/Projects/buaflow/reference-apps/nextjs-postgres-crud/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "chromium",
         "name": "chromium",
         "testDir": "C:/Projects/buaflow/reference-apps/nextjs-postgres-crud/tests/e2e",
@@ -68,241 +65,23 @@
       "timeout": 30000
     }
   },
-  "suites": [
+  "suites": [],
+  "errors": [
     {
-      "title": "accessibility.spec.ts",
-      "file": "accessibility.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [
-        {
-          "title": "login page has no critical/serious WCAG 2 A/AA violations",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "chromium",
-              "projectName": "chromium",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 421,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-09-22T16:43:02.432Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "ddd864604af8a6a0198f-c76b9a326e24fd6c3807",
-          "file": "accessibility.spec.ts",
-          "line": 18,
-          "column": 5
-        },
-        {
-          "title": "tasks page has no critical/serious WCAG 2 A/AA violations",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "chromium",
-              "projectName": "chromium",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 567,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-09-22T16:43:02.947Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "ddd864604af8a6a0198f-180f5024ceaab124de89",
-          "file": "accessibility.spec.ts",
-          "line": 25,
-          "column": 5
-        }
-      ]
-    },
-    {
-      "title": "performance.spec.ts",
-      "file": "performance.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [
-        {
-          "title": "login and tasks pages load within budget",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "chromium",
-              "projectName": "chromium",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 263,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-09-22T16:43:03.524Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "b15d6361b2fc38288977-5f96b1d2316dc0f4be8d",
-          "file": "performance.spec.ts",
-          "line": 20,
-          "column": 5
-        }
-      ]
-    },
-    {
-      "title": "primary-flow.spec.ts",
-      "file": "primary-flow.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [
-        {
-          "title": "a member can sign in, add a task, and see it in their list",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "chromium",
-              "projectName": "chromium",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 431,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-09-22T16:43:03.794Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "cb71e6fdb679330affc7-cedd45cee7f7fc13ffac",
-          "file": "primary-flow.spec.ts",
-          "line": 5,
-          "column": 5
-        },
-        {
-          "title": "signing out blocks access to /tasks again",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "chromium",
-              "projectName": "chromium",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 328,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-09-22T16:43:04.231Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "cb71e6fdb679330affc7-163b7d938b1ea1bf5a5e",
-          "file": "primary-flow.spec.ts",
-          "line": 29,
-          "column": 5
-        },
-        {
-          "title": "a wrong password shows an error and does not navigate away",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "chromium",
-              "projectName": "chromium",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 213,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-09-22T16:43:04.564Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "cb71e6fdb679330affc7-70be6297bad8bbfd809f",
-          "file": "primary-flow.spec.ts",
-          "line": 43,
-          "column": 5
-        }
-      ]
+      "message": "Error: Command failed: npx prisma migrate reset --force",
+      "stack": "Error: Command failed: npx prisma migrate reset --force\n    at globalSetup (C:\\Projects\\buaflow\\reference-apps\\nextjs-postgres-crud\\tests\\e2e\\global-setup.ts:6:15)",
+      "location": {
+        "file": "C:\\Projects\\buaflow\\reference-apps\\nextjs-postgres-crud\\tests\\e2e\\global-setup.ts",
+        "column": 15,
+        "line": 6
+      },
+      "snippet": "\u001b[90m   at \u001b[39mglobal-setup.ts:6\n\n\u001b[0m \u001b[90m 4 |\u001b[39m \u001b[90m// (admin@example.com / member@example.com, see prisma/seed.mjs).\u001b[39m\n \u001b[90m 5 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36mdefault\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m globalSetup() {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 6 |\u001b[39m   execFileSync(\u001b[32m\"npx\"\u001b[39m\u001b[33m,\u001b[39m [\u001b[32m\"prisma\"\u001b[39m\u001b[33m,\u001b[39m \u001b[32m\"migrate\"\u001b[39m\u001b[33m,\u001b[39m \u001b[32m\"reset\"\u001b[39m\u001b[33m,\u001b[39m \u001b[32m\"--force\"\u001b[39m]\u001b[33m,\u001b[39m { stdio\u001b[33m:\u001b[39m \u001b[32m\"inherit\"\u001b[39m\u001b[33m,\u001b[39m shell\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m   |\u001b[39m               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 7 |\u001b[39m   \u001b[90m// --env-file-if-exists: CI has no .env file, only env vars already set by the workflow.\u001b[39m\n \u001b[90m 8 |\u001b[39m   execFileSync(\u001b[32m\"node\"\u001b[39m\u001b[33m,\u001b[39m [\u001b[32m\"--env-file-if-exists=.env\"\u001b[39m\u001b[33m,\u001b[39m \u001b[32m\"prisma/seed.mjs\"\u001b[39m]\u001b[33m,\u001b[39m { stdio\u001b[33m:\u001b[39m \u001b[32m\"inherit\"\u001b[39m\u001b[33m,\u001b[39m shell\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 9 |\u001b[39m }\u001b[0m"
     }
   ],
-  "errors": [],
   "stats": {
-    "startTime": "2026-09-22T16:42:59.268Z",
-    "duration": 5765.462,
-    "expected": 6,
+    "startTime": "2026-09-23T06:45:01.413Z",
+    "duration": 13318.726,
+    "expected": 0,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

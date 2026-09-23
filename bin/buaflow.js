@@ -27,7 +27,11 @@ function usage() {
     '  doctor     inspect local prerequisites and installed Buaflow controls',
     '  verify     run the project standard verification command',
     '  readiness  validate an R0-R4 evidence manifest',
+    '  audit      re-check that manifest independently, from artifacts and command output',
     '  resume     summarize persisted project state for any human or AI tool',
+    '',
+    'audit options: --execute  re-run the declared command evidence (same trust level as the',
+    '                          project\'s own scripts; without it commands stay unverified)',
     '',
     'Shared options: --root <path>  --json  --help',
     'Exit codes: 0 success, 1 failed check, 2 invalid input, 3 unavailable tool',
@@ -35,9 +39,9 @@ function usage() {
 }
 
 function parse(argv) {
-  if (argv[0] === '--help' || argv[0] === '-h') return { command: 'help', options: { root: process.cwd(), json: false, help: true, force: false, strict: false, mode: 'new', level: null, file: null } };
+  if (argv[0] === '--help' || argv[0] === '-h') return { command: 'help', options: { root: process.cwd(), json: false, help: true, force: false, strict: false, mode: 'new', level: null, file: null, execute: false } };
   const [command, ...rest] = argv;
-  const options = { root: process.cwd(), json: false, help: false, force: false, strict: false, mode: 'new', level: null, file: null };
+  const options = { root: process.cwd(), json: false, help: false, force: false, strict: false, mode: 'new', level: null, file: null, execute: false };
   for (let index = 0; index < rest.length; index++) {
     const arg = rest[index];
     if (arg === '--root') options.root = rest[++index];
@@ -45,6 +49,7 @@ function parse(argv) {
     else if (arg === '--help' || arg === '-h') options.help = true;
     else if (arg === '--force') options.force = true;
     else if (arg === '--strict') options.strict = true;
+    else if (arg === '--execute') options.execute = true;
     else if (arg === '--mode') options.mode = rest[++index];
     else if (arg === '--level') options.level = rest[++index];
     else if (arg === '--file') options.file = rest[++index];
@@ -150,7 +155,7 @@ function commandDoctor(root, options) {
   }
 
   const claude = path.join(root, '.claude');
-  const controls = ['verify.js', 'readiness.js', 'gate.js', 'check-config.js'];
+  const controls = ['verify.js', 'readiness.js', 'verifier.js', 'gate.js', 'check-config.js'];
   const installed = controls.filter((name) => fs.existsSync(path.join(claude, name)));
   installed.length ? pass('controls', `${installed.length}/${controls.length} core controls installed`) : warning('controls', 'no .claude controls installed yet; this is normal before Phase 7');
   if (fs.existsSync(path.join(root, 'docs', 'planning', '_state.md'))) pass('planning-state', 'docs/planning/_state.md found');
@@ -164,24 +169,33 @@ function commandDoctor(root, options) {
 }
 
 function commandDelegated(command, root, options) {
-  const scriptName = command === 'verify' ? 'verify.js' : 'readiness.js';
+  const scriptName = command === 'verify' ? 'verify.js' : command === 'audit' ? 'verifier.js' : 'readiness.js';
   const script = path.join(root, '.claude', scriptName);
   if (!fs.existsSync(script)) {
     return envelope(command, EXIT.UNAVAILABLE, `${scriptName} is not installed in this project`, { expected: '.claude/' + scriptName }, [], [`install Buaflow controls in Phase 7 before running ${command}`]);
   }
   const args = command === 'readiness'
     ? ['--file', options.file || 'docs/evidence/readiness.json', ...(options.level ? ['--level', options.level] : []), '--json']
-    : [];
+    : command === 'audit'
+      ? [
+        '--root', root,
+        '--file', options.file || 'docs/evidence/readiness.json',
+        ...(options.level ? ['--level', options.level] : []),
+        ...(options.execute ? ['--execute'] : []),
+        '--json',
+      ]
+      : [];
   const result = runNode(root, script, args);
   const code = result.status === 0 ? EXIT.OK : EXIT.FAILED;
   let childJson = null;
-  if (command === 'readiness' && result.stdout.trim()) {
+  const emitsJson = command === 'readiness' || command === 'audit';
+  if (emitsJson && result.stdout.trim()) {
     try { childJson = JSON.parse(result.stdout); } catch { /* output is retained below for diagnosis */ }
   }
   return envelope(command, code, code === EXIT.OK ? `${command} passed` : `${command} failed`, {
     delegatedTo: `.claude/${scriptName}`,
     result: childJson,
-    output: command === 'readiness' && childJson ? undefined : result.stdout.trim(),
+    output: emitsJson && childJson ? undefined : result.stdout.trim(),
   }, [], result.status === 0 ? [] : [result.stderr.trim() || result.stdout.trim() || `${scriptName} exited ${result.status}`]);
 }
 
@@ -229,7 +243,7 @@ function main(argv = process.argv.slice(2)) {
     else console.log(usage());
     return EXIT.OK;
   }
-  if (!['init', 'doctor', 'verify', 'readiness', 'resume'].includes(command)) {
+  if (!['init', 'doctor', 'verify', 'readiness', 'audit', 'resume'].includes(command)) {
     const result = envelope(command || 'cli', EXIT.INPUT, 'unknown command', {}, [], [usage()]);
     emit(result, options.json);
     return EXIT.INPUT;

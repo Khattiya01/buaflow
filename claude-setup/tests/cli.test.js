@@ -92,6 +92,39 @@ test('verify and readiness use stable unavailable, failed and pass exit codes', 
   }
 });
 
+test('audit delegates to the independent verifier and keeps the same exit-code contract', () => {
+  const root = temporaryProject('buaflow-cli-');
+  try {
+    const unavailable = runCli(root, ['audit']);
+    assert.equal(unavailable.status, 3, 'an uninstalled control is unavailable, not a failure');
+
+    fs.mkdirSync(path.join(root, '.claude'), { recursive: true });
+    for (const name of ['readiness.js', 'verifier.js']) {
+      fs.copyFileSync(path.join(repositoryRoot, 'claude-setup', name), path.join(root, '.claude', name));
+    }
+
+    // Command evidence that cannot be reproduced, claimed as a pass. Without --execute the
+    // verifier must not run it, and must not call it a pass either.
+    const value = r0Manifest();
+    value.controls['start-path'].evidence = [{ type: 'command', value: 'exit 7' }];
+    writeJson(path.join(root, 'docs', 'evidence', 'readiness.json'), value);
+
+    const quiet = runCli(root, ['audit', '--level', 'R0']);
+    assert.equal(quiet.status, 0, quiet.stderr);
+    const quietOutput = json(quiet);
+    assert.equal(quietOutput.data.result.executed, false);
+    assert.equal(quietOutput.data.result.counts.confirmed, 0);
+
+    const executed = runCli(root, ['audit', '--level', 'R0', '--execute']);
+    assert.equal(executed.status, 1, executed.stdout + executed.stderr);
+    const executedOutput = json(executed);
+    assert.equal(executedOutput.data.result.ok, false);
+    assert.match(executedOutput.data.result.disagreements.join('\n'), /start-path: claimed pass, but did not reproduce in this environment — exited 7/);
+  } finally {
+    cleanup(root);
+  }
+});
+
 test('resume reads persisted state without a vendor-specific session', () => {
   const root = temporaryProject('buaflow-cli-');
   try {
