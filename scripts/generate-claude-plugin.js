@@ -97,7 +97,9 @@ function build(root) {
   ].join('\n'));
 
   // Digests are over LF-normalised text so a Windows checkout (CRLF) verifies the same as Linux.
-  const checksums = [...files.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([rel, content]) => `${sha256(content.replace(/\r\n/g, '\n'))}  ${rel}`).join('\n');
+  // Code-point order, not localeCompare: the file is compared byte-for-byte, and locale collation
+  // differs between a Windows machine and a Linux CI runner (punctuation and case are weighted differently).
+  const checksums = [...files.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([rel, content]) => `${sha256(content.replace(/\r\n/g, '\n'))}  ${rel}`).join('\n');
   put('CHECKSUMS.sha256', `${checksums}\n`);
 
   const marketplace = `${JSON.stringify({
