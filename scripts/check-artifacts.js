@@ -18,6 +18,7 @@ const expectedSources = {
   'application-profile': 'templates/application-profile.tpl.json',
   'pack': 'templates/pack.tpl.json',
   'evidence-bundle': 'templates/evidence-bundle.tpl.json',
+  'failure-record': 'templates/failure-record.tpl.json',
   'product-development-state': 'development/state.json',
 };
 

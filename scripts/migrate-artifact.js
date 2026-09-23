@@ -17,6 +17,7 @@ const schemaHints = {
   'application-profile': '../../buaflow/schemas/application-profile.schema.json',
   'pack': '../../buaflow/schemas/pack.schema.json',
   'evidence-bundle': '../../buaflow/schemas/evidence-bundle.schema.json',
+  'failure-record': '../../../buaflow/schemas/failure-record.schema.json',
 };
 
 function definition(type) {

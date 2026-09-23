@@ -102,6 +102,16 @@
         "development/state.json"
       ],
       "migration": "manual"
+    },
+    {
+      "type": "failure-record",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/failure-record.schema.json",
+      "paths": [
+        "docs/evidence/failures/*.json"
+      ],
+      "migration": "supported"
     }
   ]
 }

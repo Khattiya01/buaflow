@@ -5,7 +5,7 @@
   "updatedAt": "2026-09-23",
   "current": {
     "milestone": "M4",
-    "focus": ["EV-003"]
+    "focus": ["EV-007"]
   },
   "workItems": [
     {
@@ -990,7 +990,9 @@
       "id": "EV-003",
       "title": "Failure taxonomy",
       "milestone": "M4",
-      "status": "ready",
+      "status": "done",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
       "dependsOn": [
         "EP-001"
       ],
@@ -999,9 +1001,20 @@
         "Every class is grounded in a failure this repository actually hit, cited to where it happened, rather than invented from a category list",
         "The taxonomy is machine-readable and validated, so a failure record cannot name a class that does not exist"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "Chosen as the next item on 2026-09-23. Cheap because the data already exists and has been written down all session: a sync-hook data-loss race, a transitive advisory in a mobile dependency chain, a CI action requesting an SDK package Google removed, a regex that let a flag swallow a tool token, a pack asserting a file its app never had, a recipe installing two dependencies the real implementation avoids, and a verifier destroying the evidence it was verifying. Those are seven distinct classes observed in one repository, which is a better starting corpus than a taxonomy copied from a paper."
+      "artifacts": [
+        "claude-setup/failure-taxonomy.js",
+        "claude-setup/tests/failure-taxonomy.test.js",
+        "schemas/failure-record.schema.json",
+        "templates/failure-record.tpl.json",
+        "schemas/registry.json",
+        "standards/failure-taxonomy.md",
+        "phases/07-handoff.md"
+      ],
+      "verification": [
+        "npm test",
+        "npm run check"
+      ],
+      "notes": "Chosen as the next item on 2026-09-23. Cheap because the data already exists and has been written down all session: a sync-hook data-loss race, a transitive advisory in a mobile dependency chain, a CI action requesting an SDK package Google removed, a regex that let a flag swallow a tool token, a pack asserting a file its app never had, a recipe installing two dependencies the real implementation avoids, and a verifier destroying the evidence it was verifying. Those are seven distinct classes observed in one repository, which is a better starting corpus than a taxonomy copied from a paper. Built 2026-09-23. Nine classes, each carrying an observedIn record with what happened, where, and what caught it: spec-gap, contract-drift, implementation-defect, integration-mismatch, supply-chain-finding, toolchain-failure, verification-gap, evidence-defect and guidance-defect. The grounding rule is enforced by a test rather than asked for in prose: every citation must resolve, so a work-item or decision id has to exist in state.json and a path has to exist on disk. A taxonomy that drifts into a copied category list fails the suite. The most useful field turned out to be detectedBy, required on every record with \"nothing caught it\" explicitly allowed, because that answer is what names an open gap. Reading it across the nine classes produces a work list from data rather than from guessing: contract-drift was caught by the pack binding check on its first run and implementation-defect by end-to-end tests that really failed, so those gates earn their keep, while spec-gap was caught only by a human reading a contract and evidence-defect only by git status after the damage was done, so those two are the holes. Deliberately NOT included: an operations-failure class. Nothing in this repository has ever run in production, so grounding one would require inventing an incident, which is exactly the failure this file exists to prevent. The hole is declared as a known gap with EV-009 named as what closes it, and a test asserts the class stays absent so nobody closes it on paper. The roadmap row asked for six categories (spec, implementation, integration, security, operations, tool); what the evidence actually supports is nine classes and one declared hole, which is a better answer than matching the original list. Ships as claude-setup/failure-taxonomy.js (catalog, record validation and a --list CLI), schemas/failure-record.schema.json with its template and registry entry, standards/failure-taxonomy.md, and 13 tests. A record naming a class that does not exist is rejected, which is what makes the taxonomy a contract rather than advice. Suite 182 to 195."
     },
     {
       "id": "EV-007",
