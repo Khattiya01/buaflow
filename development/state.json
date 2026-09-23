@@ -6,7 +6,8 @@
   "current": {
     "milestone": "M5",
     "focus": [
-      "EV-009"
+      "EV-009",
+      "EV-004"
     ]
   },
   "workItems": [
@@ -818,6 +819,61 @@
       "startedAt": "2026-09-23"
     },
     {
+      "id": "EV-004",
+      "title": "Reproducible eval harness",
+      "milestone": "M5",
+      "status": "in_progress",
+      "startedAt": "2026-09-23",
+      "dependsOn": [
+        "EV-003"
+      ],
+      "acceptance": [
+        "An eval case is a machine-readable artifact with stable criterion ids, not a Markdown checklist whose results table is filled in by hand",
+        "A run record names the exact case revision it judged, so a run stops counting the moment the case it claims to have passed is edited",
+        "The score is re-derived from the per-criterion verdicts on every read; a declared total that disagrees with its own criteria fails",
+        "The four cases the kit already ships in claude-setup/evals/ are represented without losing what they test, including each case's ablation round",
+        "Retained artifacts are checked for existence the same way readiness evidence is, so a run that cites a transcript nobody kept cannot pass"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Added to state.json on 2026-09-23 together with EV-002 and EV-008: BUAFLOW_PRODUCT_ROADMAP.md section 7 names four items as M5's completion criteria and state.json tracked only EV-009, so the milestone could not be closed by the check that is supposed to close it (D-020). Chosen first of the three because EV-002 needs a harness to score against, and because EV-009 has just produced the exact failure this item exists to prevent: five eval cases were prepared for Bluepeak Hub and deliberately not run, since the session that wrote the config would have been grading its own homework. Nothing in the current format records that constraint, so nothing can enforce it."
+    },
+    {
+      "id": "EV-002",
+      "title": "Production-Qualified App benchmark",
+      "milestone": "M5",
+      "status": "backlog",
+      "dependsOn": [
+        "EV-004",
+        "EP-001"
+      ],
+      "acceptance": [
+        "The benchmark scores functional, engineering and operations dimensions, per BUAFLOW_PRODUCT_ROADMAP.md's EV-002 row — a screenshot-only score is explicitly not qualifying",
+        "Every dimension is computed from artifacts that already exist (readiness manifest, evidence bundle, eval runs), not from a number somebody typed",
+        "The three reference apps and the EV-009 trial project can all be scored by the same command with no app-specific branching"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Not started. The north-star metric today has reference apps Buaflow wrote, verified and graded itself as its denominator; this item is what makes the number mean something once EV-009 supplies an outside data point."
+    },
+    {
+      "id": "EV-008",
+      "title": "Documentation and onboarding",
+      "milestone": "M5",
+      "status": "backlog",
+      "dependsOn": [
+        "EV-009"
+      ],
+      "acceptance": [
+        "Quickstart, troubleshooting and a complete worked sample exist, per BUAFLOW_PRODUCT_ROADMAP.md's EV-008 row",
+        "Troubleshooting is written from the findings EV-009 recorded against the kit (K-1..K-10), not from imagined problems",
+        "Every command a reader is told to run is checked to exist and to be spelled the way the kit actually spells it"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Not started, and deliberately dependent on EV-009 rather than parallel to it: the first adoption by someone outside is the only place that shows which instructions were unclear. Writing onboarding before that data exists means guessing at where readers get stuck."
+    },
+    {
       "id": "EP-011",
       "title": "Machine-checkable evidence for the six controls nothing could verify",
       "milestone": "M3",
@@ -1531,6 +1587,13 @@
       "decision": "Closed EP-007 by splitting the budget in two: application-profile 1.1 declares the ceiling and its reasoning, and a new budget-evidence 1.0 artifact records what the app measured, with the command and the source file for each number and no field for a threshold. Measured values are re-derived from the cited evidence, an unmeasured budgeted metric fails, and a profile with no budgets is refused. The migrator raises a profile from 1.0 to 1.1 without inventing budgets. Kit 3.5.0, MINOR. M4 is complete.",
       "reason": "The D-013 audit found that measurement was done and enforced at R3 while the word profile-specific, used by both the roadmap and standards/deployment-ready-contract.md, had no implementation: application-profile.schema.json carried no thresholds, so every budget was a number one app chose for itself. The shipped evidence made it plain, with budgetMs 3000 sitting next to a 47ms result and nothing saying where 3000 came from. Putting the ceiling in the profile is what makes a content site and an internal tool different in a way a machine can act on, and leaving the ceiling out of the evidence artifact is what stops the split from collapsing back. Re-deriving the measured numbers follows EP-004: a figure typed by hand is a figure that can be optimistic.",
       "impact": "Changing one line — the profile id in an app's budget record — now changes what that app must meet, with no code change, which is what profile-specific was always supposed to mean. Three consequences. The metric vocabulary is closed at four entries, so extending it is a deliberate schema change rather than a free-text field that quietly diverges per project. The migrator's refusal to invent budgets means every adopter on a 1.0 profile has to choose their own thresholds, which is slower and correct. And application-profile is the first artifact in this repository to take a minor version, which exposed that the migration test assumed 1.0 was universal; that test now follows the registry. Still deferred and worth its own item: the application profiles live in claude-setup/tests/fixtures/profiles, which is exactly the situation D-012 fixed for packs — a product catalogue under a test-fixture path — and EP-007 has just made them load-bearing at runtime for the first time. It was left alone here because moving them touches fourteen files including comments in reference-app source, which is a change the user should decide on rather than one folded into a budget item."
+    },
+    {
+      "id": "D-020",
+      "date": "2026-09-23",
+      "decision": "Registered EV-002, EV-004 and EV-008 as work items in development/state.json, and started EV-004 first. M5's completion criteria in BUAFLOW_PRODUCT_ROADMAP.md section 7 name four items — EV-009, EV-004, EV-002, EV-008 — and state.json contained only EV-009. The other three existed solely as rows in the section 6 workstream table, which scripts/check-roadmap.js does not read.",
+      "reason": "A milestone whose criteria are invisible to the checker is the same failure this product was built to stop: a status that is true because it is written down rather than because it was derived. Reading state.json alone gave 'M5 has one item left', which is wrong by three. EV-004 goes first because EV-002 needs something to score against, and because EV-009 just demonstrated the gap it closes — five eval cases prepared for a real outside project were deliberately left unrun, since the session that wrote the config could not credibly grade it, and no part of the current Markdown eval format can record or enforce that.",
+      "impact": "M5 now shows four tracked items instead of one. current.focus holds EV-009 and EV-004, which is the WIP limit of 2, so no third item can start until one of them closes. EV-008 depends on EV-009 on purpose, so onboarding cannot be written before the first outside trial has said where readers get stuck."
     }
   ],
   "lastSession": {
