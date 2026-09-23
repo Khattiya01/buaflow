@@ -2,25 +2,27 @@
 
 <h1>🌸 Buaflow</h1>
 
-<h3>เปลี่ยน Claude Code จาก “ผู้ช่วยเขียนโค้ด” ให้เป็นระบบส่งมอบซอฟต์แวร์ที่ตรวจสอบย้อนหลังได้</h3>
+<h3>Claude Code เป็นคนสร้าง · Buaflow เป็นคนพิสูจน์ว่าแอปพร้อมส่งมอบแค่ไหน</h3>
 
-<p><strong>Plan อย่างมีหลักฐาน · Build อย่างมีขอบเขต · Verify ก่อนส่ง · คนเป็นผู้อนุมัติ</strong></p>
+<p><strong>Plan อย่างมีหลักฐาน · Build อย่างมีขอบเขต · ตัดสินความพร้อมด้วยเครื่อง · คนเป็นผู้อนุมัติ</strong></p>
 
 <p>
-  <img alt="Buaflow version 2.3.4" src="https://img.shields.io/badge/version-2.3.4-e85aad?style=for-the-badge">
-  <img alt="Claude Code ready" src="https://img.shields.io/badge/Claude_Code-ready-D97757?style=for-the-badge">
-  <img alt="Process supports any stack" src="https://img.shields.io/badge/process-any_stack-2563EB?style=for-the-badge">
-  <img alt="Core scripts have zero dependencies" src="https://img.shields.io/badge/core_scripts-zero_dependencies-16A34A?style=for-the-badge">
+  <img alt="Buaflow version 3.11.1" src="https://img.shields.io/badge/version-3.11.1-e85aad?style=for-the-badge">
+  <img alt="Claude Code" src="https://img.shields.io/badge/Claude_Code-plugin_%2B_kit-D97757?style=for-the-badge">
+  <img alt="Readiness R0 to R4" src="https://img.shields.io/badge/readiness-R0–R4-2563EB?style=for-the-badge">
+  <img alt="Zero dependencies" src="https://img.shields.io/badge/node_22-zero_dependencies-16A34A?style=for-the-badge">
 </p>
 
 <p>
-  <a href="#quick-start"><strong>เริ่มใช้งาน</strong></a>
+  <a href="QUICKSTART.md"><strong>10 นาทีแรก</strong></a>
   ·
-  <a href="START-HERE.md"><strong>อ่าน START HERE</strong></a>
+  <a href="START-HERE.md"><strong>START HERE</strong></a>
   ·
   <a href="CLI.md"><strong>CLI</strong></a>
   ·
-  <a href="UPGRADE.md"><strong>คู่มืออัปเกรด</strong></a>
+  <a href="UPGRADE.md"><strong>อัปเกรด</strong></a>
+  ·
+  <a href="TROUBLESHOOTING.md"><strong>แก้ปัญหา</strong></a>
   ·
   <a href="VERSION.md"><strong>Changelog</strong></a>
 </p>
@@ -29,39 +31,75 @@
 
 ---
 
-> **Buaflow คือ AI-native SDLC kit สำหรับ Claude Code** ที่เชื่อมตั้งแต่การค้นหา requirement, ตัดสินใจ stack, วาง architecture, แตก backlog, scaffold โปรเจกต์ ไปจนถึง workflow รายวัน, quality gate, PR และ feedback loop — โดยเก็บการตัดสินใจทุกช่วงไว้ใน Git
+> **Buaflow พาโปรเจกต์ — ใหม่หรือมีโค้ดอยู่แล้ว — จากโจทย์ไปถึง Production Candidate (R3):**
+> repository ที่ทีม platform นำไปติดตั้งได้โดย**ไม่ต้องแก้ source code** เหลือแค่ใส่ secret และค่าของ infrastructure
+> และตอบได้ทุกเมื่อว่าตอนนี้แอปอยู่ระดับไหน **จากหลักฐานที่เครื่องตรวจซ้ำได้** ไม่ใช่จากคำบอกของ AI
 
-มันไม่ใช่ framework, starter app หรือ prompt ก้อนใหญ่ที่ยิงครั้งเดียวแล้วจบ แต่เป็น **ระบบปฏิบัติการของการทำงานร่วมกับ AI**: แต่ละขั้นมี input, output, gate และผู้รับผิดชอบชัดเจน สิ่งที่ห้ามพังถูกบังคับด้วยโค้ด ไม่ได้ฝากความหวังไว้กับข้อความใน prompt อย่างเดียว
+AI เขียนโค้ดได้เร็วและเก่งขึ้นทุกเดือน สิ่งที่ยังขาดคือ**คำตอบที่เชื่อได้ว่างานเสร็จจริงแค่ไหน** Buaflow จึงไม่แข่งกับ AI
+ในการเขียนโค้ด ไม่มี template generator และไม่ลอกเอกสารของ provider มาแช่ไว้ — Claude Code เลือกเครื่องมือ
+อ่าน docs ปัจจุบัน และลงมือเอง ส่วน Buaflow ถือสามอย่างที่ AI ไม่ควรตัดสินให้ตัวเอง:
+
+1. **ขอบเขตและการตัดสินใจ** — intent, requirement, สิ่งที่ห้ามพัง และการเดาทุกข้อ อยู่ใน Git และมีเจ้าของ
+2. **ประตูที่บังคับจริง** — hook และ gate ที่ exit non-zero ได้ ทั้งในเครื่องและนอก session
+3. **คำตัดสินความพร้อม** — readiness R0–R4 จากหลักฐาน, verifier ที่ไม่เชื่อคำประกาศของผู้สร้าง และคะแนนที่ไม่มีช่องให้ใครพิมพ์
+
+## เปลี่ยนอะไรจาก v2.3.4
+
+v2.x คือ **SDLC workflow สำหรับทำงานกับ AI** — phase, skill, rule, hook และ gate · v3.x เก็บทั้งหมดนั้นไว้
+แล้วเพิ่มคำตอบของคำถามที่ v2 ตอบไม่ได้: **"แล้วตอนนี้พร้อมส่งมอบหรือยัง"**
+
+| | v2.3.4 | v3.11.1 |
+|---|---|---|
+| เป้าหมาย | ทำงานกับ AI อย่างมีระเบียบ | ส่งมอบแอปที่พิสูจน์ความพร้อมได้ถึง R3 |
+| "เสร็จแล้ว" | verify + gate ผ่าน | + readiness manifest ที่ผูกกับ commit และถูก verifier ตรวจซ้ำ |
+| โปรเจกต์เดิม | Phase A ด้วยมือ | `buaflow assess` ตอบระดับ R ได้ทันทีโดยไม่ต้องเขียนอะไรก่อน |
+| หลักฐาน | prose ในเอกสาร | JSON ที่มี schema + ตัวตรวจ: requirement/exception, security (OWASP ASVS), supply chain, restore ที่ซ้อมจริง, budget |
+| วัดผล config ของ AI | eval แบบ Markdown ที่คนกรอกผลเอง | eval harness ที่ตรึงเวอร์ชันเคส และคนเขียนเคสตรวจเคสตัวเองไม่ได้ |
+| CI | ต้องมี hosted CI | `buaflow ci` — gate จาก clean checkout บนเครื่องตัวเอง ใช้เป็นหลักฐาน R2 ได้ |
+| ติดตั้ง | คัดลอก `claude-setup/` | + Claude Code plugin, `buaflow lock` บอกว่าไฟล์ไหนเก่า/ถูกแก้ |
+| พิสูจน์ด้วยอะไร | — | reference app 3 ตัวผ่าน R3 ใน clean environment + trial บนโปรเจกต์จริงที่ kit ไม่ได้เขียน |
+
+อัปเกรดจากรุ่นไหนก็ได้ในรอบเดียว → [UPGRADE.md](UPGRADE.md#fast-path) · รายละเอียดทุกรุ่น → [VERSION.md](VERSION.md)
+
+---
 
 ## ภาพรวมใน 30 วินาที
 
 | สิ่งที่มีให้ | จำนวน | หน้าที่ |
 |---|:---:|---|
-| **Lifecycle stages** | Phase 0–8 + Phase A | พาโปรเจกต์ใหม่จากโจทย์ไปถึง scaffold หรือรับช่วงโปรเจกต์เดิมผ่าน adoption track |
+| **Lifecycle** | Phase 0–8 + Phase A | พาโปรเจกต์ใหม่จากโจทย์ไปถึง scaffold หรือรับช่วงโปรเจกต์เดิม |
 | **Skills** | 10 | workflow ตั้งแต่ `/intent` ถึง `/release` |
-| **Rules** | 6 | โหลดกติกาตามชนิดไฟล์ที่กำลังแก้ ลด context ที่ไม่เกี่ยว |
-| **Hooks** | 5 | บังคับ guardrail นอกบทสนทนาของ AI |
-| **Subagents** | 3 | แยก context สำหรับ review, test และสำรวจ legacy code |
-| **Config evals** | 4 | regression test ว่า AI และ config ยังทำตามข้อตกลง |
-| **Document templates** | 16 | intent, spec, plan, task, ADR, constitution, review, design และอื่น ๆ |
+| **Rules / Hooks / Subagents** | 6 / 5 / 3 | กฎตามชนิดไฟล์ · guardrail นอกบทสนทนา · review/test/สำรวจ legacy แยก context |
+| **CLI (`buaflow`)** | 19 คำสั่ง | `assess`, `ci`, `benchmark`, `audit`, `lock` และตัวตรวจหลักฐานทุกชนิด — ใช้ได้จาก terminal, hook และ CI |
+| **Readiness** | R0–R4 · 28 control | ระดับความพร้อมที่ตัดสินจากหลักฐาน ไม่ใช่จากความรู้สึก |
+| **Schemas** | 21 ชนิด | สัญญาของ artifact ที่เครื่องอ่าน พร้อม registry และ migration |
+| **Stack packs** | 3 + 2 capability | recipe + assertion ที่ผูกกับ reference app ที่พิสูจน์มันจริง |
+| **Templates** | 35 | intent, spec, plan, task, ADR, constitution, evidence records และอื่น ๆ |
 
-### ปัญหาที่ Buaflow ตั้งใจแก้
+---
 
-- AI เขียนโค้ดเร็ว แต่ requirement, เหตุผล และขอบเขตหายไประหว่าง session
-- กฎใน `CLAUDE.md` ดูดีแต่ไม่มีอะไรบังคับเมื่อ push จาก editor หรือใช้เครื่องมืออื่น
-- คำว่า “เสร็จแล้ว” ไม่มี proof และตรวจซ้ำไม่ได้
-- งานหลาย branch ชนกันเพราะ derived files ถูก commit หรือไม่รู้ว่าใคร claim งานอยู่
-- context โตขึ้นทุกครั้งจน AI อ่านเอกสารเดิมซ้ำและใช้ token โดยไม่เพิ่มคุณภาพ
-- UI “ดูคล้าย” design แต่ไม่มี baseline และตัวเลขบอกว่าต่างตรงไหน
+## Readiness: คำว่า "พร้อม" มีความหมายเดียว
 
-### สิ่งที่ Buaflow เปลี่ยนให้
+| Level | ความหมาย | ตอบคำถาม |
+|---|---|---|
+| **R0** Prototype | เปิดดูหรือทดลอง flow ได้ | แนวคิดสื่อสารได้หรือยัง |
+| **R1** Functional | happy path หลักทำงาน build และ verify ผ่าน | ฟังก์ชันหลักมีจริงหรือยัง |
+| **R2** MVP | persistence, access control, automated test และ CI จาก clean checkout | ให้ผู้ใช้กลุ่มจำกัดทดลองได้หรือยัง |
+| **R3** Production Candidate | security, migration, rollback, observability, runbook, SBOM และ deploy artifact ครบ | ส่งทีม platform ติดตั้งได้โดยไม่แก้โค้ดหรือยัง |
+| **R4** Regulated | ผ่าน control pack ขององค์กร/อุตสาหกรรม | พร้อมกับข้อกำกับเฉพาะหรือยัง |
 
-- การตัดสินใจถูกส่งต่อเป็น **artifact chain** ที่ค้นหาและ audit ได้
-- กฎมี 4 ระดับ ตั้งแต่คำแนะนำไปถึง hook ที่บังคับจริง
-- ทุกโปรเจกต์มี **verify command เดียว** และ **gate เดียว** สำหรับ local กับ CI
-- จุดไม่ชัดต้องเป็น `[NEEDS CLARIFICATION: ...]` แทนการเดา
-- AI เตรียมและตรวจงาน แต่ **ไม่ merge งานของตัวเองเข้า main**
-- บทเรียนจากงานจริงย้อนกลับไปปรับ config ผ่าน Phase 8
+```bash
+node buaflow/bin/buaflow.js assess              # อยู่ระดับไหนตอนนี้ — probe repo เอง ไม่ต้องเขียนอะไรก่อน
+node buaflow/bin/buaflow.js readiness --level R3 # ตัดสิน manifest ที่ผูกกับ commit
+node buaflow/bin/buaflow.js audit --level R3     # verifier ตรวจหลักฐานซ้ำ: confirmed / refuted / unverifiable
+node buaflow/bin/buaflow.js benchmark            # functional · engineering · operations → Production-Qualified ไหม
+```
+
+กติกาที่ทำให้ระดับเชื่อได้: หลักฐานต้องตรวจซ้ำได้และผูกกับ commit · หลักฐานเก่าเกินหน้าต่างที่ผู้ตรวจกำหนด = `EXPIRED` ·
+ช่องโหว่ที่ยอมรับได้ต้องเป็น exception ที่มีเจ้าของและวันหมดอายุ ไม่ใช่ `pass` · screenshot อย่างเดียวไม่นับ
+รายละเอียดอยู่ใน [standards/readiness-levels.md](standards/readiness-levels.md) และ
+[standards/production-qualified-benchmark.md](standards/production-qualified-benchmark.md)
+(ซึ่งเขียนไว้ด้วยว่าตัวเลขนี้**มองไม่เห็นอะไร**)
 
 ---
 
@@ -79,13 +117,14 @@ flowchart LR
     P4 --> P5[5 Backlog]
     P5 --> P6[6 Scaffold]
 
-    START -->|EXTEND| PA[Phase A<br/>Adopt existing]
+    START -->|EXTEND| PA[Phase A<br/>assess + adopt]
     PA --> P7[7 Handoff]
     P6 --> P7
 
     P7 --> DAILY[Daily delivery loop]
+    DAILY --> EVID[Evidence → R2 → R3]
     DAILY --> P8[8 Tune & Evolve]
-    P8 -->|นำบทเรียนกลับเข้า config| DAILY
+    P8 -->|บทเรียน → config + eval| DAILY
 
     classDef start fill:#fff1f5,stroke:#e85aad,color:#831843,stroke-width:2px;
     classDef phase fill:#f8fafc,stroke:#64748b,color:#0f172a;
@@ -93,22 +132,22 @@ flowchart LR
     classDef learn fill:#f0fdf4,stroke:#16a34a,color:#14532d,stroke-width:2px;
     class START start;
     class P0,P1,P2,P3,P4,P5,P6,PA,P7 phase;
-    class DAILY run;
+    class DAILY,EVID run;
     class P8 learn;
 ```
 
 | Phase | คำถามที่ตอบ | Artifact หลัก |
 |:---:|---|---|
-| **0** | กำลังสร้างใหม่, rebuild หรือ extend? ใช้ design จากไหน? | `docs/planning/_state.md` |
+| **0** | สร้างใหม่, rebuild หรือ extend? ใช้ design จากไหน? | `docs/planning/_state.md` |
 | **1** | ผู้ใช้คือใคร ต้องการอะไร อะไรคือ Must/NFR? | `01-requirements.md` |
 | **2** | stack ใดเหมาะกับข้อจำกัดจริง และจะ verify ด้วยคำสั่งใด? | `02-tech-stack.md` + ADR |
 | **3** | theme, token, component, viewport และ design source คืออะไร? | `03-ui-design.md` + design inventory |
-| **4** | architecture, security, API, data model และ deployment boundary เป็นอย่างไร? | `04-architecture.md` + constitution + ADR |
+| **4** | architecture, security, API, data model และ deployment boundary? | `04-architecture.md` + constitution + ADR |
 | **5** | จะเปลี่ยน scope เป็น Epic / Feature / Task / milestone อย่างไร? | task files + roadmap |
 | **6** | จะสร้างของจริงให้ build และ verify ผ่านได้อย่างไร? | source code + verify command |
 | **7** | จะติดตั้ง rules, skills, hooks, gate, CI และ eval อย่างไร? | `AGENTS.md`, `CLAUDE.md`, `.claude/`, CI |
-| **8** | config ส่วนใดช่วยจริง ส่วนใดสร้าง friction และควรเลื่อนชั้นกฎหรือไม่? | config/eval/changelog ที่ปรับจากหลักฐาน |
-| **A** | โปรเจกต์เดิมทำงานอย่างไร และควรรับช่วงโดยไม่ refactor ทั้งโลกอย่างไร? | inventory + baseline verify + retrospective ADR |
+| **8** | config ส่วนใดช่วยจริง ส่วนใดสร้าง friction? | change proposal ที่พิสูจน์ด้วย eval |
+| **A** | โปรเจกต์เดิมอยู่ระดับไหน และรับช่วงโดยไม่รื้อทั้งระบบอย่างไร? | `assess` + inventory + baseline verify + ADR ย้อนหลัง |
 
 > Phase A ใช้แทน Phase 1–6 สำหรับโหมด `EXTEND` แล้วเข้าสู่ Phase 7 เหมือนกัน
 
@@ -116,18 +155,13 @@ flowchart LR
 
 <a id="quick-start"></a>
 
-## เริ่มใน 60 วินาที
+## เริ่มใช้งาน
 
-> **ใหม่กับ kit?** [QUICKSTART.md](QUICKSTART.md) — 10 นาทีแรกด้วยคำสั่งจริง รวมถึง `assess` ที่ตอบว่าโปรเจกต์ของคุณ
-> อยู่ที่ R เท่าไรโดยไม่ต้องเขียนอะไรก่อน · ติดตรงไหน [TROUBLESHOOTING.md](TROUBLESHOOTING.md) ·
+> ใหม่กับ kit? [QUICKSTART.md](QUICKSTART.md) พาไป 10 นาทีแรกด้วยคำสั่งจริง ·
 > ทุกขั้นพร้อม output จริง [examples/worked-sample.md](examples/worked-sample.md)
 
-### สิ่งที่ต้องมี
-
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview)
-- Git
-- Node.js สำหรับรัน gate, hooks และ core workflow scripts โดยไม่ต้องติดตั้ง package เพิ่ม; เฉพาะ visual regression (`pixel.js`) ที่ใช้ Playwright, pixelmatch และ pngjs จากโปรเจกต์เป้าหมาย
-- โฟลเดอร์ `buaflow/` นี้วางอยู่ภายใน root ของโปรเจกต์เป้าหมาย
+**สิ่งที่ต้องมี:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) · Git · Node.js **22+**
+(kit ไม่มี dependency — ไม่ต้อง `npm install`) · วาง repository นี้ไว้ใน root ของโปรเจกต์เป็น `buaflow/`
 
 ```text
 your-project/
@@ -135,8 +169,6 @@ your-project/
 ├── src/           ← โค้ดของโปรเจกต์ (ถ้ามี)
 └── ...
 ```
-
-เลือกเส้นทางเดียวที่ตรงกับสถานะปัจจุบัน:
 
 ### 1) โปรเจกต์ใหม่ หรือ rebuild
 
@@ -146,17 +178,20 @@ your-project/
 อ่าน buaflow/START-HERE.md แล้วทำตาม เริ่ม Phase 0
 ```
 
-Claude จะถามโหมด, แหล่ง design, path อ้างอิง และชื่อโปรเจกต์ จากนั้นบันทึกสถานะลง `docs/planning/_state.md` ก่อนหยุดรอการตัดสินใจรอบถัดไป
+Claude จะถามโหมด แหล่ง design path อ้างอิง และชื่อโปรเจกต์ บันทึกลง `docs/planning/_state.md` แล้วหยุดรอ
+ทำทีละ Phase และหยุดทุกครั้งที่จบ เพื่อให้คุณแก้ทิศได้ก่อน context จะพาไปไกล
 
-### 2) มีโค้ดอยู่แล้ว แต่ยังไม่เคยใช้ Buaflow
+### 2) มีโค้ดอยู่แล้ว
 
-ใช้ prompt เดียวกัน แล้วตอบโหมดเป็น `EXTEND`:
+ถามระดับก่อน ไม่ต้องติดตั้งอะไร:
 
-```text
-อ่าน buaflow/START-HERE.md แล้วทำตาม เริ่ม Phase 0
+```bash
+node buaflow/bin/buaflow.js doctor
+node buaflow/bin/buaflow.js assess
 ```
 
-ระบบจะพาเข้า [Phase A](phases/A-adopt-existing.md) เพื่อสำรวจของเดิม ตั้ง baseline verify และสร้างกติกาแบบ “ของใหม่ / ของเก่า” โดยไม่บังคับ rewrite โค้ดเดิมทั้งระบบ
+แล้วใช้ prompt เดียวกับข้อ 1 ตอบโหมดเป็น `EXTEND` — ระบบพาเข้า [Phase A](phases/A-adopt-existing.md)
+สำรวจของเดิม ตั้ง baseline verify และสร้างกติกาแบบ "ของใหม่ / ของเก่า" **โดยไม่แก้โค้ดโปรดักชัน**
 
 ### 3) ใช้ Buaflow เวอร์ชันเก่าอยู่แล้ว
 
@@ -166,15 +201,24 @@ Claude จะถามโหมด, แหล่ง design, path อ้างอ
 อ่าน buaflow/UPGRADE.md แล้วทำตาม
 ```
 
-[UPGRADE.md](UPGRADE.md) แยก migration ตามเวอร์ชันและเก็บ planning, ADR, spec และ task เดิมไว้ ไม่ต้องเริ่ม Phase ใหม่ทั้งหมด
+planning, ADR, spec และ task เดิมอยู่ครบ ไม่ต้องเริ่ม Phase ใหม่ · จาก v2.3.4 ขึ้นไปทำ
+[ทางลัดรอบเดียว](UPGRADE.md#fast-path) ได้
+
+### (ทางเลือก) ติดตั้งส่วนที่อยู่ใน session เป็น plugin
+
+```text
+/plugin marketplace add <path หรือ git URL ของ repository นี้>
+/plugin install buaflow@buaflow
+```
+
+ได้ skills, agents และ hooks ในคำสั่งเดียว · gate กับตัวตรวจยังอยู่ใน `.claude/` ของโปรเจกต์ เพราะ pre-push และ CI
+รันนอก session และ plugin ส่ง permission ไม่ได้ — ดู [claude-plugin/README.md](claude-plugin/README.md)
 
 ### กลับมาทำต่อใน session ใหม่
 
-```text
-อ่าน buaflow/START-HERE.md และ docs/planning/_state.md แล้วทำต่อจากที่ค้างไว้
+```bash
+node buaflow/bin/buaflow.js resume
 ```
-
-หลักสำคัญคือ **ทำทีละ Phase** จบแล้วหยุด เพื่อให้ผู้ใช้ตรวจทิศทางได้ก่อน context จะพาโปรเจกต์ไกลเกินแก้
 
 ---
 
@@ -183,55 +227,52 @@ Claude จะถามโหมด, แหล่ง design, path อ้างอ
 ```text
 intent → spec → plan → task/code → verify → check → draft PR → human approval → done
    ↑                                                                     │
-   └──────── incident / out-of-scope / postmortem / real-world lesson ──┘
+   └──── incident / out-of-scope / postmortem / change proposal + eval ─┘
 ```
 
 | Skill | ใช้เมื่อ | สิ่งสำคัญที่เกิดขึ้น |
 |---|---|---|
-| `/intent <เรื่อง>` | เปิดงานใหม่ | จับ “ทำไม”, ผลลัพธ์ที่วัดได้ และสิ่งที่ห้ามพังก่อนคุย implementation |
-| `/spec F-xx` | feature ใหญ่ | สร้าง `requirements.md` → `design.md` → `tasks.md` โดยมี approval gate ทุกช่วง |
-| `/plan T-xxx` | งานหลายไฟล์, unfamiliar หรือเสี่ยง | บีบ AC, constitution และ design rule ที่เกี่ยวลง `plan.md` ไฟล์เดียว |
-| `/task T-xxx` | เริ่มลงมือ | claim งาน, ตั้ง assignee, เปิด draft PR ตั้งแต่ต้น และวน implement/self-check |
-| `/ui <หน้าหรือ component>` | สร้าง UI | ถามก่อนสร้าง เลือก text/canvas แล้วเทียบกับ baseline ตาม viewport/theme |
-| `/prototype` | design พร้อม แต่ยังไม่ควร build app | สร้าง click-through prototype จาก artboard เดิมโดยไม่วาดหรือ restyle ใหม่ |
-| `/check T-xxx` | โค้ดเสร็จก่อนขออนุมัติ | รัน verify, เทียบ diff กับ plan และเรียก code/security review ตามความเสี่ยง |
-| `/done T-xxx` | ผู้ใช้อนุมัติแล้ว | รัน proof ซ้ำ, mark PR ready, ปิด task และเก็บบทเรียน — ไม่ merge เอง |
-| `/hotfix` | production incident | บันทึกอาการ → หาสาเหตุ → แก้ → release → postmortem → feedback |
+| `/intent <เรื่อง>` | เปิดงานใหม่ | จับ "ทำไม", ผลลัพธ์ที่วัดได้ และสิ่งที่ห้ามพังก่อนคุย implementation |
+| `/spec F-xx` | feature ใหญ่ | `requirements.md` (EARS) → `design.md` → `tasks.md` โดยมี approval gate ทุกช่วง · การเดาลง assumption ledger |
+| `/plan T-xxx` | งานหลายไฟล์ หรือเสี่ยง | บีบ AC, constitution และ design rule ที่เกี่ยวลง `plan.md` ไฟล์เดียว |
+| `/task T-xxx` | เริ่มลงมือ | claim งาน เปิด draft PR วน implement/self-check ภายใต้งบ repair loop ตามชนิดความล้มเหลว |
+| `/ui <หน้าหรือ component>` | สร้าง UI | ถามก่อนสร้าง แล้วเทียบกับ baseline ตาม viewport/theme |
+| `/prototype` | design พร้อม แต่ยังไม่ควร build | click-through prototype จาก artboard เดิมโดยไม่วาดใหม่ |
+| `/check T-xxx` | โค้ดเสร็จก่อนขออนุมัติ | รัน verify เทียบ diff กับ plan และเรียก code/security review ตามความเสี่ยง |
+| `/done T-xxx` | ผู้ใช้อนุมัติแล้ว | รัน proof ซ้ำ mark PR ready ปิด task — **ไม่ merge เอง** |
+| `/hotfix` | production incident | อาการ → สาเหตุ → แก้ → release → postmortem → feedback |
 | `/release <uat\|prd> <M>` | ปิด milestone | gate, build image ครั้งเดียว, tag, release note และ rollback plan |
 
-งานเล็กอย่าง typo, copy, log หรือ chore ใช้ **trivial track** ได้ ไม่ต้องลาก artifact chain เต็มชุด แต่ยังต้องตรวจและผ่าน PR ตามระดับความเสี่ยง
+งานเล็กอย่าง typo, copy หรือ chore ใช้ **trivial track** ได้ ไม่ต้องลาก artifact chain เต็มชุด แต่ยังผ่าน PR ตามระดับความเสี่ยง
+ไม่มี Claude Code? [manual/](manual/README.md) คือ workflow เดียวกันในรูป playbook ธรรมดา พร้อมบอกตรง ๆ ว่าการรับประกันข้อไหนหายไป
 
 ---
 
 ## Guardrail 4 ชั้น
-
-Buaflow ไม่ใช้ไฟล์คำสั่งยักษ์ไฟล์เดียว แต่เลือกกลไกตามระดับความแข็งที่ต้องการ:
 
 | ชั้น | ใช้กับ | โหลดเมื่อ | การบังคับ |
 |---|---|---|---|
 | **`AGENTS.md` / `CLAUDE.md`** | หลักการที่ต้องรู้ตลอด, ภาษา, workflow | ทุก session | แนวทางกลาง |
 | **`.claude/rules/*.md`** | กฎเฉพาะ UI, API, migration, testing, i18n | เมื่อแตะ path ที่ตรง | แนวทางตรงจุด |
 | **`.claude/skills/*/SKILL.md`** | ขั้นตอนที่ทำซ้ำและต้องมีลำดับ | เมื่อเรียก skill | workflow ที่ทำซ้ำได้ |
-| **`.claude/hooks/` + gate** | กฎที่ห้ามพัง เช่น protected files, push เข้า main, config integrity | ตาม event และก่อน push/CI | **บังคับจริงด้วย exit code** |
+| **`.claude/hooks/` + gate** | protected files, push เข้า main, คำสั่งอันตราย, config integrity | ตาม event และก่อน push/CI | **บังคับจริงด้วย exit code** |
 
-หลักคิดคือ: ถ้าการละเมิดกฎทำให้ระบบเสียหายจริง กฎนั้นไม่ควรอยู่เป็นข้อความอย่างเดียว
+ถ้าการละเมิดกฎทำให้ระบบเสียหายจริง กฎนั้นไม่ควรอยู่เป็นข้อความอย่างเดียว
 
 ### ประตูเดียวก่อนเข้า main
 
 ```mermaid
 flowchart LR
-    CHANGE[Code / Docs change] --> HOOK[pre-push / CI]
+    CHANGE[Code / Docs change] --> HOOK[pre-push · CI · buaflow ci]
     HOOK --> GATE[node .claude/gate.js]
-    GATE --> VERIFY[verify]
-    GATE --> AUDIT[audit]
-    GATE --> SECRET[secret scan]
-    GATE --> CONFIG[check-config]
-    GATE --> DOCS[docs-lint]
-    VERIFY --> RESULT{ผ่านทุกด่าน?}
-    AUDIT --> RESULT
-    SECRET --> RESULT
-    CONFIG --> RESULT
-    DOCS --> RESULT
+    GATE --> CORE[verify · audit · secrets<br/>check-config · docs-lint]
+    GATE --> EVID[หลักฐานที่มีไฟล์<br/>requirements · security · supply<br/>operations · budgets · assumptions]
+    GATE --> EVAL[evals · change proposals]
+    GATE --> READY[readiness R3<br/>เฉพาะ production mode]
+    CORE --> RESULT{ผ่านทุกด่าน?}
+    EVID --> RESULT
+    EVAL --> RESULT
+    READY --> RESULT
     RESULT -->|ผ่าน| PR[PR ready for human review]
     RESULT -->|ไม่ผ่าน| FIX[แก้แล้วรันใหม่]
     FIX --> GATE
@@ -243,211 +284,145 @@ flowchart LR
     class PR,HUMAN pass;
 ```
 
-`gate.js` ใช้ชุดตรวจเดียวกันทั้ง local pre-push และ CI จึงลดปัญหา “ผ่านในเครื่อง แต่กฎบน CI เป็นคนละชุด” โดยโหมดของ audit และ secret scan ปรับได้ผ่าน `.claude/stack.json`
+`gate.js` ชุดเดียวกันรันทั้ง pre-push, hosted CI และ `buaflow ci` (clean checkout บนเครื่อง ไม่ต้องจ่ายค่า runner)
+ตัวตรวจหลักฐานทำงานเฉพาะเมื่อโปรเจกต์มีไฟล์นั้น — เริ่มใช้ทีละชิ้นได้ · verify ที่ตกแล้วผ่านเมื่อรันซ้ำโดยไม่มีอะไรเปลี่ยน
+ถูกรายงานว่า **FLAKY** แทนที่จะสอนให้กด retry
 
-`assuranceMode` มีสองระดับ:
-
-| Mode | ใช้เมื่อ | พฤติกรรม |
+| `assuranceMode` | ใช้เมื่อ | พฤติกรรม |
 |---|---|---|
-| `adoption` (ค่าเริ่มต้น) | กำลังติดตั้ง/รับช่วงโปรเจกต์เดิม | ของที่ยังไม่พร้อมอาจ `skip`/`warn` พร้อมรายงาน gap เพื่อไม่หยุดทีมทันที |
-| `production` | จะอ้าง R3/R4 หรือส่งมอบ Production Candidate | fail-closed: verify, dependency audit, secret scan และ readiness manifest ต้องมีและผ่านทั้งหมด; ห้าม `--docs-only` |
-
-ห้ามเปิด `production` เพื่อให้ป้ายดูดีแล้วปิด scanner ทีละตัว — gate จะปฏิเสธ `auditMode`/`secretsMode` ที่ไม่ใช่ `required` และ readiness ต่ำกว่า R3
-
-คำสั่งสำคัญหลังติดตั้ง Phase 7:
+| `adoption` (ค่าเริ่มต้น) | กำลังติดตั้ง/รับช่วงโปรเจกต์เดิม | ของที่ยังไม่พร้อม `skip`/`warn` พร้อมรายงาน gap |
+| `production` | จะอ้าง R3/R4 | fail-closed: verify, audit, secret scan และ readiness manifest ต้องมีและผ่าน · ห้าม `--docs-only` |
 
 ```bash
-# ตรวจโค้ดด้วยคำสั่งมาตรฐานของโปรเจกต์
-node .claude/verify.js
-
-# ประตูเต็ม: verify + audit/secrets ตาม config + check-config + docs-lint
-node .claude/gate.js
-
-# commit ที่แก้เฉพาะเอกสาร (ใช้ได้ใน adoption mode เท่านั้น)
-node .claude/gate.js --docs-only
-
-# ตรวจเงื่อนไขปิด milestone เพิ่มเติม
-node .claude/gate.js --release M1
-
-# ตรวจสุขภาพ config โดยตรง
-node .claude/check-config.js
-
-# generate board จาก task files ซึ่งเป็น source of truth
-node .claude/board.js
-
-# ประเมิน readiness manifest (R0-R4) และคืน exit code สำหรับ CI
-node .claude/readiness.js --file docs/evidence/readiness.json --level R3
+node .claude/gate.js                 # ประตูเต็ม
+node .claude/gate.js --docs-only     # commit ที่แก้เฉพาะเอกสาร (adoption mode เท่านั้น)
+node .claude/gate.js --release M1    # เงื่อนไขปิด milestone
+node buaflow/bin/buaflow.js ci       # gate จาก clean checkout → docs/evidence/ci-run.json
+node .claude/board.js                # generate board จาก task files
 ```
 
-Machine-readable artifact ของ Buaflow มี `schemaVersion`, JSON Schema และ registry กลางที่
-`schemas/registry.json` ดู compatibility/migration policy ได้ใน
-[`standards/artifact-versioning.md`](standards/artifact-versioning.md) ไฟล์จาก Buaflow รุ่นเก่าที่ไม่มี version
-ให้ preview migration ก่อนเสมอ (คำสั่งนี้ยังไม่เขียนไฟล์):
+---
 
-```bash
-node buaflow/scripts/migrate-artifact.js --type stack-config --file .claude/stack.json
+## หลักฐานที่ตรวจได้
 
-# เขียนจริงเมื่อดู diff แล้ว
-node buaflow/scripts/migrate-artifact.js --type stack-config --file .claude/stack.json --write
-```
+แต่ละชนิดมี schema, template และตัวตรวจที่ **derive ค่าใหม่เอง** แทนการเชื่อตัวเลขที่เขียนไว้ใน record
+
+| หลักฐาน | ตอบคำถาม | คำสั่ง |
+|---|---|---|
+| `readiness.json` | อยู่ R ไหน ผูกกับ commit ไหน | `buaflow readiness` · `buaflow audit` |
+| `requirement-coverage.json` | requirement ทุกข้อมี proof หรือ exception ที่ยังไม่หมดอายุ | `buaflow requirements` |
+| `security-baseline.json` | threat boundary + ทุกข้อของ OWASP ASVS 5.0 L1 มีคำตอบ | `buaflow security` |
+| `supply-chain.json` | licence (derive จาก SBOM), provenance, checksum | `buaflow supply` |
+| `operational-readiness.json` | restore ที่ซ้อมจริงจนข้อมูลกลับมาเหมือนเดิม + incident hook | `buaflow operations` |
+| `budgets.json` | performance/accessibility เทียบเพดานของ application profile | `buaflow budgets` |
+| `assumptions.json` | การเดาทุกข้อมีเจ้าของ วันหมดอายุ และวิธีพิสูจน์ | `buaflow assumptions` |
+| `docs/evals/` | config ของ AI ยังทำตามข้อตกลง — ตรวจโดยคนที่ไม่ใช่คนเขียนเคส | `buaflow evals` |
+| `changes/` | การแก้ config แต่ละครั้งมีหลักฐานและ eval ที่ไม่ถดถอย | `buaflow changes` |
+| `ci-run.json` | gate ผ่านจาก clean checkout | `buaflow ci` |
 
 ---
 
 ## Artifact chain: ตรวจย้อนกลับได้ตั้งแต่เหตุผลถึงการอนุมัติ
 
-Buaflow ทำให้ทุกขั้นคายไฟล์ที่ขั้นถัดไปใช้ได้ และเก็บไว้ใน Git:
-
 ```text
-Intent
-  └─ ทำไมต้องทำ / วัดผลอย่างไร / อะไรห้ามพัง
-      └─ Spec
-          ├─ Requirements — ต้องการอะไร (EARS + acceptance criteria)
-          ├─ Design       — จะออกแบบอย่างไร
-          └─ Tasks        — แบ่งงานอย่างไร
-              └─ Plan
-                  └─ ข้อกำหนดที่คัดมาแล้วสำหรับ task นี้
-                      └─ Diff + Proof + Verify
-                          └─ Review + PR + Human approval
+Intent — ทำไม / วัดผลอย่างไร / อะไรห้ามพัง
+  └─ Spec — requirements (EARS) · design · tasks
+      └─ Plan — ข้อกำหนดที่คัดมาแล้วสำหรับ task นี้
+          └─ Diff + Proof + Verify
+              └─ Review + PR + Human approval
+                  └─ Evidence → Readiness
 ```
 
-`plan.md` ทำหน้าที่เป็น **context compressor**: `/plan` อ่านต้นทางครบหนึ่งครั้ง แล้วคัดเฉพาะ AC, constitution articles, design rules และ patterns ที่ task ต้องใช้มาไว้ไฟล์เดียว จากนั้น `/task` และ `/check` ไม่ต้องย้อนอ่านเอกสารทั้งโครงการซ้ำ
+`plan.md` เป็น **context compressor**: อ่านต้นทางครบครั้งเดียว แล้ว `/task` และ `/check` ไม่ต้องย้อนอ่านทั้งโครงการ
 
-เอกสารที่มี `[NEEDS CLARIFICATION: ...]` ค้างอยู่จะไม่ผ่าน gate เพราะความไม่แน่ใจควรถูกมองเห็นและตัดสิน ไม่ควรถูก AI เติมเองอย่างเงียบ ๆ
+ความไม่ชัดต้องเป็น `[NEEDS CLARIFICATION (security): …]` — บอกว่าคำตอบเปลี่ยนการตัดสินใจเรื่องไหน และมีงบ 8 คำถามต่อไฟล์
+เอกสารที่ยังมี marker ค้างไม่ผ่าน gate · การเดาที่จำเป็นต้องทำเพื่อเดินต่อไปอยู่ใน assumption ledger ที่มีวันหมดอายุ
 
 ---
 
 ## Design → Prototype → Code ที่วัดผลได้
 
-สำหรับโปรเจกต์เว็บ เส้นทาง design ของ Buaflow ครอบคลุมมากกว่า “แนบภาพแล้วพยายามทำให้คล้าย”:
+สำหรับโปรเจกต์ที่มี UI: `design-brief.md` ล็อกข้อตกลง → canvas baseline `.dc.html` ต่อหน้า →
+click-through prototype จาก artboard เดิมแบบ byte-for-byte → build ทีละหน้า → screenshot ที่ viewport/theme เดียวกัน
+แล้ว `pixel.js` คืนเปอร์เซ็นต์และพิกัดที่ต่าง → แก้จนเหลือเฉพาะ deviation ที่อนุมัติ
 
-1. สร้าง `design-brief.md` เพื่อระบุ theme, components, viewport, states และ deviation ที่ยอมรับได้
-2. แยก canvas baseline เป็น `.dc.html` ต่อหน้า ไม่ใช้ลิงก์รวมเป็น build reference
-3. สร้าง click-through prototype จาก artboard เดิมแบบ byte-for-byte แล้วฉีดเฉพาะ hotspot และ mock data
-4. Build ของจริง **ทีละหน้า**
-5. ถ่าย screenshot ที่ viewport/theme เดียวกันและรัน pixel diff
-6. แก้จนเหลือเฉพาะ deviation ที่ผู้ใช้อนุมัติ แล้วอัปเดต baseline ให้ตรงกัน
-
-เครื่องมือที่เกี่ยวข้อง:
-
-| เครื่องมือ | ทำอะไร |
-|---|---|
-| `/ui` | คุมการสร้างหน้าหรือ component และห้ามออกแบบเองโดยไม่ถาม |
-| `/prototype` + `prototype.js` | ทำ prototype จาก canvas baseline โดยไม่วาดใหม่ |
-| `pixel.js` | เทียบ screenshot กับ baseline คืนเปอร์เซ็นต์และพิกัดที่ต่าง |
-| `design-brief.tpl.md` | ล็อกข้อตกลงก่อนเปิด canvas |
-| `prototype-flow.tpl.json` | map หน้าจอ, hotspot, state และ mock data |
-
-เส้นทางนี้เป็นทางเลือก ไม่ได้บังคับกับ CLI, backend-only, desktop หรือโปรเจกต์ที่ไม่มี UI
+เครื่องมือ: `/ui` · `/prototype` + `prototype.js` · `pixel.js` · `design-brief.tpl.md` · `prototype-flow.tpl.json`
+เส้นทางนี้เป็นทางเลือก ไม่บังคับกับ CLI, backend-only หรือโปรเจกต์ที่ไม่มี UI · ไม่อยู่ใน pre-push gate เพราะช้าเกินไปสำหรับทุก push
 
 ---
 
-## รองรับ stack แค่ไหน
+## รองรับ stack แค่ไหน — และพิสูจน์แล้วแค่ไหน
 
-Buaflow แบ่งการรองรับเป็น 2 ชั้นอย่างตั้งใจ:
-
-| ชั้น | ระดับการรองรับ | รายละเอียด |
+| ชั้น | ระดับ | รายละเอียด |
 |---|---|---|
-| **Process layer** | **ทุกภาษา / ทุก stack** | intent → spec → plan → task → check → done, board, docs lint, gate, hooks, PR policy, constitution และ eval ทำงานรอบโค้ด |
-| **Ready-made stack layer** | **JS/TS + web เป็นหลัก** | rules และตัวอย่างบางส่วนอ้างถึง Next.js, Prisma, next-intl, shadcn และ pnpm |
+| **Process + evidence** | **ทุกภาษา / ทุก stack** | workflow, gate, hooks, readiness, verifier และตัวตรวจหลักฐานอ่านค่าจาก `.claude/stack.json` จุดเดียว |
+| **Golden paths** | **3 stack ที่ผ่าน R3 จริง** | recipe + assertion ใน [packs/](packs/README.md) ผูกกับ reference app ที่พิสูจน์มัน |
 
-สำหรับ Python, .NET, Go, Laravel หรือ stack อื่น ให้ใช้ [Phase A](phases/A-adopt-existing.md) และปรับ `.claude/stack.json`:
+| Reference app | stack | ผล |
+|---|---|---|
+| `nextjs-postgres-crud` | Next.js + PostgreSQL | R3 · benchmark 0.97 |
+| `react-fastapi-postgres-crud` | React + FastAPI + PostgreSQL | R3 · benchmark 0.97 |
+| `expo-fastapi-postgres-sync` | Expo (offline-first) + FastAPI sync API | R3 · benchmark 0.97 |
+| โปรเจกต์จริงที่ kit ไม่ได้เขียน | brownfield monorepo | Phase A ครบ · R2 ผ่านด้วย local CI · ข้อค้นพบ 17 ข้อย้อนกลับเข้า kit |
 
-- `verifyCommand`
-- `commands` เช่น coverage, audit, API test และ secret scan
-- `codeFilePattern`, `testFilePattern`, `formattablePattern`
-- `formatCommands`
-- `preflightHookPath` และ `ciMode`
-- `protected` paths
+capability packs ที่พิสูจน์แล้ว: `auth-rbac`, `audit-log` · ช่องที่ยังไม่มีใครลองอยู่ใน
+[reference-apps/matrix.json](reference-apps/matrix.json) — ช่องว่างเป็นบรรทัดของ output ไม่ใช่สมมติฐาน
 
-สคริปต์หลักอ่านค่าจากจุดเดียว จึงไม่ต้องไล่แก้ implementation ภายในทุกไฟล์ แต่ **rules เฉพาะ stack ต้องเขียนให้ตรง convention ของโปรเจกต์จริง** — kit ไม่แกล้งอ้างว่ามี preset ที่ยังไม่เคยพิสูจน์
+stack อื่น (.NET, Go, Laravel, …) ใช้ [Phase A](phases/A-adopt-existing.md) และปรับ `.claude/stack.json`:
+`verifyCommand`, `commands` (coverage/audit/secrets/ciSetup), `codeFilePattern`, `testFilePattern`, `protected` paths —
+**rules เฉพาะ stack ต้องเขียนให้ตรง convention ของโปรเจกต์จริง** kit ไม่อ้างว่ามี preset ที่ยังไม่เคยพิสูจน์
 
 ### สิ่งที่ Buaflow ตั้งใจไม่ทำ
 
-- ไม่สร้าง agent ตามตำแหน่ง PM / QA / Architect เพื่อจำลองบริษัททั้งบริษัทใน context เดียว
-- ไม่ให้ AI อนุมัติหรือ merge งานของตัวเอง
-- ไม่บังคับ rewrite legacy code ให้ตรงมาตรฐานใหม่ทั้งหมด
-- ไม่เดา deploy target, requirement หรือ design ที่ผู้ใช้ยังไม่ตัดสินใจ
-- ไม่ผูก workflow หลักกับ package manager หรือ framework ชื่อใดชื่อหนึ่ง
-- ไม่ทำ pixel diff ใน pre-push gate เพราะต้องเปิด app/browser และช้าเกินไปสำหรับทุก push
+| ไม่ทำ | เพราะ |
+|---|---|
+| code generator / template ที่ปั๊มโค้ด | แช่ dependency ไว้ที่วันที่เขียน — ใช้ CLI ของเจ้าของ framework เสมอ (D-011) |
+| pack ของ payment, PDPA, PromptPay, LINE | agent อ่าน docs ปัจจุบันเองตอนทำงาน · ส่วนที่ต้องพิสูจน์อยู่ใน requirement, security baseline และ eval (D-025) |
+| scheduler สำหรับหลาย agent พร้อมกัน | Claude Code แยก worktree และแบ่งงานได้เอง · Buaflow พิสูจน์ผลที่ merge รวมแล้ว (D-026) |
+| adapter ของ Codex / Copilot / Kiro | Claude Code อย่างเดียวจนกว่าจะมีคนต้องใช้ · ระหว่างนี้ใช้ `manual/` (D-024) |
+| agent ตามตำแหน่ง PM / QA / Architect | ทำให้ context กระจัดกระจายโดยไม่เพิ่มคุณภาพ |
+| ให้ AI อนุมัติหรือ merge งานของตัวเอง | คนเป็นผู้รับความเสี่ยง |
+| บังคับ rewrite legacy code | ใช้กฎ "ของใหม่ / ของเก่า" แทน |
+| เดา deploy target, requirement หรือ design | ใช้ marker และ assumption ledger แทน |
 
 ---
 
 ## โครงสร้าง repository
 
 <details>
-<summary><strong>เปิดดูแผนที่ไฟล์ทั้งหมด</strong></summary>
+<summary><strong>เปิดดูแผนที่ไฟล์</strong></summary>
 
 ```text
 buaflow/
-├── README.md                         เอกสารภาพรวม
-├── START-HERE.md                     prompt หลักและตัวคุม flow
-├── UPGRADE.md                        migration guide ระหว่างเวอร์ชัน
-├── VERSION.md                        changelog
+├── README.md  QUICKSTART.md  START-HERE.md  CLI.md
+├── UPGRADE.md  VERSION.md  TROUBLESHOOTING.md
 │
-├── phases/
-│   ├── 01-discovery.md               requirement, MoSCoW, NFR
-│   ├── 02-stack-decision.md          stack และ verify strategy
-│   ├── 03-ui-and-design-intake.md    UI source, theme, token, inventory
-│   ├── 04-architecture.md            architecture, security, data, API
-│   ├── 05-backlog-and-roadmap.md     Epic / Feature / Task / milestone
-│   ├── 06-scaffold.md                สร้างโปรเจกต์จริง
-│   ├── 07-handoff.md                 ติดตั้ง config + CI + eval
-│   ├── 08-tune-and-evolve.md         feedback loop ที่ทำซ้ำ
-│   └── A-adopt-existing.md           รับช่วงโปรเจกต์ที่มีโค้ดอยู่แล้ว
+├── bin/buaflow.js                    CLI: init / doctor / assess / ci / benchmark / audit / lock / resume / …
+├── phases/                           Phase 1–8 + A (prompt ของแต่ละ phase)
+├── standards/                        readiness, deployment contract, security, supply chain, operations,
+│                                     budgets, benchmark, release policy, failure taxonomy และมาตรฐานรายวัน
+├── templates/                        35 templates — planning docs และ evidence records
+├── schemas/                          JSON Schema + registry.json + compatibility.json
 │
-├── standards/
-│   ├── agent-config.md               เลือกชั้น AGENTS / rules / skills / hooks
-│   ├── workflow-lifecycle.md         วงจรงานและการ release
-│   ├── definition-of-done.md         เกณฑ์จบงาน
-│   ├── testing-and-coverage.md       test strategy และ coverage
-│   ├── security-checklist.md         security baseline
-│   ├── ui-component-rules.md         UI และ visual verification
-│   ├── i18n-and-theme.md             ภาษาและ theme
-│   ├── commit-and-branch.md          Git workflow
-│   ├── docker-and-envs.md            container และ environment
-│   ├── sonarqube-local.md            static analysis
-│   └── context-budget.md             token/context strategy
-│
-├── templates/
-│   ├── intent.tpl.md
-│   ├── spec.tpl.md
-│   ├── plan.tpl.md
-│   ├── task.tpl.md
-│   ├── adr.tpl.md
-│   ├── constitution.tpl.md
-│   ├── REVIEW.tpl.md
-│   ├── AGENTS.md.tpl
-│   ├── CLAUDE.md.tpl
-│   ├── design-brief.tpl.md
-│   ├── prototype-flow.tpl.json
-│   ├── eval-case.tpl.json
-│   ├── eval-run.tpl.json
-│   ├── backlog-board.tpl.md
-│   ├── verify.mjs.tpl
-│   └── ...
-│
+├── core/                             workflow กลาง (skills/rules/agents) ที่ generate เป็น claude-setup/ และ manual/
 ├── claude-setup/                     คัดลอกไปเป็น .claude/ ใน Phase 7
-    ├── skills/                       10 reusable workflows
-    ├── rules/                        6 path-scoped rules
-    ├── agents/                       3 context-isolated agents
-    ├── hooks/                        5 enforcement hooks
-    ├── evals/                        4 config regression cases
-    ├── ci/                           GitHub Actions / GitLab CI / Git hooks
-    ├── stack.json                    single source of stack config
-    ├── stack-config.js               shared config loader
-    ├── verify.js                     verify entry point
-    ├── gate.js                       pre-push / CI quality gate
-    ├── check-config.js               config health check
-    ├── docs-lint.js                  artifact integrity check
-    ├── readiness.js                  R0-R4 evidence manifest validator
-    ├── board.js                      task files → generated board
-    ├── prototype.js                  canvas → click-through prototype
-    ├── pixel.js                      screenshot diff
-    └── run.js                        named command runner
+│   ├── skills/ rules/ agents/ hooks/ evals/ ci/
+│   ├── stack.json  settings.json.tpl
+│   ├── gate.js  verify.js  check-config.js  docs-lint.js  board.js  run.js
+│   ├── readiness.js  verifier.js  requirement-coverage.js  security-baseline.js
+│   ├── supply-chain.js  operational-readiness.js  budgets.js  eval-harness.js
+│   ├── assumption-ledger.js  change-proposal.js  convergence.js  change-impact.js
+│   ├── prototype.js  pixel.js
+│   └── assess.js  local-ci.js  benchmark.js  intake.js  kit-lock.js   ← รันจาก kit ไม่ต้องคัดลอก
+├── claude-plugin/                    Claude Code plugin (generate จาก claude-setup/)
+├── manual/                           playbook สำหรับเครื่องมือที่ไม่มี session features
+├── packs/                            stack + capability packs (recipe + assertion)
+├── reference-apps/                   แอป 3 ตัวที่พิสูจน์ R3 + matrix.json
+├── examples/worked-sample.md         ทุกขั้นพร้อม output จริง
 │
-├── bin/buaflow.js                    vendor-neutral CLI: init / doctor / verify / readiness / resume
-├── schemas/                          public artifact contracts + schema registry
-└── CLI.md                            CLI contract, exit codes และ JSON output
+├── scripts/                          ตัวตรวจของ kit เอง (npm run check)
+├── development/                      state ของ roadmap + บันทึก trial
+└── BUAFLOW_PRODUCT_ROADMAP.md        แผน การตัดสินใจ และสิ่งที่ตัดออกพร้อมเหตุผล
 ```
 
 </details>
@@ -456,62 +431,50 @@ buaflow/
 
 ```text
 your-project/
-├── AGENTS.md                         กติกาหลักแบบไม่ผูก vendor
-├── CLAUDE.md                         ชั้นบางสำหรับ Claude Code
-├── REVIEW.md                         นโยบาย review
-├── CONTRIBUTING.md
+├── AGENTS.md  CLAUDE.md  REVIEW.md  CONTRIBUTING.md
+├── .buaflow/project.json  lock.json   metadata กลาง + เวอร์ชัน kit ที่ติดตั้ง
 ├── .claude/
 │   ├── skills/  rules/  agents/  hooks/
-│   ├── stack.json
-│   ├── settings.json
-│   ├── verify.js  gate.js  check-config.js
-│   ├── docs-lint.js  readiness.js  board.js  run.js
-│   └── prototype.js  pixel.js
-├── .husky/
-│   ├── pre-push                      เรียก gate
-│   ├── post-merge                    refresh board
-│   └── post-checkout                 refresh board
-├── .github/workflows/gate.yml        หรือ .gitlab-ci.yml
+│   ├── stack.json  settings.json
+│   └── gate.js  verify.js  readiness.js  verifier.js  ตัวตรวจหลักฐาน …
+├── .husky/pre-push                   เรียก gate
+├── .github/workflows/gate.yml        หรือ .gitlab-ci.yml (ทางเลือก — มี buaflow ci แทนได้)
 ├── docs/
 │   ├── constitution.md
-│   ├── evidence/readiness.json       readiness claim + evidence ของ commit/build
+│   ├── evidence/                     readiness.json, ci-run.json และหลักฐานที่เลือกใช้
 │   ├── planning/  intents/  specs/  plans/
 │   ├── backlog/tasks/  adr/  evals/
-│   ├── design/  incidents/  releases/  api/
-│   └── standards/  templates/
-├── scripts/verify.mjs
-├── docker-compose.dev.yml
-└── sonar-project.properties
+│   └── design/  incidents/  releases/  api/  templates/
+└── scripts/verify.mjs
 ```
 
-`docs/backlog/tasks/*.md` คือ source of truth ของงาน ส่วน `board.md` เป็น derived view ที่ generate ใหม่ได้และไม่ commit จึงไม่กลายเป็น conflict กลางหลาย PR
+`docs/backlog/tasks/*.md` คือ source of truth ของงาน ส่วน `board.md` generate ใหม่ได้และไม่ commit
 
 ---
 
 ## หลักการที่ยึดไว้
 
-1. **Artifact ต่อกันเป็นทอด** — ทุกขั้นมีของส่งต่อที่อ่านและตรวจย้อนกลับได้
-2. **Configuration is control** — กฎสำคัญต้องมี enforcement ที่เหมาะกับความเสี่ยง
-3. **Verify before visibility** — AI ต้องตรวจงานตัวเองได้ก่อนเอาไปให้คนดู
-4. **No silent guessing** — ความไม่ชัดต้องถูกทำเครื่องหมายและกลับไปถาม
-5. **Humans at gates** — คนตัดสินใจที่จุดรับความเสี่ยง ไม่ต้องนั่งเฝ้าทุกคำสั่ง
-6. **One phase at a time** — ลด context drift และเปิดทางให้แก้ทิศได้เร็ว
-7. **Compress, do not cascade** — ขั้นถัดไปอ่าน artifact ที่คัดแล้ว ไม่แบกเอกสารทั้งหมดต่อกันไป
-8. **Learn from production** — incident และ friction ต้องย้อนกลับเป็น config หรือ eval ที่ป้องกันการเกิดซ้ำ
+1. **เครื่องตัดสินสถานะ คนตัดสินความเสี่ยง** — AI สรุปได้ แต่ประกาศผ่านเองไม่ได้
+2. **AI สร้าง Buaflow พิสูจน์** — ความสามารถที่โมเดลและ Claude Code ทำเองได้ ไม่สร้างซ้ำใน kit
+3. **Evidence over confidence** — ทุก claim ชี้กลับไปที่ command, file หรือการอนุมัติของคน
+4. **First Runnable ≠ Production Candidate** — รายงานแยกกันเสมอ
+5. **No silent guessing** — ความไม่ชัดเป็น marker การเดาเป็น assumption ที่มีวันหมดอายุ
+6. **One phase at a time** — จบแล้วหยุด ให้คนแก้ทิศได้
+7. **Compress, do not cascade** — ขั้นถัดไปอ่าน artifact ที่คัดแล้ว
+8. **Brownfield เป็น first-class** — โปรเจกต์เดิมวัดได้ด้วยคำสั่งเดียวกันตั้งแต่วันแรก
+9. **Learn from production** — incident และ friction ย้อนกลับเป็น config ที่พิสูจน์ด้วย eval
+10. **Git-owned** — ทุกอย่างอยู่ในโปรเจกต์ของคุณและทำงานต่อได้แม้ tool หายไป
 
 ---
 
 ## ที่มาของแนวทาง
 
-Buaflow สังเคราะห์แนวคิดจาก:
+- **Anthropic — AI-Native SDLC Playbook**: artifact chain, configuration as control, feedback loop, tiered autonomy
+- **Claude Code**: skills, rules, hooks, subagents, plugins และ context management
+- **GitHub Spec Kit** / **AWS Kiro**: constitution, clarification markers, EARS และ path-scoped steering
+- **OWASP ASVS**, **CycloneDX**, **SLSA**: ฐานของ security และ supply-chain evidence แทน checklist ที่คิดเอง
 
-- **Anthropic — AI-Native SDLC Playbook**: artifact chain, configuration as control, feedback loop และ tiered autonomy
-- **Claude Code**: skills, rules, hooks, subagents, built-in review และ context management
-- **GitHub Spec Kit**: constitution, clarification markers และ gate ระหว่างขั้น
-- **AWS Kiro**: requirements/design/tasks spec, EARS notation และ path-scoped steering
-- **AGENTS.md**: กติกากลางที่เครื่องมือหลายค่ายอ่านร่วมกันได้
-
-Buaflow นำแนวคิดเหล่านี้มาประกอบเป็น workflow เดียวที่เน้น **traceability, enforceability และ human judgment** มากกว่าการเพิ่มจำนวน agent หรือเพิ่มพิธีกรรม
+Buaflow ประกอบแนวคิดเหล่านี้เป็น workflow เดียวที่เน้น **traceability, enforceability และ evidence** มากกว่าการเพิ่มจำนวน agent หรือพิธีกรรม
 
 ---
 
@@ -523,10 +486,10 @@ Buaflow นำแนวคิดเหล่านี้มาประกอบ
 อ่าน buaflow/START-HERE.md แล้วทำตาม เริ่ม Phase 0
 ```
 
-<p align="center"><strong>Build fast. Verify everything. Let humans decide what matters.</strong> 🌸</p>
+<p align="center"><strong>Let AI build. Prove everything. Let humans decide what matters.</strong> 🌸</p>
 
 <p align="center">
-  <a href="START-HERE.md">เริ่มจาก START-HERE.md</a>
+  <a href="QUICKSTART.md">10 นาทีแรก</a>
   ·
   <a href="UPGRADE.md">อัปเกรดเวอร์ชันเดิม</a>
   ·

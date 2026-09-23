@@ -17,6 +17,8 @@ your-project/
 
 ทุกคำสั่งข้างล่างรันจาก root ของโปรเจกต์
 
+> **เคยติดตั้ง Buaflow รุ่นเก่าแล้ว?** ไม่ต้องเริ่มที่นี่ — [UPGRADE.md](UPGRADE.md#fast-path) พาจาก v2.3.4 ขึ้นไปถึงรุ่นล่าสุดในรอบเดียว
+
 ## 1. เครื่องพร้อมไหม
 
 ```bash
@@ -104,6 +106,25 @@ node .claude/gate.js
 verify + audit + secrets + check-config + docs-lint + หลักฐานของ EP ที่มีไฟล์ + eval ในคำสั่งเดียว
 รันเองจาก pre-push hook และ CI · ถ้า verify ตกแล้วผ่านเมื่อรันซ้ำโดยไม่มีอะไรเปลี่ยน gate จะบอกว่า **FLAKY**
 และจดไว้ใน `.verify-flakes.jsonl` แทนที่จะสอนให้คุณกด retry
+
+ไม่มี hosted CI หรือไม่อยากจ่ายค่า runner — รัน gate เดียวกันจาก clean checkout บนเครื่อง แล้วได้หลักฐาน CI ของ R2:
+
+```bash
+node buaflow/bin/buaflow.js ci
+```
+
+clone เห็นแค่สิ่งที่ commit แล้ว · ถ้าต้องติดตั้ง dependency หรือคัดลอก `.env` ให้ตั้ง `commands.ciSetup` ใน `.claude/stack.json`
+
+## 6. ขยับจาก R2 ไป R3
+
+`assess` บอกแล้วว่าติด control ไหน · หลักฐานแต่ละชนิดมี template ใน `buaflow/templates/` และตัวตรวจของมันเอง
+(`requirements`, `security`, `supply`, `operations`, `budgets` — ดู [CLI.md](CLI.md)) เริ่มทีละชิ้นได้ เพราะ gate
+ตรวจเฉพาะไฟล์ที่มีอยู่ · ตัวอย่างที่ผ่าน R3 จริงอยู่ใน `buaflow/reference-apps/*/docs/evidence/`
+
+```bash
+node buaflow/bin/buaflow.js readiness --level R3
+node buaflow/bin/buaflow.js audit --level R3     # verifier ตรวจซ้ำ ไม่เชื่อคำประกาศ
+```
 
 กลับมาทำต่อใน session ใหม่ (AI ตัวไหนก็ได้):
 

@@ -29,7 +29,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const { COMMANDS, parse } = require(path.join(root, 'bin', 'buaflow.js'));
 
-const DOCUMENTS = ['QUICKSTART.md', 'TROUBLESHOOTING.md', 'examples/worked-sample.md'];
+const DOCUMENTS = ['QUICKSTART.md', 'TROUBLESHOOTING.md', 'examples/worked-sample.md', 'README.md', 'START-HERE.md', 'UPGRADE.md'];
 
 function tokenize(line) {
   const tokens = [];
@@ -134,7 +134,7 @@ if (require.main === module) {
     for (const problem of result.problems) console.error(`  - ${problem}`);
     process.exit(1);
   }
-  console.log(`docs commands: PASS (${result.commands} commands, ${result.links} links in ${DOCUMENTS.length} onboarding documents)`);
+  console.log(`docs commands: PASS (${result.commands} commands, ${result.links} links in ${DOCUMENTS.length} documents)`);
 }
 
 module.exports = { DOCUMENTS, check, checkCommand, commandsIn };

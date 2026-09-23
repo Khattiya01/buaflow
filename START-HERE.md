@@ -7,11 +7,15 @@
 
 ## 0. บทบาทของคุณ
 
-คุณคือ **Lead Architect + Product Engineer** ที่กำลังตั้งโปรเจกต์เว็บใหม่ให้ทีมที่
+คุณคือ **Lead Architect + Product Engineer** ที่กำลังตั้งโปรเจกต์ (web, API หรือ mobile) ให้ทีมที่
 **เขียนโค้ดด้วย AI 100%** งานของคุณในช่วงนี้คือ *วางแผน* ไม่ใช่ *เขียนโค้ด*
 
 ผลลัพธ์ที่ดีคือเอกสารที่ละเอียดพอให้ Claude session ไหนก็ได้หยิบไปเขียนโค้ดต่อได้
 โดยไม่ต้องเดาเจตนา
+
+**ปลายทางของทั้ง flow คือ Production Candidate (R3)** — repository ที่ทีม platform ติดตั้งได้โดยไม่แก้ source code
+และความพร้อมถูกตัดสินจากหลักฐานที่เครื่องตรวจซ้ำได้ (`standards/readiness-levels.md`) ไม่ใช่จากคำสรุปของคุณ
+ทุกการตัดสินใจในช่วง planning จึงควรถามตัวเองว่า "ตอนจะอ้าง R3 จะพิสูจน์ข้อนี้ด้วยอะไร"
 
 ---
 
@@ -33,13 +37,17 @@
    เป็น**ภาษาอังกฤษ** เพราะภาษาไทย tokenize แพงกว่า ~2 เท่าและไฟล์พวกนี้ถูกโหลดทุก session — ทุกไฟล์ในกลุ่มนี้สั่งให้ AI ตอบผู้ใช้เป็นไทยและเขียน artifact เป็นไทยเสมอ
 7. **ผู้ใช้เปลี่ยนใจได้ตลอด** ถ้าผู้ใช้ขอแก้สิ่งที่ตัดสินใจไปแล้วใน Phase ก่อนหน้า
    ให้แก้เอกสารเดิม + อัปเดต `_state.md` + บอกว่ากระทบ Phase ไหนบ้าง อย่าบ่น อย่าเริ่มใหม่ทั้งหมด
-8. **gate ต้องมีตั้งแต่ Phase 6 แม้ยังไม่เลือก git host** — `node .claude/gate.js` (verify + check-config + docs-lint)
-   รันจาก `.husky/pre-push` และมีไฟล์ CI เตรียมไว้ทั้ง GitHub/GitLab (`claude-setup/ci/`)
-   วันที่เลือก host เหลือแค่เปิด branch protection — **นี่คือสิ่งเดียวที่ทำให้กฎของ kit เป็นกฎแข็งนอก session ของ Claude**
+8. **gate ต้องมีตั้งแต่ Phase 6 แม้ยังไม่เลือก git host** — `node .claude/gate.js` (verify + audit/secrets + check-config
+   + docs-lint + ตัวตรวจหลักฐานที่โปรเจกต์มีไฟล์) รันจาก `.husky/pre-push` และมีไฟล์ CI เตรียมไว้ทั้ง GitHub/GitLab (`claude-setup/ci/`)
+   ยังไม่มี hosted CI หรือไม่อยากจ่ายค่า runner → `node buaflow/bin/buaflow.js ci` รัน gate จาก clean checkout บนเครื่อง
+   และนับเป็นหลักฐาน CI ของ R2 ได้ · วันที่เลือก host เหลือแค่เปิด branch protection —
+   **นี่คือสิ่งที่ทำให้กฎของ kit เป็นกฎแข็งนอก session ของ Claude**
    deploy target ยังไม่ตัดสิน → container-first, เขียน "รอตัดสินใจ" ใน ADR
 9. **ห้ามเดาแทนผู้ใช้ — ใช้เครื่องหมายแทน** ทุกจุดที่ไม่ชัดและมีผลต่อผลลัพธ์ ให้เขียน
-   `[NEEDS CLARIFICATION: <คำถาม>]` ไว้ในเอกสารตรงนั้น **ห้ามเติมค่าที่ดูสมเหตุสมผลเอาเอง**
-   เอกสารที่ยังเหลือ marker จะผ่านไปขั้นถัดไปไม่ได้
+   `[NEEDS CLARIFICATION (<เรื่อง>): <คำถาม>]` ไว้ในเอกสารตรงนั้น — `<เรื่อง>` คือการตัดสินใจที่คำตอบจะเปลี่ยน
+   เช่น `security`, `data`, `scope` · ไม่เกิน 8 คำถามต่อไฟล์ **ห้ามเติมค่าที่ดูสมเหตุสมผลเอาเอง**
+   เอกสารที่ยังเหลือ marker จะผ่านไปขั้นถัดไปไม่ได้ · ถ้าต้องเดาเพื่อเดินต่อจริง ๆ ให้ลง `docs/evidence/assumptions.json`
+   พร้อมเจ้าของที่เป็นคน วันหมดอายุ และวิธีพิสูจน์ (template: `buaflow/templates/assumption-ledger.tpl.json`)
 10. **ไม่ต้องสร้าง agent ตามตำแหน่งงาน** (full-stack / QA / PM / devops)
     Claude ตัวหลักทำได้หมดอยู่แล้ว การแยกเป็น "ตำแหน่ง" มีแต่ทำให้ context กระจัดกระจาย
     ให้เลือกเครื่องมือตาม **4 ชั้น** นี้แทน:
@@ -66,12 +74,20 @@
 ### 2.1 สแกนสภาพปัจจุบัน
 - โฟลเดอร์นี้ว่างเปล่า หรือมีโค้ดอยู่แล้ว?
 - มี `docs/planning/_state.md` อยู่ไหม? **ถ้ามี → อ่านแล้วทำต่อจากจุดที่ค้าง อย่าเริ่มใหม่**
-- **โปรเจกต์ที่ผ่าน kit v1.0 มาแล้ว** — สัญญาณ: มี `.claude/commands/` หรือมี `CLAUDE.md` ที่ยาวเต็มโดยไม่มี `AGENTS.md` และ `_state.md` บอกว่า Phase 7 เสร็จแล้ว
-  → **ไม่ต้องทำ Phase ใด** อ่าน `buaflow/UPGRADE.md` แล้วทำตามนั้นแทน (บอกผู้ใช้ว่าตรวจพบ v1.0 ก่อนเริ่ม)
-- **โปรเจกต์ที่ผ่าน kit v2.1 มาแล้ว** — สัญญาณ: มี `.claude/skills/` และ `AGENTS.md` แล้ว แต่**ไม่มี `.claude/stack.json`**
-  → **ไม่ต้องทำ Phase ใด** อ่าน `buaflow/UPGRADE.md` หัวข้อ **v2.1 → v2.2** (~15 นาที) แล้วทำตามนั้นแทน
-- **โปรเจกต์ที่ผ่าน kit v2.2 มาแล้ว** — สัญญาณ: มี `.claude/stack.json` แล้ว แต่**ไม่มี `.claude/prototype.js`**
-  → อ่าน `buaflow/UPGRADE.md` หัวข้อ **v2.2 → v2.3** (~10 นาที copy ไฟล์)
+  (`node buaflow/bin/buaflow.js resume` สรุปสถานะ + task ที่ค้างให้)
+- **มีโค้ดอยู่แล้ว** → รัน `node buaflow/bin/buaflow.js doctor` และ `node buaflow/bin/buaflow.js assess` ก่อนถามอะไร
+  แล้วสรุปผลให้ผู้ใช้ฟังพร้อมคำถามข้อ 2.2 — ผู้ใช้ควรรู้ว่าโปรเจกต์อยู่ R ไหนก่อนตัดสินใจโหมด
+- **เคยติดตั้ง kit แล้ว (มี `.claude/` จาก Phase 7)** → **ไม่ต้องทำ Phase ใด** บอกผู้ใช้ว่าตรวจพบรุ่นไหน
+  แล้วอ่าน `buaflow/UPGRADE.md` ทำตามนั้นแทน:
+
+  | สัญญาณ | รุ่นที่ติดตั้ง | ไปที่ UPGRADE.md |
+  |---|---|---|
+  | มี `.buaflow/lock.json` | ดู `kitVersion` ในไฟล์ (หรือ `buaflow lock`) | ทางลัด (fast path) |
+  | มี `.claude/verifier.js` แต่ไม่มี lock | 3.x | ทางลัด (fast path) |
+  | มี `.claude/prototype.js` แต่ไม่มี `.claude/verifier.js` | 2.3.x | ถึง v2.3.4 ก่อน แล้วทางลัด |
+  | มี `.claude/stack.json` แต่ไม่มี `.claude/prototype.js` | 2.2 | v2.2 → v2.3 แล้วต่อ |
+  | มี `.claude/skills/` + `AGENTS.md` แต่ไม่มี `.claude/stack.json` | 2.1 | v2.1 → v2.2 แล้วต่อ |
+  | มี `.claude/commands/` หรือ `CLAUDE.md` ยาวโดยไม่มี `AGENTS.md` | 1.0 | v1.0 → v2.1 แล้วต่อ |
 
 ### 2.2 ถาม 4 คำถามนี้ (รอบเดียว)
 
@@ -119,7 +135,7 @@
 | 3 UI & Design | ⬜ ยังไม่ทำ | docs/planning/03-ui-design.md |
 | 4 Architecture | ⬜ ยังไม่ทำ | docs/planning/04-architecture.md, docs/constitution.md |
 | 5 Backlog | ⬜ ยังไม่ทำ | docs/backlog/board.md |
-| 6 Scaffold | ⬜ ยังไม่ทำ | โค้ดจริง + `pnpm verify` |
+| 6 Scaffold | ⬜ ยังไม่ทำ | โค้ดจริง + `node .claude/verify.js` ผ่าน |
 | 7 Handoff | ⬜ ยังไม่ทำ | AGENTS.md, CLAUDE.md, REVIEW.md, .claude/ |
 | 8 Tune | ♻️ ทำซ้ำเรื่อยๆ | อัปเดต config หลังใช้งานจริง |
 
@@ -152,7 +168,7 @@
 | 3 | `buaflow/phases/03-ui-and-design-intake.md` | theme, design token, inventory หน้า/component |
 | 4 | `buaflow/phases/04-architecture.md` | โครงสร้าง, security, API contract, docker |
 | 5 | `buaflow/phases/05-backlog-and-roadmap.md` | Epic/Feature/Task + board + roadmap |
-| 6 | `buaflow/phases/06-scaffold.md` | โปรเจกต์จริงที่ build ผ่าน + `pnpm verify` |
+| 6 | `buaflow/phases/06-scaffold.md` | โปรเจกต์จริงที่ build ผ่าน + คำสั่ง verify เดียว |
 | 7 | `buaflow/phases/07-handoff.md` | AGENTS.md + CLAUDE.md + `.claude/` ทั้งชุด + ธรรมนูญ + eval |
 | 8 | `buaflow/phases/08-tune-and-evolve.md` | **ทำซ้ำเรื่อย ๆ** — ทบทวนและปรับ config |
 
@@ -164,7 +180,8 @@
 intent  →  spec (feature ใหญ่)  →  plan  →  code  →  verify  →  check  →  PR (คนกด merge)  →  done
   ↑            trivial track: task → code → check low → PR                                    ↓
   └─────────── postmortem / งานนอก scope / finding จาก Sonar / /insights ───────────────────────┘
-                              gate = verify + check-config + docs-lint  (pre-push + CI)
+              gate = verify + audit/secrets + check-config + docs-lint + หลักฐานที่มีไฟล์  (pre-push + CI / buaflow ci)
+                              หลักฐานสะสม → readiness R1 → R2 → R3  (buaflow assess / readiness / audit)
 ```
 
 แต่ละขั้นคายไฟล์ที่ขั้นถัดไปอ่านได้ ทั้งสายอยู่ใน git = ตรวจย้อนได้ว่า
@@ -211,12 +228,13 @@ Phase 8 คือรอบที่เอาบทเรียนจากกา
 | Spec | feature ใหญ่ต้องมี spec 3 ส่วนก่อนโค้ด, task ย่อย/hotfix ใช้ template สั้น |
 | Coverage | Backend: เขียน unit test พร้อม module ทุกครั้ง / Frontend: เขียนทีหลังเมื่อ UI นิ่ง |
 | API docs | ต้องมี OpenAPI เสมอเมื่อมี API |
-| คำสั่งตรวจ | ต้องมี **คำสั่งเดียวที่บอกว่างานผ่านหรือไม่** รันจบใน ~30 วินาที exit non-zero เมื่อพัง **พิมพ์สรุปสั้น** log เต็มลง `.verify.log` — *นโยบายคือ "คำสั่งเดียว" ส่วนคำสั่งจริงเป็นของ stack*: ตั้งที่ `verifyCommand` ใน `.claude/stack.json` แล้วทุกที่เรียกผ่าน `node .claude/verify.js` (JS/TS: `scripts/verify.mjs` จาก template) |
-| Gate | `node .claude/gate.js` = verify + check-config + docs-lint — รันจาก pre-push และ CI ตัวเดียวกัน main รับของผ่าน PR เท่านั้น |
-| Data model | `prisma/schema.prisma` เป็น source of truth ตัวเดียว ล็อก core entities ที่ Phase 4.4b ก่อน scaffold |
+| คำสั่งตรวจ | ต้องมี **คำสั่งเดียวที่บอกว่างานผ่านหรือไม่** เป้ารันจบใน ~30 วินาที (โปรเจกต์เดิมอาจนานกว่า — ดู Phase A.2) exit non-zero เมื่อพัง **พิมพ์สรุปสั้น** log เต็มลง `.verify.log` — *นโยบายคือ "คำสั่งเดียว" ส่วนคำสั่งจริงเป็นของ stack*: ตั้งที่ `verifyCommand` ใน `.claude/stack.json` แล้วทุกที่เรียกผ่าน `node .claude/verify.js` (JS/TS: `scripts/verify.mjs` จาก template) |
+| Gate | `node .claude/gate.js` = verify + audit/secrets + check-config + docs-lint + ตัวตรวจหลักฐานที่โปรเจกต์มีไฟล์ — รันจาก pre-push และ CI ตัวเดียวกัน main รับของผ่าน PR เท่านั้น |
+| ความพร้อม | ตัดสินด้วย readiness manifest (`docs/evidence/readiness.json`) ที่ผูกกับ commit ไม่ใช่คำสรุปของ AI · `buaflow assess` ตอบระดับปัจจุบัน · จะอ้าง R3 ต้องเปลี่ยน `assuranceMode` เป็น `production` |
+| Data model | schema ของ ORM/migration ที่ Phase 2 เลือก (เช่น `prisma/schema.prisma`, Alembic models) เป็น source of truth ตัวเดียว ล็อก core entities ที่ Phase 4.4b ก่อน scaffold |
 | Artifact chain | งานใหม่เข้าทาง `docs/intents/` เสมอ → spec → plan → code → check → PR → done (งานจิ๋ว: trivial track ไม่ต้อง intent/plan) |
 | กติกา AI | คาย `AGENTS.md` (มาตรฐานกลาง) + `CLAUDE.md` ที่ import เข้าไป ไม่เขียนซ้ำ 2 ที่ |
-| CI/CD | **ด่านหลักคือ pre-push hook ในเครื่อง ไม่ใช่ CI** — มีตั้งแต่ Phase 6 · CI เป็นชั้นที่สองที่กันคนข้าม hook · นาที CI มีจำกัด (ฟรีไม่จำกัดเฉพาะ repo public) ถ้าหมดหรือไม่มี remote ให้ตั้ง `"ciMode": "local-only"` ใน `.claude/stack.json` แล้วลบไฟล์ CI ทิ้ง — gate ยังบังคับอยู่ |
+| CI/CD | **ด่านหลักคือ pre-push hook ในเครื่อง ไม่ใช่ CI** — มีตั้งแต่ Phase 6 · CI เป็นชั้นที่สองที่กันคนข้าม hook · นาที CI มีจำกัด (ฟรีไม่จำกัดเฉพาะ repo public) ถ้าหมด ไม่มี remote หรือไม่อยากจ่าย ให้ตั้ง `"ciMode": "local-only"` ใน `.claude/stack.json` แล้วลบไฟล์ CI ทิ้ง — gate ยังบังคับอยู่ และ `buaflow ci` (clean checkout บนเครื่อง) ให้หลักฐาน CI ของ R2 แทน hosted CI ได้ |
 | Deploy target | **ยังไม่ตัดสินใจ** → ออกแบบให้เป็น container-first ไม่ผูก vendor |
 | Git host | **ยังไม่ตัดสินใจ** → ใช้ convention ที่ย้ายไป host ไหนก็ได้ |
 
