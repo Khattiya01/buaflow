@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/compatibility-v1.json",
+  "title": "Buaflow kit compatibility matrix v1",
+  "description": "Which artifact schema versions each release of the kit can read, and what has been deprecated. Markdown is a view and not a database (principle 2), so the support matrix lives here as data and standards/release-policy.md explains what it means.",
+  "type": "object",
+  "required": ["schemaVersion", "releases", "deprecations"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "_": { "type": "string" },
+    "releases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/release" }
+    },
+    "deprecations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/deprecation" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "release": {
+      "type": "object",
+      "required": ["version", "releasedAt", "change", "reads"],
+      "properties": {
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "releasedAt": { "type": "string", "format": "date" },
+        "change": { "enum": ["major", "minor", "patch"] },
+        "summary": { "type": "string" },
+        "reads": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[a-z][a-z0-9-]+$" },
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "deprecation": {
+      "type": "object",
+      "required": ["what", "announcedIn", "removedNoEarlierThan", "replacement"],
+      "properties": {
+        "what": { "type": "string", "minLength": 1 },
+        "announcedIn": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "announcedAt": { "type": "string", "format": "date" },
+        "removedNoEarlierThan": { "type": "string", "format": "date" },
+        "removedIn": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "replacement": { "type": "string", "minLength": 1 },
+        "migration": { "type": "string" },
+        "note": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

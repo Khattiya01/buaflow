@@ -5,7 +5,7 @@
   "updatedAt": "2026-09-23",
   "current": {
     "milestone": "M4",
-    "focus": ["EV-007"]
+    "focus": ["IC-006"]
   },
   "workItems": [
     {
@@ -1020,7 +1020,9 @@
       "id": "EV-007",
       "title": "Compatibility and release policy for the kit itself",
       "milestone": "M4",
-      "status": "ready",
+      "status": "done",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
       "dependsOn": [
         "BF-006"
       ],
@@ -1029,9 +1031,22 @@
         "A support matrix says which artifact schema versions each kit version reads",
         "Deprecation has a stated path and a minimum notice, rather than being decided per change"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "Chosen as the next item on 2026-09-23. BF-006 set a versioning and migration policy for artifacts and PP-010 exercised it for real by taking packs to 2.0 with a manual migration, but nothing covers the kit itself: package.json says 2.3.4 with no stated meaning, VERSION.md and UPGRADE.md exist without a policy behind them, and an adopter copying claude-setup/ into their project has no way to know what a Buaflow upgrade may break. The artifact policy is the model to follow, not to duplicate."
+      "artifacts": [
+        "standards/release-policy.md",
+        "schemas/compatibility.json",
+        "schemas/compatibility.schema.json",
+        "scripts/check-compatibility.js",
+        "scripts/check-repository.js",
+        "claude-setup/tests/compatibility.test.js",
+        "package.json",
+        "VERSION.md",
+        "UPGRADE.md"
+      ],
+      "verification": [
+        "npm test",
+        "npm run check"
+      ],
+      "notes": "Chosen as the next item on 2026-09-23. BF-006 set a versioning and migration policy for artifacts and PP-010 exercised it for real by taking packs to 2.0 with a manual migration, but nothing covers the kit itself: package.json says 2.3.4 with no stated meaning, VERSION.md and UPGRADE.md exist without a policy behind them, and an adopter copying claude-setup/ into their project has no way to know what a Buaflow upgrade may break. The artifact policy is the model to follow, not to duplicate. Built 2026-09-23, and applied to the kit in the same change, because a policy that leaves the version number meaningless has not finished. The policy states one test for MAJOR, written from the adopter side rather than the author side: if the user has to do something, it is MAJOR, however small it looks from in here. By that test this release is 3.0.0, not 2.4.0 — pack went 1.0 to 2.0 with a manual migration, so any project holding .claude/packs/*.json must rewrite those files by hand. The support matrix is data rather than prose (schemas/compatibility.json), following principle 2, and scripts/check-compatibility.js makes it unable to lie: package.json must equal the newest release, every public artifact type in the registry must appear at its current version, a type in the matrix that the registry does not know is an error, releases must be newest-first and unique, and every MAJOR must both state what the adopter has to do and have a section in UPGRADE.md. It earned its place on the first run by reporting that package.json still said 2.3.4 while the matrix already declared 3.0.0. Deprecation policy: announce in a MINOR release first, 90 days minimum notice, a replacement is mandatory, and shortening the notice is allowed only with a note arguing for it — the checker rejects a short notice with no note, so a considered exception is distinguishable from an accident. The one exception on record is pack v1, announced and removed in the same release with no notice at all. That is recorded honestly with a note rather than backdated to look compliant, because the kit had no release policy when the change was made, which is the gap this item closes, and it is marked as the last change permitted to skip the step. The checker was refactored mid-build into a pure checkCompatibility function after a self-review found one of its own tests was a tautology that asserted a fact against itself and exercised nothing; the negative cases now feed the function directly. VERSION.md and UPGRADE.md gained v3.0.0 entries, including the warning that verifier.js --execute has side effects. Suite 195 to 211."
     },
     {
       "id": "IC-006",

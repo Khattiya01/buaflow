@@ -4,13 +4,68 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
-| **v2.3.3** | [v2.3.3 → v2.3.4](#v233--v234-copy-ไฟล์เดียว) ข้างล่างนี้ | ~1 นาที |
+| **v2.3.4** | [v2.3.4 → v3.0.0](#v234--v300-major--ต้องลงมือถ้าเคยใช้-pack) ข้างล่างนี้ | ~2 นาที หรือนานกว่านั้นถ้ามี pack |
+| **v2.3.3** | [v2.3.3 → v2.3.4](#v233--v234-copy-ไฟล์เดียว) แล้วต่อด้วย v3.0.0 | ~1 นาที |
 | **v2.3.2** | [v2.3.2 → v2.3.3](#v232--v233-copy-ไฟล์--1-คำสั่ง) แล้วต่อด้วย v2.3.4 | ~3 นาที |
 | **v2.3.1** | [v2.3.1 → v2.3.2](#v231--v232-copy-ไฟล์เดียว) แล้วต่อด้วย v2.3.3, v2.3.4 | ~4 นาที |
 | **v2.3** | [v2.3 → v2.3.1](#v23--v231-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.2 | ~5 นาที |
 | **v2.2** | [v2.2 → v2.3](#v22--v23-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.1 | ~15 นาที |
 | **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) แล้วต่อด้วย v2.3 | ~15 นาที |
 | **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2, v2.3 | ~1 session |
+
+---
+
+## v2.3.4 → v3.0.0 (MAJOR — ต้องลงมือถ้าเคยใช้ pack)
+
+**ใครได้รับผลกระทบจริง:** เฉพาะโปรเจกต์ที่มีไฟล์ใน `.claude/packs/` เท่านั้น
+ถ้าไม่เคยสร้าง pack เลย การอัปเกรดนี้เป็นแค่การคัดลอกไฟล์ (~2 นาที)
+
+### 1. คัดลอกไฟล์ควบคุมชุดใหม่
+
+```bash
+cp buaflow/claude-setup/verifier.js         .claude/verifier.js
+cp buaflow/claude-setup/failure-taxonomy.js .claude/failure-taxonomy.js
+cp buaflow/claude-setup/readiness.js        .claude/readiness.js
+cp buaflow/claude-setup/pack.js             .claude/pack.js
+cp buaflow/claude-setup/pack-composition.js .claude/pack-composition.js
+```
+
+### 2. ถ้ามี `.claude/packs/*.json` — ต้องเขียนใหม่ด้วยมือ
+
+ไม่มีตัวแปลงอัตโนมัติ และนั่นเป็นการตัดสินใจ ไม่ใช่ความขี้เกียจ: pack v1 ไม่เคยบันทึกคำสั่ง setup
+ไว้ที่ไหนเลย (มันสมมติว่าจะมี generator เขียนไฟล์ให้) จึงไม่มีอะไรให้ derive เป็น recipe ได้
+recipe ที่เครื่องเดาขึ้นมาคือคำโกหกที่ validate ผ่าน
+
+```bash
+node buaflow/scripts/migrate-artifact.js --type pack --file .claude/packs/<id>.json
+# -> pack 1.0 -> 2.0 is a manual migration
+```
+
+สิ่งที่ต้องแก้ในแต่ละไฟล์:
+
+| v1 | v2 |
+|---|---|
+| `"schemaVersion": "1.0"` | `"schemaVersion": "2.0"` |
+| `generatedArtifacts` | `requiredArtifacts` — ความหมายเปลี่ยนเป็น "ไฟล์ที่ต้องมีอยู่จริงเมื่อเสร็จ" |
+| *(ไม่มี)* | `setup[]` — คำสั่ง CLI ของเจ้าของ framework ที่ต้องรัน **ห้าม pin เวอร์ชัน scaffolder** |
+| *(ไม่มี)* | `implementedBy` — ไม่บังคับ ใส่เมื่อมีโปรเจกต์จริงพิสูจน์ pack นั้น |
+| `upgrade[]` | **ลบทิ้ง** — ถูกแทนด้วย evidence-freshness control (EP-010) |
+
+ตัวอย่างจริงที่ลอกได้เลยอยู่ที่ `buaflow/packs/` และ template อยู่ที่ `buaflow/templates/pack.tpl.json`
+
+```bash
+node .claude/pack.js --dir .claude/packs        # ตรวจว่าเขียนใหม่ถูกแล้ว
+```
+
+### 3. ตรวจว่ายังผ่านเหมือนเดิม
+
+```bash
+node .claude/gate.js
+node .claude/verifier.js --root .               # ของใหม่: ตรวจซ้ำหลักฐาน ไม่เชื่อคำประกาศ
+```
+
+> `verifier.js --execute` จะ **รันคำสั่งจริงของโปรเจกต์** และคำสั่งพวกนั้นเขียนไฟล์ทับได้
+> เคยทำหลักฐานหายมาแล้ว 238 บรรทัด — รันบน working tree ที่สะอาด และดู `git status` หลังรันเสมอ
 
 ---
 

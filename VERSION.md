@@ -3,6 +3,41 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.0.0 — 2026-09-23
+
+> โปรเจกต์ที่ใช้ v2.3.4 → **[UPGRADE.md](UPGRADE.md)** หัวข้อ v2.3.4 → v3.0.0
+> **MAJOR ตัวแรกในรอบนี้ และเป็นรีลีสแรกที่อยู่ใต้ `standards/release-policy.md`**
+
+รอบนี้ไม่ได้มาจากบทเรียนของโปรเจกต์ผู้ใช้ แต่มาจากการทบทวนทิศทางของ kit เอง (D-011 ถึง D-013)
+ที่อ่านจากตัวเรพแทนที่จะอ่านจากเอกสารของตัวเอง แล้วพบว่าหลายอย่างในแผนไม่ตรงกับความจริง
+
+**ทำไมเป็น MAJOR:** `pack` schema ขึ้นจาก 1.0 เป็น 2.0 และ migration เป็น `manual` —
+โปรเจกต์ที่มี `.claude/packs/*.json` ต้องเขียนใหม่ด้วยมือ ผู้ใช้ต้องลงมือ จึงเป็น MAJOR
+
+- **Pack contract v2 — pack คือ recipe + assertion ไม่ใช่ template** (`schemas/pack.schema.json`, D-011/PP-010)
+  Buaflow จะไม่สร้าง generator ที่ปั๊มโค้ดออกมาจาก pack เพราะ template generator แช่ dependency ไว้
+  ที่วันที่เขียน จึงผลิตของเก่าทุกครั้งที่รัน และขัดกับ `phases/06-scaffold.md` ที่สั่งไว้ตั้งแต่ต้นว่า
+  ให้ใช้ CLI ของเจ้าของ framework เสมอ · `setup[]` คือคำสั่งที่ต้องรัน (scaffolder **ห้าม pin เวอร์ชัน**
+  และ `pack.js` ปฏิเสธให้เองโดยดูจากรูปคำสั่ง) · `generatedArtifacts` เปลี่ยนชื่อเป็น `requiredArtifacts`
+  พร้อมเปลี่ยนความหมายเป็น "ไฟล์ที่ต้องมีอยู่จริงเมื่อเสร็จ" · `implementedBy` ผูก pack เข้ากับ reference
+  app ที่พิสูจน์มัน · `upgrade[]` ถูกถอดออก (ว่างเปล่าทั้ง 9 pack ตั้งแต่วันแรก)
+- **Independent verifier** (`claude-setup/verifier.js`, `buaflow audit`, BC-006) — ตัดสินจาก artifact
+  และผลการรันจริงเท่านั้น ไม่เคยอ่าน `control.status` เป็นข้อมูลเข้า · ผลลัพธ์มีสามค่า: confirmed /
+  refuted / **unverifiable** เพราะ "ยังไม่ได้ตรวจ" กับ "ตรวจแล้วจริง" ต้องไม่ถูกยุบเป็นอันเดียวกัน
+- **Evidence freshness** (EP-010) — `readiness.js` มีผลลัพธ์ที่สาม `EXPIRED` (exit 4) เมื่อหลักฐาน
+  เก่ากว่าหน้าต่างที่ผู้ตรวจกำหนด (`--max-age-days`) หรือ commit ไม่ใช่บรรพบุรุษของ HEAD อีกแล้ว
+  หน้าต่างเป็นนโยบายของผู้ตรวจ ไม่ใช่ field ใน manifest จึงไม่ต้องแก้ schema และของเก่าทำงานเหมือนเดิม
+- **Failure taxonomy** (EV-003) — 9 หมวดที่ทุกหมวดชี้ไปที่ความล้มเหลวจริงในเรพนี้ พร้อม citation
+  ที่ test บังคับว่าต้อง resolve ได้ · ไม่มีหมวด operations เพราะที่นี่ยังไม่เคยรันอะไรใน production
+  และประกาศช่องว่างนั้นไว้แทนการเติมหมวดลอย ๆ
+- **CI ของ kit เอง** (BF-008) — `npm run check` ไม่เคยถูก workflow ไหนรันเลย ทั้งที่ตรวจ roadmap state,
+  artifact contract, core→adapter drift และสวีตทั้งหมด
+- **pack catalog ย้ายจาก `claude-setup/tests/fixtures/packs/` มาที่ `packs/`** (D-012) — ที่อยู่ของไฟล์
+  บอกว่าโปรเจกต์คิดว่ามันคืออะไร และ catalog ของผลิตภัณฑ์ไม่ควรอยู่ใต้โฟลเดอร์ test
+- **release policy ของ kit เอง** (`standards/release-policy.md`, EV-007) — เลขเวอร์ชันของ Buaflow
+  แปลว่าอะไรกับผู้ใช้ พร้อม support matrix ที่เครื่องอ่าน (`schemas/compatibility.json`) และตัวตรวจ
+  ที่ทำให้มันโกหกไม่ได้
+
 ## v2.3.4 — 2026-09-21
 
 > โปรเจกต์ที่ใช้ v2.3.3 → **[UPGRADE.md](UPGRADE.md)** หัวข้อ v2.3.3 → v2.3.4 (copy ไฟล์เดียว)
