@@ -3,6 +3,33 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.3.0 — 2026-09-23
+
+> โปรเจกต์ที่ใช้ v3.2.0 → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.2.0 → v3.3.0)
+> **MINOR:** ไม่มี `docs/evidence/supply-chain.json` = ไม่ถูกตรวจ
+
+- **Supply-chain evidence: licence / provenance / checksum** (`schemas/supply-chain.schema.json`,
+  `claude-setup/supply-chain.js`, EP-004) — SBOM ตอบว่า "มีอะไรอยู่ในต้นไม้" แต่ไม่ตอบสามข้อที่
+  ต้องตอบจริง: ของพวกนั้นอยู่ใต้ licence อะไรและมีใครรับรองหรือยัง, artifact มาจาก build ไหน,
+  และผู้รับตรวจเองได้ไหม · คำว่า provenance/SLSA/license เคยมีอยู่แค่ใน roadmap เท่านั้น
+- **สรุป licence เขียนเองไม่ได้** — `licenses.summary` ถูก **derive ใหม่จาก SBOM ทุกครั้ง**
+  แล้วเทียบ ไม่ตรงคือตก ทั้งนับน้อยไปและใส่ licence ที่ไม่มีอยู่จริง · SBOM ถูก pin ด้วย `sha256`
+  ที่คำนวณใหม่ แก้ SBOM แล้วสรุปเก่าใช้ไม่ได้ทันที ไม่ใช่เปลี่ยนตามเงียบ ๆ
+- **licence ทุกตัวต้องมีคนรับรอง** — `policy.allowed` ทั้งกลุ่ม, review รายตัว, หรือ
+  `accepted-risk` ที่ต้องชี้ไป approved exception ของ EP-002 · expression ที่ผิดรูป
+  (`MIT and ISC`, `MIT | MIT`, `NONE`) ถูกเก็บตามตัวอักษร ไม่ normalise ทิ้ง
+- **provenance ถูกเทียบกับของจริง** — repository/commit/workflow/runId/url ต้องตรงกับ
+  `evidence/ci-run.json` และ commit ต้องเป็น revision เดียวกับที่ readiness manifest ตัดสิน ·
+  run ที่ `conclusion` ไม่ใช่ `success` ถูกปฏิเสธ
+- **checksum ต้องคำนวณใหม่ได้** — `subjects[]` ทุกตัวถูก sha256 ใหม่จากไฟล์จริง ของที่ให้ digest
+  ไม่ได้ต้องอยู่ใน `notPublished` พร้อมเหตุผล (container image ที่ผู้ใช้ build เองไม่เคยถูก push
+  ขึ้น registry จึงไม่มี digest ให้เทียบ)
+- **`buaflow supply`** — คำสั่งใหม่
+- **สิ่งที่ review ครั้งแรกเจอ** — component ที่หา licence ไม่เจอเลย 1 ตัวใน nextjs และ **30 ตัว**
+  ในสอง FastAPI app (ฝั่ง Python) บันทึกเป็น REQ-201 · `(BSD-3-Clause OR GPL-2.0)` ถูกบันทึกว่า
+  **เลือก BSD-3-Clause** เพราะถ้าไม่บันทึก ต้นไม้จะดูเหมือนมีโค้ด GPL-2.0 ที่มีภาระผูกพัน ·
+  LGPL แบบ conjunctive สองข้อผ่านโดยมีเงื่อนไขเขียนไว้ว่า "ให้ทบทวนใหม่ถ้า image ถูก publish"
+
 ## v3.2.0 — 2026-09-23
 
 > โปรเจกต์ที่ใช้ v3.1.0 → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.1.0 → v3.2.0)

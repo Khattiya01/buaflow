@@ -56,7 +56,7 @@
 | `health-check` | startup/readiness/liveness behavior as applicable | ไม่ |
 | `performance` | profile-specific budget result | ไม่ |
 | `accessibility` | UI accessibility result | ใช่ |
-| `sbom` | CycloneDX/SPDX or equivalent tied to build | ไม่ |
+| `sbom` | CycloneDX/SPDX or equivalent tied to build — licence, provenance และ checksum อยู่ที่ `docs/evidence/supply-chain.json` ตั้งแต่ 3.3.0 ดู `standards/supply-chain-evidence.md` (EP-004) | ไม่ |
 | `runbook` | deploy, diagnose, incident and recovery steps | ไม่ |
 | `clean-environment` | independent deployment rehearsal result | ไม่ |
 

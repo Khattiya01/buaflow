@@ -1,0 +1,122 @@
+{
+  "$schema": "../../../../schemas/supply-chain.schema.json",
+  "schemaVersion": "1.0",
+  "_": "EP-004 · licence / provenance / checksum ที่ตรวจซ้ำได้ · ตรวจด้วย: node ../../claude-setup/supply-chain.js --root . --file docs/evidence/supply-chain.json · สรุป licence ถูก derive ใหม่จาก SBOM ทุกครั้ง เขียนตัวเลขเองไม่ได้",
+  "project": "nextjs-postgres-crud",
+  "generatedAt": "2026-09-23T23:45:00.000Z",
+  "sboms": [
+    {
+      "path": "evidence/sbom.cdx.json",
+      "sha256": "f833bd4ed07030fa85f0895c2a3750d8c981444188cdf5a01e30ba5273485fb0"
+    }
+  ],
+  "licenses": {
+    "policy": {
+      "allowed": [
+        "MIT",
+        "ISC",
+        "Apache-2.0",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "0BSD",
+        "Unlicense",
+        "CC0-1.0"
+      ],
+      "note": "Permissive licences whose only obligation is attribution, which this project satisfies by shipping the SBOM. Everything else is reviewed individually below."
+    },
+    "summary": {
+      "MPL-2.0": 4,
+      "MIT": 400,
+      "Apache-2.0 AND LGPL-3.0-or-later AND MIT": 1,
+      "Apache-2.0": 42,
+      "BSD-2-Clause": 8,
+      "0BSD": 1,
+      "ISC": 32,
+      "BSD-3-Clause": 4,
+      "CC-BY-4.0": 1,
+      "Unlicense": 2,
+      "Apache-2.0 AND LGPL-3.0-or-later": 1,
+      "EPL-2.0": 1,
+      "NONE": 1,
+      "CC0-1.0": 1,
+      "Python-2.0": 1,
+      "MIT and ISC": 1
+    },
+    "reviewed": [
+      {
+        "license": "MPL-2.0",
+        "components": 4,
+        "decision": "allowed",
+        "note": "Weak copyleft at file level. The component is consumed unmodified as a dependency, so the obligation is to publish changes to its own files and there are none."
+      },
+      {
+        "license": "Apache-2.0 AND LGPL-3.0-or-later",
+        "components": 1,
+        "decision": "allowed",
+        "note": "Same conjunctive LGPL obligation as the expression above, without the MIT term. Cleared on the same basis: unmodified dependency, deployed rather than redistributed."
+      },
+      {
+        "license": "Apache-2.0 AND LGPL-3.0-or-later AND MIT",
+        "components": 1,
+        "decision": "allowed",
+        "note": "A conjunctive expression: every obligation applies at once, and the LGPL one is the relinking right. The component is an unmodified dependency and this app is deployed rather than redistributed to third parties, so no relinking obligation is triggered. Revisit if the image is ever published for others to run."
+      },
+      {
+        "license": "CC-BY-4.0",
+        "components": 1,
+        "decision": "allowed",
+        "note": "A content licence on a data package rather than a code licence. Attribution is the only obligation and the package is redistributed unmodified."
+      },
+      {
+        "license": "EPL-2.0",
+        "components": 1,
+        "decision": "allowed",
+        "note": "Weak copyleft at file level, same shape as MPL. Consumed unmodified, so the source-disclosure obligation attaches to files this project never touches."
+      },
+      {
+        "license": "MIT and ISC",
+        "components": 1,
+        "decision": "allowed",
+        "note": "Both terms are permissive, so the obligation is attribution either way. The expression itself is malformed — SPDX requires uppercase AND — and is recorded verbatim rather than tidied, because normalising it would hide that this publisher ships an unparseable licence field."
+      },
+      {
+        "license": "NONE",
+        "components": 1,
+        "decision": "accepted-risk",
+        "exception": "REQ-201",
+        "note": "The publisher declares no licence the SBOM tool could resolve. An unlicensed component is not permissively licensed — it is a component with no grant at all — so this is an unanswered obligation rather than a formatting problem."
+      },
+      {
+        "license": "Python-2.0",
+        "components": 1,
+        "decision": "allowed",
+        "note": "Permissive, attribution only. No copyleft obligation and no restriction on commercial use or distribution."
+      }
+    ]
+  },
+  "provenance": {
+    "source": {
+      "repository": "Khattiya01/buaflow",
+      "commit": "ef0a5d196032c56478659deeb03c15512fdfc41a",
+      "ref": "main"
+    },
+    "builder": {
+      "provider": "github-actions",
+      "workflow": "nextjs-postgres-crud CI",
+      "runId": 35758419510,
+      "url": "https://github.com/Khattiya01/buaflow/actions/runs/35758419510"
+    },
+    "subjects": [
+      {
+        "path": "package-lock.json",
+        "sha256": "ae960367567d9526988bbd9dea8bb8393abb3ee5c0613ea9226dce7ae40c5e21"
+      }
+    ],
+    "notPublished": [
+      {
+        "artifact": "the production container image",
+        "reason": "The image is built by whoever deploys it, from the Dockerfile in this repository, and is never pushed to a registry, so there is no published digest for a consumer to compare against."
+      }
+    ]
+  }
+}

@@ -30,6 +30,7 @@ function usage() {
     '  audit         re-check that manifest independently, from artifacts and command output',
     '  requirements  check that every requirement has proof or an unexpired approved exception',
     '  security      check the threat boundaries and the external control-set mapping',
+    '  supply        check dependency licences, build provenance and artifact checksums',
     '  resume        summarize persisted project state for any human or AI tool',
     '',
     'audit options: --execute  re-run the declared command evidence (same trust level as the',
@@ -157,7 +158,7 @@ function commandDoctor(root, options) {
   }
 
   const claude = path.join(root, '.claude');
-  const controls = ['verify.js', 'readiness.js', 'verifier.js', 'requirement-coverage.js', 'security-baseline.js', 'gate.js', 'check-config.js'];
+  const controls = ['verify.js', 'readiness.js', 'verifier.js', 'requirement-coverage.js', 'security-baseline.js', 'supply-chain.js', 'gate.js', 'check-config.js'];
   const installed = controls.filter((name) => fs.existsSync(path.join(claude, name)));
   installed.length ? pass('controls', `${installed.length}/${controls.length} core controls installed`) : warning('controls', 'no .claude controls installed yet; this is normal before Phase 7');
   if (fs.existsSync(path.join(root, 'docs', 'planning', '_state.md'))) pass('planning-state', 'docs/planning/_state.md found');
@@ -175,12 +176,15 @@ function commandDelegated(command, root, options) {
     : command === 'audit' ? 'verifier.js'
       : command === 'requirements' ? 'requirement-coverage.js'
         : command === 'security' ? 'security-baseline.js'
+          : command === 'supply' ? 'supply-chain.js'
         : 'readiness.js';
   const script = path.join(root, '.claude', scriptName);
   if (!fs.existsSync(script)) {
     return envelope(command, EXIT.UNAVAILABLE, `${scriptName} is not installed in this project`, { expected: '.claude/' + scriptName }, [], [`install Buaflow controls in Phase 7 before running ${command}`]);
   }
-  const args = command === 'security'
+  const args = command === 'supply'
+    ? ['--root', root, '--file', options.file || 'docs/evidence/supply-chain.json', '--json']
+    : command === 'security'
     ? ['--root', root, '--file', options.file || 'docs/evidence/security-baseline.json', '--json']
     : command === 'requirements'
     ? ['--root', root, '--file', options.file || 'docs/evidence/requirement-coverage.json', '--json']
@@ -198,7 +202,7 @@ function commandDelegated(command, root, options) {
   const result = runNode(root, script, args);
   const code = result.status === 0 ? EXIT.OK : EXIT.FAILED;
   let childJson = null;
-  const emitsJson = command === 'readiness' || command === 'audit' || command === 'requirements' || command === 'security';
+  const emitsJson = command === 'readiness' || command === 'audit' || command === 'requirements' || command === 'security' || command === 'supply';
   if (emitsJson && result.stdout.trim()) {
     try { childJson = JSON.parse(result.stdout); } catch { /* output is retained below for diagnosis */ }
   }
@@ -253,7 +257,7 @@ function main(argv = process.argv.slice(2)) {
     else console.log(usage());
     return EXIT.OK;
   }
-  if (!['init', 'doctor', 'verify', 'readiness', 'audit', 'requirements', 'security', 'resume'].includes(command)) {
+  if (!['init', 'doctor', 'verify', 'readiness', 'audit', 'requirements', 'security', 'supply', 'resume'].includes(command)) {
     const result = envelope(command || 'cli', EXIT.INPUT, 'unknown command', {}, [], [usage()]);
     emit(result, options.json);
     return EXIT.INPUT;

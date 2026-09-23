@@ -84,6 +84,16 @@ for (const app of ['nextjs-postgres-crud', 'react-fastapi-postgres-crud', 'expo-
   ]);
 }
 
+// EP-004 — สรุป licence ต้องตรงกับ SBOM ที่ pin ด้วย sha256, provenance ต้องตรงกับ evidence/ci-run.json
+// และ commit ที่ readiness manifest ตัดสิน ส่วน subject ทุกตัวถูกคำนวณ sha256 ใหม่จากไฟล์จริง
+for (const app of ['nextjs-postgres-crud', 'react-fastapi-postgres-crud', 'expo-fastapi-postgres-sync']) {
+  run(`supply-chain licences, provenance and checksums (${app})`, process.execPath, [
+    path.join(root, 'claude-setup', 'supply-chain.js'),
+    '--root', path.join(root, 'reference-apps', app),
+    '--file', 'docs/evidence/supply-chain.json',
+  ]);
+}
+
 run('regression tests', process.execPath, [path.join(root, 'scripts', 'run-tests.js')]);
 
 console.log('\nrepository check: PASS');

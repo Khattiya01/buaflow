@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/supply-chain-v1.json",
+  "title": "Buaflow supply-chain evidence v1",
+  "description": "What is in the dependency tree under which licence, which build produced which artifact, and the digests a consumer can recompute. The licence summary here is derived from the project's own SBOMs and re-derived by the validator, so it cannot drift from them or be written optimistically.",
+  "type": "object",
+  "required": ["schemaVersion", "project", "generatedAt", "sboms", "licenses", "provenance"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "_": { "type": "string" },
+    "project": { "type": "string", "minLength": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "sboms": {
+      "description": "The SBOMs this record is derived from, each pinned by digest so a later edit to an SBOM invalidates the summary instead of silently changing it.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/digestedFile" }
+    },
+    "licenses": { "$ref": "#/$defs/licenses" },
+    "provenance": { "$ref": "#/$defs/provenance" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "digestedFile": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "note": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "licenses": {
+      "type": "object",
+      "required": ["policy", "summary"],
+      "properties": {
+        "policy": {
+          "type": "object",
+          "required": ["allowed"],
+          "properties": {
+            "allowed": {
+              "description": "Licence expressions that need no per-project review. Anything else must appear in reviewed[].",
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "note": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        },
+        "summary": {
+          "description": "Component count per licence expression, derived from sboms[] and re-derived by the validator.",
+          "type": "object",
+          "propertyNames": { "minLength": 1 },
+          "additionalProperties": { "type": "integer", "minimum": 1 }
+        },
+        "reviewed": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/review" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "review": {
+      "type": "object",
+      "required": ["license", "components", "decision", "note"],
+      "properties": {
+        "license": { "type": "string", "minLength": 1 },
+        "components": { "type": "integer", "minimum": 1 },
+        "decision": { "enum": ["allowed", "accepted-risk"] },
+        "exception": { "type": "string", "pattern": "^[A-Z][A-Z0-9]*-[0-9]{3,}$" },
+        "note": { "type": "string", "minLength": 20 }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "description": "Which build produced what, in the shape SLSA asks for: the source that went in, the builder that ran, and the subjects that came out.",
+      "type": "object",
+      "required": ["source", "builder", "subjects"],
+      "properties": {
+        "source": {
+          "type": "object",
+          "required": ["repository", "commit"],
+          "properties": {
+            "repository": { "type": "string", "minLength": 1 },
+            "commit": { "type": "string", "pattern": "^[0-9a-f]{7,64}$" },
+            "ref": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        },
+        "builder": {
+          "type": "object",
+          "required": ["provider", "workflow", "runId", "url"],
+          "properties": {
+            "provider": { "type": "string", "minLength": 1 },
+            "workflow": { "type": "string", "minLength": 1 },
+            "runId": { "type": ["string", "integer"] },
+            "url": { "type": "string", "pattern": "^https://" },
+            "attestation": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        },
+        "subjects": {
+          "description": "What the build is claimed to have produced or pinned, each with a digest the validator recomputes from the file in the repository.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/digestedFile" }
+        },
+        "notPublished": {
+          "description": "Artifacts a consumer might expect a digest for and will not find one, and why. A container image built by the consumer from the Dockerfile has no published digest to record.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["artifact", "reason"],
+            "properties": {
+              "artifact": { "type": "string", "minLength": 1 },
+              "reason": { "type": "string", "minLength": 20 }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

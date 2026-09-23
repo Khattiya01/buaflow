@@ -1,0 +1,134 @@
+{
+  "$schema": "../../../../schemas/supply-chain.schema.json",
+  "schemaVersion": "1.0",
+  "_": "EP-004 · licence / provenance / checksum ที่ตรวจซ้ำได้ · ตรวจด้วย: node ../../claude-setup/supply-chain.js --root . --file docs/evidence/supply-chain.json · สรุป licence ถูก derive ใหม่จาก SBOM ทุกครั้ง เขียนตัวเลขเองไม่ได้",
+  "project": "expo-fastapi-postgres-sync",
+  "generatedAt": "2026-09-23T23:45:00.000Z",
+  "sboms": [
+    {
+      "path": "evidence/sbom-backend.cdx.json",
+      "sha256": "096af7462d385b73827f4dabffb2e47938277cc8085006bc3146ce517deb3e11"
+    },
+    {
+      "path": "evidence/sbom-mobile.cdx.json",
+      "sha256": "f4c827bc38e1588893d1992ad64b4158616dcdea5e038c9ae59c6d3a994e2058"
+    }
+  ],
+  "licenses": {
+    "policy": {
+      "allowed": [
+        "MIT",
+        "ISC",
+        "Apache-2.0",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "0BSD",
+        "Unlicense",
+        "BlueOak-1.0.0"
+      ],
+      "note": "Permissive licences whose only obligation is attribution, which this project satisfies by shipping the SBOM. Everything else is reviewed individually below."
+    },
+    "summary": {
+      "NONE": 30,
+      "MIT": 430,
+      "Apache-2.0": 24,
+      "BSD-2-Clause": 10,
+      "BSD-3-Clause": 8,
+      "ISC": 25,
+      "BlueOak-1.0.0": 5,
+      "(MIT OR CC0-1.0)": 1,
+      "(BSD-3-Clause OR GPL-2.0)": 1,
+      "0BSD": 1,
+      "MPL-2.0": 2,
+      "Unlicense": 2,
+      "MIT | MIT": 1,
+      "CC-BY-4.0": 1,
+      "Python-2.0": 1,
+      "(MIT OR Apache-2.0)": 1
+    },
+    "reviewed": [
+      {
+        "license": "NONE",
+        "components": 30,
+        "decision": "accepted-risk",
+        "exception": "REQ-201",
+        "note": "The publisher declares no licence the SBOM tool could resolve. An unlicensed component is not permissively licensed — it is a component with no grant at all — so this is an unanswered obligation rather than a formatting problem."
+      },
+      {
+        "license": "MPL-2.0",
+        "components": 2,
+        "decision": "allowed",
+        "note": "Weak copyleft at file level. The component is consumed unmodified as a dependency, so the obligation is to publish changes to its own files and there are none."
+      },
+      {
+        "license": "(BSD-3-Clause OR GPL-2.0)",
+        "components": 1,
+        "decision": "allowed",
+        "note": "Disjunctive with a copyleft alternative. This project takes the BSD-3-Clause option, which is the whole point of recording the choice: leaving it implicit would make the dependency tree look like it contains GPL-2.0 code under obligation."
+      },
+      {
+        "license": "CC-BY-4.0",
+        "components": 1,
+        "decision": "allowed",
+        "note": "A content licence on a data package rather than a code licence. Attribution is the only obligation and the package is redistributed unmodified."
+      },
+      {
+        "license": "MIT | MIT",
+        "components": 1,
+        "decision": "allowed",
+        "note": "The publisher declares the same permissive licence twice, which the SBOM tool preserves as two entries. No obligation beyond attribution; recorded verbatim so the duplication stays visible."
+      },
+      {
+        "license": "(MIT OR Apache-2.0)",
+        "components": 1,
+        "decision": "allowed",
+        "note": "Disjunctive: this project takes the MIT option. Both alternatives are permissive; the choice is recorded rather than left implicit."
+      },
+      {
+        "license": "(MIT OR CC0-1.0)",
+        "components": 1,
+        "decision": "allowed",
+        "note": "Disjunctive: this project takes the MIT option. Both alternatives are permissive, so the choice costs nothing and is recorded rather than left implicit."
+      },
+      {
+        "license": "Python-2.0",
+        "components": 1,
+        "decision": "allowed",
+        "note": "Permissive, attribution only. No copyleft obligation and no restriction on commercial use or distribution."
+      }
+    ]
+  },
+  "provenance": {
+    "source": {
+      "repository": "Khattiya01/buaflow",
+      "commit": "483d12900f54aeffd437dece267d7763f7efb001",
+      "ref": "main"
+    },
+    "builder": {
+      "provider": "github-actions",
+      "workflow": "expo-fastapi-postgres-sync CI",
+      "runId": 35818912160,
+      "url": "https://github.com/Khattiya01/buaflow/actions/runs/35818912160"
+    },
+    "subjects": [
+      {
+        "path": "backend/requirements-lock.txt",
+        "sha256": "f6e3c0c34c0a6b648e95741c054ac672e33a8dd0b76f8a04d3939748f20e65c1"
+      },
+      {
+        "path": "mobile/package-lock.json",
+        "sha256": "3e7d8c603bcf9d9a549db1a1afd4e5eebf442027b778974ea4c2d37555b70d4a"
+      }
+    ],
+    "notPublished": [
+      {
+        "artifact": "the production container image",
+        "reason": "The image is built by whoever deploys it, from the Dockerfile in this repository, and is never pushed to a registry, so there is no published digest for a consumer to compare against."
+      },
+      {
+        "artifact": "the Android debug APK",
+        "reason": "The APK is produced by the CI android job to prove the native channel compiles and links, and is retained as a workflow artifact rather than released, so it has no published digest and no signing identity."
+      }
+    ]
+  }
+}

@@ -6,7 +6,7 @@
   "current": {
     "milestone": "M4",
     "focus": [
-      "EP-004"
+      "EP-005"
     ]
   },
   "workItems": [
@@ -1071,7 +1071,7 @@
       "id": "EP-004",
       "title": "Supply-chain evidence: licenses, provenance and checksums",
       "milestone": "M4",
-      "status": "backlog",
+      "status": "done",
       "dependsOn": [
         "PP-003"
       ],
@@ -1080,9 +1080,42 @@
         "Build provenance ties an artifact to the commit, workflow and runner that produced it",
         "Published artifacts carry checksums a consumer can verify independently"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "Narrowed by the D-013 audit. The SBOM half is real: all three apps ship CycloneDX SBOMs and pinned lockfiles, and readiness.js requires the sbom control at R3. The other three things this row names do not exist anywhere — the words provenance, SLSA and license appear only in the roadmap itself (the other search hits are minified vendor bundles inside build output). EP-011 got close by materializing evidence/ci-run.json, which already records the workflow, run and commit that produced each verified build; turning that into real provenance plus checksums is a smaller job now than the original row implies."
+      "artifacts": [
+        "schemas/supply-chain.schema.json",
+        "templates/supply-chain.tpl.json",
+        "claude-setup/supply-chain.js",
+        "claude-setup/tests/supply-chain.test.js",
+        "claude-setup/gate.js",
+        "bin/buaflow.js",
+        "scripts/check-repository.js",
+        "scripts/check-artifacts.js",
+        "schemas/registry.json",
+        "schemas/compatibility.json",
+        "standards/supply-chain-evidence.md",
+        "standards/deployment-ready-contract.md",
+        "reference-apps/nextjs-postgres-crud/docs/evidence/supply-chain.json",
+        "reference-apps/react-fastapi-postgres-crud/docs/evidence/supply-chain.json",
+        "reference-apps/expo-fastapi-postgres-sync/docs/evidence/supply-chain.json",
+        "reference-apps/nextjs-postgres-crud/docs/evidence/requirement-coverage.json",
+        "reference-apps/react-fastapi-postgres-crud/docs/evidence/requirement-coverage.json",
+        "reference-apps/expo-fastapi-postgres-sync/docs/evidence/requirement-coverage.json",
+        "reference-apps/nextjs-postgres-crud/docs/evidence/readiness.json",
+        "reference-apps/react-fastapi-postgres-crud/docs/evidence/readiness.json",
+        "reference-apps/expo-fastapi-postgres-sync/docs/evidence/readiness.json",
+        "CLI.md",
+        "UPGRADE.md",
+        "VERSION.md",
+        "phases/07-handoff.md",
+        "claude-setup/README.md"
+      ],
+      "verification": [
+        "npm test",
+        "npm run check",
+        "node claude-setup/supply-chain.js --root reference-apps/nextjs-postgres-crud --file docs/evidence/supply-chain.json"
+      ],
+      "notes": "Narrowed by the D-013 audit. The SBOM half is real: all three apps ship CycloneDX SBOMs and pinned lockfiles, and readiness.js requires the sbom control at R3. The other three things this row names do not exist anywhere — the words provenance, SLSA and license appear only in the roadmap itself (the other search hits are minified vendor bundles inside build output). EP-011 got close by materializing evidence/ci-run.json, which already records the workflow, run and commit that produced each verified build; turning that into real provenance plus checksums is a smaller job now than the original row implies.\n\nWork done 2026-09-23. The design decision that carries the artifact is that the licence summary is DERIVED, never written: the validator reads the project's own SBOMs on every run, counts components per licence expression, and fails if the recorded numbers differ in either direction — undercounted, or naming a licence that appears in no SBOM. A hand-written licence inventory is a second copy of the SBOM that drifts from it, which is the contract-drift class EV-003 already named. The SBOMs are pinned by a sha256 the validator recomputes, so editing an SBOM invalidates the summary instead of silently changing what it describes; the error message names the ordinary cause, which is regenerating the SBOM and forgetting the digest, rather than implying an attack.\n\nLicence expressions are recorded verbatim, including the broken ones. The three reference apps contain \"MIT and ISC\" (SPDX requires uppercase AND, so it does not parse), \"MIT | MIT\" (the publisher declares the same licence twice) and NONE. Normalising those away would hide that a publisher ships an unparseable licence field, so licenseOf() joins whatever is there and lets the malformed value be its own bucket. Every expression must then be answered: blanket-allowed by policy, reviewed individually with a note, or accepted-risk pointing at an approved exception from EP-002 — the same rule EP-003 uses, so accepted risk still has exactly one home per project.\n\nProvenance is cross-checked rather than declared. repository, commit, workflow, runId and url must all match evidence/ci-run.json, the durable CI record EP-011 already materialises; a run whose conclusion is not success is refused outright; and the commit must be the revision the readiness manifest graded, because provenance pointing at a different build than the one declared passing is two documents describing two different pieces of software. Checksums are recomputed from the files on disk, never trusted as typed, and anything that genuinely has no digest — the container image, which the adopter builds from the Dockerfile and nobody pushes to a registry — goes in notPublished with a reason, because saying \"there is none, and here is why\" is better than letting a reader assume it was forgotten.\n\nThe first review found real things. One component in nextjs-postgres-crud and thirty in each FastAPI app resolve to no licence at all, which is not permissive but a grant that does not exist; recorded as REQ-201, low risk for one component and medium for thirty. One dependency is (BSD-3-Clause OR GPL-2.0) and the record now states that this project takes the BSD option — without that, the dependency tree reads as containing GPL-2.0 code under obligation. Two conjunctive expressions carry an LGPL-3.0-or-later term, cleared on the stated basis that the components are unmodified and these apps are deployed rather than redistributed, with the condition written into the note that it must be revisited if an image is ever published.\n\nSuite 277/277 (was 264). Kit 3.3.0, MINOR: a project without docs/evidence/supply-chain.json is not checked.",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23"
     },
     {
       "id": "EP-005",
@@ -1399,12 +1432,19 @@
       "decision": "Closed EP-003 with a security-baseline artifact and a pinned external control set. standards/control-sets/owasp-asvs-5.0.0-l1.json is a copy of the 70 Level 1 requirements of OWASP ASVS 5.0.0 taken from the published sources at tag v5.0.0, with a sha256 per upstream chapter. A baseline records threat boundaries as data whose files must exist, answers every control of every non-excluded chapter, proves met with reproducible evidence, and — the load-bearing rule — cites an approved exception from the same project's requirement-coverage.json for anything not met. Kit 3.2.0, MINOR. The user was asked before recording and chose to record all newly found gaps as exceptions expiring 2026-12-22 rather than fix them in the reference apps.",
       "reason": "standards/deployment-ready-contract.md required 'threat boundary + applicable ASVS/control proof' for the security-controls control from the day R0-R4 was written, and the word ASVS appeared in exactly two files in the whole repository, neither of which produced or checked a mapping. A control that is mandatory at R3 was therefore satisfied by a paragraph. The decision to copy a published standard rather than ship the repository's own security-checklist.md is the same principle as the north-star metric's denominator: a project that grades itself against a list it wrote cannot claim to meet a standard. Requiring completeness rather than a selection of controls is what separates a baseline from a highlight reel, and requiring not-met to point at an EP-002 exception is what stops this artifact from becoming a second, parallel risk register that never expires.",
       "impact": "The first mapping found seven gaps the prose security notes never mentioned, two of them high risk: logout does not invalidate a captured self-contained session token for the rest of its 8-hour life, and accounts with passwords published in this repository ship with every reference app because the E2E suites sign in as them. Both are now accepted risks with an owner and a 2026-12-22 expiry rather than unstated facts. That date is a real deadline across all three apps: 11 to 12 exceptions each come due at once, and the gate fails until each is reproved or re-accepted. Two consequences for later work: EP-005's incident hooks should cite the boundaries recorded here rather than describe them again, and the choice to answer V5 rather than exclude it in the two FastAPI apps documents an unverified assumption about Starlette's path normalisation that a test would close cheaply. Adding a newer ASVS means adding a file, never editing this one, so an old baseline stays readable as a judgement made under a named edition."
+    },
+    {
+      "id": "D-017",
+      "date": "2026-09-23",
+      "decision": "Closed EP-004 with a supply-chain artifact whose licence summary is derived from the project's own SBOMs on every run rather than written by hand, whose SBOMs and subjects are pinned by a sha256 the validator recomputes, and whose provenance must agree with evidence/ci-run.json and with the revision the readiness manifest graded. Every licence expression must be blanket-allowed, individually reviewed with a note, or accepted-risk citing an approved exception from EP-002. Malformed expressions are recorded verbatim instead of normalised. Kit 3.3.0, MINOR.",
+      "reason": "The D-013 audit found that of the four things EP-004's row named, lockfiles and SBOMs had shipped and were enforced at R3, while the words provenance, SLSA and license appeared only in the roadmap itself. An SBOM answers what is in the tree and answers none of the three questions that actually matter to a consumer: under what licence, from which build, and can I check it myself. Deriving the licence summary rather than accepting a written one is the same principle as re-deriving pack bindings in D-014: a second hand-maintained copy of a fact is a copy that drifts. Recording malformed licence expressions verbatim follows from the same place — a normaliser that turns 'MIT and ISC' into something tidy hides that the publisher ships a field nothing can parse.",
+      "impact": "Three consequences worth carrying forward. The unlicensed components are a real obligation rather than a formatting complaint — thirty per FastAPI app, because the SBOM generator resolves nothing for Python distributions that declare their licence only in free-text classifiers, which makes improving that generator a concrete piece of future work rather than a vague wish. The dual-licensed dependency now records which option this project takes, and any future baseline that omits that choice will read as carrying a GPL obligation it does not have. And the LGPL clearances are conditional in writing: they hold because these apps are deployed rather than redistributed, so publishing an image would require revisiting them. The provenance cross-check also gives EP-011's evidence/ci-run.json a second consumer, which makes it harder to let that file go stale unnoticed."
     }
   ],
   "lastSession": {
     "date": "2026-09-23",
-    "summary": "Two items shipped. EP-002 gave a known, accepted gap somewhere to live: requirement-coverage 1.0, where every accepted requirement answers with proof or with an exception carrying an owner, a reason, a risk and an expiry, a lapsed exception fails the gate, and manual-only proof is refused because otherwise the mechanism is bypassable by typing 'checked by hand'. Its first twelve exceptions were transcriptions of the 'Known limitations' sections the reference apps already kept in prose. EP-003 then built on it: a pinned copy of OWASP ASVS 5.0.0 Level 1 (70 requirements, taken from tag v5.0.0 with a sha256 per upstream chapter) plus security-baseline 1.0, which records threat boundaries as data whose files must exist, requires every control of every non-excluded chapter to be answered, and requires anything not met to cite a real exception in the same project's coverage record. That cross-artifact rule caught a real mistake on its first run: the expo app numbers its exceptions differently from the other two. The mapping found seven things the prose never said, two of them high risk — logout does not invalidate a captured session token for the rest of its 8-hour life, and seeded accounts with passwords published in this repository ship with every app. The user was asked and chose to record all of them as exceptions expiring 2026-12-22 rather than fix them. Three apps now read 30 met, 16 not applicable, 15-16 not met while still passing all 25 R3 controls, which is what was already true and is now visible. Kit 3.1.0 and 3.2.0, both MINOR. Suite 263/263, 45 work items, 36 done.",
-    "next": "M4 has three items left: EP-004 (licenses, provenance and checksums — evidence/ci-run.json already records the workflow, run and commit that produced each build, so provenance is closer than the row implies), EP-005 (restore rehearsal and incident hooks — copy the pattern EP-006 established for migration rollback, and cite the threat boundaries EP-003 recorded rather than describing them again), and EP-007 (profile-driven thresholds — application-profile.schema.json still carries none at all). current.focus is EP-004. Outside M4: EV-009 stays parked at the user's request and is what M5 needs; BC-001 stays in backlog per D-011; capability-based pack dependencies still have no work item. Dates to watch: every exception in all three reference apps expires 2026-12-22, which is now 11-12 per app failing together, and the weekly cron EP-010 added has still not fired its first Monday. verifier.js --execute still has side effects — it once destroyed 238 lines of real evidence — so run it on a clean tree and check git status after.",
+    "summary": "Three items shipped in sequence, each building on the one before. EP-002 gave a known, accepted gap somewhere to live: a requirement answers with proof or with an exception carrying an owner, a reason, a risk and an expiry, a lapsed exception fails the gate, and manual-only proof is refused. EP-003 mapped a real external control set — a pinned copy of OWASP ASVS 5.0.0 Level 1, 70 requirements taken from tag v5.0.0 with a sha256 per upstream chapter — recorded threat boundaries as data whose files must exist, required every control of every non-excluded chapter to be answered, and required anything not met to cite a real exception from EP-002. EP-004 then did the same for the supply chain: the licence summary is re-derived from the project's own SBOMs on every run so it cannot be written optimistically, SBOMs and subjects are pinned by a sha256 the validator recomputes, provenance must agree with evidence/ci-run.json and with the graded revision, and an unreviewed licence fails. Each one found real things the prose never said: logout not invalidating a captured session token and seeded accounts with published passwords (both high risk), and thirty components per FastAPI app with no resolvable licence grant at all. The user was asked before any newly found gap was recorded as accepted, and chose to record rather than fix; everything expires 2026-12-22. Kit 3.1.0, 3.2.0 and 3.3.0, all MINOR. Suite 277/277, 45 work items, 37 done.",
+    "next": "M4 has two items left: EP-005 (restore rehearsal and incident hooks — copy the rehearsal pattern EP-006 established for migration rollback, and cite the threat boundaries EP-003 recorded rather than describing them again) and EP-007 (profile-driven thresholds — application-profile.schema.json still carries none at all, so every performance and accessibility budget is a number one app chose for itself). current.focus is EP-005. Outside M4: EV-009 stays parked at the user's request and is what M5 needs; BC-001 stays in backlog per D-011; capability-based pack dependencies still have no work item. Dates to watch: every exception in all three reference apps expires 2026-12-22, now 12-13 per app failing together, and the weekly cron EP-010 added has still not fired its first Monday. verifier.js --execute still has side effects — it once destroyed 238 lines of real evidence — so run it on a clean tree and check git status after.",
     "verifiedAt": "2026-09-23T23:59:00.0000000+07:00"
   }
 }

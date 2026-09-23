@@ -2,7 +2,7 @@
 /**
  * gate.js — ประตูเดียวที่ทุกอย่างต้องผ่านก่อนเข้า main
  *
- *   node .claude/gate.js               รันครบ: verify → check-config → docs-lint → requirement-coverage → security-baseline
+ *   node .claude/gate.js               รันครบ: verify → check-config → docs-lint → requirement-coverage → security-baseline → supply-chain
  *   node .claude/gate.js --docs-only   ข้าม verify (ใช้กับ commit ที่แตะแต่ docs/)
  *   node .claude/gate.js --release M1  เพิ่มเงื่อนไข release ของ milestone
  *
@@ -131,6 +131,10 @@ if (fs.existsSync(path.join(ROOT, 'docs', 'evidence', 'requirement-coverage.json
 // EP-003 — เงื่อนไขเดียวกัน: ไม่มีไฟล์ = ไม่ตรวจ · control ที่ not-met ต้องชี้ไป exception ที่มีอยู่จริง
 if (fs.existsSync(path.join(ROOT, 'docs', 'evidence', 'security-baseline.json'))) {
   add('security-baseline', process.execPath, [path.join(CLAUDE, 'security-baseline.js'), '--file', 'docs/evidence/security-baseline.json']);
+}
+// EP-004 — เงื่อนไขเดียวกันอีกครั้ง: ไม่มีไฟล์ = ไม่ตรวจ · สรุป licence ถูก derive ใหม่จาก SBOM ทุกครั้ง
+if (fs.existsSync(path.join(ROOT, 'docs', 'evidence', 'supply-chain.json'))) {
+  add('supply-chain', process.execPath, [path.join(CLAUDE, 'supply-chain.js'), '--file', 'docs/evidence/supply-chain.json']);
 }
 if (PRODUCTION) {
   add('readiness', process.execPath, [

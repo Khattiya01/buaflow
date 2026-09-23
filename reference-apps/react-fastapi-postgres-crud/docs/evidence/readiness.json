@@ -306,6 +306,10 @@
       "evidence": [
         {
           "type": "file",
+          "value": "docs/evidence/supply-chain.json"
+        },
+        {
+          "type": "file",
           "value": "evidence/sbom-backend.cdx.json"
         },
         {

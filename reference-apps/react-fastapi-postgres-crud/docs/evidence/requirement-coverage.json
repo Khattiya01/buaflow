@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "_": "EP-002 · the machine-readable half of docs/requirements-traceability.md · check with: node ../../claude-setup/requirement-coverage.js --root . --file docs/evidence/requirement-coverage.json",
   "project": "react-fastapi-postgres-crud",
-  "generatedAt": "2026-09-23T23:30:00.000Z",
+  "generatedAt": "2026-09-23T23:45:00.000Z",
   "requirements": [
     {
       "id": "REQ-001",
@@ -378,6 +378,19 @@
         "acceptedOn": "2026-09-23",
         "expiresOn": "2026-12-22",
         "compensatingControl": "The static directory contains build output only, the container runs the application as a non-root user, and nothing writes to that directory at runtime."
+      }
+    },
+    {
+      "id": "REQ-201",
+      "statement": "Every component shipped in the dependency tree carries a licence that grants the right to use and redistribute it",
+      "source": "EP-004 licence review via docs/evidence/supply-chain.json",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "The SBOM resolves no licence at all for 30 components in the Python tree, where the SBOM generator resolves no licence metadata for distributions that declare it only in free-text classifiers. A component with no resolvable licence is not permissively licensed, it is a component with no grant, so the obligation is unanswered rather than merely undocumented. Surfaced by the first licence review on 2026-09-23; resolving it means reading each publisher metadata by hand or improving the generator, neither of which is a reference app's job to prove.",
+        "risk": "medium",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "The SBOM is shipped and pinned by digest, so which components are unresolved is visible rather than hidden, and the count is re-derived on every run of npm run check."
       }
     }
   ]
