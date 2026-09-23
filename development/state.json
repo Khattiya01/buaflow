@@ -399,7 +399,7 @@
     },
     {
       "id": "MT-001",
-      "title": "Canonical workflow protocol (narrow slice: rules)",
+      "title": "Canonical workflow protocol (rules, skills, agents)",
       "milestone": "M4",
       "status": "done",
       "dependsOn": [],
@@ -407,8 +407,9 @@
       "completedAt": "2026-09-23",
       "acceptance": [
         "core/rules/*.md defines a vendor-neutral workflow rule contract (description + triggerPaths + body markdown) with no Claude-Code-specific syntax",
-        "All 6 existing workflow rules (backend-api, db-migration, docs-sync, frontend-ui, i18n, testing) are represented in core/rules/ without content loss",
-        "Skills, agents, hooks and settings are explicitly out of scope for this pass and documented as follow-up in core/README.md, not silently dropped"
+        "core/skills/*.md and core/agents/*.md define vendor-neutral contracts for skills and subagents, abstracting the concepts that generalize across vendors ({{ARGUMENTS}}, {{shell: ...}}, invocation: human|human-or-model, modelTier: fast|balanced|deep) while leaving Claude Code's own tool-permission DSL (claudeAllowedTools, claudeTools) as an explicit, honestly-labeled passthrough rather than a guessed-at neutral shape",
+        "All 6 existing workflow rules, all 10 existing skills and all 3 existing subagents are represented in core/ without content loss",
+        "Hooks and settings.json remain explicitly out of scope and documented as follow-up in core/README.md, not silently dropped"
       ],
       "artifacts": [
         "core/README.md",
@@ -417,27 +418,48 @@
         "core/rules/docs-sync.md",
         "core/rules/frontend-ui.md",
         "core/rules/i18n.md",
-        "core/rules/testing.md"
+        "core/rules/testing.md",
+        "core/skills/task.md",
+        "core/skills/done.md",
+        "core/skills/check.md",
+        "core/skills/hotfix.md",
+        "core/skills/intent.md",
+        "core/skills/plan.md",
+        "core/skills/prototype.md",
+        "core/skills/release.md",
+        "core/skills/spec.md",
+        "core/skills/ui.md",
+        "core/agents/code-reviewer.md",
+        "core/agents/legacy-explorer.md",
+        "core/agents/test-writer.md"
       ],
-      "verification": ["node scripts/generate-workflow-rules.js --check"],
-      "notes": "Pulled forward from its nominal M4 milestone ahead of M3/PP-005 at the user's explicit request (see D-006) — Claude Code adapter only, Codex/Copilot deferred. Deliberately narrow first slice: rules were chosen because the existing claude-setup/rules/*.md content is already pure frontmatter (paths:) + markdown body with zero Claude-Code-specific syntax, so it round-trips through a neutral core losslessly. Skills (`$ARGUMENTS`, inline `` !`bash` `` execution, `allowed-tools` permission strings, `disable-model-invocation`) and agents (`model:` hints) embed real Claude-Code-specific mechanics that need their own neutral representation designed deliberately, not rushed in this pass — tracked as open follow-up, not claimed done. Proven lossless, not just asserted: regenerating claude-setup/rules/*.md from this core via scripts/generate-workflow-rules.js --write reproduced the previously hand-authored files byte-for-byte (empty git diff)."
+      "verification": [
+        "node scripts/generate-workflow-rules.js --check",
+        "node scripts/generate-workflow-skills.js --check",
+        "node scripts/generate-workflow-agents.js --check"
+      ],
+      "notes": "Pulled forward from its nominal M4 milestone ahead of M3/PP-005 at the user's explicit request (see D-006) — Claude Code adapter only, Codex/Copilot deferred. Started as a deliberately narrow rules-only slice in an earlier part of this same session (proving the core→generator pattern on content with zero Claude-Code-specific syntax), then extended to skills and agents in the same session at the user's request (see D-007) once the pattern was proven. Skills/agents required real design work rules didn't: which Claude-Code-specific mechanics generalize across vendors ($ARGUMENTS → {{ARGUMENTS}}, inline `` !`bash` `` execution → {{shell: ...}}, disable-model-invocation → invocation: human, model: haiku/sonnet/opus → modelTier: fast/balanced/deep — all genuinely portable concepts) versus which don't (allowed-tools permission DSL like `Bash(git *)`, and the subagent tools: list) — the latter are kept as explicit `claudeAllowedTools`/`claudeTools` passthrough fields, honestly labeled as not-yet-neutral, rather than inventing an unproven taxonomy with only one real consumer to validate it against (see core/README.md's mapping table for the full reasoning per field). Hooks (`claude-setup/hooks/*.js`) and `settings.json.tpl` remain out of scope — they are executable code and Claude Code's own permission/event-binding format, not prompt/instruction content, and need their own neutral-shape question answered first. Proven lossless, not just asserted: regenerating all of claude-setup/rules, claude-setup/skills and claude-setup/agents from this core reproduced the previously hand-authored files byte-for-byte (empty git diff) for all 19 files (6 rules + 10 skills + 3 agents)."
     },
     {
       "id": "MT-002",
-      "title": "Claude Code adapter (narrow slice: rules)",
+      "title": "Claude Code adapter (rules, skills, agents)",
       "milestone": "M4",
       "status": "done",
       "dependsOn": ["MT-001"],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
-        "claude-setup/rules/*.md is generated from core/rules/*.md by scripts/generate-workflow-rules.js, not hand-maintained",
-        "npm run check fails if claude-setup/rules/*.md drifts from core/rules/*.md, so the two cannot silently diverge",
+        "claude-setup/rules/*.md, claude-setup/skills/*/SKILL.md and claude-setup/agents/*.md are generated from core/ by scripts/generate-workflow-{rules,skills,agents}.js, not hand-maintained",
+        "npm run check fails if any of the three generated sets drifts from their core/ source, so they cannot silently diverge",
         "A README documents the adapter pattern (core → per-vendor generator) so a future Codex/Copilot adapter is understood as a new generator against the same core, not a new content fork"
       ],
       "artifacts": [
         "scripts/generate-workflow-rules.js",
+        "scripts/generate-workflow-skills.js",
+        "scripts/generate-workflow-agents.js",
         "claude-setup/tests/generate-workflow-rules.test.js",
+        "claude-setup/tests/generate-workflow-skills.test.js",
+        "claude-setup/tests/generate-workflow-agents.test.js",
         "claude-setup/README.md",
         "claude-setup/rules/backend-api.md",
         "claude-setup/rules/db-migration.md",
@@ -445,10 +467,28 @@
         "claude-setup/rules/frontend-ui.md",
         "claude-setup/rules/i18n.md",
         "claude-setup/rules/testing.md",
+        "claude-setup/skills/task/SKILL.md",
+        "claude-setup/skills/done/SKILL.md",
+        "claude-setup/skills/check/SKILL.md",
+        "claude-setup/skills/hotfix/SKILL.md",
+        "claude-setup/skills/intent/SKILL.md",
+        "claude-setup/skills/plan/SKILL.md",
+        "claude-setup/skills/prototype/SKILL.md",
+        "claude-setup/skills/release/SKILL.md",
+        "claude-setup/skills/spec/SKILL.md",
+        "claude-setup/skills/ui/SKILL.md",
+        "claude-setup/agents/code-reviewer.md",
+        "claude-setup/agents/legacy-explorer.md",
+        "claude-setup/agents/test-writer.md",
         "scripts/check-repository.js"
       ],
-      "verification": ["npm run check", "node scripts/generate-workflow-rules.js --check"],
-      "notes": "Wired into npm run check (scripts/check-repository.js) as a new 'workflow rules (core → Claude adapter)' step, same pattern as the roadmap/artifact/test steps already there. MT-003 (Codex adapter) and MT-004 (Copilot/Kiro adapters) are explicitly NOT attempted here per the user's direction (2026-09-23) and the standing vendor-scope preference (keep new contracts vendor-neutral only when free; don't build other vendor adapters unasked) — do not start them without being asked again. Skills/agents/hooks/settings.json.tpl remain hand-maintained Claude-only content in claude-setup/, not yet core-derived."
+      "verification": [
+        "npm run check",
+        "node scripts/generate-workflow-rules.js --check",
+        "node scripts/generate-workflow-skills.js --check",
+        "node scripts/generate-workflow-agents.js --check"
+      ],
+      "notes": "Wired into npm run check (scripts/check-repository.js) as three steps — 'workflow rules/skills/agents (core → Claude adapter)' — same pattern as the roadmap/artifact/test steps already there. claude-setup/agents/README.md (documentation, not an agent definition) is explicitly excluded from the drift check since it has no core/agents/ source. MT-003 (Codex adapter) and MT-004 (Copilot/Kiro adapters) are explicitly NOT attempted here per the user's direction (2026-09-23) and the standing vendor-scope preference (keep new contracts vendor-neutral only when free; don't build other vendor adapters unasked) — do not start them without being asked again. Hooks (`claude-setup/hooks/*.js`) and `claude-setup/settings.json.tpl` remain hand-maintained Claude-only content, not yet core-derived — see MT-001's notes for why."
     },
     {
       "id": "DV-001",
@@ -546,12 +586,19 @@
       "decision": "Pulled MT-001 (canonical workflow protocol) and MT-002 (Claude Code adapter) forward from their nominal M4 milestone into active work, ahead of finishing M3/PP-005, and completed both within this session as a deliberately narrow first slice covering workflow rules only (claude-setup/rules/*.md). MT-003 (Codex adapter) and MT-004 (Copilot/Kiro adapters) were explicitly not started.",
       "reason": "The user asked to continue working but redirected scope: build only the Claude Code adapter, leave Codex/Copilot for later, and skip PP-005 (mobile) for now. Confirmed with the user before starting (this session, 2026-09-23) that (1) this is a deliberate reorder ahead of M3, not an accidental milestone skip, and (2) the adapter should be a real vendor-neutral core + generator split proven with one real consumer (Claude Code), not just documentation of the existing claude-setup/ content. Scoped to rules only because claude-setup/rules/*.md was already pure frontmatter (`paths:`) + markdown body with zero Claude-Code-specific syntax — it round-trips through a neutral core losslessly. Skills and agents embed real Claude-Code-specific mechanics (`$ARGUMENTS`, inline `` !`bash` `` execution, `allowed-tools` permission strings, `disable-model-invocation`, subagent `model:` hints) that need their own neutral representation designed deliberately; attempting that in the same pass risked a rushed, wrong design, so it was left as documented follow-up instead (see core/README.md and MT-001's notes).",
       "impact": "current.milestone and current.focus are unchanged by this pull-forward (still M3 / PP-005) — MT-001/MT-002 are simply done now, out of their nominal sequence, the same way BC-005/EP-001 were pulled into M2 ahead of their long-term table position. claude-setup/rules/*.md is now generated output (scripts/generate-workflow-rules.js), checked by npm run check, and must not be hand-edited again. MT-003/MT-004 remain untouched; do not start a Codex or Copilot adapter without the user asking again, per the standing vendor-neutral-scope preference. Canonicalizing skills/agents/hooks/settings into core/ remains open, unscoped future work — not committed to any milestone."
+    },
+    {
+      "id": "D-007",
+      "date": "2026-09-23",
+      "decision": "Extended MT-001/MT-002 (in the same session as D-006) from rules-only to also cover skills and subagents: core/skills/*.md and core/agents/*.md now exist alongside core/rules/*.md, generated into claude-setup/skills/*/SKILL.md and claude-setup/agents/*.md by two new generators. Designed neutral representations for the Claude-Code-specific mechanics that generalize across vendors ({{ARGUMENTS}}, {{shell: ...}}, invocation: human|human-or-model, modelTier: fast|balanced|deep), while deliberately NOT inventing a neutral shape for the ones that don't have a second vendor to validate against (allowed-tools permission DSL, subagent tools: list) — those stay as explicit claudeAllowedTools/claudeTools passthrough fields.",
+      "reason": "The user asked to continue after MT-001/MT-002's rules-only commit, and picked 'extend the adapter to skills/agents' over the other two open threads (PP-005, DV-001) when asked. Rules alone proved the core→generator pattern but left the harder half of MT-001's scope (skills/agents, which is where the real Claude-Code-specific syntax lives) undone. Before writing any core content, inventoried every skill/agent's frontmatter and body for Claude-Code-specific mechanics ($ARGUMENTS, inline `` !`bash` `` execution, allowed-tools, disable-model-invocation, subagent model:/tools:) across all 10 skills and 3 agents, then made a deliberate call per mechanic: abstract it when the underlying concept is genuinely cross-vendor (argument passthrough, inline-command execution, human-only invocation, and model cost/capability tiers all have clear equivalents in other agentic CLIs), but leave it as an honestly-labeled vendor passthrough when it's Claude Code's own DSL with no second implementation to prove a neutral shape against (the allowed-tools Bash(pattern) syntax, and even the simpler agent tools: list, for consistency with that same reasoning) — avoiding the trap of inventing a 'neutral' schema for something unproven, per the roadmap's own 'don't build ecosystem surface before contracts stabilize' principle.",
+      "impact": "MT-001/MT-002's acceptance/artifacts/notes were rewritten in place (not duplicated as new MT-00x entries) since they represent the same ongoing 'canonical protocol + Claude adapter' effort — their titles dropped '(narrow slice: rules)' since that slice is now subsumed. All 19 core-sourced files (6 rules + 10 skills + 3 agents) are proven byte-identical to their previously hand-authored claude-setup/ counterparts via git diff, the same rigor as the rules-only pass. npm run check now runs three drift checks (rules/skills/agents). Still explicitly out of scope: hooks (claude-setup/hooks/*.js, executable code) and settings.json.tpl (Claude Code's own permission/event-binding format) — neither is prompt/instruction content like rules/skills/agents, and each needs its own neutral-shape question answered before being pulled into core/. MT-003/MT-004 (Codex/Copilot adapters) remain untouched per the standing vendor-scope preference."
     }
   ],
   "lastSession": {
     "date": "2026-09-23",
-    "summary": "At the user's request, pulled MT-001 (canonical workflow protocol) and MT-002 (Claude Code adapter) forward from M4 ahead of M3/PP-005, scoped to Claude Code only (Codex/Copilot explicitly deferred, see D-006), and completed a narrow first slice covering workflow rules: core/rules/*.md is a new vendor-neutral rule contract (description + triggerPaths + body), scripts/generate-workflow-rules.js generates claude-setup/rules/*.md from it, and regenerating reproduced the previously hand-authored files byte-for-byte (proven, not just asserted, via an empty git diff after --write). Wired the generator's --check into npm run check so the two cannot silently drift; added claude-setup/tests/generate-workflow-rules.test.js (6 new tests, all 126 repo tests pass). Skills/agents/hooks/settings.json.tpl remain hand-maintained Claude-only content — explicitly out of scope this pass, documented as follow-up in core/README.md and MT-001's notes, not silently dropped.",
-    "next": "Two independent threads remain open, same as before this session. (1) M3/PP-005 (mobile golden stack): still not started, still needs the mobile stack choice (Expo vs. Flutter) and sync/offline contract scope confirmed with the user before any code, the same pattern EP-001/PP-004/MT-001 followed. (2) DV-001..003 (Discovery and Validation) are backlog, unaffected by this session. A third thread opened by this session: canonicalizing skills and agents into core/ (extending MT-001/MT-002 beyond rules) needs its own design pass for Claude-Code-specific mechanics ($ARGUMENTS, inline bash execution, allowed-tools strings, model hints) before it can be attempted — not started, no fixed owner yet. MT-003/MT-004 (Codex/Copilot adapters) should not be started without the user asking again.",
-    "verifiedAt": "2026-09-23T10:06:30.0000000+07:00"
+    "summary": "Continuing from the rules-only MT-001/MT-002 commit earlier this session, the user chose to extend the Claude Code adapter to skills and agents (over PP-005 and DV-001, the other two open threads). Inventoried all 10 skills and 3 agents for Claude-Code-specific mechanics, then designed and built core/skills/*.md and core/agents/*.md (see D-007): {{ARGUMENTS}}, {{shell: ...}}, invocation: human|human-or-model, and modelTier: fast|balanced|deep are genuine neutral abstractions with generator-side mapping back to Claude Code's $ARGUMENTS, inline !`bash` execution, disable-model-invocation, and model: haiku/sonnet/opus; allowed-tools and subagent tools: stay as explicit claudeAllowedTools/claudeTools passthrough fields (honestly not-yet-neutral, no second vendor to validate a real shape against). Two new generators (scripts/generate-workflow-skills.js, scripts/generate-workflow-agents.js) regenerate claude-setup/skills/*/SKILL.md and claude-setup/agents/*.md from core/, both proven byte-identical to the previously hand-authored files via empty git diff — same rigor as the rules slice. Wired both into npm run check; added 13 new tests (claude-setup/tests/generate-workflow-{skills,agents}.test.js), full suite now 138/138. MT-001/MT-002 in state.json were updated in place to reflect the full rules+skills+agents scope, not left as a stale 'rules only' record. This work is NOT yet committed to git.",
+    "next": "Three independent threads remain open. (1) M3/PP-005 (mobile golden stack): still not started, still needs the Expo vs. Flutter stack choice and sync/offline contract scope confirmed with the user before any code. (2) DV-001..003 (Discovery and Validation) are backlog, unaffected by this session. (3) Hooks (claude-setup/hooks/*.js) and settings.json.tpl remain the last hand-maintained Claude-only pieces of claude-setup/ — canonicalizing them needs their own neutral-shape design (they are executable code / permission-binding config, not prompt content like rules/skills/agents were) and has no fixed owner yet. MT-003/MT-004 (Codex/Copilot adapters) should not be started without the user asking again. Immediate next action for whoever picks this up: review and commit this session's uncommitted changes (core/skills/, core/agents/, the two new generators, updated claude-setup/skills+agents, state.json, core/README.md, claude-setup/README.md) — ask the user first, per this repo's own git-safety convention.",
+    "verifiedAt": "2026-09-23T10:21:04.0000000+07:00"
   }
 }
