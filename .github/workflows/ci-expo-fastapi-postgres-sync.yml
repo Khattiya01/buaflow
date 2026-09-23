@@ -6,6 +6,7 @@ on:
   push:
     branches: [main]
     paths: ["reference-apps/expo-fastapi-postgres-sync/**"]
+  workflow_dispatch: {}
 
 env:
   DATABASE_URL: postgresql+psycopg://app:app@localhost:5432/app
