@@ -3,7 +3,7 @@
   "description": "Baseline eval fixture for PP-004: how long it takes this second reference app to prove itself from a torn-down, clean-environment starting state, and what evidence backs each R0-R3 control. Comparable to evidence/../../nextjs-postgres-crud/evidence/pp-003-eval-fixture.json — same task-board domain, same profile, a materially different stack (React/Vite SPA + FastAPI + SQLAlchemy/Alembic instead of Next.js + Prisma).",
   "generatedAt": "2026-09-22T18:20:00.000Z",
   "stack": {
-    "pack": "react-fastapi-postgres (claude-setup/tests/fixtures/packs/react-fastapi-postgres.json)",
+    "pack": "react-fastapi-postgres (packs/react-fastapi-postgres.json)",
     "capabilityPack": "none — no capability pack exists yet for this stack; auth/RBAC is built directly into backend/app (see docs/runbook.md)",
     "profile": "internal-crud (claude-setup/tests/fixtures/profiles/internal-crud.json)"
   },

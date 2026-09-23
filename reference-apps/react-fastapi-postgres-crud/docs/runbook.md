@@ -3,7 +3,7 @@
 This is the PP-004 reference app: the same task-tracker domain as PP-003
 (`reference-apps/nextjs-postgres-crud`), rebuilt on a materially different stack — React
 (Vite SPA) + FastAPI + SQLAlchemy/Alembic + PostgreSQL — from the `react-fastapi-postgres`
-stack pack (`claude-setup/tests/fixtures/packs/react-fastapi-postgres.json`), targeting the
+stack pack (`packs/react-fastapi-postgres.json`), targeting the
 `internal-crud` application profile. Unlike PP-003, this app has no capability-pack
 equivalent of `auth-rbac` yet (v1's pack contract can't express "requires persistence from
 any pack" in a capability-based way — see PP-007's notes in `development/state.json`); auth

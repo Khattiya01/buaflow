@@ -8,7 +8,7 @@ const test = require('node:test');
 const { validateComposition, validateProfileFit } = require('../pack-composition.js');
 const { repositoryRoot, runNode } = require('./helpers.js');
 
-const packsDir = path.join(__dirname, 'fixtures', 'packs');
+const packsDir = path.join(repositoryRoot, 'packs');
 const profilesDir = path.join(__dirname, 'fixtures', 'profiles');
 
 function pack(overrides = {}) {

@@ -3,7 +3,7 @@
   "description": "Baseline eval fixture for PP-005: Buaflow's mobile golden stack. Unlike PP-003/PP-004 (always-online web CRUD), this app must work fully offline and reconcile with the server once connectivity returns — see docs/sync-contract.md. Comparable in shape to evidence/../react-fastapi-postgres-crud/evidence/pp-004-eval-fixture.json: same rehearsal/evidence-bundle machinery, a materially different capability (offline-first mobile client + sync API instead of always-online CRUD).",
   "generatedAt": "2026-09-23T04:30:00.000Z",
   "stack": {
-    "pack": "expo-fastapi-postgres-sync (claude-setup/tests/fixtures/packs/expo-fastapi-postgres-sync.json)",
+    "pack": "expo-fastapi-postgres-sync (packs/expo-fastapi-postgres-sync.json)",
     "capabilityPack": "none — same v1 pack-contract gap PP-004 documented (no capability-based requiresPacks); auth/RBAC and the sync API are built directly into backend/app (see docs/runbook.md)",
     "profile": "internal-crud (claude-setup/tests/fixtures/profiles/internal-crud.json) — no dedicated 'mobile/offline' profile exists yet in PP-001's fixture set; using internal-crud is a pragmatic reuse, not a claim that this app's actual profile needs are fully modeled. Flagged as a follow-up, not attempted here."
   },

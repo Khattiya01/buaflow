@@ -1,7 +1,7 @@
 {
   "$schema": "../../buaflow/schemas/pack.schema.json",
   "schemaVersion": "2.0",
-  "_": "pack.json — สัญญาของ stack pack หรือ capability pack หนึ่งตัว (PP-002, แก้ความหมายที่ PP-010/D-011) · เก็บที่ .claude/packs/<id>.json · ตัวอย่างจริงอยู่ที่ claude-setup/tests/fixtures/packs/",
+  "_": "pack.json — สัญญาของ stack pack หรือ capability pack หนึ่งตัว (PP-002, แก้ความหมายที่ PP-010/D-011) · เก็บที่ .claude/packs/<id>.json · ตัวอย่างจริงอยู่ที่ packs/",
   "_rules": [
     "v2 คือ recipe + assertion ไม่ใช่ template: pack ไม่ได้เก็บโค้ดไว้ปั๊มออกมา แต่บอกว่า 'ต้องรันคำสั่งอะไร' (setup) และ 'เมื่อเสร็จแล้วต้องมีไฟล์อะไรอยู่จริง' (requiredArtifacts) — คนหรือ AI ตัวไหนลงมือก็ได้ Buaflow เป็นคนพิสูจน์ · ดู D-011",
     "id ต้องตรงชื่อไฟล์ (lowercase-kebab-case) — .claude/packs/nextjs-postgres.json ต้องมี id: \"nextjs-postgres\"",

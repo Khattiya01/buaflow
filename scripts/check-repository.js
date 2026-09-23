@@ -56,7 +56,7 @@ run('workflow skills (core → Claude adapter)', process.execPath, [path.join(ro
 run('workflow agents (core → Claude adapter)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-agents.js'), '--check']);
 run('pack contracts and their binding to reference apps', process.execPath, [
   path.join(root, 'claude-setup', 'pack.js'),
-  '--dir', path.join(root, 'claude-setup', 'tests', 'fixtures', 'packs'),
+  '--dir', path.join(root, 'packs'),
   '--repo-root', root,
 ]);
 run('regression tests', process.execPath, [path.join(root, 'scripts', 'run-tests.js')]);

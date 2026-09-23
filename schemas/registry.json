@@ -78,6 +78,7 @@
       "latestVersion": "2.0",
       "schema": "schemas/pack.schema.json",
       "paths": [
+        "packs/*.json",
         ".claude/packs/*.json"
       ],
       "migration": "manual"

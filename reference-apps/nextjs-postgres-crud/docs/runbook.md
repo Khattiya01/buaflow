@@ -1,7 +1,7 @@
 # Runbook — nextjs-postgres-crud
 
 This is the PP-003 reference app: a small internal task tracker built from the `nextjs-postgres`
-stack pack and the `auth-rbac` capability pack (`claude-setup/tests/fixtures/packs/`), targeting
+stack pack and the `auth-rbac` capability pack (`packs/`), targeting
 the `internal-crud` application profile (`claude-setup/tests/fixtures/profiles/internal-crud.json`).
 
 ## Deploy

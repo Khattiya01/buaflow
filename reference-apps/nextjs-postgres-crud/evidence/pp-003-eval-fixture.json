@@ -3,8 +3,8 @@
   "description": "Baseline eval fixture for PP-003: how long it takes this reference app to prove itself from a torn-down, clean-environment starting state, and what evidence backs each R0-R3 control. Future changes to the app, the pack contracts, or the golden stack should be compared against this baseline, not just re-run ad hoc.",
   "generatedAt": "2026-09-22T16:45:00.000Z",
   "stack": {
-    "pack": "nextjs-postgres (claude-setup/tests/fixtures/packs/nextjs-postgres.json)",
-    "capabilityPack": "auth-rbac (claude-setup/tests/fixtures/packs/auth-rbac.json)",
+    "pack": "nextjs-postgres (packs/nextjs-postgres.json)",
+    "capabilityPack": "auth-rbac (packs/auth-rbac.json)",
     "profile": "internal-crud (claude-setup/tests/fixtures/profiles/internal-crud.json)"
   },
   "timings": {

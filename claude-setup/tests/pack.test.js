@@ -8,7 +8,7 @@ const test = require('node:test');
 const { validatePack } = require('../pack.js');
 const { cleanup, repositoryRoot, runNode, temporaryProject, writeJson } = require('./helpers.js');
 
-const packsDir = path.join(__dirname, 'fixtures', 'packs');
+const packsDir = path.join(repositoryRoot, 'packs');
 const packFile = (name) => path.join(packsDir, `${name}.json`);
 const pack = (name) => JSON.parse(fs.readFileSync(packFile(name), 'utf8'));
 

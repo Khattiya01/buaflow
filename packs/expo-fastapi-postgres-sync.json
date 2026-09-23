@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../../schemas/pack.schema.json",
+  "$schema": "../schemas/pack.schema.json",
   "schemaVersion": "2.0",
   "id": "expo-fastapi-postgres-sync",
   "kind": "stack",
