@@ -1,11 +1,18 @@
 name: nextjs-postgres-crud CI
 
 on:
+  # EP-010 — re-run this app's own verification on a cadence, not only when someone
+  # touches it. Pinned dependencies rot and advisories are published whether or not
+  # anyone edits the code; a weekly red build is how an adopter finds out.
+  # (Scheduled runs use the default branch and ignore the path filters below.)
+  schedule:
+    - cron: "0 17 * * 1"
   pull_request:
     paths: ["reference-apps/nextjs-postgres-crud/**"]
   push:
     branches: [main]
     paths: ["reference-apps/nextjs-postgres-crud/**"]
+  workflow_dispatch: {}
 
 env:
   DATABASE_URL: postgresql://app:app@localhost:5432/app

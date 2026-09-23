@@ -1,0 +1,66 @@
+name: evidence freshness
+
+# EP-010 — asks the question a readiness manifest never asked itself: is this answer
+# still true?
+#
+# readiness.json records that every control passed at a commit, on a date. Nothing ever
+# re-read that date. An R3 claim from a year ago reported PASS exactly as loudly as one
+# from this morning, which is the "evidence over confidence" principle failing quietly.
+#
+# This job supplies the window (the verifier's policy, not the manifest's own claim) and
+# treats EXPIRED as a build failure: exit 4 from readiness.js. That is deliberate — an
+# expired claim should cost someone a red check, because the alternative is a green badge
+# over stale evidence.
+#
+# The three reference-app workflows re-run the actual verification commands on the same
+# weekly cadence. This one is the cheap, always-runnable half: no databases, no browsers,
+# no install.
+
+on:
+  schedule:
+    - cron: "50 17 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - "claude-setup/readiness.js"
+      - ".github/workflows/evidence-freshness.yml"
+      - "reference-apps/**/docs/evidence/readiness.json"
+  workflow_dispatch:
+    inputs:
+      maxAgeDays:
+        description: "Evidence older than this many days is treated as expired"
+        required: false
+        default: "90"
+
+permissions:
+  contents: read
+
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - nextjs-postgres-crud
+          - react-fastapi-postgres-crud
+          - expo-fastapi-postgres-sync
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The commit-lineage check asks whether the manifest's commit is still an
+          # ancestor of HEAD, which a shallow clone cannot answer. It degrades to
+          # "unknown" rather than failing, but a full history gives the real answer.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: readiness freshness for ${{ matrix.app }}
+        env:
+          MAX_AGE_DAYS: ${{ github.event.inputs.maxAgeDays || '90' }}
+        run: |
+          node claude-setup/readiness.js \
+            --root "reference-apps/${{ matrix.app }}" \
+            --max-age-days "$MAX_AGE_DAYS"

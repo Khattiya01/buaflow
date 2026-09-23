@@ -89,6 +89,48 @@ R4 ไม่มี checklist สากลชุดเดียว เพรา�
 - source/dependency/config contract เปลี่ยน ต้องประเมิน control ที่ได้รับผลกระทบใหม่
 - production incident หรือ rollback failure ลดระดับความเชื่อมั่นทันที จนกว่าจะมี evidence รอบใหม่
 
+## Freshness — หลักฐานหมดอายุ (EP-010)
+
+กติกาข้อ 5 ข้างบน (“readiness ผูกกับ commit/build หนึ่งชุด ห้ามนำ report เก่ามาอ้างกับ source ชุดใหม่”)
+มีมาตั้งแต่ต้น แต่ไม่มีอะไรบังคับ — manifest ที่ผ่าน R3 เมื่อปีที่แล้วรายงาน `PASS` เสียงดังเท่ากับ
+manifest ที่เพิ่งสร้างเมื่อเช้านี้ EP-010 เติมการบังคับนั้น
+
+**ผลลัพธ์มีสามค่า ไม่ใช่สอง**
+
+| ผลลัพธ์ | ความหมาย | exit code |
+|---|---|---|
+| `pass` | control ครบ และหลักฐานยังอยู่ในหน้าต่างที่ผู้ตรวจกำหนด | 0 |
+| `expired` | control ครบทุกตัว **ตอนที่สร้างหลักฐาน** แต่วันนี้พิสูจน์ไม่ได้อีกแล้ว | 4 |
+| `fail` | control ไม่ครบ หรือ manifest ผิดรูป | 1 |
+
+`expired` ไม่ใช่ `fail` เพราะไม่มีใครทำอะไรผิด และไม่ใช่ `pass` เพราะคำกล่าวอ้างนั้นไม่เป็นจริงแล้ว
+การบีบให้เหลือสองค่าบังคับให้ต้องโกหกทางใดทางหนึ่ง
+
+**หน้าต่างเวลาเป็นนโยบายของผู้ตรวจ ไม่ใช่ของ manifest**
+
+`--max-age-days` มาจากคนหรือ CI ที่ทำการตรวจ ไม่ใช่ field ใน `readiness.json` โดยเจตนา —
+ถ้า manifest ประกาศวันหมดอายุของตัวเองได้ มันก็ประกาศว่าตัวเองไม่มีวันหมดอายุได้เช่นกัน
+และ “หลักฐานอายุเท่าไรถึงยังเชื่อได้” เป็นเรื่องความเสี่ยงที่ผู้ตรวจรับได้ ไม่ใช่คุณสมบัติของตัวหลักฐาน
+ระบบภายในกับระบบธนาคารมีคำตอบคนละแบบสำหรับ manifest หน้าตาเดียวกัน
+
+**ไม่ส่ง `--max-age-days` = ไม่ตัดสิน** รายงานอายุให้ดูเฉย ๆ ผลลัพธ์ไม่เปลี่ยน
+manifest ทุกไฟล์ที่เขียนก่อน control นี้มีอยู่จึงทำงานเหมือนเดิมทุกประการ (additive ตามนโยบายใน BF-006)
+และไม่ต้องแก้ schema เลย
+
+**สองสัญญาณที่ทำให้หมดอายุ**
+
+1. **อายุ** — `generatedAt` เก่ากว่าหน้าต่างที่กำหนด
+2. **สายเลือดของ commit** — commit ใน manifest ไม่ใช่บรรพบุรุษของ HEAD อีกต่อไป (ถูก rebase ทิ้ง,
+   force-push ทับ หรือมาจาก branch ที่ไม่เคย merge) แปลว่าหลักฐานอธิบาย source ที่ไม่มีอยู่แล้ว
+
+สิ่งที่ตรวจไม่ได้จะเป็น `unknown` เสมอ ไม่ใช่ `fail` — ไม่มี git, ไม่ใช่ git work tree หรือ shallow clone
+ที่ไม่มี commit นั้น ล้วนถูกรายงานตามจริงโดยไม่ลงโทษสภาพแวดล้อมที่ไม่ครบ
+และการตรวจสายเลือดจะรันก็ต่อเมื่อมีการส่ง `--max-age-days` มาเท่านั้น (ประหยัด subprocess)
+
+**Cadence** — `.github/workflows/evidence-freshness.yml` ถามคำถามนี้ทุกสัปดาห์กับ reference app ทั้งสาม
+ส่วน workflow ของแต่ละ reference app เองก็รัน verification ชุดจริงซ้ำตามรอบเดียวกัน
+dependency เน่าหรือ advisory ใหม่ประกาศออกมาโดยไม่มีใครแตะโค้ด — CI แดงคือวิธีที่ผู้ใช้จะรู้
+
 ## คำสั่งอ้างอิง
 
 หลังติดตั้งไฟล์ใน `claude-setup/` เป็น `.claude/`:
@@ -96,6 +138,7 @@ R4 ไม่มี checklist สากลชุดเดียว เพรา�
 ```bash
 node .claude/readiness.js --file docs/evidence/readiness.json --level R3
 node .claude/readiness.js --file docs/evidence/readiness.json --level R3 --json
+node .claude/readiness.js --file docs/evidence/readiness.json --max-age-days 90
 ```
 
 validator รุ่นแรกตรวจโครง manifest, สถานะ, evidence declaration และ file evidence ที่อ้างถึง รุ่นถัดไปจะเชื่อม gate เพื่อสร้าง evidence จากการรันจริงแบบ fail-closed
