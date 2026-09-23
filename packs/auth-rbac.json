@@ -4,8 +4,8 @@
   "id": "auth-rbac",
   "kind": "capability",
   "name": "Auth + RBAC/ownership",
-  "description": "Adds session authentication plus role-based access control and per-record ownership checks on top of an existing stack pack.",
-  "version": "2.0.0",
+  "description": "Adds session authentication plus role-based access control and per-record ownership checks on top of an existing stack pack. Deliberately dependency-free: sessions are signed with node:crypto HMAC and passwords hashed with scrypt, and the framework's own cookie API carries them, so the capability adds no third-party auth library and no supply-chain surface. Verified against reference-apps/nextjs-postgres-crud.",
+  "version": "2.1.0",
   "inputs": [
     {
       "name": "sessionStrategy",
@@ -27,30 +27,35 @@
   ],
   "setup": [
     {
-      "id": "session-deps",
-      "command": "npm install iron-session bcrypt && npm install --save-dev @types/bcrypt",
-      "description": "Session sealing and password hashing for the sessionStrategy input; no framework generator exists for this, so the recipe is the dependency set plus the files asserted below."
+      "id": "session-secret",
+      "command": "node -e \"console.log(require('node:crypto').randomBytes(32).toString('hex'))\" && echo SESSION_SECRET=... >> .env.example",
+      "description": "Generate and document the HMAC secret that signs session cookies. It is the one piece of configuration this capability cannot infer, and rotating it invalidates every session."
     },
     {
-      "id": "migration",
+      "id": "roles-migration",
       "command": "npx prisma migrate dev --name add_roles",
-      "description": "Generates the role and ownership columns as a real migration rather than an ad-hoc schema edit, so the change is reversible and auditable."
+      "description": "Adds the role enum and the ownership column as a real migration rather than an ad-hoc schema edit, so the change is reversible and auditable."
     }
   ],
   "requiredArtifacts": [
     {
-      "path": "src/lib/auth.ts",
-      "description": "Session verification and role/ownership guard helpers."
+      "path": "lib/auth.ts",
+      "description": "Password hashing, session signing and session reading — the only place that touches the session cookie."
     },
     {
-      "path": "src/middleware.ts",
-      "description": "Route-level authentication middleware."
+      "path": "lib/guard.ts",
+      "description": "Role and per-record ownership checks, called first by every route that touches an owned record."
+    },
+    {
+      "path": "proxy.ts",
+      "description": "Network-boundary guard that rejects unauthenticated requests to protected paths before any handler or database call runs."
     },
     {
       "path": "prisma/migrations",
-      "description": "Contains the migration adding role and ownership columns to existing tables."
+      "description": "Contains the migration introducing the role enum and ownership column."
     }
   ],
+  "implementedBy": "reference-apps/nextjs-postgres-crud",
   "compatibility": {
     "requiresPacks": [
       "nextjs-postgres"

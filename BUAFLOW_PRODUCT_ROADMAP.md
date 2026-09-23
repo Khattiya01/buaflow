@@ -158,6 +158,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | PP-007 | Core capability packs | auth, RBAC/ownership, DB, storage, notification, background jobs, audit log |
 | PP-008 | Commercial capability packs | payment, subscription, search, analytics, AI/RAG, i18n |
 | PP-009 | Thailand packs | PDPA, PromptPay/payment providers, LINE integration, Thai localization |
+| PP-011 | ผูก capability pack เข้ากับ reference app ที่พิสูจน์มันจริง | pack ที่ยังไม่มีอะไรพิสูจน์ต้อง "มองเห็นได้ด้วยเครื่อง" ไม่ใช่เขียนไว้ในเอกสารเฉย ๆ |
 | PP-010 | Pack contract v2: recipe + assertion | pack ประกาศ "คำสั่ง CLI ของเจ้าของ framework ที่ต้องรัน (ไม่ pin เวอร์ชัน) + config + verification + ไฟล์ที่ต้องมีอยู่จริงหลังทำเสร็จ" แทนการเป็น template — ดู D-011 |
 
 > **ทิศทางของ pack เปลี่ยนที่ D-011 (23 กันยายน 2026)** — Buaflow จะ **ไม่** สร้าง generator ที่ stamp โค้ดออกมาจาก pack

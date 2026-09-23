@@ -5,7 +5,7 @@
   "kind": "capability",
   "name": "Structured audit log",
   "description": "Adds a durable, queryable record of who changed what and when, independent of any single feature's own logic — generalizes the pattern reference-apps/nextjs-postgres-crud built ad hoc for tasks into a reusable pack. Needs a persistence layer already present — either the nextjs-postgres stack pack or the standalone db capability pack — but v1's requiresPacks is identity-based (\"needs pack X\"), not capability-based (\"needs something providing persistence\"), so that dependency cannot be machine-checked yet; see templates/pack.tpl.json's note on this.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "inputs": [
     {
       "name": "retentionDays",
@@ -24,14 +24,19 @@
   ],
   "requiredArtifacts": [
     {
-      "path": "prisma/migrations",
-      "description": "Contains the migration adding the audit_logs table (entity, entityId, userId, action, before, after, at)."
-    },
-    {
       "path": "lib/audit.ts",
       "description": "recordAudit() helper — every mutation that needs a trail calls this instead of writing its own logging."
+    },
+    {
+      "path": "prisma/schema.prisma",
+      "description": "Declares the audit model: which record changed, who changed it, the action, the before/after snapshots and when."
+    },
+    {
+      "path": "prisma/migrations",
+      "description": "Contains the migration that creates the audit table."
     }
   ],
+  "implementedBy": "reference-apps/nextjs-postgres-crud",
   "compatibility": {
     "requiresPacks": [],
     "conflictsWithPacks": [],

@@ -296,7 +296,7 @@ function main(argv = process.argv.slice(2)) {
       repoRoot: options.repoRoot ? path.resolve(process.cwd(), options.repoRoot) : null,
     });
     if (!result.ok) ok = false;
-    results.push({ file, ...result });
+    results.push({ file, pack, ...result });
   }
 
   if (options.json) {
@@ -311,6 +311,16 @@ function main(argv = process.argv.slice(2)) {
         ? `\n✓ pack: ${results.length} pack(s) valid`
         : `\n✗ pack: ${results.filter((r) => !r.ok).length}/${results.length} pack(s) failed`
     );
+    if (options.repoRoot && ok) {
+      // A pack without implementedBy is a recipe nobody has followed end to end. Printing the
+      // count keeps that visible instead of leaving it to whoever opens the files.
+      const unbound = results.filter((r) => !r.pack?.implementedBy).map((r) => r.pack?.id).filter(Boolean).sort();
+      console.log(
+        unbound.length
+          ? `  ${results.length - unbound.length}/${results.length} bound to a reference app; unproven: ${unbound.join(', ')}`
+          : `  all ${results.length} bound to a reference app`
+      );
+    }
   }
   return ok ? 0 : 1;
 }

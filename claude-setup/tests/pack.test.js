@@ -147,6 +147,37 @@ test('the binding check is skipped when no repository root is supplied', () => {
   assert.equal(validatePack(bound, { expectedId: bound.id }).ok, true);
 });
 
+
+test('the set of packs no reference app proves is pinned, so it can only change on purpose', () => {
+  // A capability pack with no implementedBy is a recipe nobody has followed end to end. That
+  // is allowed — writing one down beats not having it — but it must never become invisible.
+  // Binding auth-rbac exposed exactly why this matters: its recipe had installed iron-session
+  // and bcrypt, and the app that actually implements the capability uses neither, on purpose.
+  const unbound = fs.readdirSync(packsDir)
+    .filter((name) => name.endsWith('.json'))
+    .map((name) => pack(name.replace(/\.json$/, '')))
+    .filter((value) => !value.implementedBy)
+    .map((value) => value.id)
+    .sort();
+
+  assert.deepEqual(
+    unbound,
+    ['background-jobs', 'db', 'notification', 'storage'],
+    'a pack gained or lost a reference-app binding; update this list and packs/README.md together'
+  );
+});
+
+test('every bound pack really matches the app it names', () => {
+  // validatePack does this when given a repo root; asserting it here means the suite fails on
+  // drift even if someone removes the check from scripts/check-repository.js.
+  for (const name of fs.readdirSync(packsDir).filter((file) => file.endsWith('.json'))) {
+    const value = pack(name.replace(/\.json$/, ''));
+    if (!value.implementedBy) continue;
+    const result = validatePack(value, { expectedId: value.id, repoRoot: repositoryRoot });
+    assert.deepEqual(result, { ok: true, errors: [] }, `${value.id}: ${result.errors.join('; ')}`);
+  }
+});
+
 const CORE_CAPABILITY_PACKS = ['nextjs-postgres', 'auth-rbac', 'db', 'storage', 'notification', 'background-jobs', 'audit-log'];
 
 test('every core pack fixture (PP-002 + PP-007) passes validation', () => {
