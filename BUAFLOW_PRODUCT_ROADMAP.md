@@ -223,6 +223,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | PE-005 | Plugin conformance kit | ✅ **done** — `scripts/check-plugin.js` ใช้กับ plugin ไหนก็ได้ |
 | PE-006 | Trusted tiers/signing | ✅ **done** — tier local / verified จาก checksum + Claude Code validate · ไม่ทำ key signing (ผู้เผยแพร่รายเดียว) |
 | PE-007 | Catalog v1 | ✅ **done** — marketplace หนึ่งรายการ |
+| PE-008 | Plugin-first adoption | ✅ **done** (M9, D-027) — kit ทั้งชุดอยู่ใน plugin · `/buaflow:start` · `buaflow install` วาง gate ลงโปรเจกต์โดยไม่ทับไฟล์ที่ทีมแก้ · ไม่ต้อง clone `buaflow/` |
 
 ### Evaluation, Learning and Product Operations
 
@@ -313,6 +314,13 @@ EV-009 (trial แรก), EV-004 (eval harness ที่ทำซ้ำได้
 > ทำเองได้และจะเก่งขึ้นเร็วกว่าที่ kit จะตามทัน · สิ่งที่ Buaflow ถือไว้คือการพิสูจน์ผลที่ merge รวมแล้ว ซึ่ง
 > pre-push gate และ `buaflow ci` ทำอยู่แล้ว ⇒ **roadmap ไม่มีงานเปิดเหลือ** งานใหม่ให้เขียนเป็น item ใหม่จากความล้มเหลว
 > ที่เจอในโปรเจกต์จริงหรือคำขอของผู้ใช้ ไม่ใช่ดึงจากแผนนี้
+
+### M9 — Plugin-first adoption ✅ (D-027, 24 กันยายน 2026)
+
+เปิดจากคำถามของผู้ใช้: ติดตั้ง plugin แล้วทำไมยังต้อง clone โฟลเดอร์ · เสร็จเมื่อ PE-008 ผ่าน — plugin ถือ kit ทั้งชุด,
+`/buaflow:start` เริ่ม/ทำต่อ/อัปเกรดได้เอง และส่วนที่ plugin ถือไม่ได้ (gate กับตัวตรวจที่ pre-push และ CI รันนอก session,
+permission, rules, `stack.json`) ถูกเขียนลงโปรเจกต์ด้วย `buaflow install` · ยืนยันด้วยการติดตั้งจริงใน config ชั่วคราว
+ยังไม่ได้ลองกับโปรเจกต์จริงตั้งแต่ต้นจนจบ — ทำในการ adopt ครั้งถัดไป
 
 ### งานที่พักไว้โดยตั้งใจ ไม่ใช่ลืม
 

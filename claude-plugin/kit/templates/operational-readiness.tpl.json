@@ -1,0 +1,30 @@
+{
+  "$schema": "../../../buaflow/schemas/operational-readiness.schema.json",
+  "schemaVersion": "1.0",
+  "_": "restore ที่ซ้อมจริง + incident hook ที่เป็นสัญญา (EP-005) - keep at docs/evidence/operational-readiness.json - check with node .claude/operational-readiness.js - the rehearsal transcript is hashed and read, so a failed run cannot be cited as a passing one - firstResponse must resolve to a real heading - every trust boundary in security-baseline.json must be watched",
+  "project": "<project name>",
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "backup": {
+    "procedure": "<the actual backup command or mechanism, not a category>",
+    "restore": "<the actual restore command>",
+    "documentedIn": "docs/runbook.md",
+    "owner": "<who runs backups in production, and what this app owns instead>",
+    "rehearsal": {
+      "path": "evidence/backup-restore-rehearsal.json",
+      "sha256": "<sha256 of that transcript; the validator recomputes it>"
+    }
+  },
+  "incidentHooks": [
+    {
+      "id": "IH-001",
+      "name": "<what went wrong, in the words someone would page about>",
+      "signal": "<the observable condition, specific enough to build an alert from without a follow-up question>",
+      "severity": "critical",
+      "detectedBy": [{ "type": "file", "value": "<what produces the signal>" }],
+      "firstResponse": "docs/runbook.md#incident-response",
+      "owner": "<a name, not a team>",
+      "boundary": "TB-001",
+      "note": "<optional: why this one needs its own hook>"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "$schema": "../../buaflow/schemas/application-profile.schema.json",
+  "schemaVersion": "1.1",
+  "_": "application-profile.json — นิยามว่า profile นี้เปลี่ยน required controls, architecture choices และ clarification questions อย่างไร (PP-001) · เก็บที่ .claude/profiles/<id>.json · ตัวอย่างจริง 3 profile อยู่ที่ claude-setup/tests/fixtures/profiles/",
+  "_rules": [
+    "id ต้องตรงชื่อไฟล์ (lowercase-kebab-case) — .claude/profiles/saas.json ต้องมี id: \"saas\"",
+    "controls[].control ต้องเป็น control id ที่รู้จักใน claude-setup/readiness.js (CONTROLS_BY_LEVEL)",
+    "controls[].requirement = \"not-applicable\" ใช้ได้เฉพาะ control ที่ conditional (persistence, access-control, database-migration, accessibility) — control อื่นใช้ได้แค่ \"required\"",
+    "controls[].rationale ต้องยาวอย่างน้อย 20 ตัวอักษรและเฉพาะเจาะจงกับ profile นี้ ห้ามเขียนคำอธิบายทั่วไป",
+    "controls / architectureChoices / clarificationQuestions ต้องมีอย่างน้อยหมวดละ 1 รายการเสมอ — profile ที่ไม่เปลี่ยนอะไรเลยไม่ใช่ profile",
+    "clarificationQuestions[].affects บอกว่าเปลี่ยน architecture/security/cost/compliance/ux ข้อไหนบ้าง — IC-002 จะใช้กรองคำถามที่ไม่จำเป็นออก",
+    "ตรวจไฟล์นี้: node claude-setup/application-profile.js --file .claude/profiles/<id>.json"
+  ],
+  "id": "<profile-id>",
+  "name": "<Profile name>",
+  "description": "<เมื่อไรควรเลือก profile นี้>",
+  "controls": [
+    {
+      "control": "<control-id>",
+      "requirement": "required",
+      "rationale": "<เหตุผลเฉพาะ profile นี้ อย่างน้อย 20 ตัวอักษร>"
+    }
+  ],
+  "architectureChoices": [
+    {
+      "area": "<เช่น persistence, tenancy, authentication>",
+      "choice": "<ทางเลือกที่แนะนำ>",
+      "rationale": "<เหตุผล>"
+    }
+  ],
+  "clarificationQuestions": [
+    {
+      "id": "<question-id>",
+      "prompt": "<คำถามที่ต้องถามผู้ใช้>",
+      "affects": [
+        "architecture"
+      ],
+      "whyItMatters": "<ทำไมคำตอบถึงเปลี่ยนงานสำคัญ>"
+    }
+  ],
+  "budgets": {
+    "performance": [
+      {
+        "metric": "loadEventMs",
+        "max": 3000,
+        "rationale": "<ทำไมแอปชนิดนี้ถึงรับเวลาโหลดได้ถึงเท่านี้ อย่างน้อย 20 ตัวอักษร>"
+      },
+      {
+        "metric": "domContentLoadedMs",
+        "max": 2000,
+        "rationale": "<ทำไมเอกสารต้องถูก parse เสร็จภายในเวลานี้>"
+      }
+    ],
+    "accessibility": [
+      {
+        "metric": "axeSeriousOrCritical",
+        "max": 0,
+        "rationale": "<serious/critical แปลว่าผู้ใช้ทำงานไม่สำเร็จเลย แอปชนิดนี้ยอมรับได้ไหม>"
+      },
+      {
+        "metric": "axeViolations",
+        "max": 0,
+        "rationale": "<เพดานรวมของ finding ทุกระดับ · ตั้งสูงกว่า 0 ได้ถ้าแอปชนิดนี้ยอมรับ minor/moderate>"
+      }
+    ]
+  }
+}

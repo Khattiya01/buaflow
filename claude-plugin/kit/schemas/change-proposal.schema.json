@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/change-proposal-v1.json",
+  "title": "Buaflow change proposal v1",
+  "description": "One change to a project's AI configuration (AGENTS.md, rules, skills, hooks, settings, stack.json), from the evidence that motivated it to the eval runs that decide whether it stays (EV-006). Phase 8 already said a lesson should move up from a note to a rule to a hook as it recurs; this records each move with what it was supposed to fix and whether it did, so a change that fixed nothing can be seen and rolled back instead of accumulating.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "title", "evidence", "change", "expect", "decision"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "_": { "type": "string" },
+    "id": { "type": "string", "pattern": "^CP-[0-9]{3,}$" },
+    "title": { "type": "string", "minLength": 10 },
+    "evidence": {
+      "type": "array", "minItems": 1,
+      "description": "What happened that motivated the change: failure records, eval runs, trial findings, incidents. Repository-relative files, checked for existence.",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "change": {
+      "type": "object", "required": ["files", "summary"],
+      "properties": {
+        "files": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "summary": { "type": "string", "minLength": 10 },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" }
+      },
+      "additionalProperties": false
+    },
+    "expect": {
+      "type": "object", "required": ["cases"],
+      "description": "The eval cases whose outcome this change is supposed to decide. A change nobody can name a case for is a change nobody can evaluate.",
+      "properties": { "cases": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^EV-[0-9]{3,}$" } } },
+      "additionalProperties": false
+    },
+    "before": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Eval run files from before the change." },
+    "after": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Eval run files from after the change, judging the current case revisions." },
+    "decision": { "enum": ["pending", "rollout", "rollback"] },
+    "decidedOn": { "type": "string", "format": "date" },
+    "decidedBy": { "type": "string", "minLength": 1 },
+    "reason": { "type": "string", "minLength": 20 }
+  },
+  "additionalProperties": false
+}

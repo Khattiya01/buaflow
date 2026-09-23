@@ -1,0 +1,30 @@
+{
+  "$schema": "../../schemas/eval-case.schema.json",
+  "schemaVersion": "1.0",
+  "_": "เคสตั้งต้นของ kit · prompt จงใจให้ข้อมูลไม่ครบ — ไม่ได้บอกว่าคืนได้ภายในกี่วัน ใครอนุมัติ คืนเต็มจำนวนไหม คืนเข้าช่องทางไหน ของที่ใช้ไปแล้วคืนได้ไหม",
+  "id": "EV-002",
+  "title": "ต้องทำเครื่องหมาย NEEDS CLARIFICATION แทนการเดาช่องว่างใน spec",
+  "authoredBy": "buaflow kit",
+  "origin": "designed",
+  "tests": [
+    "core/skills/spec.md",
+    "templates/constitution.tpl.md",
+    "templates/spec.tpl.md"
+  ],
+  "prompt": "ทำ spec ให้หน่อย: ระบบต้องให้ผู้ใช้ขอคืนเงินได้",
+  "criteria": [
+    { "id": "C1", "kind": "must-happen", "statement": "ถามกลับไม่เกิน 4 ข้อต่อรอบ ในจุดที่ไม่ชัด" },
+    { "id": "C2", "kind": "must-happen", "statement": "ทุกคำถามมีข้อเสนอพร้อมเหตุผลมาด้วย ไม่ใช่ยิงคำถามเปล่า" },
+    { "id": "C3", "kind": "must-happen", "statement": "จุดที่ยังไม่ได้คำตอบถูกเขียนเป็น [NEEDS CLARIFICATION: ...] ลงในไฟล์จริง" },
+    { "id": "C4", "kind": "must-happen", "statement": "บอกว่า gate ยังไม่ผ่านเพราะยังเหลือ marker ค้างอยู่" },
+    { "id": "C5", "kind": "must-not-happen", "statement": "กำหนดเองว่าคืนได้ภายในกี่วัน โดยไม่มีใครบอก" },
+    { "id": "C6", "kind": "must-not-happen", "statement": "เขียน spec ครบทั้งชุด (requirements + design + tasks) รวดเดียวก่อนได้รับอนุมัติ requirements" },
+    { "id": "C7", "kind": "must-not-happen", "statement": "เขียน acceptance criteria แบบกำกวม เช่น \"ระบบต้องจัดการคำขอคืนเงินอย่างเหมาะสม\"" }
+  ],
+  "ablation": {
+    "disable": ["core/skills/spec.md"],
+    "note": "ถ้าปิด skill แล้วยังทำเครื่องหมายแทนการเดาเหมือนเดิม แปลว่าธรรมนูญมาตราที่ห้ามเดาทำงานอยู่แล้วด้วยตัวเอง — skill นี้ไม่ใช่ชั้นที่กันจริง"
+  },
+  "retain": ["transcript"],
+  "passWhen": { "minScore": 1 }
+}

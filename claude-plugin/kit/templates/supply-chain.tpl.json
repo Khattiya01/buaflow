@@ -1,0 +1,41 @@
+{
+  "$schema": "../../../buaflow/schemas/supply-chain.schema.json",
+  "schemaVersion": "1.0",
+  "_": "licence / provenance / checksum (EP-004) - keep at docs/evidence/supply-chain.json - check with node .claude/supply-chain.js - licenses.summary is re-derived from the SBOMs on every run, so it cannot be written by hand - a licence that is neither allowed by policy nor reviewed fails - accepted-risk needs an exception id from requirement-coverage.json",
+  "project": "<project name>",
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "sboms": [
+    { "path": "evidence/sbom.cdx.json", "sha256": "<sha256 of that file; the validator recomputes it>" }
+  ],
+  "licenses": {
+    "policy": {
+      "allowed": ["MIT", "ISC", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause"],
+      "note": "<why these need no per-project review>"
+    },
+    "summary": { "MIT": 1 },
+    "reviewed": [
+      {
+        "license": "NONE",
+        "components": 1,
+        "decision": "accepted-risk",
+        "exception": "REQ-201",
+        "note": "<what was decided about this licence and why, at least 20 characters>"
+      }
+    ]
+  },
+  "provenance": {
+    "source": { "repository": "<owner/repo>", "commit": "<the graded revision>", "ref": "main" },
+    "builder": {
+      "provider": "github-actions",
+      "workflow": "<workflow name, must match evidence/ci-run.json>",
+      "runId": 0,
+      "url": "https://<the run url>"
+    },
+    "subjects": [
+      { "path": "package-lock.json", "sha256": "<sha256; the validator recomputes it>" }
+    ],
+    "notPublished": [
+      { "artifact": "<what a consumer expects a digest for and will not find>", "reason": "<why there is none, at least 20 characters>" }
+    ]
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/prototype-flow-v1.json",
+  "title": "Buaflow prototype flow v1",
+  "type": "object",
+  "required": ["schemaVersion", "title", "locale", "start", "screens"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "_": { "type": "string" },
+    "_rules": { "type": "array", "items": { "type": "string" } },
+    "title": { "type": "string", "minLength": 1 },
+    "locale": { "type": "string", "minLength": 2 },
+    "start": { "type": "string", "minLength": 1 },
+    "screens": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/screen" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "artboards": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^[1-9][0-9]*(?::[a-z][a-z0-9-]*)?$" },
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "screen": {
+      "type": "object",
+      "required": ["title", "artboards"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "artboards": { "$ref": "#/$defs/artboards" },
+        "states": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/artboards" }
+        },
+        "data": { "type": "string" },
+        "hotspots": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hotspot" }
+        },
+        "bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/binding" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "hotspot": {
+      "type": "object",
+      "required": ["selector"],
+      "properties": {
+        "selector": { "type": "string", "minLength": 1 },
+        "to": { "type": "string", "minLength": 1 },
+        "state": { "type": "string", "minLength": 1 },
+        "back": { "const": true }
+      },
+      "oneOf": [
+        { "required": ["to"] },
+        { "required": ["state"] },
+        { "required": ["back"] }
+      ],
+      "additionalProperties": false
+    },
+    "bindingValue": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "required": ["path"],
+          "properties": {
+            "path": { "type": "string" },
+            "format": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "binding": {
+      "type": "object",
+      "required": ["selector"],
+      "properties": {
+        "selector": { "type": "string", "minLength": 1 },
+        "path": { "type": "string" },
+        "attr": { "type": "string" },
+        "format": { "type": "string" },
+        "repeat": { "type": "string" },
+        "fields": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/bindingValue" }
+        }
+      },
+      "anyOf": [
+        { "required": ["path"] },
+        { "required": ["repeat", "fields"] }
+      ],
+      "additionalProperties": false
+    }
+  }
+}
+

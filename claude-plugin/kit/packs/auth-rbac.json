@@ -1,0 +1,82 @@
+{
+  "$schema": "../schemas/pack.schema.json",
+  "schemaVersion": "2.0",
+  "id": "auth-rbac",
+  "kind": "capability",
+  "name": "Auth + RBAC/ownership",
+  "description": "Adds session authentication plus role-based access control and per-record ownership checks on top of an existing stack pack. Deliberately dependency-free: sessions are signed with node:crypto HMAC and passwords hashed with scrypt, and the framework's own cookie API carries them, so the capability adds no third-party auth library and no supply-chain surface. Verified against reference-apps/nextjs-postgres-crud.",
+  "version": "2.1.0",
+  "inputs": [
+    {
+      "name": "sessionStrategy",
+      "type": "enum",
+      "required": true,
+      "options": [
+        "jwt",
+        "database-session"
+      ],
+      "description": "How sessions are issued and verified."
+    },
+    {
+      "name": "roles",
+      "type": "string",
+      "required": false,
+      "default": "admin,member",
+      "description": "Comma-separated list of role names to seed."
+    }
+  ],
+  "setup": [
+    {
+      "id": "session-secret",
+      "command": "node -e \"console.log(require('node:crypto').randomBytes(32).toString('hex'))\" && echo SESSION_SECRET=... >> .env.example",
+      "description": "Generate and document the HMAC secret that signs session cookies. It is the one piece of configuration this capability cannot infer, and rotating it invalidates every session."
+    },
+    {
+      "id": "roles-migration",
+      "command": "npx prisma migrate dev --name add_roles",
+      "description": "Adds the role enum and the ownership column as a real migration rather than an ad-hoc schema edit, so the change is reversible and auditable."
+    }
+  ],
+  "requiredArtifacts": [
+    {
+      "path": "lib/auth.ts",
+      "description": "Password hashing, session signing and session reading — the only place that touches the session cookie."
+    },
+    {
+      "path": "lib/guard.ts",
+      "description": "Role and per-record ownership checks, called first by every route that touches an owned record."
+    },
+    {
+      "path": "proxy.ts",
+      "description": "Network-boundary guard that rejects unauthenticated requests to protected paths before any handler or database call runs."
+    },
+    {
+      "path": "prisma/migrations",
+      "description": "Contains the migration introducing the role enum and ownership column."
+    }
+  ],
+  "implementedBy": "reference-apps/nextjs-postgres-crud",
+  "compatibility": {
+    "requiresPacks": [
+      "nextjs-postgres"
+    ],
+    "conflictsWithPacks": [],
+    "profiles": [
+      "internal-crud",
+      "saas"
+    ]
+  },
+  "verification": [
+    {
+      "id": "auth-tests",
+      "command": "npm test -- auth",
+      "description": "Authenticated, unauthenticated and cross-tenant access attempts are all exercised."
+    }
+  ],
+  "operationalEvidence": [
+    {
+      "control": "access-control",
+      "evidence": "Every generated API route is wrapped in the ownership/role guard by default, and the test suite asserts a 403 on cross-tenant access."
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "../../../buaflow/schemas/prototype-flow.schema.json",
+  "schemaVersion": "1.0",
+  "_": "flow.json — click-through prototype จาก canvas baseline · เก็บที่ docs/design/prototype/flow.json · ลบ key ที่ขึ้นต้นด้วย _ ได้ (เป็นคำอธิบาย)",
+  "_rules": [
+    "artboard = ไฟล์ใน docs/design/canvas/ ที่ commit เป็น baseline แล้วเท่านั้น — ห้ามชี้ไปไฟล์ที่วาดเพิ่มเอง",
+    "key ของ artboards/states = '<width>' หรือ '<width>:dark' เช่น '1280', '390', '1280:dark'",
+    "hotspot 1 อัน = to | state | back อย่างใดอย่างหนึ่ง · selector ต้องเจอใน artboard (prototype จะขึ้น ⚠ ถ้าไม่เจอ)",
+    "bindings ใส่ data ลง DOM โดยไม่แตะ markup: {selector, path} แทนที่ข้อความ · {selector, attr, path} แทนที่ attribute · {selector, repeat, fields} clone แถวแรกตามจำนวน item",
+    "format: number | currency:THB | date | datetime (ใช้ locale ด้านล่าง)",
+    "data = ไฟล์ใน docs/design/prototype/data/ · ต้อง sanitize ถ้ามาจาก DB จริง · ยาวเท่าของจริงตาม brief 1.9 · ≤ 50 แถวต่อ list"
+  ],
+  "title": "<ชื่อโปรเจกต์> prototype",
+  "locale": "th-TH",
+  "start": "dashboard",
+  "screens": {
+    "dashboard": {
+      "title": "แดชบอร์ด",
+      "artboards": { "1280": "dashboard.dc.html", "390": "dashboard-mobile.dc.html", "1280:dark": "dashboard-dark.dc.html" },
+      "states": { "empty": { "1280": "dashboard-empty.dc.html", "390": "dashboard-empty-mobile.dc.html" } },
+      "data": "dashboard.json",
+      "hotspots": [
+        { "selector": "nav a[href='/orders']", "to": "orders" },
+        { "selector": ".demo-empty", "state": "empty" },
+        { "selector": ".demo-reset", "state": "default" }
+      ],
+      "bindings": [
+        { "selector": ".kpi-revenue .value", "path": "kpi.revenue", "format": "currency:THB" },
+        { "selector": ".user-avatar img", "attr": "src", "path": "user.avatar" },
+        { "selector": "table.orders tbody tr", "repeat": "orders",
+          "fields": { "td:nth-child(1)": "id", "td:nth-child(2)": "customer", "td:nth-child(3)": { "path": "amount", "format": "number" }, "td:nth-child(4)": { "path": "createdAt", "format": "date" } } }
+      ]
+    },
+    "orders": {
+      "title": "คำสั่งซื้อ",
+      "artboards": { "1280": "orders.dc.html", "390": "orders-mobile.dc.html" },
+      "hotspots": [ { "selector": ".page-back", "back": true } ]
+    }
+  }
+}

@@ -22,13 +22,39 @@ test('the plugin carries the session layer and none of the gate, and every wired
   assert.ok([...files.keys()].some((f) => f.startsWith('skills/task/')));
   assert.ok(files.has('agents/code-reviewer.md'));
   assert.ok(!files.has('agents/README.md'), 'a README in agents/ would load as an agent');
-  assert.ok(!files.has('gate.js') && ![...files.keys()].some((f) => /readiness|verifier/.test(f)), 'the gate stays committed in the project');
+  const sessionLayer = [...files.keys()].filter((f) => !f.startsWith('kit/'));
+  assert.ok(!sessionLayer.some((f) => /gate|readiness|verifier/.test(f)), 'the gate is not part of the session layer — it is installed into the project');
   const hooks = JSON.parse(files.get('hooks/hooks.json')).hooks;
   const commands = Object.values(hooks).flat().flatMap((g) => g.hooks.map((h) => h.command));
   assert.ok(commands.length >= 5);
   for (const command of commands) {
     assert.match(command, /\$\{CLAUDE_PLUGIN_ROOT\}\/hooks\//);
     assert.ok(files.has(`hooks/${command.match(/hooks\/([\w-]+\.js)/)[1]}`), command);
+  }
+});
+
+test('the plugin carries the whole kit a session needs, without examples or the kit\'s own tests', () => {
+  const { files } = build(repositoryRoot);
+  for (const rel of ['kit/START-HERE.md', 'kit/bin/buaflow.js', 'kit/package.json', 'kit/phases/07-handoff.md', 'kit/claude-setup/install.js', 'kit/claude-setup/gate.js',
+    'kit/standards/control-sets/owasp-asvs-5.0.0-l1.json', 'kit/templates/intent.tpl.md', 'kit/schemas/registry.json', 'kit/scripts/migrate-artifact.js',
+    'skills/start/SKILL.md', 'hooks/kit-context.js']) {
+    assert.ok(files.has(rel), rel);
+  }
+  const keys = [...files.keys()];
+  assert.ok(!keys.some((f) => f.startsWith('kit/reference-apps/') || f.startsWith('kit/claude-setup/tests/') || f.startsWith('kit/development/')));
+  const sessionStart = JSON.parse(files.get('hooks/hooks.json')).hooks.SessionStart[0].hooks.map((h) => h.command);
+  assert.match(sessionStart[0], /kit-context\.js/, 'the kit path is in context before anything else runs');
+});
+
+test('the kit inside the plugin runs from there: its CLI installs a project', () => {
+  const root = temporaryProject('buaflow-plugin-kit-');
+  try {
+    const r = runNode(path.join(repositoryRoot, 'claude-plugin', 'kit', 'bin', 'buaflow.js'), { args: ['install', '--plugin', '--write', '--root', root, '--json'] });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.ok(fs.existsSync(path.join(root, '.claude', 'gate.js')));
+    assert.equal(JSON.parse(fs.readFileSync(path.join(root, '.buaflow', 'lock.json'), 'utf8')).kitVersion, JSON.parse(fs.readFileSync(path.join(repositoryRoot, 'package.json'), 'utf8')).version);
+  } finally {
+    cleanup(root);
   }
 });
 

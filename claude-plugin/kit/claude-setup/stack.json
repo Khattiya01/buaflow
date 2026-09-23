@@ -1,0 +1,94 @@
+{
+  "$schema": "../buaflow/schemas/stack-config.schema.json",
+  "schemaVersion": "1.0",
+  "$comment": [
+    "stack.json — บอกสคริปต์ใน .claude/ ว่าโปรเจกต์นี้ใช้เครื่องมืออะไร",
+    "ค่าในไฟล์นี้คือค่าเริ่มต้นของ kit (JS/TS + pnpm) — ลบคีย์ไหนทิ้งก็ได้ สคริปต์จะถอยไปใช้ค่าเริ่มต้นเดิม",
+    "",
+    "ไฟล์นี้แทนที่ protected-paths.json เดิม (ยังอ่านไฟล์เก่าได้อยู่เพื่อความเข้ากันได้ — ดู UPGRADE.md)",
+    "",
+    "โปรเจกต์เดิม (โหมด EXTEND) แก้ที่นี่ที่เดียว แทนการไล่แก้ไส้สคริปต์:",
+    "  verifyCommand      คำสั่งตรวจมาตรฐานคำสั่งเดียว (env VERIFY_COMMAND ชนะไฟล์นี้)",
+    "  assuranceMode     adoption (ค่าเริ่มต้น/เข้าระบบแบบค่อยเป็นค่อยไป) | production (fail-closed ห้ามข้าม verify/scanner/R3 readiness)",
+    "  readinessLevel    ระดับที่ production gate ต้องผ่าน (ค่าเริ่มต้น R3)",
+    "  readinessManifest path ของ evidence manifest จากรากโปรเจกต์",
+    "  commands           คำสั่งรองที่ skill เรียกผ่าน `node .claude/run.js <ชื่อ>` — ไม่มีคำสั่งนั้นให้ตั้ง null",
+    "  codeFilePattern    ไฟล์ที่นับว่าเป็นโค้ด ตอนตรวจว่า rule คุ้มครองครบไหม",
+    "  formatCommands     format/lint เฉพาะไฟล์ที่เพิ่งแก้ — when: ต้องเจอไฟล์ config อย่างน้อยหนึ่งตัว",
+    "  preflightHookPath  git hook ที่เรียก gate.js (.husky/pre-push หรือ .git/hooks/pre-push)",
+    "  ciMode             required | pr-only | local-only — นาที CI มีจำกัด และบางโปรเจกต์ไม่มี remote เลย",
+    "                     local-only = pre-push เป็นด่านเดียว ต้องติดตั้งจริง ไม่ใช่แค่มีไฟล์ CI วางไว้",
+    "  auditMode          warn (ค่าเริ่มต้น: รายงานแต่ไม่บล็อก) | required (บล็อก) | off — เริ่มที่ warn กับโปรเจกต์เก่า แล้วสลับเป็น required เมื่อเคลียร์ high/critical หมด",
+    "  secretsMode        required (ค่าเริ่มต้น: เจอ secret ใน 50 commit ล่าสุดแล้วบล็อก) | warn | off — ต้องติดตั้ง gitleaks ไม่มีก็ skip",
+    "  protected          ไฟล์ที่ guard-edit.js ห้าม AI แก้",
+    "",
+    "pattern ของ protected ใช้ glob ง่าย ๆ: ** = ข้ามกี่โฟลเดอร์ก็ได้, * = ในโฟลเดอร์เดียว",
+    "reason จะถูกส่งให้ Claude อ่านตอนถูกบล็อก — ต้องบอกทางที่ถูก ไม่ใช่แค่ว่าห้าม",
+    "reason เป็นภาษาอังกฤษเพราะ Claude อ่าน ส่วน $comment เขียนให้คนอ่าน"
+  ],
+
+  "assuranceMode": "adoption",
+  "readinessLevel": "R3",
+  "readinessManifest": "docs/evidence/readiness.json",
+  "verifyCommand": null,
+  "commands": {
+    "coverage": "pnpm test:cov",
+    "audit": "pnpm audit --audit-level=high",
+    "apiTest": "pnpm test:api",
+    "secrets": "gitleaks git --no-banner --redact --log-opts=-50"
+  },
+  "auditMode": "warn",
+  "secretsMode": "required",
+  "codeFilePattern": "\\.(ts|tsx|js|jsx|prisma|sql)$",
+  "formattablePattern": "\\.(ts|tsx|js|jsx|mjs|cjs|json|css|scss|md)$",
+  "skipPattern": "(^|/)(node_modules|\\.next|dist|build|coverage)/",
+  "testFilePattern": "\\.(spec|test)\\.[jt]sx?$|(^|/)(tests?|__tests__|e2e)/",
+  "bugfixBranchPattern": "^(fix|hotfix)/",
+  "preflightHookPath": ".husky/pre-push",
+  "ciMode": "required",
+
+  "formatCommands": [
+    {
+      "id": "biome",
+      "when": ["biome.json", "biome.jsonc"],
+      "cmd": "pnpm",
+      "args": ["exec", "biome", "check", "--write", "{file}"],
+      "exclusive": true,
+      "reportOutput": false
+    },
+    {
+      "id": "prettier",
+      "when": [".prettierrc", ".prettierrc.json", "prettier.config.js", ".prettierrc.cjs"],
+      "cmd": "pnpm",
+      "args": ["exec", "prettier", "--write", "{file}"],
+      "reportOutput": false
+    },
+    {
+      "id": "eslint",
+      "when": ["eslint.config.js", "eslint.config.mjs", ".eslintrc.json", ".eslintrc.cjs"],
+      "match": "\\.(ts|tsx|js|jsx|mjs|cjs)$",
+      "cmd": "pnpm",
+      "args": ["exec", "eslint", "--fix", "{file}"],
+      "reportOutput": true
+    }
+  ],
+
+  "protected": [
+    {
+      "pattern": "**/components/ui/**",
+      "reason": "This file is under components/ui/, copied in from shadcn. Edits are routed elsewhere so customisation lives in one visible place.\nCorrect path: wrap it in components/shared/. Use the shadcn CLI only to add a component that does not exist here yet — never re-run `shadcn add` for one that does: it replaces the whole file and does not merge.\nIf this project has already customised components/ui/ (usual when adopting an existing project), this protection is wrong for it: remove the pattern from .claude/stack.json (Phase A.5)."
+    },
+    {
+      "pattern": "**/*.generated.*",
+      "reason": "This file is generated automatically; hand edits are overwritten on the next generate.\nCorrect path: change the source (schema / spec) and re-run the generator."
+    },
+    {
+      "pattern": "pnpm-lock.yaml",
+      "reason": "The lockfile changes only through pnpm (pnpm add / pnpm install). Never hand-edit it."
+    },
+    {
+      "pattern": "docs/backlog/board.md",
+      "reason": "board.md is generated from docs/backlog/tasks/*.md by node .claude/board.js. Never hand-edit it.\nCorrect path: change status:/fields in the task file, then run node .claude/board.js."
+    }
+  ]
+}

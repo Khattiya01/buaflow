@@ -31,6 +31,8 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..');
 const PLUGIN_DIR = 'claude-plugin';
 const MARKETPLACE = path.join('.claude-plugin', 'marketplace.json');
+const KIT_BUNDLE = ['package.json', 'START-HERE.md', 'QUICKSTART.md', 'CLI.md', 'UPGRADE.md', 'TROUBLESHOOTING.md', 'VERSION.md',
+  'bin', 'claude-setup', 'phases', 'standards', 'templates', 'schemas', 'packs', 'scripts/migrate-artifact.js'];
 
 function walk(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -64,8 +66,25 @@ function build(root) {
   // CLAUDE_PROJECT_DIR, so the plugin's copy still follows each project's own configuration.
   put('stack-config.js', fs.readFileSync(path.join(setup, 'stack-config.js'), 'utf8'));
 
+  // PE-008: the whole kit rides along under kit/, so nobody has to clone buaflow/ into a project.
+  // Left out on purpose: reference-apps/ (examples, not runtime), manual/ (for tools without
+  // Claude Code), core/ (the source claude-setup/ is generated from), claude-setup/tests/, and the
+  // kit's own development records.
+  for (const rel of KIT_BUNDLE) {
+    const source = path.join(root, rel);
+    const files = fs.statSync(source).isDirectory() ? walk(source) : [source];
+    for (const file of files) {
+      const inside = path.relative(root, file).replace(/\\/g, '/');
+      if (inside.startsWith('claude-setup/tests/')) continue;
+      put(path.join('kit', inside), fs.readFileSync(file, 'utf8'));
+    }
+  }
+  // Plugin-only pieces: the /buaflow:start skill and the hook that tells a session where kit/ is.
+  for (const file of walk(path.join(root, 'plugin-src'))) put(path.relative(path.join(root, 'plugin-src'), file), fs.readFileSync(file, 'utf8'));
+
   const settings = JSON.parse(fs.readFileSync(path.join(setup, 'settings.json.tpl'), 'utf8'));
   const hooks = JSON.parse(JSON.stringify(settings.hooks).split('${CLAUDE_PROJECT_DIR}/.claude/hooks/').join('${CLAUDE_PLUGIN_ROOT}/hooks/'));
+  hooks.SessionStart[0].hooks.unshift({ type: 'command', command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/kit-context.js"', timeout: 10 });
   for (const [, groups] of Object.entries(hooks)) {
     for (const group of groups) {
       for (const hook of group.hooks) {
@@ -81,18 +100,23 @@ function build(root) {
     '# buaflow — Claude Code plugin',
     '',
     '```text',
-    '/plugin marketplace add <path-or-git-url-of-the-buaflow-repository>',
+    '/plugin marketplace add Khattiya01/buaflow',
     '/plugin install buaflow@buaflow',
+    '/buaflow:start',
     '```',
     '',
-    '| Carried by the plugin | Still in the project, on purpose |',
+    'No `buaflow/` folder is needed in the project: the whole kit ships under `kit/`, and a SessionStart hook tells',
+    'each session where it is. `/buaflow:start` starts Phase 0, resumes a project, or upgrades one.',
+    '',
+    '| Carried by the plugin | Written into the project by `buaflow install --plugin --write` in Phase 7 |',
     '|---|---|',
-    '| skills (/intent /spec /plan /task /check /done /hotfix /release /ui /prototype) | `.claude/gate.js` and every checker it runs — pre-push and CI run them outside any session |',
+    '| skills (/intent /spec /plan /task /check /done /hotfix /release /ui /prototype, and /buaflow:start) | `.claude/gate.js` and every checker it runs — pre-push and CI run them outside any session |',
     '| agents (code-reviewer, legacy-explorer, test-writer) | `.claude/settings.json` permissions — a plugin cannot ship permissions |',
-    '| hooks (guard-edit, guard-bash, guard-new-component, format-changed, session-context) | `.claude/rules/*.md` — their paths are fitted to each project in Phase A.5 |',
-    '| | `.claude/stack.json` — the hooks read it from the project |',
+    '| hooks (guard-edit, guard-bash, guard-new-component, format-changed, session-context, kit-context) | `.claude/rules/*.md` — their paths are fitted to each project in Phase A.5 |',
+    '| the kit: START-HERE, phases, standards, templates, schemas, packs and the `buaflow` CLI | `.claude/stack.json` — the hooks read it from the project |',
     '',
     'Use the plugin **or** the hooks block in the project\'s `.claude/settings.json`, not both — otherwise every hook runs twice.',
+    'Teammates get the marketplace from the project\'s settings automatically; each runs `/plugin install buaflow@buaflow` once.',
     '',
   ].join('\n'));
 

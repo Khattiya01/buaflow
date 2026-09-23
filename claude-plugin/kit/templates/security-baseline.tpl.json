@@ -1,0 +1,47 @@
+{
+  "$schema": "../../../buaflow/schemas/security-baseline.schema.json",
+  "schemaVersion": "1.0",
+  "_": "threat boundary + mapping กับ control set ภายนอก (EP-003) · เก็บที่ docs/evidence/security-baseline.json · ตรวจด้วย node .claude/security-baseline.js · control ทุกข้อของ control set ที่ไม่ได้ exclude ทั้งบท ต้องมีคำตอบ · not-met ต้องชี้ไป exception ที่มีอยู่จริงใน requirement-coverage.json · met ด้วย manual ล้วนไม่นับ",
+  "project": "<ชื่อโปรเจกต์>",
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "controlSet": "owasp-asvs-5.0.0-l1",
+  "excludedChapters": [
+    {
+      "chapter": "V10",
+      "reason": "<ทำไมทั้งบทนี้ใช้กับแอปนี้ไม่ได้เลย อย่างน้อย 20 ตัวอักษร ไม่ใช่ 'ยังไม่ได้ทำ'>"
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "TB-001",
+      "name": "<ชื่อเขตแดน เช่น HTTP API>",
+      "untrusted": "<อะไรที่ไม่เชื่อถือ และเข้ามาทางไหน>",
+      "trusted": "<อะไรอยู่ด้านในและไม่ตรวจซ้ำอีกแล้ว>",
+      "assets": ["<ของมีค่าที่อยู่หลังเขตแดนนี้>"],
+      "entryPoints": [{ "type": "file", "value": "<ไฟล์ที่รับ request>" }],
+      "enforcedBy": [{ "type": "file", "value": "<ไฟล์ที่บังคับกฎ>" }]
+    }
+  ],
+  "controls": [
+    {
+      "id": "V8.2.2",
+      "status": "met",
+      "evidence": [
+        { "type": "file", "value": "<ไฟล์ที่บังคับ control ข้อนี้>" },
+        { "type": "command", "value": "<คำสั่งที่พิสูจน์ซ้ำได้>" }
+      ],
+      "note": "<อธิบายสั้น ๆ ว่ากลไกคืออะไร ไม่บังคับ>"
+    },
+    {
+      "id": "V3.4.1",
+      "status": "not-met",
+      "exception": "REQ-101",
+      "note": "<ไม่ผ่านตรงไหน — ความเสี่ยงที่ยอมรับไว้อยู่ใน requirement-coverage.json ตาม id นี้>"
+    },
+    {
+      "id": "V4.4.1",
+      "status": "not-applicable",
+      "rationale": "<ทำไม control ข้อนี้ใช้กับแอปนี้ไม่ได้ อย่างน้อย 20 ตัวอักษร>"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../buaflow/schemas/failure-record.schema.json",
+  "schemaVersion": "1.0",
+  "_": "failure record หนึ่งใบ (EV-003) · เก็บที่ docs/evidence/failures/F-00x.json · ดูหมวดทั้งหมด: node .claude/failure-taxonomy.js --list · class ที่ไม่มีอยู่จริงจะถูกปฏิเสธ · detectedBy ตอบว่า 'ไม่มีอะไรจับได้' ได้ และนั่นคือคำตอบที่มีค่าที่สุด เพราะมันชี้ช่องที่ยังว่าง",
+  "id": "F-001",
+  "class": "<class-id จาก --list>",
+  "summary": "<เกิดอะไรขึ้นจริง อย่างน้อย 20 ตัวอักษร ไม่ใช่ชื่อหมวดซ้ำ>",
+  "where": "<ไฟล์ commit decision หรือ work item ที่ตรวจกลับได้>",
+  "detectedBy": "<อะไรจับได้ — test, gate, CI, review, ผู้ใช้ หรือ 'ไม่มีอะไรจับได้'>",
+  "severity": "medium",
+  "escaped": false,
+  "preventedNextTimeBy": "<gate/test/สัญญาที่เพิ่มเข้ามาเพื่อกันรอบหน้า ถ้ายังไม่มีให้ตัดฟิลด์นี้ออก>",
+  "occurredAt": "2026-01-01"
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "../../buaflow/schemas/product-graph.schema.json",
+  "schemaVersion": "1.0",
+  "_": "product-graph.json — ผลลัพธ์ของ Intent Compiler แปลง idea เป็นโครงสร้างเดียว · เก็บที่ docs/planning/product-graph.json · ลบ key ที่ขึ้นต้นด้วย _ ได้ (เป็นคำอธิบาย)",
+  "_rules": [
+    "id ทุกอันเป็น lowercase-kebab-case (^[a-z][a-z0-9-]+$) และไม่ซ้ำกันข้ามหมวด — หมวดอื่นอ้างกลับมาด้วย id นี้",
+    "capabilities[].actors / capabilities[].outcomes / rules[].appliesTo อ้าง id ของ actors/outcomes/capabilities อื่นในไฟล์เดียวกัน",
+    "แต่ละหมวดเว้นว่างได้ (idea ช่วงแรกอาจยังไม่รู้ risk หรือ NFR) แต่ห้ามลบ key หมวดออก — validator ต้องการ array แม้จะว่าง",
+    "human-readable view: node .claude/product-graph.js สร้าง Markdown จากไฟล์นี้โดยไม่ตัดข้อมูลทิ้ง (ตรวจอัตโนมัติทุกครั้งที่ generate)"
+  ],
+  "product": "<ชื่อโปรเจกต์>",
+  "summary": "<สรุป idea 1-3 บรรทัด>",
+  "actors": [
+    { "id": "customer", "name": "ลูกค้า", "type": "person", "description": "คนที่สั่งซื้อสินค้าในระบบ" }
+  ],
+  "outcomes": [
+    { "id": "faster-checkout", "statement": "ลูกค้าจ่ายเงินสำเร็จภายใน 2 นาที", "metric": "checkout completion time p95 < 2m" }
+  ],
+  "capabilities": [
+    { "id": "checkout", "name": "Checkout", "description": "รวบตะกร้าและชำระเงิน", "actors": ["customer"], "outcomes": ["faster-checkout"] }
+  ],
+  "rules": [
+    { "id": "one-active-cart", "statement": "ลูกค้าหนึ่งคนมีตะกร้าที่ active ได้ครั้งละ 1 ใบ", "appliesTo": ["checkout"] }
+  ],
+  "entities": [
+    {
+      "id": "order",
+      "name": "Order",
+      "description": "คำสั่งซื้อหนึ่งรายการ",
+      "attributes": [
+        { "name": "id", "type": "string" },
+        { "name": "total", "type": "number", "description": "ยอดรวมหลังส่วนลด" }
+      ]
+    }
+  ],
+  "integrations": [
+    { "id": "payment-gateway", "name": "Payment gateway", "direction": "outbound", "description": "เรียกเก็บเงินจากลูกค้า" }
+  ],
+  "nonFunctionalRequirements": [
+    { "id": "checkout-latency", "category": "performance", "statement": "Checkout API ต้องตอบสนองเร็ว", "target": "p95 < 300ms" }
+  ],
+  "assumptions": [
+    { "id": "single-currency", "statement": "ราคาสินค้าทั้งหมดเป็นสกุลเงินเดียว (THB)", "confidence": "high" }
+  ],
+  "risks": [
+    { "id": "gateway-outage", "statement": "Payment gateway ล่มระหว่าง checkout", "impact": "high", "likelihood": "low", "mitigation": "คิวคำสั่งซื้อไว้แล้ว retry" }
+  ],
+  "exclusions": [
+    { "id": "no-subscriptions", "statement": "ระบบสมัครสมาชิกแบบ recurring ไม่อยู่ในขอบเขต v1" }
+  ]
+}

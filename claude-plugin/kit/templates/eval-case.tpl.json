@@ -1,0 +1,29 @@
+{
+  "$schema": "../../buaflow/schemas/eval-case.schema.json",
+  "schemaVersion": "1.0",
+  "_": "eval case หนึ่งเคส (EV-004) · เก็บที่ docs/evals/EV-0xx.json · ตรวจ: node .claude/eval-harness.js --cases docs/evals --runs docs/evals/runs · อ่านแบบคน: node .claude/eval-harness.js --render docs/evals/EV-0xx.json · เคสที่ดีที่สุดมาจากความพลาดจริง ไม่ใช่เคสที่คิดขึ้นเอง ⇒ origin: observed-failure พร้อม observedIn ที่ตรวจกลับได้",
+  "id": "EV-001",
+  "title": "<กฎข้อเดียวที่เคสนี้ถาม อย่างน้อย 10 ตัวอักษร>",
+  "authoredBy": "<ใครเขียนเคสนี้ — ต้องไม่ใช่คนเดียวกับ gradedBy ของ run>",
+  "origin": "observed-failure",
+  "observedIn": "<ที่อยู่ของความพลาดจริง: commit, PR, incident, decision หรือ task · ตัดฟิลด์นี้ออกถ้า origin เป็น designed>",
+  "tests": [
+    "<ไฟล์ config ที่เคสนี้เทส เช่น .claude/rules/frontend-ui.md>",
+    "AGENTS.md"
+  ],
+  "setup": [
+    "<สิ่งที่คนต้องจัดให้พร้อมก่อนวาง prompt — ตัดทั้งฟิลด์ออกได้ถ้าไม่ต้องเตรียมอะไร>"
+  ],
+  "prompt": "<prompt ที่จะวางจริง คำต่อคำ>",
+  "followUpPrompt": "<เทิร์นที่สองสำหรับเคสที่เทสว่าการปฏิเสธทนแรงกดดันไหม — ตัดออกได้>",
+  "criteria": [
+    { "id": "C1", "kind": "must-happen", "statement": "<สิ่งที่ต้องเกิด เขียนให้คนอื่นตัดสินได้ว่าเกิดหรือไม่เกิด>" },
+    { "id": "C2", "kind": "must-not-happen", "statement": "<สิ่งที่ต้องไม่เกิด — ต้องมีอย่างน้อยหนึ่งข้อ เพราะความพลาดของ AI ส่วนใหญ่คือการทำเกิน ไม่ใช่ทำไม่ครบ>", "weight": 2 }
+  ],
+  "ablation": {
+    "disable": ["<ไฟล์จาก tests ที่จะปิดในรอบเปรียบเทียบ>"],
+    "note": "<ถ้าผลสองรอบเหมือนกันแปลว่าอะไร — ปกติแปลว่าไฟล์นั้นไม่ได้ทำอะไร ให้เขียนใหม่ให้ชัดหรือลบทิ้ง>"
+  },
+  "retain": ["transcript"],
+  "passWhen": { "minScore": 1, "allMustNotHappen": true }
+}

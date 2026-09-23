@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/failure-record-v1.json",
+  "title": "Buaflow failure record v1",
+  "description": "One failure that actually happened, classified against the taxonomy in claude-setup/failure-taxonomy.js. The field that carries the most value is detectedBy: it says which gate earned its keep and which gap is still open. 'nothing caught it' is a valid answer and the most useful one.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "class", "summary", "where", "detectedBy", "severity"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "_": { "type": "string" },
+    "id": { "type": "string", "pattern": "^F-[0-9]{3,}$" },
+    "class": { "type": "string", "pattern": "^[a-z][a-z0-9-]+$" },
+    "summary": { "type": "string", "minLength": 20 },
+    "where": { "type": "string", "minLength": 1 },
+    "detectedBy": { "type": "string", "minLength": 1 },
+    "severity": { "enum": ["low", "medium", "high"] },
+    "escaped": { "type": "boolean" },
+    "preventedNextTimeBy": { "type": "string", "minLength": 1 },
+    "occurredAt": { "type": "string", "format": "date" }
+  },
+  "additionalProperties": false
+}

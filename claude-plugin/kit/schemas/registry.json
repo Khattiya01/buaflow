@@ -1,0 +1,217 @@
+{
+  "$schema": "./registry.schema.json",
+  "schemaVersion": "1.0",
+  "artifacts": [
+    {
+      "type": "stack-config",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/stack-config.schema.json",
+      "paths": [
+        ".claude/stack.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "readiness-manifest",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/readiness-manifest.schema.json",
+      "paths": [
+        "docs/evidence/readiness.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "prototype-flow",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/prototype-flow.schema.json",
+      "paths": [
+        "docs/design/prototype/flow.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "pixel-config",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/pixel-config.schema.json",
+      "paths": [
+        "docs/design/pixel.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "project-manifest",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/project-manifest.schema.json",
+      "paths": [
+        ".buaflow/project.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "product-graph",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/product-graph.schema.json",
+      "paths": [
+        "docs/planning/product-graph.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "application-profile",
+      "classification": "public",
+      "latestVersion": "1.1",
+      "schema": "schemas/application-profile.schema.json",
+      "paths": [
+        ".claude/profiles/*.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "pack",
+      "classification": "public",
+      "latestVersion": "2.0",
+      "schema": "schemas/pack.schema.json",
+      "paths": [
+        "packs/*.json",
+        ".claude/packs/*.json"
+      ],
+      "migration": "manual"
+    },
+    {
+      "type": "evidence-bundle",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/evidence-bundle.schema.json",
+      "paths": [
+        "docs/evidence/bundle.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "product-development-state",
+      "classification": "internal",
+      "latestVersion": "1.0",
+      "schema": "development/state.schema.json",
+      "paths": [
+        "development/state.json"
+      ],
+      "migration": "manual"
+    },
+    {
+      "type": "failure-record",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/failure-record.schema.json",
+      "paths": [
+        "docs/evidence/failures/*.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "requirement-coverage",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/requirement-coverage.schema.json",
+      "paths": [
+        "docs/evidence/requirement-coverage.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "assumption-ledger",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/assumption-ledger.schema.json",
+      "paths": [
+        "docs/evidence/assumptions.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "security-baseline",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/security-baseline.schema.json",
+      "paths": [
+        "docs/evidence/security-baseline.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "control-set",
+      "classification": "internal",
+      "latestVersion": "1.0",
+      "schema": "schemas/control-set.schema.json",
+      "paths": [
+        "standards/control-sets/*.json"
+      ],
+      "migration": "manual"
+    },
+    {
+      "type": "supply-chain",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/supply-chain.schema.json",
+      "paths": [
+        "docs/evidence/supply-chain.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "operational-readiness",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/operational-readiness.schema.json",
+      "paths": [
+        "docs/evidence/operational-readiness.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "budget-evidence",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/budget-evidence.schema.json",
+      "paths": [
+        "docs/evidence/budgets.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "eval-case",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/eval-case.schema.json",
+      "paths": [
+        "docs/evals/*.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "eval-run",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/eval-run.schema.json",
+      "paths": [
+        "docs/evals/runs/*.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "change-proposal",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/change-proposal.schema.json",
+      "paths": [
+        "docs/evidence/changes/CP-*.json"
+      ],
+      "migration": "supported"
+    }
+  ]
+}

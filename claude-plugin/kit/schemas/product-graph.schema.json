@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/product-graph-v1.json",
+  "title": "Buaflow product graph v1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "product",
+    "actors",
+    "outcomes",
+    "capabilities",
+    "rules",
+    "entities",
+    "integrations",
+    "nonFunctionalRequirements",
+    "assumptions",
+    "risks",
+    "exclusions"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "_": { "type": "string" },
+    "_rules": { "type": "array", "items": { "type": "string" } },
+    "product": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string" },
+    "actors": { "type": "array", "items": { "$ref": "#/$defs/actor" } },
+    "outcomes": { "type": "array", "items": { "$ref": "#/$defs/outcome" } },
+    "capabilities": { "type": "array", "items": { "$ref": "#/$defs/capability" } },
+    "rules": { "type": "array", "items": { "$ref": "#/$defs/rule" } },
+    "entities": { "type": "array", "items": { "$ref": "#/$defs/entity" } },
+    "integrations": { "type": "array", "items": { "$ref": "#/$defs/integration" } },
+    "nonFunctionalRequirements": { "type": "array", "items": { "$ref": "#/$defs/nonFunctionalRequirement" } },
+    "assumptions": { "type": "array", "items": { "$ref": "#/$defs/assumption" } },
+    "risks": { "type": "array", "items": { "$ref": "#/$defs/risk" } },
+    "exclusions": { "type": "array", "items": { "$ref": "#/$defs/exclusion" } }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]+$" },
+    "idRef": { "type": "string", "pattern": "^[a-z][a-z0-9-]+$" },
+    "actor": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["person", "system", "org"] },
+        "description": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "outcome": {
+      "type": "object",
+      "required": ["id", "statement"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "statement": { "type": "string", "minLength": 1 },
+        "metric": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "capability": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "actors": { "type": "array", "items": { "$ref": "#/$defs/idRef" } },
+        "outcomes": { "type": "array", "items": { "$ref": "#/$defs/idRef" } }
+      },
+      "additionalProperties": false
+    },
+    "rule": {
+      "type": "object",
+      "required": ["id", "statement"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "statement": { "type": "string", "minLength": 1 },
+        "appliesTo": { "type": "array", "items": { "$ref": "#/$defs/idRef" } }
+      },
+      "additionalProperties": false
+    },
+    "entityAttribute": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "entity": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "attributes": { "type": "array", "items": { "$ref": "#/$defs/entityAttribute" } }
+      },
+      "additionalProperties": false
+    },
+    "integration": {
+      "type": "object",
+      "required": ["id", "name", "direction"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "direction": { "enum": ["inbound", "outbound", "bidirectional"] },
+        "description": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "nonFunctionalRequirement": {
+      "type": "object",
+      "required": ["id", "category", "statement"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "category": {
+          "enum": ["performance", "security", "availability", "compliance", "usability", "cost", "maintainability", "other"]
+        },
+        "statement": { "type": "string", "minLength": 1 },
+        "target": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "assumption": {
+      "type": "object",
+      "required": ["id", "statement"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "statement": { "type": "string", "minLength": 1 },
+        "confidence": { "enum": ["low", "medium", "high"] }
+      },
+      "additionalProperties": false
+    },
+    "risk": {
+      "type": "object",
+      "required": ["id", "statement", "impact", "likelihood"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "statement": { "type": "string", "minLength": 1 },
+        "impact": { "enum": ["low", "medium", "high"] },
+        "likelihood": { "enum": ["low", "medium", "high"] },
+        "mitigation": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "exclusion": {
+      "type": "object",
+      "required": ["id", "statement"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "statement": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  }
+}

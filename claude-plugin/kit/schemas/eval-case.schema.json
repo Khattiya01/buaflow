@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/eval-case-v1.json",
+  "title": "Buaflow eval case v1",
+  "description": "One reproducible eval case (EV-004). A case is a question asked of a configuration — AGENTS.md, rules, skills, hooks — not of a model. Every criterion carries a stable id so a run can name exactly what it judged, and so editing the case invalidates the runs that claimed to have passed it. `tests` names the configuration surface under test; `ablation` is the round with that surface switched off, which is the only way to learn whether the file does anything at all.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "title", "authoredBy", "origin", "tests", "prompt", "criteria", "passWhen"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "_": { "type": "string" },
+    "id": { "type": "string", "pattern": "^EV-[0-9]{3,}$" },
+    "title": { "type": "string", "minLength": 10 },
+    "authoredBy": {
+      "type": "string",
+      "minLength": 3,
+      "description": "Who wrote this case. Compared against a run's gradedBy: the author of a case cannot be its grader."
+    },
+    "origin": {
+      "enum": ["observed-failure", "designed"],
+      "description": "observed-failure means this case exists because the mistake really happened here; designed means it was written from reasoning. The README says the first kind is worth more, and recording which is which is what lets that claim be checked later."
+    },
+    "observedIn": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Required when origin is observed-failure: where the real mistake is recorded (commit, decision, work item, incident)."
+    },
+    "tests": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Configuration files this case exercises, as repository-relative paths. Checked for existence, so a case cannot silently outlive the rule it was written for."
+    },
+    "setup": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Preconditions a human must arrange before pasting the prompt."
+    },
+    "prompt": { "type": "string", "minLength": 10 },
+    "followUpPrompt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A second turn, used by cases that test whether a refusal survives pressure."
+    },
+    "criteria": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "statement"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^C[0-9]{1,2}$" },
+          "kind": { "enum": ["must-happen", "must-not-happen"] },
+          "statement": { "type": "string", "minLength": 10 },
+          "weight": { "type": "number", "exclusiveMinimum": 0, "default": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "ablation": {
+      "type": "object",
+      "required": ["disable", "note"],
+      "properties": {
+        "disable": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Paths to switch off for the comparison round. Must be a subset of `tests`."
+        },
+        "note": { "type": "string", "minLength": 10 }
+      },
+      "additionalProperties": false
+    },
+    "retain": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Artifact names every run of this case must keep, e.g. transcript. A run that cites none of them cannot pass."
+    },
+    "passWhen": {
+      "type": "object",
+      "required": ["minScore"],
+      "properties": {
+        "minScore": { "type": "number", "minimum": 0, "maximum": 1 },
+        "allMustNotHappen": {
+          "type": "boolean",
+          "default": true,
+          "description": "When true (the default), any must-not-happen criterion that failed fails the case whatever the score is. A case that tolerates the forbidden thing has to say so out loud."
+        }
+      },
+      "additionalProperties": false
+    },
+    "retired": {
+      "type": "object",
+      "required": ["on", "reason"],
+      "properties": {
+        "on": { "type": "string", "format": "date" },
+        "reason": { "type": "string", "minLength": 10 }
+      },
+      "additionalProperties": false,
+      "description": "A case that has stopped separating good behaviour from bad is retired rather than deleted, so the record of what it once caught survives."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,615 @@
+{
+  "$schema": "../../schemas/control-set.schema.json",
+  "schemaVersion": "1.0",
+  "_": "สำเนา OWASP ASVS 5.0.0 เฉพาะ Level 1 ดึงจากต้นทางที่ระบุด้านล่าง ไม่ได้เขียนขึ้นเอง · sha256 ของแต่ละบทคือไฟล์ต้นฉบับที่ใช้สร้างรายการนี้ ตรวจย้อนได้",
+  "id": "owasp-asvs-5.0.0-l1",
+  "name": "OWASP Application Security Verification Standard",
+  "version": "5.0.0",
+  "level": 1,
+  "reference": "https://owasp.org/www-project-application-security-verification-standard/",
+  "source": "https://github.com/OWASP/ASVS/tree/v5.0.0/5.0/en",
+  "retrievedAt": "2026-09-23",
+  "chapters": [
+    {
+      "id": "V1",
+      "title": "Encoding and Sanitization",
+      "sha256": "8c0e36a42c3cbf711e2579eb68e1fea8090f52301cac7c400d7c392207b24ee7",
+      "sections": [
+        {
+          "id": "V1.2",
+          "title": "Injection Prevention",
+          "requirements": [
+            {
+              "id": "V1.2.1",
+              "text": "Verify that output encoding for an HTTP response, HTML document, or XML document is relevant for the context required, such as encoding the relevant characters for HTML elements, HTML attributes, HTML comments, CSS, or HTTP header fields, to avoid changing the message or document structure."
+            },
+            {
+              "id": "V1.2.2",
+              "text": "Verify that when dynamically building URLs, untrusted data is encoded according to its context (e.g., URL encoding or base64url encoding for query or path parameters). Ensure that only safe URL protocols are permitted (e.g., disallow javascript: or data:)."
+            },
+            {
+              "id": "V1.2.3",
+              "text": "Verify that output encoding or escaping is used when dynamically building JavaScript content (including JSON), to avoid changing the message or document structure (to avoid JavaScript and JSON injection)."
+            },
+            {
+              "id": "V1.2.4",
+              "text": "Verify that data selection or database queries (e.g., SQL, HQL, NoSQL, Cypher) use parameterized queries, ORMs, entity frameworks, or are otherwise protected from SQL Injection and other database injection attacks. This is also relevant when writing stored procedures."
+            },
+            {
+              "id": "V1.2.5",
+              "text": "Verify that the application protects against OS command injection and that operating system calls use parameterized OS queries or use contextual command line output encoding."
+            }
+          ]
+        },
+        {
+          "id": "V1.3",
+          "title": "Sanitization",
+          "requirements": [
+            {
+              "id": "V1.3.1",
+              "text": "Verify that all untrusted HTML input from WYSIWYG editors or similar is sanitized using a well-known and secure HTML sanitization library or framework feature."
+            },
+            {
+              "id": "V1.3.2",
+              "text": "Verify that the application avoids the use of eval() or other dynamic code execution features such as Spring Expression Language (SpEL). Where there is no alternative, any user input being included must be sanitized before being executed."
+            }
+          ]
+        },
+        {
+          "id": "V1.5",
+          "title": "Safe Deserialization",
+          "requirements": [
+            {
+              "id": "V1.5.1",
+              "text": "Verify that the application configures XML parsers to use a restrictive configuration and that unsafe features such as resolving external entities are disabled to prevent XML eXternal Entity (XXE) attacks."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V2",
+      "title": "Validation and Business Logic",
+      "sha256": "70ad0f68df22ddd825c2837e74999fa026851e75a3128372307685e2bb526969",
+      "sections": [
+        {
+          "id": "V2.1",
+          "title": "Validation and Business Logic Documentation",
+          "requirements": [
+            {
+              "id": "V2.1.1",
+              "text": "Verify that the application's documentation defines input validation rules for how to check the validity of data items against an expected structure. This could be common data formats such as credit card numbers, email addresses, telephone numbers, or it could be an internal data format."
+            }
+          ]
+        },
+        {
+          "id": "V2.2",
+          "title": "Input Validation",
+          "requirements": [
+            {
+              "id": "V2.2.1",
+              "text": "Verify that input is validated to enforce business or functional expectations for that input. This should either use positive validation against an allow list of values, patterns, and ranges, or be based on comparing the input to an expected structure and logical limits according to predefined rules. For L1, this can focus on input which is used to make specific business or security decisions. For L2 and up, this should apply to all input."
+            },
+            {
+              "id": "V2.2.2",
+              "text": "Verify that the application is designed to enforce input validation at a trusted service layer. While client-side validation improves usability and should be encouraged, it must not be relied upon as a security control."
+            }
+          ]
+        },
+        {
+          "id": "V2.3",
+          "title": "Business Logic Security",
+          "requirements": [
+            {
+              "id": "V2.3.1",
+              "text": "Verify that the application will only process business logic flows for the same user in the expected sequential step order and without skipping steps."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V3",
+      "title": "Web Frontend Security",
+      "sha256": "02de197d5aa55592cfa524e66d4aa15bd3e8955e23e76438ac413c94172488fc",
+      "sections": [
+        {
+          "id": "V3.2",
+          "title": "Unintended Content Interpretation",
+          "requirements": [
+            {
+              "id": "V3.2.1",
+              "text": "Verify that security controls are in place to prevent browsers from rendering content or functionality in HTTP responses in an incorrect context (e.g., when an API, a user-uploaded file or other resource is requested directly). Possible controls could include: not serving the content unless HTTP request header fields (such as Sec-Fetch-\\*) indicate it is the correct context, using the sandbox directive of the Content-Security-Policy header field or using the attachment disposition type in the Content-Disposition header field."
+            },
+            {
+              "id": "V3.2.2",
+              "text": "Verify that content intended to be displayed as text, rather than rendered as HTML, is handled using safe rendering functions (such as createTextNode or textContent) to prevent unintended execution of content such as HTML or JavaScript."
+            }
+          ]
+        },
+        {
+          "id": "V3.3",
+          "title": "Cookie Setup",
+          "requirements": [
+            {
+              "id": "V3.3.1",
+              "text": "Verify that cookies have the 'Secure' attribute set, and if the '\\__Host-' prefix is not used for the cookie name, the '__Secure-' prefix must be used for the cookie name."
+            }
+          ]
+        },
+        {
+          "id": "V3.4",
+          "title": "Browser Security Mechanism Headers",
+          "requirements": [
+            {
+              "id": "V3.4.1",
+              "text": "Verify that a Strict-Transport-Security header field is included on all responses to enforce an HTTP Strict Transport Security (HSTS) policy. A maximum age of at least 1 year must be defined, and for L2 and up, the policy must apply to all subdomains as well."
+            },
+            {
+              "id": "V3.4.2",
+              "text": "Verify that the Cross-Origin Resource Sharing (CORS) Access-Control-Allow-Origin header field is a fixed value by the application, or if the Origin HTTP request header field value is used, it is validated against an allowlist of trusted origins. When 'Access-Control-Allow-Origin: *' needs to be used, verify that the response does not include any sensitive information."
+            }
+          ]
+        },
+        {
+          "id": "V3.5",
+          "title": "Browser Origin Separation",
+          "requirements": [
+            {
+              "id": "V3.5.1",
+              "text": "Verify that, if the application does not rely on the CORS preflight mechanism to prevent disallowed cross-origin requests to use sensitive functionality, these requests are validated to ensure they originate from the application itself. This may be done by using and validating anti-forgery tokens or requiring extra HTTP header fields that are not CORS-safelisted request-header fields. This is to defend against browser-based request forgery attacks, commonly known as cross-site request forgery (CSRF)."
+            },
+            {
+              "id": "V3.5.2",
+              "text": "Verify that, if the application relies on the CORS preflight mechanism to prevent disallowed cross-origin use of sensitive functionality, it is not possible to call the functionality with a request which does not trigger a CORS-preflight request. This may require checking the values of the 'Origin' and 'Content-Type' request header fields or using an extra header field that is not a CORS-safelisted header-field."
+            },
+            {
+              "id": "V3.5.3",
+              "text": "Verify that HTTP requests to sensitive functionality use appropriate HTTP methods such as POST, PUT, PATCH, or DELETE, and not methods defined by the HTTP specification as \"safe\" such as HEAD, OPTIONS, or GET. Alternatively, strict validation of the Sec-Fetch-* request header fields can be used to ensure that the request did not originate from an inappropriate cross-origin call, a navigation request, or a resource load (such as an image source) where this is not expected."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V4",
+      "title": "API and Web Service",
+      "sha256": "efcadbf5ad78fb977c96d3d30e9a1d02aaafd4d787112a529ac82788a990406b",
+      "sections": [
+        {
+          "id": "V4.1",
+          "title": "Generic Web Service Security",
+          "requirements": [
+            {
+              "id": "V4.1.1",
+              "text": "Verify that every HTTP response with a message body contains a Content-Type header field that matches the actual content of the response, including the charset parameter to specify safe character encoding (e.g., UTF-8, ISO-8859-1) according to IANA Media Types, such as \"text/\", \"/+xml\" and \"/xml\"."
+            }
+          ]
+        },
+        {
+          "id": "V4.4",
+          "title": "WebSocket",
+          "requirements": [
+            {
+              "id": "V4.4.1",
+              "text": "Verify that WebSocket over TLS (WSS) is used for all WebSocket connections."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V5",
+      "title": "File Handling",
+      "sha256": "079a51123e5156a5ffc6329f266d49752cb60f6b780899484c3f1cfde3734ebb",
+      "sections": [
+        {
+          "id": "V5.2",
+          "title": "File Upload and Content",
+          "requirements": [
+            {
+              "id": "V5.2.1",
+              "text": "Verify that the application will only accept files of a size which it can process without causing a loss of performance or a denial of service attack."
+            },
+            {
+              "id": "V5.2.2",
+              "text": "Verify that when the application accepts a file, either on its own or within an archive such as a zip file, it checks if the file extension matches an expected file extension and validates that the contents correspond to the type represented by the extension. This includes, but is not limited to, checking the initial 'magic bytes', performing image re-writing, and using specialized libraries for file content validation. For L1, this can focus just on files which are used to make specific business or security decisions. For L2 and up, this must apply to all files being accepted."
+            }
+          ]
+        },
+        {
+          "id": "V5.3",
+          "title": "File Storage",
+          "requirements": [
+            {
+              "id": "V5.3.1",
+              "text": "Verify that files uploaded or generated by untrusted input and stored in a public folder, are not executed as server-side program code when accessed directly with an HTTP request."
+            },
+            {
+              "id": "V5.3.2",
+              "text": "Verify that when the application creates file paths for file operations, instead of user-submitted filenames, it uses internally generated or trusted data, or if user-submitted filenames or file metadata must be used, strict validation and sanitization must be applied. This is to protect against path traversal, local or remote file inclusion (LFI, RFI), and server-side request forgery (SSRF) attacks."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V6",
+      "title": "Authentication",
+      "sha256": "e1e0aaa15e48f7941560176d28eeb11ad3b9b4f9d323437c0e950b3a16cd2b23",
+      "sections": [
+        {
+          "id": "V6.1",
+          "title": "Authentication Documentation",
+          "requirements": [
+            {
+              "id": "V6.1.1",
+              "text": "Verify that application documentation defines how controls such as rate limiting, anti-automation, and adaptive response, are used to defend against attacks such as credential stuffing and password brute force. The documentation must make clear how these controls are configured and prevent malicious account lockout."
+            }
+          ]
+        },
+        {
+          "id": "V6.2",
+          "title": "Password Security",
+          "requirements": [
+            {
+              "id": "V6.2.1",
+              "text": "Verify that user set passwords are at least 8 characters in length although a minimum of 15 characters is strongly recommended."
+            },
+            {
+              "id": "V6.2.2",
+              "text": "Verify that users can change their password."
+            },
+            {
+              "id": "V6.2.3",
+              "text": "Verify that password change functionality requires the user's current and new password."
+            },
+            {
+              "id": "V6.2.4",
+              "text": "Verify that passwords submitted during account registration or password change are checked against an available set of, at least, the top 3000 passwords which match the application's password policy, e.g. minimum length."
+            },
+            {
+              "id": "V6.2.5",
+              "text": "Verify that passwords of any composition can be used, without rules limiting the type of characters permitted. There must be no requirement for a minimum number of upper or lower case characters, numbers, or special characters."
+            },
+            {
+              "id": "V6.2.6",
+              "text": "Verify that password input fields use type=password to mask the entry. Applications may allow the user to temporarily view the entire masked password, or the last typed character of the password."
+            },
+            {
+              "id": "V6.2.7",
+              "text": "Verify that \"paste\" functionality, browser password helpers, and external password managers are permitted."
+            },
+            {
+              "id": "V6.2.8",
+              "text": "Verify that the application verifies the user's password exactly as received from the user, without any modifications such as truncation or case transformation."
+            }
+          ]
+        },
+        {
+          "id": "V6.3",
+          "title": "General Authentication Security",
+          "requirements": [
+            {
+              "id": "V6.3.1",
+              "text": "Verify that controls to prevent attacks such as credential stuffing and password brute force are implemented according to the application's security documentation."
+            },
+            {
+              "id": "V6.3.2",
+              "text": "Verify that default user accounts (e.g., \"root\", \"admin\", or \"sa\") are not present in the application or are disabled."
+            }
+          ]
+        },
+        {
+          "id": "V6.4",
+          "title": "Authentication Factor Lifecycle and Recovery",
+          "requirements": [
+            {
+              "id": "V6.4.1",
+              "text": "Verify that system generated initial passwords or activation codes are securely randomly generated, follow the existing password policy, and expire after a short period of time or after they are initially used. These initial secrets must not be permitted to become the long term password."
+            },
+            {
+              "id": "V6.4.2",
+              "text": "Verify that password hints or knowledge-based authentication (so-called \"secret questions\") are not present."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V7",
+      "title": "Session Management",
+      "sha256": "4aec329f2642ae750fbe1abac5da7e8a7bcfec6fc331bb0a46916970f9c88236",
+      "sections": [
+        {
+          "id": "V7.2",
+          "title": "Fundamental Session Management Security",
+          "requirements": [
+            {
+              "id": "V7.2.1",
+              "text": "Verify that the application performs all session token verification using a trusted, backend service."
+            },
+            {
+              "id": "V7.2.2",
+              "text": "Verify that the application uses either self-contained or reference tokens that are dynamically generated for session management, i.e. not using static API secrets and keys."
+            },
+            {
+              "id": "V7.2.3",
+              "text": "Verify that if reference tokens are used to represent user sessions, they are unique and generated using a cryptographically secure pseudo-random number generator (CSPRNG) and possess at least 128 bits of entropy."
+            },
+            {
+              "id": "V7.2.4",
+              "text": "Verify that the application generates a new session token on user authentication, including re-authentication, and terminates the current session token."
+            }
+          ]
+        },
+        {
+          "id": "V7.4",
+          "title": "Session Termination",
+          "requirements": [
+            {
+              "id": "V7.4.1",
+              "text": "Verify that when session termination is triggered (such as logout or expiration), the application disallows any further use of the session. For reference tokens or stateful sessions, this means invalidating the session data at the application backend. Applications using self-contained tokens will need a solution such as maintaining a list of terminated tokens, disallowing tokens produced before a per-user date and time or rotating a per-user signing key."
+            },
+            {
+              "id": "V7.4.2",
+              "text": "Verify that the application terminates all active sessions when a user account is disabled or deleted (such as an employee leaving the company)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V8",
+      "title": "Authorization",
+      "sha256": "60c188b1703cab2086841d8f1b4adc0ededf66ed38c676a11bb92347646b5330",
+      "sections": [
+        {
+          "id": "V8.1",
+          "title": "Authorization Documentation",
+          "requirements": [
+            {
+              "id": "V8.1.1",
+              "text": "Verify that authorization documentation defines rules for restricting function-level and data-specific access based on consumer permissions and resource attributes."
+            }
+          ]
+        },
+        {
+          "id": "V8.2",
+          "title": "General Authorization Design",
+          "requirements": [
+            {
+              "id": "V8.2.1",
+              "text": "Verify that the application ensures that function-level access is restricted to consumers with explicit permissions."
+            },
+            {
+              "id": "V8.2.2",
+              "text": "Verify that the application ensures that data-specific access is restricted to consumers with explicit permissions to specific data items to mitigate insecure direct object reference (IDOR) and broken object level authorization (BOLA)."
+            }
+          ]
+        },
+        {
+          "id": "V8.3",
+          "title": "Operation Level Authorization",
+          "requirements": [
+            {
+              "id": "V8.3.1",
+              "text": "Verify that the application enforces authorization rules at a trusted service layer and doesn't rely on controls that an untrusted consumer could manipulate, such as client-side JavaScript."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V9",
+      "title": "Self-contained Tokens",
+      "sha256": "5f14e09fb67892e805ad386959eb3a8bafca03271dbb502ccf7323e82b3f812c",
+      "sections": [
+        {
+          "id": "V9.1",
+          "title": "Token source and integrity",
+          "requirements": [
+            {
+              "id": "V9.1.1",
+              "text": "Verify that self-contained tokens are validated using their digital signature or MAC to protect against tampering before accepting the token's contents."
+            },
+            {
+              "id": "V9.1.2",
+              "text": "Verify that only algorithms on an allowlist can be used to create and verify self-contained tokens, for a given context. The allowlist must include the permitted algorithms, ideally only either symmetric or asymmetric algorithms, and must not include the 'None' algorithm. If both symmetric and asymmetric must be supported, additional controls will be needed to prevent key confusion."
+            },
+            {
+              "id": "V9.1.3",
+              "text": "Verify that key material that is used to validate self-contained tokens is from trusted pre-configured sources for the token issuer, preventing attackers from specifying untrusted sources and keys. For JWTs and other JWS structures, headers such as 'jku', 'x5u', and 'jwk' must be validated against an allowlist of trusted sources."
+            }
+          ]
+        },
+        {
+          "id": "V9.2",
+          "title": "Token content",
+          "requirements": [
+            {
+              "id": "V9.2.1",
+              "text": "Verify that, if a validity time span is present in the token data, the token and its content are accepted only if the verification time is within this validity time span. For example, for JWTs, the claims 'nbf' and 'exp' must be verified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V10",
+      "title": "OAuth and OIDC",
+      "sha256": "2da443986ba40987bd0908bbd7da2372ab0d777701cc590f4eb0fdad6ae804ed",
+      "sections": [
+        {
+          "id": "V10.4",
+          "title": "OAuth Authorization Server",
+          "requirements": [
+            {
+              "id": "V10.4.1",
+              "text": "Verify that the authorization server validates redirect URIs based on a client-specific allowlist of pre-registered URIs using exact string comparison."
+            },
+            {
+              "id": "V10.4.2",
+              "text": "Verify that, if the authorization server returns the authorization code in the authorization response, it can be used only once for a token request. For the second valid request with an authorization code that has already been used to issue an access token, the authorization server must reject a token request and revoke any issued tokens related to the authorization code."
+            },
+            {
+              "id": "V10.4.3",
+              "text": "Verify that the authorization code is short-lived. The maximum lifetime can be up to 10 minutes for L1 and L2 applications and up to 1 minute for L3 applications."
+            },
+            {
+              "id": "V10.4.4",
+              "text": "Verify that for a given client, the authorization server only allows the usage of grants that this client needs to use. Note that the grants 'token' (Implicit flow) and 'password' (Resource Owner Password Credentials flow) must no longer be used."
+            },
+            {
+              "id": "V10.4.5",
+              "text": "Verify that the authorization server mitigates refresh token replay attacks for public clients, preferably using sender-constrained refresh tokens, i.e., Demonstrating Proof of Possession (DPoP) or Certificate-Bound Access Tokens using mutual TLS (mTLS). For L1 and L2 applications, refresh token rotation may be used. If refresh token rotation is used, the authorization server must invalidate the refresh token after usage, and revoke all refresh tokens for that authorization if an already used and invalidated refresh token is provided."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V11",
+      "title": "Cryptography",
+      "sha256": "a64f3f2dc6f53565dfba66e40fd336b50eab6cdb530c2791f62db8b58202bacf",
+      "sections": [
+        {
+          "id": "V11.3",
+          "title": "Encryption Algorithms",
+          "requirements": [
+            {
+              "id": "V11.3.1",
+              "text": "Verify that insecure block modes (e.g., ECB) and weak padding schemes (e.g., PKCS#1 v1.5) are not used."
+            },
+            {
+              "id": "V11.3.2",
+              "text": "Verify that only approved ciphers and modes such as AES with GCM are used."
+            }
+          ]
+        },
+        {
+          "id": "V11.4",
+          "title": "Hashing and Hash-based Functions",
+          "requirements": [
+            {
+              "id": "V11.4.1",
+              "text": "Verify that only approved hash functions are used for general cryptographic use cases, including digital signatures, HMAC, KDF, and random bit generation. Disallowed hash functions, such as MD5, must not be used for any cryptographic purpose."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V12",
+      "title": "Secure Communication",
+      "sha256": "62f7737e74172d3d2177bd838c1bc44461d0a70c37cfd09d9e4669252b480775",
+      "sections": [
+        {
+          "id": "V12.1",
+          "title": "General TLS Security Guidance",
+          "requirements": [
+            {
+              "id": "V12.1.1",
+              "text": "Verify that only the latest recommended versions of the TLS protocol are enabled, such as TLS 1.2 and TLS 1.3. The latest version of the TLS protocol must be the preferred option."
+            }
+          ]
+        },
+        {
+          "id": "V12.2",
+          "title": "HTTPS Communication with External Facing Services",
+          "requirements": [
+            {
+              "id": "V12.2.1",
+              "text": "Verify that TLS is used for all connectivity between a client and external facing, HTTP-based services, and does not fall back to insecure or unencrypted communications."
+            },
+            {
+              "id": "V12.2.2",
+              "text": "Verify that external facing services use publicly trusted TLS certificates."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V13",
+      "title": "Configuration",
+      "sha256": "f66ef1306eba07e04fcd0f23b52d082747f1b4fba0a19934167fb35507afba6d",
+      "sections": [
+        {
+          "id": "V13.4",
+          "title": "Unintended Information Leakage",
+          "requirements": [
+            {
+              "id": "V13.4.1",
+              "text": "Verify that the application is deployed either without any source control metadata, including the .git or .svn folders, or in a way that these folders are inaccessible both externally and to the application itself."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V14",
+      "title": "Data Protection",
+      "sha256": "a9ba33b7c77379fed0f27fd019945e10fa143c63b8c4e4783b7cf587c9f56039",
+      "sections": [
+        {
+          "id": "V14.2",
+          "title": "General Data Protection",
+          "requirements": [
+            {
+              "id": "V14.2.1",
+              "text": "Verify that sensitive data is only sent to the server in the HTTP message body or header fields, and that the URL and query string do not contain sensitive information, such as an API key or session token."
+            }
+          ]
+        },
+        {
+          "id": "V14.3",
+          "title": "Client-side Data Protection",
+          "requirements": [
+            {
+              "id": "V14.3.1",
+              "text": "Verify that authenticated data is cleared from client storage, such as the browser DOM, after the client or session is terminated. The 'Clear-Site-Data' HTTP response header field may be able to help with this but the client-side should also be able to clear up if the server connection is not available when the session is terminated."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V15",
+      "title": "Secure Coding and Architecture",
+      "sha256": "4c068e82b157159e9ab7099daecb40af4c2642ad791751f791a26785dead6b22",
+      "sections": [
+        {
+          "id": "V15.1",
+          "title": "Secure Coding and Architecture Documentation",
+          "requirements": [
+            {
+              "id": "V15.1.1",
+              "text": "Verify that application documentation defines risk based remediation time frames for 3rd party component versions with vulnerabilities and for updating libraries in general, to minimize the risk from these components."
+            }
+          ]
+        },
+        {
+          "id": "V15.2",
+          "title": "Security Architecture and Dependencies",
+          "requirements": [
+            {
+              "id": "V15.2.1",
+              "text": "Verify that the application only contains components which have not breached the documented update and remediation time frames."
+            }
+          ]
+        },
+        {
+          "id": "V15.3",
+          "title": "Defensive Coding",
+          "requirements": [
+            {
+              "id": "V15.3.1",
+              "text": "Verify that the application only returns the required subset of fields from a data object. For example, it should not return an entire data object, as some individual fields should not be accessible to users."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

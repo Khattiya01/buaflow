@@ -1,0 +1,16 @@
+{
+  "$schema": "../../../buaflow/schemas/change-proposal.schema.json",
+  "schemaVersion": "1.0",
+  "_": "การแก้ config ของ AI หนึ่งครั้ง จากหลักฐานถึงผล eval (EV-006) · เก็บที่ docs/evidence/changes/CP-0xx.json · ตรวจ: node .claude/change-proposal.js --dir docs/evidence/changes · rollout ได้เมื่อ run หลังแก้ของทุกเคสใน expect ผ่านที่ revision ปัจจุบัน และไม่มีเคสที่เคยผ่านแล้วตก",
+  "id": "CP-001",
+  "title": "<แก้อะไร เพราะอะไร ในประโยคเดียว>",
+  "evidence": ["<ไฟล์หลักฐาน เช่น docs/evidence/failures/F-003.json หรือ docs/evals/runs/EV-004-2026-01-01.json>"],
+  "change": {
+    "files": ["AGENTS.md"],
+    "summary": "<เปลี่ยนอะไรในไฟล์เหล่านั้น>"
+  },
+  "expect": { "cases": ["EV-004"] },
+  "before": ["<run ก่อนแก้ เช่น docs/evals/runs/EV-004-2026-01-01.json>"],
+  "after": [],
+  "decision": "pending"
+}

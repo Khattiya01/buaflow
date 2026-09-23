@@ -7,7 +7,7 @@
 <p><strong>Plan อย่างมีหลักฐาน · Build อย่างมีขอบเขต · ตัดสินความพร้อมด้วยเครื่อง · คนเป็นผู้อนุมัติ</strong></p>
 
 <p>
-  <img alt="Buaflow version 3.11.1" src="https://img.shields.io/badge/version-3.11.1-e85aad?style=for-the-badge">
+  <img alt="Buaflow version 3.12.0" src="https://img.shields.io/badge/version-3.12.0-e85aad?style=for-the-badge">
   <img alt="Claude Code" src="https://img.shields.io/badge/Claude_Code-plugin_%2B_kit-D97757?style=for-the-badge">
   <img alt="Readiness R0 to R4" src="https://img.shields.io/badge/readiness-R0–R4-2563EB?style=for-the-badge">
   <img alt="Zero dependencies" src="https://img.shields.io/badge/node_22-zero_dependencies-16A34A?style=for-the-badge">
@@ -48,7 +48,7 @@ AI เขียนโค้ดได้เร็วและเก่งขึ�
 v2.x คือ **SDLC workflow สำหรับทำงานกับ AI** — phase, skill, rule, hook และ gate · v3.x เก็บทั้งหมดนั้นไว้
 แล้วเพิ่มคำตอบของคำถามที่ v2 ตอบไม่ได้: **"แล้วตอนนี้พร้อมส่งมอบหรือยัง"**
 
-| | v2.3.4 | v3.11.1 |
+| | v2.3.4 | v3.12.0 |
 |---|---|---|
 | เป้าหมาย | ทำงานกับ AI อย่างมีระเบียบ | ส่งมอบแอปที่พิสูจน์ความพร้อมได้ถึง R3 |
 | "เสร็จแล้ว" | verify + gate ผ่าน | + readiness manifest ที่ผูกกับ commit และถูก verifier ตรวจซ้ำ |
@@ -56,7 +56,7 @@ v2.x คือ **SDLC workflow สำหรับทำงานกับ AI** �
 | หลักฐาน | prose ในเอกสาร | JSON ที่มี schema + ตัวตรวจ: requirement/exception, security (OWASP ASVS), supply chain, restore ที่ซ้อมจริง, budget |
 | วัดผล config ของ AI | eval แบบ Markdown ที่คนกรอกผลเอง | eval harness ที่ตรึงเวอร์ชันเคส และคนเขียนเคสตรวจเคสตัวเองไม่ได้ |
 | CI | ต้องมี hosted CI | `buaflow ci` — gate จาก clean checkout บนเครื่องตัวเอง ใช้เป็นหลักฐาน R2 ได้ |
-| ติดตั้ง | คัดลอก `claude-setup/` | + Claude Code plugin, `buaflow lock` บอกว่าไฟล์ไหนเก่า/ถูกแก้ |
+| ติดตั้ง | clone โฟลเดอร์ แล้ว AI คัดลอก `claude-setup/` ทีละไฟล์ | Claude Code plugin ที่มี kit ทั้งชุด + `/buaflow:start` · `buaflow install` วางของที่ต้องอยู่ในโปรเจกต์ โดยไม่ทับไฟล์ที่ทีมแก้เอง |
 | พิสูจน์ด้วยอะไร | — | reference app 3 ตัวผ่าน R3 ใน clean environment + trial บนโปรเจกต์จริงที่ kit ไม่ได้เขียน |
 
 อัปเกรดจากรุ่นไหนก็ได้ในรอบเดียว → [UPGRADE.md](UPGRADE.md#fast-path) · รายละเอียดทุกรุ่น → [VERSION.md](VERSION.md)
@@ -70,7 +70,7 @@ v2.x คือ **SDLC workflow สำหรับทำงานกับ AI** �
 | **Lifecycle** | Phase 0–8 + Phase A | พาโปรเจกต์ใหม่จากโจทย์ไปถึง scaffold หรือรับช่วงโปรเจกต์เดิม |
 | **Skills** | 10 | workflow ตั้งแต่ `/intent` ถึง `/release` |
 | **Rules / Hooks / Subagents** | 6 / 5 / 3 | กฎตามชนิดไฟล์ · guardrail นอกบทสนทนา · review/test/สำรวจ legacy แยก context |
-| **CLI (`buaflow`)** | 19 คำสั่ง | `assess`, `ci`, `benchmark`, `audit`, `lock` และตัวตรวจหลักฐานทุกชนิด — ใช้ได้จาก terminal, hook และ CI |
+| **CLI (`buaflow`)** | 20 คำสั่ง | `assess`, `ci`, `benchmark`, `audit`, `install`, `lock` และตัวตรวจหลักฐานทุกชนิด — ใช้ได้จาก terminal, hook และ CI |
 | **Readiness** | R0–R4 · 28 control | ระดับความพร้อมที่ตัดสินจากหลักฐาน ไม่ใช่จากความรู้สึก |
 | **Schemas** | 21 ชนิด | สัญญาของ artifact ที่เครื่องอ่าน พร้อม registry และ migration |
 | **Stack packs** | 3 + 2 capability | recipe + assertion ที่ผูกกับ reference app ที่พิสูจน์มันจริง |
@@ -161,60 +161,51 @@ flowchart LR
 > ทุกขั้นพร้อม output จริง [examples/worked-sample.md](examples/worked-sample.md)
 
 **สิ่งที่ต้องมี:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) · Git · Node.js **22+**
-(kit ไม่มี dependency — ไม่ต้อง `npm install`) · วาง repository นี้ไว้ใน root ของโปรเจกต์เป็น `buaflow/`
+(kit ไม่มี dependency — ไม่ต้อง `npm install`)
+
+### ทางแนะนำ: plugin — ไม่ต้อง clone อะไร
+
+เปิด Claude Code ที่ root ของโปรเจกต์ แล้วพิมพ์:
+
+```text
+/plugin marketplace add Khattiya01/buaflow
+/plugin install buaflow@buaflow
+/buaflow:start
+```
+
+`/buaflow:start` ดูสถานะของโปรเจกต์เองแล้วเลือกทางเดียวที่ตรง:
+
+| โปรเจกต์ | สิ่งที่เกิดขึ้น |
+|---|---|
+| ใหม่ หรือ rebuild | Phase 0 → ถามโหมด แหล่ง design และชื่อโปรเจกต์ แล้วไปทีละ Phase หยุดทุกครั้งที่จบ |
+| มีโค้ดอยู่แล้ว | รัน `doctor` + `assess` บอกระดับ R ปัจจุบันก่อน แล้วเข้า [Phase A](phases/A-adopt-existing.md) **โดยไม่แก้โค้ดโปรดักชัน** |
+| ติดตั้ง Buaflow แล้ว | ทำต่อจากที่ค้าง · ถ้าติดตั้งรุ่นเก่าไว้ พาทำ [ทางลัดอัปเกรด](UPGRADE.md#fast-path) |
+
+plugin ถือ kit ทั้งชุด (START-HERE, phases, standards, templates, CLI) พร้อม skills, agents และ hooks · ถึง Phase 7 มันรัน
+`buaflow install --plugin --write` วาง **gate และตัวตรวจลง `.claude/` ของโปรเจกต์** เพราะ pre-push และ CI รันนอก Claude
+บนเครื่องที่ไม่มี plugin · ส่วน permission, rules และ `stack.json` ก็อยู่ในโปรเจกต์เพราะปรับตามโปรเจกต์ ·
+เพื่อนร่วมทีมแต่ละคนรัน `/plugin install buaflow@buaflow` ครั้งเดียว (marketplace ถูกเพิ่มให้จาก settings ของโปรเจกต์)
+— [claude-plugin/README.md](claude-plugin/README.md)
+
+### อีกทาง: วางโฟลเดอร์ `buaflow/` ในโปรเจกต์
 
 ```text
 your-project/
-├── buaflow/       ← repository นี้
+├── buaflow/       ← git clone repository นี้
 ├── src/           ← โค้ดของโปรเจกต์ (ถ้ามี)
 └── ...
 ```
-
-### 1) โปรเจกต์ใหม่ หรือ rebuild
-
-เปิด Claude Code ที่ root ของโปรเจกต์ แล้วพิมพ์:
 
 ```text
 อ่าน buaflow/START-HERE.md แล้วทำตาม เริ่ม Phase 0
 ```
 
-Claude จะถามโหมด แหล่ง design path อ้างอิง และชื่อโปรเจกต์ บันทึกลง `docs/planning/_state.md` แล้วหยุดรอ
-ทำทีละ Phase และหยุดทุกครั้งที่จบ เพื่อให้คุณแก้ทิศได้ก่อน context จะพาไปไกล
-
-### 2) มีโค้ดอยู่แล้ว
-
-ถามระดับก่อน ไม่ต้องติดตั้งอะไร:
-
-```bash
-node buaflow/bin/buaflow.js doctor
-node buaflow/bin/buaflow.js assess
-```
-
-แล้วใช้ prompt เดียวกับข้อ 1 ตอบโหมดเป็น `EXTEND` — ระบบพาเข้า [Phase A](phases/A-adopt-existing.md)
-สำรวจของเดิม ตั้ง baseline verify และสร้างกติกาแบบ "ของใหม่ / ของเก่า" **โดยไม่แก้โค้ดโปรดักชัน**
-
-### 3) ใช้ Buaflow เวอร์ชันเก่าอยู่แล้ว
-
-วางโฟลเดอร์เวอร์ชันใหม่ทับ `buaflow/` เดิม แล้วพิมพ์:
-
-```text
-อ่าน buaflow/UPGRADE.md แล้วทำตาม
-```
-
-planning, ADR, spec และ task เดิมอยู่ครบ ไม่ต้องเริ่ม Phase ใหม่ · จาก v2.3.4 ขึ้นไปทำ
-[ทางลัดรอบเดียว](UPGRADE.md#fast-path) ได้
-
-### (ทางเลือก) ติดตั้งส่วนที่อยู่ใน session เป็น plugin
-
-```text
-/plugin marketplace add <path หรือ git URL ของ repository นี้>
-/plugin install buaflow@buaflow
-```
-
-ได้ skills, agents และ hooks ในคำสั่งเดียว · gate กับตัวตรวจยังอยู่ใน `.claude/` ของโปรเจกต์ เพราะ pre-push และ CI
-รันนอก session และ plugin ส่ง permission ไม่ได้ — ดู [claude-plugin/README.md](claude-plugin/README.md)
+มีโค้ดอยู่แล้ว → รัน `node buaflow/bin/buaflow.js assess` ก่อนเพื่อรู้ระดับ R แล้วตอบโหมดเป็น `EXTEND` ·
+ใช้รุ่นเก่าอยู่ → วางเวอร์ชันใหม่ทับแล้วพิมพ์ `อ่าน buaflow/UPGRADE.md แล้วทำตาม` (planning, ADR, spec, task เดิมอยู่ครบ)
 
 ### กลับมาทำต่อใน session ใหม่
+
+`/buaflow:start` (plugin) หรือ:
 
 ```bash
 node buaflow/bin/buaflow.js resume
@@ -397,7 +388,7 @@ buaflow/
 ├── README.md  QUICKSTART.md  START-HERE.md  CLI.md
 ├── UPGRADE.md  VERSION.md  TROUBLESHOOTING.md
 │
-├── bin/buaflow.js                    CLI: init / doctor / assess / ci / benchmark / audit / lock / resume / …
+├── bin/buaflow.js                    CLI: init / doctor / assess / ci / benchmark / audit / install / lock / resume / …
 ├── phases/                           Phase 1–8 + A (prompt ของแต่ละ phase)
 ├── standards/                        readiness, deployment contract, security, supply chain, operations,
 │                                     budgets, benchmark, release policy, failure taxonomy และมาตรฐานรายวัน
@@ -413,8 +404,9 @@ buaflow/
 │   ├── supply-chain.js  operational-readiness.js  budgets.js  eval-harness.js
 │   ├── assumption-ledger.js  change-proposal.js  convergence.js  change-impact.js
 │   ├── prototype.js  pixel.js
-│   └── assess.js  local-ci.js  benchmark.js  intake.js  kit-lock.js   ← รันจาก kit ไม่ต้องคัดลอก
-├── claude-plugin/                    Claude Code plugin (generate จาก claude-setup/)
+│   └── assess.js  local-ci.js  benchmark.js  intake.js  kit-lock.js  install.js   ← รันจาก kit ไม่ต้องคัดลอก
+├── claude-plugin/                    Claude Code plugin + kit ทั้งชุดใต้ kit/ (generate — ห้ามแก้มือ)
+├── plugin-src/                       ของที่มีเฉพาะใน plugin: /buaflow:start และ hook kit-context
 ├── manual/                           playbook สำหรับเครื่องมือที่ไม่มี session features
 ├── packs/                            stack + capability packs (recipe + assertion)
 ├── reference-apps/                   แอป 3 ตัวที่พิสูจน์ R3 + matrix.json
@@ -480,10 +472,12 @@ Buaflow ประกอบแนวคิดเหล่านี้เป็น
 
 <h3 align="center">พร้อมเริ่มแล้ว?</h3>
 
-<p align="center">เปิด Claude Code ที่ root ของโปรเจกต์ แล้วส่งประโยคนี้:</p>
+<p align="center">เปิด Claude Code ที่ root ของโปรเจกต์ แล้วพิมพ์:</p>
 
 ```text
-อ่าน buaflow/START-HERE.md แล้วทำตาม เริ่ม Phase 0
+/plugin marketplace add Khattiya01/buaflow
+/plugin install buaflow@buaflow
+/buaflow:start
 ```
 
 <p align="center"><strong>Let AI build. Prove everything. Let humans decide what matters.</strong> 🌸</p>

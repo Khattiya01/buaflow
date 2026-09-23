@@ -1,0 +1,20 @@
+{
+  "$schema": "../../buaflow/schemas/pixel-config.schema.json",
+  "schemaVersion": "1.0",
+  "$comment": [
+    "docs/design/pixel.json — บอก .claude/pixel.js ว่าหน้าไหนต้องเทียบกับ canvas baseline ไหน",
+    "key ของ artboards = '<width>' หรือ '<width>:dark' · ไฟล์อยู่ใน docs/design/canvas/ (เหมือน prototype flow.json)",
+    "maxDiffPercent = % พิกเซลที่ต่างได้ทั้งหน้า · หน้าที่มี deviation ที่ตกลงไว้ให้ตั้งรายหน้า ไม่ใช่ขยายค่ากลาง",
+    "pixelmatchThreshold = ความไวต่อสี (0-1) · ฟอนต์ต่าง OS จะมี anti-aliasing ต่างกัน ถ้าเจอ diff ที่ขอบตัวอักษรเต็มไปหมดให้เพิ่มค่านี้ก่อน",
+    "เกณฑ์เป็น % ของพื้นที่ทั้งหน้า — ส่วนที่เล็ก (ปุ่ม, icon) อาจต่ำกว่าเกณฑ์แต่ผิดสี ให้ตั้งเกณฑ์ให้เข้มพอ (เช่น 0.05-0.1) แล้วใช้ deviation ครอบเฉพาะที่ตกลง"
+  ],
+  "baseUrl": "http://localhost:3000",
+  "maxDiffPercent": 0.1,
+  "pixelmatchThreshold": 0.1,
+  "pages": {
+    "dashboard": {
+      "path": "/dashboard",
+      "artboards": { "1280": "dashboard.dc.html", "390": "dashboard-mobile.dc.html", "1280:dark": "dashboard-dark.dc.html" }
+    }
+  }
+}

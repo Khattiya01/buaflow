@@ -4,7 +4,7 @@
   "product": "buaflow",
   "updatedAt": "2026-09-24",
   "current": {
-    "milestone": "M6",
+    "milestone": "M9",
     "focus": []
   },
   "workItems": [
@@ -1966,6 +1966,37 @@
       "artifacts": [],
       "verification": [],
       "notes": "Dropped by D-026. Dependency ordering, concurrency and conflict avoidance between agents are planning, which is what the model and Claude Code's own orchestration improve at fastest. A kit scheduler would be the kind of machinery D-011 says the AI should own; Buaflow keeps the part it owns — proving the merged result."
+    },
+    {
+      "id": "PE-008",
+      "title": "Plugin-first adoption: the whole kit ships in the plugin",
+      "milestone": "M9",
+      "status": "done",
+      "startedAt": "2026-09-24",
+      "completedAt": "2026-09-24",
+      "dependsOn": [
+        "PE-001",
+        "PE-002"
+      ],
+      "acceptance": [
+        "A project can adopt Buaflow with the plugin alone: no buaflow/ folder is cloned, and START-HERE, the phases and the CLI are read and run from the plugin",
+        "The project-side controls (gate, checkers, control sets, seeds) are installed by one command that never overwrites a file the team changed",
+        "A project whose session layer comes from the plugin passes check-config, and doctor warns when the plugin is enabled but nothing guards a push outside the session"
+      ],
+      "artifacts": [
+        "claude-setup/install.js",
+        "plugin-src/hooks/kit-context.js",
+        "plugin-src/skills/start/SKILL.md",
+        "scripts/generate-claude-plugin.js",
+        "claude-plugin/kit/",
+        "claude-setup/tests/install.test.js"
+      ],
+      "verification": [
+        "npm run check",
+        "claude plugin validate --strict claude-plugin",
+        "claude plugin install buaflow@buaflow into a throwaway CLAUDE_CONFIG_DIR, then run the cached kit-context hook and the cached CLI install"
+      ],
+      "notes": "Opened from the user's question on 2026-09-24: why install the plugin and still clone the folder. 3.11 plugin carried only skills/agents/hooks; everything the phases read and the CLI lived in the folder. The plugin now carries kit/ (192 files, ~1.7 MB; reference-apps, manual, core and the kit tests left out) and a SessionStart hook that states the kit path, because the Claude Code docs guarantee ${CLAUDE_PLUGIN_ROOT} substitution in hook commands but not in skill text. The plugin cache is plain files with no .git, so install detects an old kit file through the lock it writes rather than kit history. Verified by a real install into a throwaway config: the cache held kit/, the hook reported the cached path, and the cached CLI installed a project. What the plugin still cannot do, and the docs say so: install itself for teammates (the marketplace is added from project settings, the plugin is not), and carry permissions, rules or stack.json."
     }
   ],
   "decisions": [
@@ -2150,12 +2181,19 @@
       "decision": "BC-001, BC-002 and BC-003 are dropped and M8 (Parallel Build) closes without work. With nothing left open, current.focus is empty and current.milestone stays at M6, the last milestone that closed with work; check-roadmap.js now allows an empty focus only when no item is open.",
       "reason": "The user asked whether a much stronger Claude Code would handle parallel agents by itself, and to drop the items if so. It largely does already: worktree isolation is native, and subagents, workflows and agent teams split and schedule work — planning is where models improve fastest. Under D-011 the AI builds and Buaflow proves, and the proof for parallel work already exists: the pre-push gate and buaflow ci verify the merged result from a clean checkout. The same reasoning dropped PP-008/009 in D-025.",
       "impact": "The roadmap has no open work items. MT-003/004 remain parked until the user asks. New work starts as a fresh item written from a real need (a failure seen in a real project, or a user request), not from this plan."
+    },
+    {
+      "id": "D-027",
+      "date": "2026-09-24",
+      "decision": "Buaflow is adopted plugin-first (PE-008, kit 3.12.0): the plugin carries the whole kit and /buaflow:start, and buaflow install writes what must live in the project. The buaflow/ folder route stays supported.",
+      "reason": "The user asked why the plugin still needed the folder, and whether the parts a plugin cannot carry reduce effectiveness. They do not when they are written into the project in Phase 7, which is what install does deterministically; they do when a project stops at the plugin, which doctor and check-config now report. Same D-011 line: Claude Code owns installation of the session layer, Buaflow keeps the gate that runs without it.",
+      "impact": "README, QUICKSTART, UPGRADE, START-HERE, Phase 6/7 and CLI.md lead with the plugin. The UPGRADE fast path is two commands. Milestone M9 holds PE-008 and is complete."
     }
   ],
   "lastSession": {
     "date": "2026-09-24",
-    "summary": "M5 and M6 closed. EV-009 finished under D-024: R2 10/10 through a local clean-checkout CI (buaflow ci), R1->R2 measured at ~0.4 work-hours, and reviewer-minutes measured by an AI-proxy reviewer on seven real Bluepeak Hub tasks (median 1 min, 57% first-pass, owner accepted the risk). Kit went 3.8.1 -> 3.11.1: local CI; IC-002..005 (question budget, intake, assumption ledger, EARS + trace); EV-006 change proposals checked against evals; EV-001 reference matrix; MT-007 manual playbooks for tools without session features; BC-007 repair-loop budget; M6 Claude-only — Buaflow as a validated Claude Code plugin with checksums and a trust tier, buaflow lock, permission and MCP audits. Seventeen findings from the outside trial are recorded; all kit-side ones are fixed. Suite 390+/390+.",
-    "next": "No open items. D-025 dropped M7 (domain packs) and D-026 dropped M8 (parallel build) — the model and Claude Code own those; Buaflow keeps proving the result. Parked until asked: MT-003/004. Open in Bluepeak Hub: T-012 (needs a session allowed to edit .claude/); merging buaflow/phase-a-adoption is the owner's call. New work should come from a failure seen in a real project.",
+    "summary": "D-025/D-026 dropped M7 (domain packs) and M8 (parallel build). Docs rewritten for 3.x. Then PE-008 (kit 3.12.0): the plugin carries the whole kit under kit/, /buaflow:start starts, resumes or upgrades a project, buaflow install writes the gate and checkers into .claude/ without overwriting team changes, and check-config/doctor understand plugin mode. Also fixed CHECKSUMS ordering that made GitHub Actions fail on Linux. Suite 406/406.",
+    "next": "No open items. Parked until asked: MT-003/004. Open in Bluepeak Hub: T-012 (needs a session allowed to edit .claude/); merging buaflow/phase-a-adoption is the owner's call. Worth doing on the next real adoption: take the plugin route end to end and record what /buaflow:start gets wrong — PE-008 was verified by a throwaway install, not by a real project.",
     "verifiedAt": "2026-09-23T17:29:11.223Z"
   }
 }
