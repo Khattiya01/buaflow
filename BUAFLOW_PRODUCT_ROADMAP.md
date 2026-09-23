@@ -154,7 +154,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | PP-003 | Web golden stack #1 | เช่น Next.js + PostgreSQL พร้อม R3 reference app |
 | PP-004 | API/web golden stack #2 | เช่น React + FastAPI + PostgreSQL พร้อม R3 reference app |
 | PP-005 | Mobile golden stack | Expo หรือ Flutter + API + sync/offline contract |
-| PP-006 | Capability pack contract | dependency, config, secrets, migrations, tests, threat notes, operations |
+| ~~PP-006~~ | ~~Capability pack contract~~ | **dropped (D-013)** — PP-002 รวม stack/capability เป็นสัญญาเดียวตั้งแต่แรก และ PP-010 เขียนใหม่เป็น v2 แล้ว ไม่มีสัญญาแยกให้เขียนอีก |
 | PP-007 | Core capability packs | auth, RBAC/ownership, DB, storage, notification, background jobs, audit log |
 | PP-008 | Commercial capability packs | payment, subscription, search, analytics, AI/RAG, i18n |
 | PP-009 | Thailand packs | PDPA, PromptPay/payment providers, LINE integration, Thai localization |
@@ -189,14 +189,14 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | ID | งาน | ผลลัพธ์ |
 |---|---|---|
 | EP-001 | Evidence bundle format | `readiness.json` + report index + immutable run metadata |
-| EP-002 | Requirement coverage | ทุก accepted requirement ชี้ proof หรือ approved exception |
-| EP-003 | Security baseline | ASVS mapping, secret/dependency/code scan, threat boundaries |
-| EP-004 | Supply-chain evidence | lockfile, SBOM, licenses, build provenance, checksums |
-| EP-005 | Operational readiness | health, logs/metrics/traces, runbook, backup/restore, incident hooks |
-| EP-006 | Migration/rollback qualification | forward/backward test และ rollback rehearsal evidence |
-| EP-007 | Performance/accessibility budgets | profile-specific threshold และ repeatable command |
-| EP-008 | Deployable handoff | image/package/manifests/config contract; clean-environment rehearsal |
-| EP-009 | R3 qualification gate | fail-closed decision และ human-readable report จาก machine state |
+| EP-002 | Requirement coverage | **เหลือเฉพาะ approved exception** (owner/reason/risk/expiry ที่หมดอายุแล้วทำให้ gate ตก) — ส่วน coverage เสร็จแล้วผ่าน requirements-traceability + docs-lint + DV-002 |
+| EP-003 | Security baseline | **เหลือเฉพาะ ASVS mapping + threat boundary ที่เป็น artifact** — ส่วน scan เสร็จและถูกบังคับใน production gate แล้ว |
+| EP-004 | Supply-chain evidence | **เหลือ licenses + provenance + checksums** — lockfile และ SBOM (CycloneDX จริงทั้ง 3 แอป) เสร็จแล้ว · evidence/ci-run.json จาก EP-011 เป็นฐานของ provenance ได้เลย |
+| EP-005 | Operational readiness | **เหลือ restore rehearsal + incident hooks ที่เป็นสัญญา** — health/logs/runbook เสร็จและถูกบังคับที่ R3 แล้ว · ลอกแบบจาก EP-006 ได้ |
+| EP-006 | Migration/rollback qualification | ✅ **done (บันทึกย้อนหลังที่ D-013)** — ส่งมอบใน PP-003 และขยายผลโดย PP-004/PP-005 |
+| EP-007 | Performance/accessibility budgets | **เหลือเฉพาะ threshold ที่มาจาก profile** — การวัดเสร็จแล้ว แต่ application-profile.schema.json ยังไม่มี threshold เลย ทุก budget จึงเป็นเลขที่แต่ละแอปเลือกเอง |
+| EP-008 | Deployable handoff | ✅ **done (บันทึกย้อนหลังที่ D-013)** — ขอบเขตที่ rehearsal ประกาศไว้เองคือ docker build/boot จากศูนย์ ไม่ใช่ fresh git clone ส่วนที่เหลือเป็นของ EV-009 |
+| EP-009 | R3 qualification gate | ✅ **done (บันทึกย้อนหลังที่ D-013)** — BF-005 (fail-closed) + readiness.js + EP-001 (report) ครอบไว้ครบแล้ว |
 | EP-011 | หลักฐานที่เครื่องตรวจได้สำหรับ control พื้นฐาน | ทุก control ต้องมี artifact ที่ตรวจได้จาก repository เอง ไม่ใช่มีแค่คำสั่งหรือ URL ที่ต้องเชื่อ |
 | EP-010 | Evidence freshness | control `evidence-freshness` + scheduled re-verify — หลักฐานที่เก่าเกินหน้าต่างที่ประกาศไว้ หรือผูกกับ commit ที่ไม่ใช่บรรพบุรุษของ HEAD จะเป็น `expired` ไม่ใช่ `pass` |
 
@@ -208,8 +208,8 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | MT-002 | Claude adapter | skills/hooks/settings จาก core เดียวกัน |
 | MT-003 | Codex adapter | AGENTS/skills/automation จาก core เดียวกัน |
 | MT-004 | Copilot/Kiro adapters | instruction/spec/hook mapping พร้อม capability matrix |
-| MT-005 | Model capability registry | context, tool use, cost, latency, structured-output capability |
-| MT-006 | Eval-driven model routing | เลือก model ตามงานและ benchmark ไม่ใช่ชื่อค่าย |
+| ~~MT-005~~ | ~~Model capability registry~~ | **dropped (D-013)** — ตารางที่ค่ายโมเดลทำให้ผิดเองทุกเดือน และผิดแบบเงียบ ๆ ความต้องการที่ทนเวลาคือ MT-007 |
+| ~~MT-006~~ | ~~Eval-driven model routing~~ | **dropped (D-013)** — ต้องมี EV-004 และ EV-009 ก่อน ไม่งั้นคือเลือกโมเดลจากตัวเลขที่ reference app ของเราเองผลิต · เปิดใหม่ได้เมื่อมีข้อมูลจริง |
 | MT-007 | Graceful degradation | ไม่มี MCP/agent feature บางตัวแล้วยังทำงานแบบ manual/serial ได้ |
 
 ### Plugin and MCP Ecosystem
@@ -232,7 +232,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | EV-002 | Production-Qualified App benchmark | วัด functional + engineering + operations ไม่ใช่ screenshot อย่างเดียว |
 | EV-003 | Failure taxonomy | spec, implementation, integration, security, operations, tool failure |
 | EV-004 | Reproducible eval harness | fixed tasks, seeds where possible, artifact retention, score rubric |
-| EV-005 | Opt-in telemetry | time/cost/retry/rework/gate result โดยไม่ส่ง source/secrets |
+| ~~EV-005~~ | ~~Opt-in telemetry~~ | **dropped (D-013)** — ยังไม่มีผู้ใช้ให้เก็บ เหลือแต่เราวัดตัวเอง ซึ่ง north-star metric ก็ติดปัญหานี้อยู่แล้ว |
 | EV-006 | Feedback-to-change loop | evidence → proposal → eval → rollout/rollback |
 | EV-007 | Compatibility and release policy | semver, migration, deprecation, support matrix |
 | EV-008 | Documentation/onboarding | quickstart, workshop, troubleshooting และ complete sample |
@@ -240,29 +240,60 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 
 ## 7. Milestones
 
-### M0 — Verifiable Foundation (เป้าหมายปัจจุบัน)
+> **ปรับนิยาม M3–M6 เมื่อ 23 กันยายน 2026 (D-013)** — นิยามเดิมของ M3 และ M4 ขัดกับการตัดสินใจที่บันทึกไว้แล้ว
+> จนปิดไม่ได้ทั้งคู่: M3 ต้องการ parallel scheduler ที่ D-011 จงใจพักไว้ ส่วน M4 ต้องการ adapter สามค่าย
+> และ plugin/MCP ecosystem ซึ่งกฎข้อ 9.4 ของเอกสารนี้เองห้ามเปิดก่อน contract ด้านล่างนิ่ง
+> milestone ที่ปิดไม่ได้ตามนิยามของตัวเองไม่ได้วัดอะไรเลย
+
+### M0 — Verifiable Foundation ✅
 
 เสร็จเมื่อ BF-001 ถึง BF-005 ผ่าน เป้าคือหยุดการใช้ Markdown status แบบเชื่อด้วยใจ และทำให้คำว่า R3 มี contract ที่ตรวจได้
 
-### M1 — One Golden Path to R3
+### M1 — One Golden Path to R3 ✅
 
 เสร็จเมื่อ CLI ขั้นต้น, product graph v1, profile/pack contract และ web reference app หนึ่งตัวผ่าน R3 ใน clean environment
 
-### M2 — Repeatable Web Production
+### M2 — Repeatable Web Production ✅
 
-เสร็จเมื่อมี web stack อย่างน้อยสองแบบ, core capability packs, convergence checks และ evidence bundle ครบ
+เสร็จเมื่อมี web stack อย่างน้อยสองแบบ, core capability packs, convergence check ชุดแรก และ evidence bundle ครบ
 
-### M3 — Mobile + Parallel Build
+### M3 — Mobile + Independent Verification ✅
 
-เสร็จเมื่อ mobile reference app ผ่าน R3, scheduler ทำงานภายใต้ contract และ independent verifier จับ seeded defects ได้ตาม threshold
+เสร็จเมื่อ mobile reference app ผ่าน R3 และ **independent verifier จับ seeded defects ได้ตาม threshold ที่ประกาศไว้**
 
-### M4 — Open Ecosystem
+> เดิมข้อนี้ต้องการ parallel scheduler ด้วย ตัดออกตาม D-011: verifier ให้คุณค่าด้วย agent ตัวเดียว
+> ส่วน BC-001/002/003 รองรับ parallel build ที่ยังไม่มีใครรัน การผูก milestone ไว้กับ infrastructure
+> ที่จงใจไม่ทำ แปลว่า milestone นั้นจะไม่มีวันปิด
 
-เสร็จเมื่อ adapter อย่างน้อยสามค่าย, plugin/MCP permission model, conformance kit และ catalog รุ่นแรกทำงานได้
+### M4 — Evidence Maturity (เป้าหมายปัจจุบัน)
 
-### M5 — Domain Advantage
+เสร็จเมื่อคำว่า "พิสูจน์แล้ว" แข็งแรงพอจะทนการถูกตรวจซ้ำ:
 
-เสร็จเมื่อ Thailand/domain packs และ Production-Qualified App benchmark มีข้อมูลจากโปรเจกต์จริงเพียงพอให้ routing/roadmap อิง evidence
+- **failure taxonomy** ที่ตั้งอยู่บนความล้มเหลวที่เกิดขึ้นจริงในที่นี่ ไม่ใช่หมวดหมู่ที่ลอกมา (EV-003)
+- **release policy ของ kit เอง** — เลขเวอร์ชันของ Buaflow ต้องแปลว่าอะไรสักอย่างกับผู้ใช้ (EV-007)
+- **change impact + convergence graph** — รู้ว่าอะไรกระทบเมื่อของเปลี่ยน และอะไรไม่เชื่อมกับอะไรเลย (IC-006, BC-004)
+- **ส่วนที่เหลือจริงของ EP** หลัง audit: exception ที่มีวันหมดอายุ, ASVS mapping, provenance/licenses,
+  restore rehearsal, budget ที่มาจาก profile (EP-002, EP-003, EP-004, EP-005, EP-007)
+
+### M5 — Proven Outside
+
+เสร็จเมื่อ Buaflow ถูกใช้กับโปรเจกต์ที่ **ไม่ได้เขียนเอง** และมีตัวเลขจากของจริง:
+EV-009 (trial แรก), EV-004 (eval harness ที่ทำซ้ำได้), EV-002 (Production-Qualified App benchmark), EV-008 (onboarding)
+
+> north-star metric วันนี้มีตัวหารเป็น reference app ที่ Buaflow เขียนเอง ตรวจเอง ให้คะแนนเอง
+> M5 คือ milestone ที่ทำให้ตัวเลขนั้นเริ่มมีความหมาย และเป็นเงื่อนไขเปิดของ M6
+
+### M6 — Open Ecosystem (ยังไม่เปิด)
+
+เดิมคือ M4 เสร็จเมื่อ adapter อย่างน้อยสามค่าย, plugin/MCP permission model, conformance kit และ catalog รุ่นแรกทำงานได้
+
+> **เงื่อนไขเปิดที่ชัดเจน: M5 ต้องมีข้อมูลจากผู้ใช้จริงก่อน** ตามกฎข้อ 9.4 ของเอกสารนี้เอง
+> ("ไม่สร้าง ecosystem surface ก่อน contract ด้านล่างจะนิ่ง") การเปิด PE-001…007 ตอนนี้คือการสร้าง
+> marketplace ให้ contract ที่ยังไม่เคยถูกใครนอกจากเราใช้
+
+### M7 — Domain Advantage
+
+เสร็จเมื่อ Thailand/domain packs (PP-008, PP-009) อยู่ในรูป recipe + assertion ตาม D-011 และมีข้อมูลจากโปรเจกต์จริงพอให้ roadmap อิง evidence
 
 ## 8. ลำดับ 12–24 เดือนโดยประมาณ
 

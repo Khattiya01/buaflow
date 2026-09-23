@@ -4,8 +4,8 @@
   "product": "buaflow",
   "updatedAt": "2026-09-23",
   "current": {
-    "milestone": "M3",
-    "focus": ["EV-009"]
+    "milestone": "M4",
+    "focus": ["EV-003"]
   },
   "workItems": [
     {
@@ -765,6 +765,296 @@
       ],
       "verification": ["npm test", "npm run check"],
       "notes": "Opened and closed 2026-09-23, from the gap packs/README.md had been left stating in prose: six capability packs carried no implementedBy, meaning no reference app had ever proved those recipes work. Two of the six turned out to be already implemented by reference-apps/nextjs-postgres-crud and only needed their assertions corrected to what that app really contains, so they were bound rather than rewritten: auth-rbac now asserts lib/auth.ts, lib/guard.ts, proxy.ts (Next.js 16 renamed middleware to proxy) and prisma/migrations; audit-log asserts lib/audit.ts, prisma/schema.prisma and prisma/migrations. Binding auth-rbac immediately paid for the whole exercise by exposing a defect in the recipe PP-010 itself had written: it installed iron-session and bcrypt, and the only app implementing this capability uses neither. That app signs session cookies with a node:crypto HMAC and hashes passwords with scrypt, deliberately, so the capability adds no third-party auth library and no supply-chain surface at all — the old recipe would have sent the next project to install two packages it does not need. The recipe and description were corrected and both packs went to 2.1.0. This is exactly the failure mode implementedBy exists to catch, and it was invisible for as long as the pack pointed at nothing. The remaining four (db, storage, notification, background-jobs) were NOT bound, because nothing in this repository implements them and inventing a binding would be the lie the whole mechanism is meant to prevent. What changed instead is that their status is now machine-enforced rather than documented: pack.js prints a bound/unproven summary on every --repo-root run (currently 5/9), and a test pins the exact unproven set, so binding a pack fails until the list shrinks and adding an unproven pack fails until someone writes down that it is unproven. A second test re-checks every bound pack against its app inside the suite, so the binding survives even if the check is removed from scripts/check-repository.js. A latent contract problem was found and deliberately left unfixed, with the reasoning written down rather than papered over: all six capability packs assert Node/Next.js paths (lib/*.ts, app/api/**/route.ts) and therefore only work on nextjs-postgres, yet only auth-rbac declares requiresPacks. db is worse than the others — it declares conflictsWithPacks nextjs-postgres, so it targets a Node stack that lacks persistence, and no such stack exists in the catalog, which makes it unusable with anything currently shipped. Fixing that honestly needs capability-based dependencies (requires something providing persistence) rather than the identity-based requiresPacks the contract has today, which is a contract change and not a fixture edit. Recorded in packs/README.md as a known limitation. Suite 180 to 182, npm run check passes."
+    },
+    {
+      "id": "EP-006",
+      "title": "Migration and rollback qualification",
+      "milestone": "M2",
+      "status": "done",
+      "dependsOn": [
+        "PP-003",
+        "PP-004"
+      ],
+      "startedAt": "2026-09-22",
+      "completedAt": "2026-09-23",
+      "acceptance": [
+        "Forward and backward migration paths ship together and are rehearsed end to end, not merely written",
+        "The rehearsal produces machine-readable evidence that readiness.js requires for the database-migration and rollback controls",
+        "The mechanism generalizes past one stack: it holds for a hand-written rollback script and for a native downgrade()"
+      ],
+      "artifacts": [
+        "claude-setup/readiness.js",
+        "reference-apps/nextjs-postgres-crud/evidence/migration-rollback-rehearsal.json",
+        "reference-apps/react-fastapi-postgres-crud/evidence/migration-rollback-rehearsal.json",
+        "reference-apps/expo-fastapi-postgres-sync/evidence/migration-rollback-rehearsal.json"
+      ],
+      "verification": [
+        "npm run check"
+      ],
+      "notes": "Recorded retroactively by the D-013 audit, not newly built. The capability was delivered inside PP-003 and generalized by PP-004/PP-005, which is exactly the bookkeeping failure the audit went looking for: real work landed under a stack-pack item while its own workstream row sat untouched in the roadmap, so the plan showed eight EP items outstanding when several were finished. Both directions are covered across two different mechanisms — nextjs-postgres ships a hand-written rollback.sql beside each forward migration, react-fastapi and expo use Alembic downgrade() natively — and each app has a scripted rehearsal writing evidence readiness.js consumes. Nothing about this item is aspirational, so it is done rather than narrowed."
+    },
+    {
+      "id": "EP-008",
+      "title": "Deployable handoff",
+      "milestone": "M2",
+      "status": "done",
+      "dependsOn": [
+        "PP-003",
+        "PP-004"
+      ],
+      "startedAt": "2026-09-22",
+      "completedAt": "2026-09-23",
+      "acceptance": [
+        "Every reference app produces a container image plus the compose/manifest and configuration contract needed to run it",
+        "A clean-environment rehearsal proves the package boots from nothing to a passing health check, with machine-readable evidence",
+        "readiness.js requires both deployment-package and clean-environment at R3, so the claim cannot be asserted without them"
+      ],
+      "artifacts": [
+        "claude-setup/readiness.js",
+        "standards/deployment-ready-contract.md",
+        "reference-apps/nextjs-postgres-crud/evidence/clean-environment-rehearsal.json",
+        "reference-apps/react-fastapi-postgres-crud/evidence/clean-environment-rehearsal.json",
+        "reference-apps/expo-fastapi-postgres-sync/evidence/clean-environment-rehearsal.json"
+      ],
+      "verification": [
+        "npm run check"
+      ],
+      "notes": "Recorded retroactively by the D-013 audit. Delivered inside PP-003 and generalized by PP-004/PP-005. One honest limit is written into the rehearsal evidence itself rather than glossed over: its declared scope is a from-scratch docker build and boot against a freshly created database, NOT a fresh git clone, so it proves the package runs from nothing and does not yet prove the repository builds from nothing on an unprepared machine. That remaining gap belongs to EV-009 (a trial on a project this repository did not author), not here."
+    },
+    {
+      "id": "EP-009",
+      "title": "R3 qualification gate",
+      "milestone": "M2",
+      "status": "done",
+      "dependsOn": [
+        "BF-005",
+        "EP-001"
+      ],
+      "startedAt": "2026-09-22",
+      "completedAt": "2026-09-23",
+      "acceptance": [
+        "The R3 decision is made by a program from machine state, never by a person or an AI asserting it",
+        "The gate is fail-closed in production assurance: a missing verify command, a downgraded scanner mode or a caller-controlled bypass is a failure, not a skip",
+        "A human-readable report is generated from the same machine state rather than written separately"
+      ],
+      "artifacts": [
+        "claude-setup/gate.js",
+        "claude-setup/readiness.js",
+        "claude-setup/evidence-bundle.js",
+        "standards/readiness-levels.md"
+      ],
+      "verification": [
+        "npm test",
+        "npm run check"
+      ],
+      "notes": "Recorded retroactively by the D-013 audit. The three pieces this row asks for already existed under other items: BF-005 made the gate fail-closed (production assurance refuses --docs-only, refuses a missing verify command, and refuses a downgraded audit or secrets mode), readiness.js decides R0-R4 deterministically from the manifest, and EP-001 generates the human-readable bundle index from that same state. BC-006 later added the part this row never asked for — re-checking the evidence rather than only the declaration."
+    },
+    {
+      "id": "EP-002",
+      "title": "Requirement coverage: approved exceptions",
+      "milestone": "M4",
+      "status": "backlog",
+      "dependsOn": [
+        "EP-001"
+      ],
+      "acceptance": [
+        "A requirement may be accepted without proof only through a recorded exception carrying owner, reason, risk and an expiry date",
+        "An expired exception fails the gate rather than ageing into silence",
+        "The exception record is machine-readable and counted in the same coverage report as proven requirements"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Narrowed by the D-013 audit from the original row (every accepted requirement points to proof OR an approved exception). The coverage half is done: readiness.js requires requirements-traceability at R2, docs-lint enforces the intent/spec/task chain, DV-002 extended it upstream to pain points, and all three reference apps ship docs/requirements-traceability.md. The exception half does not exist at all — there is no waiver record anywhere in the repository, and readiness.js only offers not-applicable, which is restricted to four conditional controls and means something different (the capability is absent, not that the risk was accepted). Without it the only way to ship a known, accepted gap is to lie in the manifest or to not record it, which is the failure mode the whole evidence model exists to prevent."
+    },
+    {
+      "id": "EP-003",
+      "title": "Security baseline: ASVS mapping and threat boundaries",
+      "milestone": "M4",
+      "status": "backlog",
+      "dependsOn": [
+        "PP-003"
+      ],
+      "acceptance": [
+        "A named external control set is mapped to concrete project evidence rather than to a checklist invented here",
+        "Threat boundaries are recorded as an artifact a reviewer can check, not only described in prose",
+        "The security-controls control cites that mapping instead of free text"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Narrowed by the D-013 audit. The scanning half is done and enforced: secrets-scan, dependency-scan and security-controls are required at R3, gate.js refuses to downgrade the scanner modes in production assurance, and all three apps ship gitleaks and dependency-audit evidence. The mapping half does not exist. ASVS appears in exactly two files — the roadmap and standards/deployment-ready-contract.md, where the security-controls row asks for \"threat boundary + applicable ASVS/control proof\" — and nothing produces or checks such a mapping, so today that control is satisfied by prose in docs/security-notes.md. The roadmap cites ASVS as a research baseline precisely so the checklist is not invented here, and that intent is currently unimplemented."
+    },
+    {
+      "id": "EP-004",
+      "title": "Supply-chain evidence: licenses, provenance and checksums",
+      "milestone": "M4",
+      "status": "backlog",
+      "dependsOn": [
+        "PP-003"
+      ],
+      "acceptance": [
+        "Dependency licenses are collected as machine-readable evidence, not left implicit in the SBOM",
+        "Build provenance ties an artifact to the commit, workflow and runner that produced it",
+        "Published artifacts carry checksums a consumer can verify independently"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Narrowed by the D-013 audit. The SBOM half is real: all three apps ship CycloneDX SBOMs and pinned lockfiles, and readiness.js requires the sbom control at R3. The other three things this row names do not exist anywhere — the words provenance, SLSA and license appear only in the roadmap itself (the other search hits are minified vendor bundles inside build output). EP-011 got close by materializing evidence/ci-run.json, which already records the workflow, run and commit that produced each verified build; turning that into real provenance plus checksums is a smaller job now than the original row implies."
+    },
+    {
+      "id": "EP-005",
+      "title": "Operational readiness: backup, restore and incident hooks",
+      "milestone": "M4",
+      "status": "backlog",
+      "dependsOn": [
+        "PP-003"
+      ],
+      "acceptance": [
+        "A restore is rehearsed and produces evidence, on the same footing as the migration-rollback rehearsal",
+        "Incident hooks are declared as a contract rather than described in a runbook paragraph",
+        "The operational controls cite that evidence instead of prose"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Narrowed by the D-013 audit. Health, logs and runbook are done and enforced: observability, health-check and runbook are required at R3, and every app ships a health endpoint, structured logging and docs/runbook.md. Backup and restore are mentioned in two of the three runbooks and in the db-migration rule, but nothing rehearses a restore and no evidence file records one, so the strongest operational claim in the model rests on a paragraph. The pattern to copy already exists in this repository — EP-006 rehearses migration rollback and writes machine-readable evidence — which is why this is narrow rather than open-ended."
+    },
+    {
+      "id": "EP-007",
+      "title": "Performance and accessibility budgets driven by the application profile",
+      "milestone": "M4",
+      "status": "backlog",
+      "dependsOn": [
+        "PP-001"
+      ],
+      "acceptance": [
+        "Thresholds come from the application profile rather than being written per app",
+        "A profile that demands a stricter budget fails an app that only meets the looser one",
+        "The repeatable command and its threshold source are both recorded in the evidence"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Narrowed by the D-013 audit. Measurement is done: performance and accessibility are required at R3, every app runs axe and a performance budget and ships the JSON evidence. What is missing is the word \"profile-specific\", which both the roadmap row and standards/deployment-ready-contract.md use. application-profile.schema.json carries controlOverride, architectureChoice and clarificationQuestion but no thresholds at all, so every budget today is a number chosen inside one app. That means a content site and a booking system are held to whatever each happened to pick, which is the opposite of what a profile contract is for."
+    },
+    {
+      "id": "PP-006",
+      "title": "Capability pack contract",
+      "milestone": "M2",
+      "status": "dropped",
+      "dependsOn": [],
+      "acceptance": [
+        "Superseded: one contract already covers both pack kinds"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Dropped by the D-013 audit as a duplicate, not as a change of mind. PP-002 deliberately merged stack and capability packs into one contract with a kind discriminator, and its own notes recorded that the roadmap PP-002/PP-006 split was deferred; PP-010 then rewrote that single contract as v2 and PP-011 bound capability packs to a reference app through it. There is no separate capability-pack contract left to write, and leaving the row open made the plan claim work that had already shipped twice."
+    },
+    {
+      "id": "MT-005",
+      "title": "Model capability registry",
+      "milestone": "M4",
+      "status": "dropped",
+      "dependsOn": [],
+      "acceptance": [
+        "Dropped: the data would be stale faster than it could be maintained"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Dropped by the D-013 audit. A registry of context windows, tool-use support, cost and latency per model is a table that model vendors invalidate on their own schedule, often monthly, and this project has no mechanism and no reason to track it. Worse, it is the kind of artifact that is dangerous when slightly wrong: routing or capability decisions made from a stale registry fail quietly. The durable version of this need is MT-007 (work correctly when a capability is absent), which is kept, because it does not require knowing in advance which model has which feature."
+    },
+    {
+      "id": "MT-006",
+      "title": "Eval-driven model routing",
+      "milestone": "M4",
+      "status": "dropped",
+      "dependsOn": [],
+      "acceptance": [
+        "Dropped: routing without an eval harness and real tasks is guesswork with extra machinery"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Dropped by the D-013 audit, and this one can be reopened honestly later. Routing by benchmark rather than by brand is a good idea that depends on two things this project does not have: a reproducible eval harness (EV-004) and tasks from projects Buaflow did not author (EV-009). Building routing first would mean choosing models from numbers produced by the three reference apps this repository wrote itself, which measures the apps, not the models. It also depended on MT-005, now dropped. If EV-004 and EV-009 ever land, opening a fresh item with real data beats keeping a row that currently means nothing."
+    },
+    {
+      "id": "EV-005",
+      "title": "Opt-in telemetry",
+      "milestone": "M5",
+      "status": "dropped",
+      "dependsOn": [],
+      "acceptance": [
+        "Dropped: there are no users to collect from"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Dropped by the D-013 audit. Telemetry for time, cost, retry, rework and gate results is meaningful once other people run Buaflow; today the only source would be this repository measuring itself, which the north-star metric already suffers from. Keeping the row also invites building the collection path before the privacy contract has any real content to protect. If EV-009 leads to actual adopters, a fresh item written against their needs will be better than this one."
+    },
+    {
+      "id": "EV-003",
+      "title": "Failure taxonomy",
+      "milestone": "M4",
+      "status": "ready",
+      "dependsOn": [
+        "EP-001"
+      ],
+      "acceptance": [
+        "A named, stable set of failure classes covers spec, implementation, integration, security, operations and tooling",
+        "Every class is grounded in a failure this repository actually hit, cited to where it happened, rather than invented from a category list",
+        "The taxonomy is machine-readable and validated, so a failure record cannot name a class that does not exist"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Chosen as the next item on 2026-09-23. Cheap because the data already exists and has been written down all session: a sync-hook data-loss race, a transitive advisory in a mobile dependency chain, a CI action requesting an SDK package Google removed, a regex that let a flag swallow a tool token, a pack asserting a file its app never had, a recipe installing two dependencies the real implementation avoids, and a verifier destroying the evidence it was verifying. Those are seven distinct classes observed in one repository, which is a better starting corpus than a taxonomy copied from a paper."
+    },
+    {
+      "id": "EV-007",
+      "title": "Compatibility and release policy for the kit itself",
+      "milestone": "M4",
+      "status": "ready",
+      "dependsOn": [
+        "BF-006"
+      ],
+      "acceptance": [
+        "The kit states what its own version number promises and what a major, minor and patch change mean for an adopter",
+        "A support matrix says which artifact schema versions each kit version reads",
+        "Deprecation has a stated path and a minimum notice, rather than being decided per change"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Chosen as the next item on 2026-09-23. BF-006 set a versioning and migration policy for artifacts and PP-010 exercised it for real by taking packs to 2.0 with a manual migration, but nothing covers the kit itself: package.json says 2.3.4 with no stated meaning, VERSION.md and UPGRADE.md exist without a policy behind them, and an adopter copying claude-setup/ into their project has no way to know what a Buaflow upgrade may break. The artifact policy is the model to follow, not to duplicate."
+    },
+    {
+      "id": "IC-006",
+      "title": "Change impact engine",
+      "milestone": "M4",
+      "status": "ready",
+      "dependsOn": [
+        "IC-001",
+        "DV-002"
+      ],
+      "acceptance": [
+        "Changing an intent identifies the artifacts, contracts and tests that must be reviewed, from recorded links rather than from a guess",
+        "Impact is reported as a list a human or an agent can act on, not as a warning to read carefully",
+        "A link that cannot be resolved is reported as unknown impact, never as no impact"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Chosen as the next item on 2026-09-23. It scores highest on the model-durability test in D-011: the better the model, the more it changes per session and the less a human reads, so knowing what a change touches becomes more valuable rather than less. The links it needs largely exist — docs-lint already enforces the intent/spec/task chain, DV-002 extended traceability upstream to pain points, and readiness manifests tie controls to files and commands — so this is mostly making an existing graph queryable. The third acceptance criterion matters most: an unresolved link must read as unknown impact, because a change-impact tool that silently reports nothing is worse than none."
+    },
+    {
+      "id": "BC-004",
+      "title": "Convergence graph",
+      "milestone": "M4",
+      "status": "ready",
+      "dependsOn": [
+        "BC-005",
+        "PP-001"
+      ],
+      "acceptance": [
+        "Requirement, design, data, API, UI, test and deployment artifacts are related in one machine-readable graph",
+        "A node with no path to a proof is reported, since an unconnected artifact is the shape most integration failures take",
+        "The graph is derived from artifacts that already exist, never maintained by hand"
+      ],
+      "artifacts": [],
+      "verification": [],
+      "notes": "Chosen as the next item on 2026-09-23. BC-005 already built a narrow slice of this — profile versus composed packs — and proved the approach works by reading two existing contracts rather than inventing a new one; PP-010 added a third edge by binding packs to the reference apps that implement them. This item generalizes that instead of starting over. It pairs with IC-006: the change-impact engine answers what a change touches, the convergence graph answers what is connected to nothing, and both read the same links."
     }
   ],
   "decisions": [
@@ -851,6 +1141,13 @@
       "decision": "Moved Buaflow's nine packs from claude-setup/tests/fixtures/packs/ to a repository-level packs/ catalog, at the user's direction, and split the two meanings the old location had collapsed: packs/*.json is the catalog this repository ships, while .claude/packs/*.json stays what it always was — the subset an adopter project actually composes from. schemas/registry.json now declares both paths for the pack artifact type rather than only the adopter one. A packs/README.md states the distinction, the v2 contract and the current catalog.",
       "reason": "Raised as a finding while closing PP-010 and deliberately left for the user rather than folded into that item, because it changes artifact paths in four work items that are already done (PP-002, PP-004, PP-005, PP-007) and is a question about product shape, not an implementation detail. The finding itself was simple and hard to argue with: a file's location states what the project believes it is, and a product catalog living under a test-fixture path said 'these are still just examples for exercising a schema'. That was accurate when PP-002 wrote the first two as fixtures, and stopped being accurate once PP-007 added five capability packs and PP-010 bound three of them to real reference apps.",
       "impact": "Nothing about pack contents or the v2 contract changed; this is a relocation plus the registry and documentation that make the new location meaningful. Every reference was repointed in the same change — the packs' own $schema pointers, both test files, scripts/check-repository.js, templates/pack.tpl.json, two reference-app runbooks, three eval fixtures and the four done work items' artifact lists — and npm run check passes, so no claim in state.json now points at a path that does not exist. The capability packs still carry no implementedBy, and packs/README.md calls that out as a deliberate signal rather than an oversight: no reference app proves those six recipes work, which is a real gap and a candidate for future work rather than something to paper over by inventing a binding."
+    },
+    {
+      "id": "D-013",
+      "date": "2026-09-23",
+      "decision": "Audited the whole roadmap against the repository and made the plan say what is true. Three things happened. (1) EP-002..EP-009 had never been opened as work items while much of their content had shipped under PP-003/004/005: EP-006, EP-008 and EP-009 are recorded as done retroactively, and EP-002, EP-003, EP-004, EP-005 and EP-007 are opened with narrowed scopes describing only the specific pieces that genuinely do not exist. (2) M3 and M4 were redefined, and M5/M6/M7 restructured, because both were unclosable by their own definitions — M3 required a parallel scheduler that D-011 deliberately parked, and M4 required three vendor adapters plus a plugin/MCP ecosystem that this document's own rule 9.4 forbids opening yet. M3 now reads 'Mobile + Independent Verification' and is complete; M4 is 'Evidence Maturity' and is the current horizon; M5 is 'Proven Outside'; M6 carries the old ecosystem scope with an explicit precondition; M7 keeps domain packs. (3) Four rows were dropped rather than left to make the plan look bigger than the truth: PP-006 (duplicate of PP-002/PP-010), MT-005 (a registry vendors invalidate monthly, and dangerous when slightly stale), MT-006 (routing that needs EV-004 and EV-009 first, and depended on MT-005), and EV-005 (telemetry with no users to collect from). The four items the user picked next — EV-003, EV-007, IC-006 and BC-004 — were opened as ready, and current moved to M4 with EV-003 in focus.",
+      "reason": "The roadmap claimed 40 unstarted items while the repository contradicted that in both directions, and a plan that is wrong in both directions is worse than no plan: it hides finished work and it hides real gaps. The audit checked mechanisms rather than intentions, which is why it did not simply confirm the guess that all of EP-002..009 was done — readiness.js enforces the scanning, SBOM, health and measurement halves of those rows at R3, but ASVS appears in only two files and nothing produces a mapping, the words provenance and SLSA appear only in the roadmap itself, no restore is ever rehearsed although migration rollback is, application-profile.schema.json carries no thresholds at all so every budget is a number one app chose, and there is no waiver or exception record anywhere, meaning the only ways to ship a known accepted gap are to lie in a manifest or to leave it unrecorded. The milestone problem was structural rather than cosmetic: section 9 of this roadmap tells the reader to pick work by milestone, so two milestones that cannot close by construction quietly break the rule the document gives for choosing what to do next.",
+      "impact": "45 work items now, 30 done, 4 ready, 7 backlog, 4 dropped. M0 through M3 are complete under corrected definitions and M4 is the current horizon, which means the honest answer to 'how far along is this' changed from an unanswerable question to a list. The three retroactive done items are recorded as delivered under PP-003/004/005 rather than as new work, and their notes name the bookkeeping failure that hid them, so the same drift is recognizable next time. The five narrowed items are deliberately small and each cites what already exists and what does not, so nobody re-does the finished half. The four dropped items say what would have to be true to reopen them — MT-006 in particular is reopenable once EV-004 and EV-009 produce real data, and that is written down rather than implied. Nothing was deleted from the roadmap: dropped rows stay visible with a strikethrough and a reason, because silently removing a row is how a plan loses the memory of why something was not done."
     }
   ],
   "lastSession": {
