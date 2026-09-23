@@ -33,6 +33,12 @@
  * `unverifiable` แทนที่จะเป็น `confirmed` ซึ่งยังคงหลักการเดิมไว้ครบ — ไม่มีอะไรถูกนับว่าผ่าน
  * เพราะ builder บอกว่าผ่าน
  *
+ * !! --execute มี side effect !! คำสั่งที่รันคือคำสั่งจริงของโปรเจกต์ และหลายคำสั่งเขียนไฟล์
+ * ทับของเดิม — เจอมาแล้วจริง: รัน --execute กับ reference-apps/nextjs-postgres-crud แล้ว
+ * Playwright เขียน evidence/playwright-report.json ทับ ทำให้หลักฐาน R3 หายไป 238 บรรทัด
+ * ตัวตรวจที่ทำลายสิ่งที่มันกำลังตรวจคืออันตรายจริง ให้รันบน working tree ที่สะอาดเสมอ และ
+ * ตรวจ git status หลังรันทุกครั้ง
+ *
  * exit 0 = ไม่มี control ไหนถูกหักล้าง | exit 1 = มีการหักล้าง | exit 2 = input ผิด
  * ไม่มี dependency — Node ล้วน รันได้ทุก OS
  */
@@ -279,7 +285,9 @@ function main(argv = process.argv.slice(2)) {
       '',
       '--execute re-runs the declared command evidence. It runs those commands with a shell,',
       'at the same trust level as the project\'s own scripts; do not point it at a project you',
-      'would not already run `npm test` in.',
+      'would not already run `npm test` in. Those commands have side effects: a test run can',
+      'rewrite the very report file it is cited as evidence for, so run on a clean working tree',
+      'and check git status afterwards.',
       '',
       'Exit codes: 0 nothing refuted, 1 at least one control refuted, 2 invalid input',
     ].join('\n'));
