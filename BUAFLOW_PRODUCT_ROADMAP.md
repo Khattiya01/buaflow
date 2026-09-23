@@ -1,4 +1,4 @@
-# Buaflow Product Roadmap
+✅ **done** — marketplace หนึ่งรายการ |
 
 > เอกสารแม่สำหรับพัฒนา Buaflow จาก AI-native SDLC kit ไปเป็นระบบผลิตแอปที่ตรวจสอบได้
 >
@@ -139,10 +139,10 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | ID | งาน | ผลลัพธ์ |
 |---|---|---|
 | IC-001 | Product graph schema | actors, outcomes, capabilities, rules, entities, integrations, NFR, risk, assumptions, success, out-of-scope |
-| IC-002 | Smart clarification + decision budget | ถามเฉพาะเรื่องที่เปลี่ยน architecture/security/cost materially |
-| IC-003 | Idea intake adapters | plain text, interview, existing docs, issue tracker, generator output |
-| IC-004 | Assumption/risk ledger | ทุกการเดามี owner, impact, expiry และ verification path |
-| IC-005 | Intent-to-requirement compiler | EARS AC + NFR + traceability IDs |
+| IC-002 | Smart clarification + decision budget | ✅ **done** — คำถามต้องบอกว่าคำตอบเปลี่ยนการตัดสินใจเรื่องไหน `[NEEDS CLARIFICATION (security): …]` · งบ 8 ข้อต่อไฟล์ · docs-lint warn |
+| IC-003 | Idea intake adapters | ✅ **done** — `buaflow intake`: GitHub/GitLab export, CSV, รายการข้อความ → intent draft ที่เก็บคำเดิม · interview/เอกสารเดิมอยู่กับ /intent และ Phase A · generator output = brownfield ผ่าน `assess` |
+| IC-004 | Assumption/risk ledger | ✅ **done** — `assumption-ledger` 1.0 · เปิดค้างเลยวันหมดอายุ = gate ตก |
+| IC-005 | Intent-to-requirement compiler | ✅ **done (ครึ่งพิสูจน์)** — AI เขียนใน /spec ตาม D-011 · docs-lint ตรวจ EARS 4 แบบ + AC ทุกข้อถูกอ้างใน design/tasks |
 | IC-006 | Change impact engine | intent เปลี่ยนแล้วชี้ artifact/contract/test ที่ต้องทบทวน |
 
 ### Profiles and Packs — จำกัดทางเลือกเพื่อให้ผลิตได้เร็วและเชื่อถือได้
@@ -178,7 +178,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | BC-004 | Convergence graph | requirement ↔ design ↔ data/API ↔ UI ↔ tests ↔ deployment |
 | BC-005 | Contract mismatch detectors | schema/API/migration/UI/requirement drift checks |
 | BC-006 | Independent verifier role | verifier ไม่ใช้ self-report จาก builder เป็นหลักฐานเดียว |
-| BC-007 | Repair loop with limits | classify failure, retry budget, escalate with minimal question |
+| BC-007 | Repair loop with limits | ✅ **done** — งบแก้ซ้ำตามชนิดความล้มเหลวใน /task + eval EV-005 |
 
 > เมื่อดึง BC-* เข้ามาทำจริงที่ M3 ให้อ้างอิงรายละเอียด agent contract (permission/write-scope/budget/stop_when),
 > autonomy/risk tier (A0–A4) และ agent-run-record format จากงานวิจัย "AI-Native SDLC + Agentic Engineering"
@@ -210,7 +210,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | MT-004 | Copilot/Kiro adapters | instruction/spec/hook mapping พร้อม capability matrix |
 | ~~MT-005~~ | ~~Model capability registry~~ | **dropped (D-013)** — ตารางที่ค่ายโมเดลทำให้ผิดเองทุกเดือน และผิดแบบเงียบ ๆ ความต้องการที่ทนเวลาคือ MT-007 |
 | ~~MT-006~~ | ~~Eval-driven model routing~~ | **dropped (D-013)** — ต้องมี EV-004 และ EV-009 ก่อน ไม่งั้นคือเลือกโมเดลจากตัวเลขที่ reference app ของเราเองผลิต · เปิดใหม่ได้เมื่อมีข้อมูลจริง |
-| MT-007 | Graceful degradation | ไม่มี MCP/agent feature บางตัวแล้วยังทำงานแบบ manual/serial ได้ |
+| MT-007 | Graceful degradation | ✅ **done** — `manual/` playbook จาก core เดียวกัน + ตารางว่าการรับประกันไหนหายเมื่อไม่มี session features |
 
 ### Plugin and MCP Ecosystem
 
@@ -228,12 +228,12 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 
 | ID | งาน | ผลลัพธ์ |
 |---|---|---|
-| EV-001 | Reference app matrix | greenfield/brownfield, web/mobile, simple/complex |
+| EV-001 | Reference app matrix | ✅ **done** — `reference-apps/matrix.json` · 4/12 ช่อง · ช่องว่างถูกพิมพ์ทุกครั้งที่ check |
 | EV-002 | Production-Qualified App benchmark | ✅ **done** — `buaflow benchmark`: สามมิติจาก manifest + verifier + probe + ตัวตรวจ EP + eval run · ไม่มีช่องพิมพ์ตัวเลข · reference app 0.97 · Bluepeak Hub 0.39 · `standards/production-qualified-benchmark.md` บอกด้วยว่ามองไม่เห็นอะไร |
 | EV-003 | Failure taxonomy | spec, implementation, integration, security, operations, tool failure |
 | EV-004 | Reproducible eval harness | ✅ **done** — eval-case / eval-run 1.0 · run ตรึง revision ของเคส · คนเขียนเคสตรวจเองไม่ได้ |
 | ~~EV-005~~ | ~~Opt-in telemetry~~ | **dropped (D-013)** — ยังไม่มีผู้ใช้ให้เก็บ เหลือแต่เราวัดตัวเอง ซึ่ง north-star metric ก็ติดปัญหานี้อยู่แล้ว |
-| EV-006 | Feedback-to-change loop | evidence → proposal → eval → rollout/rollback |
+| EV-006 | Feedback-to-change loop | ✅ **done** — `change-proposal` 1.0 · rollout ได้เมื่อ eval หลังแก้ผ่านและไม่ถดถอย |
 | EV-007 | Compatibility and release policy | semver, migration, deprecation, support matrix |
 | EV-008 | Documentation/onboarding | ✅ **done** — QUICKSTART · TROUBLESHOOTING จาก K-1..K-14 · worked sample · `npm run check` ตรวจว่าทุกคำสั่งในเอกสารมีจริง · workshop ยังไม่เขียนโดยตั้งใจ (ยังไม่เคยมีใครถูกสอน) |
 | EV-009 | Trial บนโปรเจกต์ที่ Buaflow ไม่ได้เขียนเอง | 🚧 **blocked** — TFR 113s · คำถาม 0/3 · K-1..K-14 · eval baseline 2/5 · benchmark 0.39 ได้แล้ว · เหลือ reviewer-minutes (ต้องมีคนรีวิว) และช่วง R1→R2 ของ TPC (CI ติด billing) |
@@ -285,7 +285,7 @@ EV-009 (trial แรก), EV-004 (eval harness ที่ทำซ้ำได้
 > north-star metric วันนี้มีตัวหารเป็น reference app ที่ Buaflow เขียนเอง ตรวจเอง ให้คะแนนเอง
 > M5 คือ milestone ที่ทำให้ตัวเลขนั้นเริ่มมีความหมาย และเป็นเงื่อนไขเปิดของ M6
 
-### M6 — Open Ecosystem (ยังไม่เปิด)
+### M6 — Open Ecosystem (Claude-only ตาม D-024) ✅
 
 เดิมคือ M4 เสร็จเมื่อ adapter อย่างน้อยสามค่าย, plugin/MCP permission model, conformance kit และ catalog รุ่นแรกทำงานได้
 

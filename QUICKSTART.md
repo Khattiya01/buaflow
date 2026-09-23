@@ -78,6 +78,23 @@ node buaflow/bin/buaflow.js init --mode new       # โปรเจกต์ใ�
   สำรวจของเดิม ตั้งคำสั่ง verify ปรับ config ให้ตรงของจริง — **ไม่แก้โค้ดโปรดักชัน**
 - **โปรเจกต์ใหม่** → Phase 1–7 ทีละ phase และ AI จะหยุดรอคุณตัดสินใจทุกครั้งที่จบ phase
 
+## 4b. (ทางเลือก) ติดตั้งส่วนที่อยู่ใน session เป็น Claude Code plugin
+
+ใน Claude Code:
+
+```text
+/plugin marketplace add <path หรือ git URL ของ repository buaflow>
+/plugin install buaflow@buaflow
+```
+
+ได้ skills, agents และ hooks ในคำสั่งเดียว · **gate กับตัวตรวจยังต้องอยู่ใน `.claude/` ของโปรเจกต์** เพราะ pre-push และ CI
+รันนอก session และ permission ยังอยู่ที่ `.claude/settings.json` (plugin ส่ง permission ไม่ได้) — ดู [claude-plugin/README.md](claude-plugin/README.md)
+หลังติดตั้ง controls แล้ว ให้บันทึกว่าติดตั้งเวอร์ชันไหน:
+
+```bash
+node buaflow/bin/buaflow.js lock --write
+```
+
 ## 5. หลังติดตั้ง (Phase 7) — ประตูเดียวก่อนเข้า main
 
 ```bash

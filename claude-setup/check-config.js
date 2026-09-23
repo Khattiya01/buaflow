@@ -316,6 +316,42 @@ if (settings?.hooks) {
 } else if (settings) {
   warn('settings.json ไม่มี hooks เลย — กฎทั้งหมดเป็นแค่คำแนะนำ ไม่มีอะไรบังคับ');
 }
+// ── PE-003: permission ที่ปลอดภัยโดยค่าเริ่มต้น ─────────────────────────────
+// plugin ส่ง permission ไม่ได้ ⇒ settings.json ของโปรเจกต์คือที่เดียวที่ขอบเขตของ AI ถูกกำหนด
+if (settings) {
+  const allow = settings.permissions?.allow || [];
+  const deny = settings.permissions?.deny || [];
+  if (!deny.some((d) => /\.env/.test(d))) warn('permissions.deny ไม่มีรายการกันอ่าน .env — AI อ่าน secret ของเครื่องได้ (template มี Read(./.env) ให้แล้ว)');
+  const blanket = allow.filter((a) => /^Bash(\(\*\))?$/.test(a) || /^Bash\(\s*\*\s*\)$/.test(a));
+  if (blanket.length) bad(`permissions.allow มี ${blanket.join(', ')} — อนุญาตทุกคำสั่ง shell เท่ากับไม่มี permission · ระบุคำสั่งที่ใช้จริง`);
+  if (settings.permissions?.defaultMode === 'bypassPermissions') bad('permissions.defaultMode = bypassPermissions ใน settings ที่ commit — ทุกคนที่ clone ได้ AI ที่ไม่ถามอะไรเลย');
+  const broadFetch = allow.filter((a) => a === 'WebFetch' || a === 'WebFetch(*)');
+  if (broadFetch.length) warn('permissions.allow มี WebFetch ทุก domain — จำกัดเป็น WebFetch(domain:…) ที่ใช้จริง');
+}
+
+// ── PE-004: MCP server ทุกตัวต้องถูกตัดสินชัด ไม่ฝัง secret และ pin เวอร์ชัน ─────
+if (exists('.mcp.json')) {
+  let mcp = null;
+  try { mcp = JSON.parse(read('.mcp.json')); } catch (e) { bad(`.mcp.json ไม่ใช่ JSON ที่ถูกต้อง: ${e.message}`); }
+  const servers = Object.entries(mcp?.mcpServers || {});
+  const enabled = new Set(settings?.enabledMcpjsonServers || []);
+  const disabled = new Set(settings?.disabledMcpjsonServers || []);
+  if (settings?.enableAllProjectMcpServers === true) warn('enableAllProjectMcpServers: true — server ใหม่ที่ใครก็เพิ่มใน .mcp.json ถูกเปิดโดยไม่มีใครตัดสิน · ระบุ enabledMcpjsonServers แทน');
+  const SECRET_KEY = /token|secret|password|passwd|api[-_]?key|authorization|cookie/i;
+  for (const [name, server] of servers) {
+    if (!enabled.has(name) && !disabled.has(name) && settings?.enableAllProjectMcpServers !== true) {
+      warn(`MCP server "${name}" ไม่อยู่ใน enabledMcpjsonServers หรือ disabledMcpjsonServers — ใครเปิดใช้ขึ้นกับว่ากดยอมรับตอนไหน ไม่ใช่การตัดสินที่บันทึกไว้`);
+    }
+    const literal = Object.entries({ ...(server.env || {}), ...(server.headers || {}) })
+      .filter(([k, v]) => SECRET_KEY.test(k) && typeof v === 'string' && v.trim() && !/^\$\{[A-Z0-9_]+(:-[^}]*)?\}$/.test(v.trim()) && !/^Bearer \$\{[A-Z0-9_]+\}$/.test(v.trim()));
+    if (literal.length) bad(`MCP server "${name}" ฝังค่า ${literal.map(([k]) => k).join(', ')} ไว้ใน .mcp.json ที่ commit — ใช้ \${ENV_VAR} แทน`);
+    const cmdline = [server.command, ...(server.args || [])].filter(Boolean).join(' ');
+    const pkgArg = /\b(npx|uvx|bunx|pnpm dlx)\b/.test(cmdline) ? (server.args || []).find((a) => !a.startsWith('-')) : null;
+    if (pkgArg && (/@latest$/.test(pkgArg) || !/.@\d/.test(pkgArg))) warn(`MCP server "${name}" รัน ${pkgArg} โดยไม่ pin เวอร์ชัน — วันพรุ่งนี้อาจเป็นโค้ดคนละตัวกับวันนี้`);
+  }
+  if (servers.length) ok(`.mcp.json: ${servers.length} server`);
+}
+
 // EV-009 K-11: trial แรกยังมี Bash(pnpm verify) ฯลฯ จาก template ทั้งที่โปรเจกต์ใช้ npm ⇒ คำสั่งตรวจจริง
 // ไม่มีตัวไหนอยู่ใน allow · ใน session ที่ไม่มีคนกดอนุญาต (eval, CI, agent เบื้องหลัง) มันถูกปฏิเสธเงียบ ๆ
 // และ eval EV-003 ตกเพราะ AI รัน verify ไม่ได้ ไม่ใช่เพราะไม่อยากรัน

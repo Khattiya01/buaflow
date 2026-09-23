@@ -1,0 +1,15 @@
+{
+  "name": "buaflow",
+  "owner": {
+    "name": "Buaflow"
+  },
+  "description": "The Buaflow kit as a Claude Code plugin: workflow skills, review agents and guard hooks.",
+  "plugins": [
+    {
+      "name": "buaflow",
+      "source": "./claude-plugin",
+      "description": "Buaflow workflow for Claude Code: intent → spec → plan → task → check → done, with guard hooks. The gate and evidence controls stay committed in the project (.claude/), because pre-push and CI run them outside any session.",
+      "version": "3.11.0"
+    }
+  ]
+}

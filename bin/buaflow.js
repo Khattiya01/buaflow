@@ -17,7 +17,7 @@ const { spawnSync } = require('node:child_process');
 const KIT_ROOT = path.resolve(__dirname, '..');
 const PACKAGE = JSON.parse(fs.readFileSync(path.join(KIT_ROOT, 'package.json'), 'utf8'));
 const EXIT = Object.freeze({ OK: 0, FAILED: 1, INPUT: 2, UNAVAILABLE: 3 });
-const COMMANDS = Object.freeze(['init', 'doctor', 'intake', 'assess', 'ci', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'assumptions', 'security', 'supply', 'operations', 'budgets', 'evals', 'changes', 'resume']);
+const COMMANDS = Object.freeze(['init', 'doctor', 'intake', 'assess', 'ci', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'assumptions', 'security', 'supply', 'operations', 'budgets', 'evals', 'changes', 'lock', 'resume']);
 
 function usage() {
   return [
@@ -42,6 +42,7 @@ function usage() {
     '  budgets       check measured performance and accessibility against the profile ceilings',
     '  evals         check eval cases and the runs that claim to have passed them',
     '  changes       check that each AI-config change names its evidence and was kept or rolled back on eval results (EV-006)',
+    '  lock          record which kit version and files are installed, or report files changed since (--write)',
     '  resume        summarize persisted project state for any human or AI tool',
     '',
     'assess options: --execute  also run the build/verify/test commands it finds',
@@ -192,6 +193,15 @@ function commandDoctor(root, options) {
   const controls = ['verify.js', 'readiness.js', 'verifier.js', 'requirement-coverage.js', 'assumption-ledger.js', 'security-baseline.js', 'supply-chain.js', 'operational-readiness.js', 'budgets.js', 'eval-harness.js', 'change-proposal.js', 'gate.js', 'check-config.js'];
   const installed = controls.filter((name) => fs.existsSync(path.join(claude, name)));
   installed.length ? pass('controls', `${installed.length}/${controls.length} core controls installed`) : warning('controls', 'no .claude controls installed yet; this is normal before Phase 7');
+  if (installed.length) {
+    // PE-002: an installed kit with no lock cannot tell an upgradeable file from one somebody changed.
+    const lock = runNode(root, path.join(KIT_ROOT, 'claude-setup', 'kit-lock.js'), ['--root', root, '--json']);
+    let report = null;
+    try { report = JSON.parse(lock.stdout); } catch { /* no report */ }
+    if (!report || report.error) warning('kit-lock', 'no .buaflow/lock.json — run buaflow lock --write so later upgrades can tell your changes from the kit\'s');
+    else if (report.counts.drifted) warning('kit-lock', `${report.counts.drifted} installed file(s) changed since the lock without being accepted — run buaflow lock`);
+    else pass('kit-lock', `locked at ${report.lockedVersion}: ${report.counts.outdated} outdated, ${report.counts.customized} customized`);
+  }
   if (fs.existsSync(path.join(root, 'docs', 'planning', '_state.md'))) pass('planning-state', 'docs/planning/_state.md found');
   else warning('planning-state', 'missing docs/planning/_state.md; start or resume the lifecycle before implementation');
 
@@ -335,6 +345,21 @@ function commandIntake(root, options) {
   return envelope('intake', EXIT.OK, `${report.created.length} draft intent(s) ${report.written ? 'written' : 'would be written — add --write'} · ${report.skipped.length} skipped`, { written: report.written, result: report });
 }
 
+// PE-002: which kit version a project installed, and which installed files changed since.
+function commandLock(root, options) {
+  const result = runNode(root, path.join(KIT_ROOT, 'claude-setup', 'kit-lock.js'), ['--root', root, '--json', ...(options.write ? ['--write'] : [])]);
+  if (result.status === 2) return envelope('lock', EXIT.INPUT, 'nothing installed to lock', {}, [], [result.stderr.trim()]);
+  let report = null;
+  try { report = JSON.parse(result.stdout); } catch { /* reported below */ }
+  if (!report) return envelope('lock', EXIT.FAILED, 'lock could not run', {}, [], [result.stderr.trim()]);
+  if (report.error) return envelope('lock', EXIT.FAILED, 'no lock yet', {}, [], [report.error]);
+  if (options.write) return envelope('lock', EXIT.OK, `recorded ${Object.keys(report.files).length} installed file(s) at kit ${report.kitVersion}`, { file: '.buaflow/lock.json' });
+  const c = report.counts;
+  return envelope('lock', c.drifted ? EXIT.FAILED : EXIT.OK, `locked at ${report.lockedVersion}, kit is ${report.kitVersion}: ${c.current} current, ${c.outdated} outdated, ${c.customized} customized, ${c.drifted} drifted`, { result: report },
+    report.rows.filter((r) => r.status === 'outdated' || r.status === 'customized').map((r) => `${r.status}: ${r.file}`),
+    report.rows.filter((r) => r.status === 'drifted').map((r) => `drifted (changed since the lock, nobody accepted it): ${r.file}`));
+}
+
 function commandResume(root) {
   const warnings = [];
   const data = { projectManifest: null, planning: null, inProgressTasks: [] };
@@ -392,6 +417,7 @@ function main(argv = process.argv.slice(2)) {
   const result = command === 'init' ? commandInit(options.root, options)
     : command === 'doctor' ? commandDoctor(options.root, options)
       : command === 'resume' ? commandResume(options.root)
+        : command === 'lock' ? commandLock(options.root, options)
         : command === 'assess' ? commandAssess(options.root, options)
           : command === 'intake' ? commandIntake(options.root, options)
           : command === 'benchmark' ? commandBenchmark(options.root)
@@ -403,4 +429,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { COMMANDS, EXIT, commandAssess, commandIntake, commandBenchmark, commandCi, commandDoctor, commandInit, commandResume, main, parse };
+module.exports = { COMMANDS, EXIT, commandLock, commandAssess, commandIntake, commandBenchmark, commandCi, commandDoctor, commandInit, commandResume, main, parse };

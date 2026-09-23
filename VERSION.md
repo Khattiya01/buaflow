@@ -3,6 +3,21 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.11.0 — 2026-09-24
+
+> โปรเจกต์ที่ใช้ v3.10.0 → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.10.0 → v3.11.0) · **MINOR:** ไม่มี schema เปลี่ยน
+
+M6 ตามที่ D-024 กำหนด: **Claude Code อย่างเดียว** + plugin/MCP
+
+- **Buaflow เป็น Claude Code plugin** (`claude-plugin/`, `.claude-plugin/marketplace.json`, PE-001/PE-007) — skills, agents, hooks
+  ติดตั้งด้วย `/plugin marketplace add` + `/plugin install buaflow@buaflow` · generate จาก `claude-setup/` และ `claude plugin validate --strict`
+  ผ่าน · **gate กับตัวตรวจยังอยู่ในโปรเจกต์โดยตั้งใจ** (pre-push และ CI รันนอก session) และ plugin ส่ง permission ไม่ได้
+- **conformance + trust tier** (`scripts/check-plugin.js`, PE-005/PE-006) — ใช้กับ plugin ไหนก็ได้ · `local` = ผ่านเกณฑ์ ·
+  `verified` = ผ่าน + checksum ตรงทุกไฟล์ + Claude Code validate ผ่าน · ไม่ทำ signing ด้วย key เพราะมีผู้เผยแพร่รายเดียว
+- **`buaflow lock`** (PE-002) — จำว่าติดตั้ง kit เวอร์ชันไหน · แยกไฟล์ current / outdated / customized / drifted · `doctor` รายงานให้
+- **`check-config`: permission และ MCP** (PE-003/PE-004) — `Bash(*)`, bypassPermissions ใน settings ที่ commit = ตก · ไม่กันอ่าน `.env`,
+  WebFetch ทุก domain = เตือน · MCP server ที่ไม่มีใครเปิด/ปิดชัด, ไม่ pin เวอร์ชัน = เตือน · secret ฝังใน `.mcp.json` = ตก
+
 ## v3.10.0 — 2026-09-23
 
 > โปรเจกต์ที่ใช้ v3.9.0 → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.9.0 → v3.10.0)

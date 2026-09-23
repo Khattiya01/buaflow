@@ -31,6 +31,7 @@ node buaflow/bin/buaflow.js <command>
 | `operations [--file path]` | รัน `.claude/operational-readiness.js` — restore ต้องถูกซ้อมจริงและข้อมูลกลับมาเหมือนเดิม, incident hook ต้องชี้ไปหัวข้อ runbook ที่มีอยู่จริง, ทุก trust boundary ต้องมีคนเฝ้า (EP-005) | ไม่เขียน |
 | `budgets [--file path]` | รัน `.claude/budgets.js` — ตัวเลขที่วัดได้ถูก derive ใหม่จากไฟล์หลักฐาน และเทียบกับเพดานที่ **application profile** กำหนด ไม่ใช่เพดานที่แอปเขียนเอง (EP-007) | ไม่เขียน |
 | `evals [--file dir]` | รัน `.claude/eval-harness.js` — เคสต้องชี้ไฟล์ config ที่มีอยู่จริง และ run ที่อ้างว่าผ่านต้องตัดสินเคส**เวอร์ชันปัจจุบัน** ไม่ใช่เวอร์ชันที่ถูกแก้ทิ้งไปแล้ว (EV-004) `--file` คือโฟลเดอร์เคส ค่า default คือ `docs/evals` | ไม่เขียน |
+| `lock [--write]` | `--write` บันทึก `.buaflow/lock.json`: เวอร์ชัน kit + sha256 ของทุกไฟล์ที่คัดลอกมาจาก kit · ไม่ใส่ = เทียบไฟล์ที่ติดตั้งกับ lock และ kit แล้วบอก current / outdated / customized / drifted (PE-002) · rules และ stack.json ไม่อยู่ใน lock โดยตั้งใจ | เขียนเฉพาะ `--write` |
 | `resume` | สรุป `.buaflow/project.json`, `docs/planning/_state.md` และ task ที่ in-progress | ไม่เขียน |
 
 ทุก command รับ `--root <path>` เพื่อกำหนด project root และ `--json` เพื่อ output ที่ agent/CI parse ได้

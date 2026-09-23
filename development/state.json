@@ -1757,6 +1757,163 @@
         "claude-setup/evals/EV-005.json"
       ],
       "notes": "Delivered as workflow content plus an eval case, because a repair loop is agent behaviour and the eval harness is how the kit checks behaviour. Grounded in K-9: the gate learned to name FLAKY in 3.7.0, but nothing told the agent that such a failure must not be fixed in code. The eval is unrun: this session wrote it and may not grade it."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-24",
+      "completedAt": "2026-09-24",
+      "dependsOn": [],
+      "verification": [
+        "npm run check",
+        "claude plugin validate --strict claude-plugin"
+      ],
+      "id": "PE-001",
+      "title": "Plugin manifest: Buaflow as a Claude Code plugin",
+      "acceptance": [
+        "The session layer (skills, agents, guard hooks) installs as one Claude Code plugin generated from claude-setup/, with hooks running from ${CLAUDE_PLUGIN_ROOT}",
+        "Claude Code accepts the plugin in strict validation; what the plugin deliberately does not carry (gate, permissions, fitted rules) is stated"
+      ],
+      "artifacts": [
+        "scripts/generate-claude-plugin.js",
+        "claude-plugin/.claude-plugin/plugin.json",
+        "claude-plugin/hooks/hooks.json",
+        "claude-plugin/README.md",
+        "claude-setup/tests/claude-plugin.test.js"
+      ],
+      "notes": "Scoped to Claude Code by D-024. The roadmap row asked for a Buaflow-specific manifest (id/version/capability/permission/input/output/verification); Claude Code already has a plugin manifest and it is the one users install from, so inventing a second one for a single vendor would be surface without a consumer. Permissions stay in the project because Claude Code plugins cannot ship them."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-24",
+      "completedAt": "2026-09-24",
+      "dependsOn": [],
+      "verification": [
+        "npm run check"
+      ],
+      "id": "PE-002",
+      "title": "Lockfile: which kit version and files a project installed",
+      "acceptance": [
+        "buaflow lock --write records the kit version and the sha256 of every installed file copied from the kit",
+        "Without --write it reports each installed file as current, outdated, customized or drifted, and doctor reports the lock"
+      ],
+      "artifacts": [
+        "claude-setup/kit-lock.js",
+        "claude-setup/tests/kit-lock.test.js",
+        "bin/buaflow.js",
+        "CLI.md"
+      ],
+      "notes": "Grounded in the trial: its .claude/check-config.js was several releases old (the K-13 bug) and its guard-bash.js was changed on purpose, and nothing could tell those apart. There is no dependency resolver because the kit has no plugin dependencies to resolve; the row's resolver half has nothing to act on yet."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-24",
+      "completedAt": "2026-09-24",
+      "dependsOn": [],
+      "verification": [
+        "npm run check"
+      ],
+      "id": "PE-003",
+      "title": "Permission model: audit what the project lets the AI do",
+      "acceptance": [
+        "check-config fails a committed settings.json that allows every shell command or bypasses permissions",
+        "It warns when secrets (.env) are readable or WebFetch is unrestricted"
+      ],
+      "artifacts": [
+        "claude-setup/check-config.js",
+        "claude-setup/tests/check-config.test.js"
+      ],
+      "notes": "The permission model itself is Claude Code's; the kit's part is to make an unsafe committed configuration visible, the same way it makes an unsafe manifest visible."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-24",
+      "completedAt": "2026-09-24",
+      "dependsOn": [],
+      "verification": [
+        "npm run check"
+      ],
+      "id": "PE-004",
+      "title": "MCP policy: every server is a recorded decision, pinned and without committed secrets",
+      "acceptance": [
+        "Every .mcp.json server is explicitly enabled or disabled in settings, and blanket enableAllProjectMcpServers is reported",
+        "Secrets written into .mcp.json instead of ${VAR} references fail; npx/uvx packages without a pinned version are reported"
+      ],
+      "artifacts": [
+        "claude-setup/check-config.js",
+        "claude-setup/tests/check-config.test.js"
+      ],
+      "notes": "Only settings keys that are long established (enabledMcpjsonServers, disabledMcpjsonServers, enableAllProjectMcpServers) are relied on. Newer allow/deny-list keys for managed settings were reported by a documentation lookup but not verified here, so nothing depends on them."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-24",
+      "completedAt": "2026-09-24",
+      "dependsOn": [],
+      "verification": [
+        "npm run check"
+      ],
+      "id": "PE-005",
+      "title": "Plugin conformance kit",
+      "acceptance": [
+        "Any plugin directory is checked for a versioned manifest, hooks that stay inside the plugin and fetch nothing from the network, skills and agents with frontmatter, and no machine-specific paths",
+        "A deliberately broken plugin fails on each of those"
+      ],
+      "artifacts": [
+        "scripts/check-plugin.js",
+        "claude-setup/tests/check-plugin.test.js",
+        "scripts/check-repository.js"
+      ]
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-24",
+      "completedAt": "2026-09-24",
+      "dependsOn": [],
+      "verification": [
+        "npm run check"
+      ],
+      "id": "PE-006",
+      "title": "Trust tiers from evidence, not from the publisher",
+      "acceptance": [
+        "A plugin is local when it conforms and verified when every file also matches its checksum list and Claude Code validates it",
+        "A file edited after generation breaks its checksum and is caught"
+      ],
+      "artifacts": [
+        "claude-plugin/CHECKSUMS.sha256",
+        "scripts/check-plugin.js",
+        "scripts/generate-claude-plugin.js"
+      ],
+      "notes": "No key signing: there is one publisher, and a signature nobody checks against a known key adds nothing a checksum in the same repository does not. Reopen when a second publisher exists."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-24",
+      "completedAt": "2026-09-24",
+      "dependsOn": [
+        "PE-001",
+        "PE-005",
+        "PE-006"
+      ],
+      "verification": [
+        "npm run check",
+        "claude plugin validate --strict .claude-plugin/marketplace.json"
+      ],
+      "id": "PE-007",
+      "title": "Catalog v1",
+      "acceptance": [
+        "A marketplace lists the Buaflow plugin with its version and passes strict validation"
+      ],
+      "artifacts": [
+        ".claude-plugin/marketplace.json"
+      ],
+      "notes": "One entry. The roadmap's own rule 9.4 says a catalog comes after contracts and conformance are stable; with one plugin and one trial the honest catalog is a single listing, not a discovery system."
     }
   ],
   "decisions": [

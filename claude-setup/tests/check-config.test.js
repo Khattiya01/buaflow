@@ -89,3 +89,34 @@ test('an uninstalled .git/hooks pre-push fails on a developer machine but not in
     cleanup(root);
   }
 });
+
+// PE-003 / PE-004: settings.json is the only place a project bounds the AI (a plugin cannot ship
+// permissions), and every MCP server is a decision somebody should have recorded.
+test('blanket shell permission, bypass mode, committed MCP secrets and undecided or unpinned servers are reported', () => {
+  const root = temporaryProject('buaflow-check-config-');
+  try {
+    write(path.join(root, 'CLAUDE.md'), '@AGENTS.md\n');
+    write(path.join(root, '.claude', 'settings.json'), JSON.stringify({
+      permissions: { allow: ['Bash(*)', 'WebFetch'], deny: [], defaultMode: 'bypassPermissions' },
+      enabledMcpjsonServers: ['github'],
+    }));
+    write(path.join(root, '.mcp.json'), JSON.stringify({ mcpServers: {
+      github: { command: 'npx', args: ['-y', '@modelcontextprotocol/server-github@1.2.0'], env: { GITHUB_TOKEN: '${GITHUB_TOKEN}' } },
+      stripe: { type: 'http', url: 'https://mcp.stripe.com', headers: { Authorization: 'Bearer sk_live_abc123' } },
+      docs: { command: 'npx', args: ['some-docs-mcp@latest'] },
+    } }));
+    const out = runNode(script, { args: [root] }).stdout;
+    assert.match(out, /FAIL permissions\.allow มี Bash\(\*\)/);
+    assert.match(out, /FAIL permissions\.defaultMode = bypassPermissions/);
+    assert.match(out, /warn permissions\.deny ไม่มีรายการกันอ่าน \.env/);
+    assert.match(out, /warn permissions\.allow มี WebFetch ทุก domain/);
+    assert.match(out, /FAIL MCP server "stripe" ฝังค่า Authorization/);
+    assert.doesNotMatch(out, /"github" ฝังค่า/, 'a ${VAR} reference is not a committed secret');
+    assert.match(out, /MCP server "stripe" ไม่อยู่ใน enabledMcpjsonServers/);
+    assert.doesNotMatch(out, /MCP server "github" ไม่อยู่ใน/);
+    assert.match(out, /"docs" รัน some-docs-mcp@latest โดยไม่ pin/);
+    assert.doesNotMatch(out, /"github" รัน/);
+  } finally {
+    cleanup(root);
+  }
+});
