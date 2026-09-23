@@ -804,8 +804,8 @@
     {
       "id": "EV-009",
       "title": "First trial on a project Buaflow did not author",
-      "milestone": "M4",
-      "status": "backlog",
+      "milestone": "M5",
+      "status": "in_progress",
       "dependsOn": [],
       "acceptance": [
         "Buaflow is applied end to end to at least one project it did not itself author — brownfield via phases/A-adopt-existing.md preferred — and the run is measured, not narrated: human questions answered, reviewer minutes, time to first runnable, time to production candidate",
@@ -814,7 +814,8 @@
       ],
       "artifacts": [],
       "verification": [],
-      "notes": "Opened 2026-09-23 per D-011. Today every readiness claim in this repository comes from an app Buaflow wrote, verified and graded itself, so the north-star metric has no real denominator. The METR study already cited in the roadmap's own section 12 says perceived speed diverges from measured time specifically in mature codebases, which is exactly the case this kit has never been tested against."
+      "notes": "Opened 2026-09-23 per D-011. Today every readiness claim in this repository comes from an app Buaflow wrote, verified and graded itself, so the north-star metric has no real denominator. The METR study already cited in the roadmap's own section 12 says perceived speed diverges from measured time specifically in mature codebases, which is exactly the case this kit has never been tested against.",
+      "startedAt": "2026-09-24"
     },
     {
       "id": "EP-011",
