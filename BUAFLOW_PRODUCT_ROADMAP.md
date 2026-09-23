@@ -189,7 +189,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | ID | งาน | ผลลัพธ์ |
 |---|---|---|
 | EP-001 | Evidence bundle format | `readiness.json` + report index + immutable run metadata |
-| EP-002 | Requirement coverage | **เหลือเฉพาะ approved exception** (owner/reason/risk/expiry ที่หมดอายุแล้วทำให้ gate ตก) — ส่วน coverage เสร็จแล้วผ่าน requirements-traceability + docs-lint + DV-002 |
+| EP-002 | Requirement coverage | ✅ **done** — `requirement-coverage` artifact v1 + `.claude/requirement-coverage.js`: requirement หนึ่งข้อมี proof หรือ approved exception (owner/reason/risk/expiry) อย่างใดอย่างหนึ่ง · exception ที่หมดอายุทำให้ gate ตก · 12 exception จริงในสาม reference app มาจาก "Known limitations" ที่เคยเป็น prose |
 | EP-003 | Security baseline | **เหลือเฉพาะ ASVS mapping + threat boundary ที่เป็น artifact** — ส่วน scan เสร็จและถูกบังคับใน production gate แล้ว |
 | EP-004 | Supply-chain evidence | **เหลือ licenses + provenance + checksums** — lockfile และ SBOM (CycloneDX จริงทั้ง 3 แอป) เสร็จแล้ว · evidence/ci-run.json จาก EP-011 เป็นฐานของ provenance ได้เลย |
 | EP-005 | Operational readiness | **เหลือ restore rehearsal + incident hooks ที่เป็นสัญญา** — health/logs/runbook เสร็จและถูกบังคับที่ R3 แล้ว · ลอกแบบจาก EP-006 ได้ |
@@ -272,8 +272,8 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 - **failure taxonomy** ที่ตั้งอยู่บนความล้มเหลวที่เกิดขึ้นจริงในที่นี่ ไม่ใช่หมวดหมู่ที่ลอกมา (EV-003)
 - **release policy ของ kit เอง** — เลขเวอร์ชันของ Buaflow ต้องแปลว่าอะไรสักอย่างกับผู้ใช้ (EV-007)
 - **change impact + convergence graph** — รู้ว่าอะไรกระทบเมื่อของเปลี่ยน และอะไรไม่เชื่อมกับอะไรเลย (IC-006, BC-004)
-- **ส่วนที่เหลือจริงของ EP** หลัง audit: exception ที่มีวันหมดอายุ, ASVS mapping, provenance/licenses,
-  restore rehearsal, budget ที่มาจาก profile (EP-002, EP-003, EP-004, EP-005, EP-007)
+- **ส่วนที่เหลือจริงของ EP** หลัง audit: ~~exception ที่มีวันหมดอายุ (EP-002 ✅)~~, ASVS mapping,
+  provenance/licenses, restore rehearsal, budget ที่มาจาก profile (EP-003, EP-004, EP-005, EP-007)
 
 ### M5 — Proven Outside
 

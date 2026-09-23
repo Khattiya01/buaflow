@@ -331,6 +331,7 @@ module.exports = {
   controlsFor,
   evaluateFreshness,
   parseArgs,
+  validateEvidence,
   validateManifest,
 };
 

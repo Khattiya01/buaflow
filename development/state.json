@@ -5,7 +5,9 @@
   "updatedAt": "2026-09-23",
   "current": {
     "milestone": "M4",
-    "focus": ["EV-009"]
+    "focus": [
+      "EP-003"
+    ]
   },
   "workItems": [
     {
@@ -26,7 +28,9 @@
         "development/state.schema.json",
         "scripts/check-roadmap.js"
       ],
-      "verification": ["node scripts/check-roadmap.js"],
+      "verification": [
+        "node scripts/check-roadmap.js"
+      ],
       "startedAt": "2026-09-22",
       "completedAt": "2026-09-22",
       "notes": "This state tracks Buaflow product development, not an adopter project's lifecycle state."
@@ -36,7 +40,9 @@
       "title": "Readiness levels and Deployment-Ready Contract",
       "milestone": "M0",
       "status": "done",
-      "dependsOn": ["BF-001"],
+      "dependsOn": [
+        "BF-001"
+      ],
       "acceptance": [
         "R0 through R4 have non-overlapping outcomes and promotion rules",
         "R3 defines portable deployment without source-code changes",
@@ -46,7 +52,9 @@
         "standards/readiness-levels.md",
         "standards/deployment-ready-contract.md"
       ],
-      "verification": ["node scripts/check-roadmap.js"],
+      "verification": [
+        "node scripts/check-roadmap.js"
+      ],
       "startedAt": "2026-09-22",
       "completedAt": "2026-09-22"
     },
@@ -55,7 +63,9 @@
       "title": "Readiness manifest validator v1",
       "milestone": "M0",
       "status": "done",
-      "dependsOn": ["BF-002"],
+      "dependsOn": [
+        "BF-002"
+      ],
       "acceptance": [
         "A versioned manifest template represents target level, commit, controls and evidence",
         "A zero-dependency validator fails missing, failed or unsupported controls",
@@ -68,7 +78,9 @@
         "claude-setup/readiness.js",
         "claude-setup/tests/readiness.test.js"
       ],
-      "verification": ["node --test claude-setup/tests/readiness.test.js"],
+      "verification": [
+        "node --test claude-setup/tests/readiness.test.js"
+      ],
       "startedAt": "2026-09-22",
       "completedAt": "2026-09-22",
       "notes": "V1 validates evidence declarations; BF-005/EP work will make production execution fail-closed and generate immutable evidence."
@@ -78,7 +90,9 @@
       "title": "Core regression tests for scripts, hooks and gates",
       "milestone": "M0",
       "status": "done",
-      "dependsOn": ["BF-001"],
+      "dependsOn": [
+        "BF-001"
+      ],
       "acceptance": [
         "Critical script branches have automated tests on Windows and Linux-compatible Node APIs",
         "Gate skip/warn/fail behavior is covered",
@@ -94,7 +108,10 @@
         "claude-setup/tests/docs-lint.test.js",
         "claude-setup/tests/gate.test.js"
       ],
-      "verification": ["npm test", "npm run check"],
+      "verification": [
+        "npm test",
+        "npm run check"
+      ],
       "startedAt": "2026-09-22",
       "completedAt": "2026-09-22",
       "notes": "The first regression run exposed and fixed positional root parsing in docs-lint.js."
@@ -104,7 +121,10 @@
       "title": "Fail-closed production mode",
       "milestone": "M0",
       "status": "done",
-      "dependsOn": ["BF-003", "BF-004"],
+      "dependsOn": [
+        "BF-003",
+        "BF-004"
+      ],
       "acceptance": [
         "Production mode fails when verify or a required scanner is unavailable",
         "R3 claims cannot pass with skipped mandatory checks",
@@ -116,7 +136,9 @@
         "claude-setup/stack.json",
         "claude-setup/tests/gate.test.js"
       ],
-      "verification": ["npm run check"],
+      "verification": [
+        "npm run check"
+      ],
       "startedAt": "2026-09-22",
       "completedAt": "2026-09-22",
       "notes": "Production assurance is opt-in and fail-closed; adoption remains the backward-compatible default."
@@ -126,7 +148,9 @@
       "title": "Canonical artifact schemas and migration policy",
       "milestone": "M1",
       "status": "done",
-      "dependsOn": ["BF-003"],
+      "dependsOn": [
+        "BF-003"
+      ],
       "acceptance": [
         "Public machine-readable artifacts have schema IDs and versions",
         "Backward compatibility and migration rules are documented and tested"
@@ -144,7 +168,9 @@
         "claude-setup/tests/artifact-migration.test.js",
         "claude-setup/tests/fixtures/artifacts"
       ],
-      "verification": ["npm run check"],
+      "verification": [
+        "npm run check"
+      ],
       "startedAt": "2026-09-22",
       "completedAt": "2026-09-22",
       "notes": "Public v1 contracts cover stack config, readiness manifest, prototype flow and pixel config; vendor-owned JSON is explicitly excluded."
@@ -154,7 +180,10 @@
       "title": "Vendor-neutral CLI shell",
       "milestone": "M1",
       "status": "done",
-      "dependsOn": ["BF-004", "BF-006"],
+      "dependsOn": [
+        "BF-004",
+        "BF-006"
+      ],
       "acceptance": [
         "CLI exposes init, doctor, verify, readiness and resume without requiring an AI vendor",
         "Every command has stable exit codes and machine-readable output"
@@ -165,7 +194,9 @@
         "templates/project-manifest.tpl.json",
         "claude-setup/tests/cli.test.js"
       ],
-      "verification": ["npm run check"],
+      "verification": [
+        "npm run check"
+      ],
       "startedAt": "2026-09-22",
       "completedAt": "2026-09-22",
       "notes": "The CLI shell owns stable exit codes and JSON envelopes; it delegates stack-specific controls instead of reimplementing them."
@@ -175,7 +206,9 @@
       "title": "Product graph schema v1",
       "milestone": "M1",
       "status": "done",
-      "dependsOn": ["BF-006"],
+      "dependsOn": [
+        "BF-006"
+      ],
       "acceptance": [
         "Schema captures actors, outcomes, capabilities, rules, entities, integrations, NFRs, assumptions, risks and exclusions",
         "A human-readable view can be generated without losing canonical data"
@@ -189,7 +222,9 @@
         "claude-setup/tests/fixtures/artifacts/v0/product-graph.json",
         "claude-setup/tests/fixtures/artifacts/v1/product-graph.json"
       ],
-      "verification": ["npm run check"],
+      "verification": [
+        "npm run check"
+      ],
       "startedAt": "2026-09-22",
       "completedAt": "2026-09-22",
       "notes": "v1 covers the 10 required categories with cross-references by id; claude-setup/product-graph.js renders a Markdown view and self-verifies every leaf value from the source JSON appears in it before printing. Not yet wired into the intent/spec/plan/task chain (IC-002/IC-003) or profile selection (PP-001)."
@@ -199,7 +234,9 @@
       "title": "Application profile contract v1",
       "milestone": "M1",
       "status": "done",
-      "dependsOn": ["IC-001"],
+      "dependsOn": [
+        "IC-001"
+      ],
       "acceptance": [
         "Profiles alter required controls, architecture choices and clarification questions",
         "At least content, internal CRUD and SaaS profiles have fixtures"
@@ -216,7 +253,9 @@
         "claude-setup/tests/fixtures/profiles/internal-crud.json",
         "claude-setup/tests/fixtures/profiles/saas.json"
       ],
-      "verification": ["npm run check"],
+      "verification": [
+        "npm run check"
+      ],
       "startedAt": "2026-09-22",
       "completedAt": "2026-09-22",
       "notes": "Each control override cross-checks against claude-setup/readiness.js's own control catalog and conditional set, so not-applicable is only ever legal where the readiness contract already allows it. Schema requires at least one control override, architecture choice and clarification question per profile, so a profile that changes nothing cannot validate. content/internal-crud/saas fixtures are proven to genuinely disagree (persistence, database-migration, accessibility) by an automated test, not just asserted. Not yet wired into buaflow init/doctor or the CLI — that is PP-002/CLI follow-up work."
@@ -226,7 +265,10 @@
       "title": "Stack and capability pack contracts",
       "milestone": "M1",
       "status": "done",
-      "dependsOn": ["BF-006", "PP-001"],
+      "dependsOn": [
+        "BF-006",
+        "PP-001"
+      ],
       "acceptance": [
         "Pack contract defines inputs, generated artifacts, compatibility, verification, upgrade and operational evidence",
         "Pack validation is deterministic"
@@ -242,7 +284,9 @@
         "packs/nextjs-postgres.json",
         "packs/auth-rbac.json"
       ],
-      "verification": ["npm run check"],
+      "verification": [
+        "npm run check"
+      ],
       "startedAt": "2026-09-22",
       "completedAt": "2026-09-22",
       "notes": "One shared v1 contract covers both stack and capability packs via a kind discriminator, matching this item's merged scope (the long-term roadmap's PP-002/PP-006 split is deferred). operationalEvidence[].control cross-checks against claude-setup/readiness.js's control catalog, the same mechanism PP-001 uses, so a pack must name a real control it helps satisfy. generatedArtifacts/verification/operationalEvidence all require minItems 1, so a pack that generates nothing or proves nothing cannot validate. nextjs-postgres (stack) and auth-rbac (capability, requiresPacks nextjs-postgres) fixtures prove the contract works for both kinds and contribute evidence to different controls. No generator executes yet — that is PP-003 (building the actual reference app)."
@@ -252,7 +296,10 @@
       "title": "First web golden stack and R3 reference app",
       "milestone": "M1",
       "status": "done",
-      "dependsOn": ["PP-002", "BF-005"],
+      "dependsOn": [
+        "PP-002",
+        "BF-005"
+      ],
       "startedAt": "2026-09-22",
       "completedAt": "2026-09-22",
       "acceptance": [
@@ -280,7 +327,9 @@
       "title": "Second web golden stack and R3 reference app",
       "milestone": "M2",
       "status": "done",
-      "dependsOn": ["PP-003"],
+      "dependsOn": [
+        "PP-003"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -309,7 +358,9 @@
       "title": "Core capability packs",
       "milestone": "M2",
       "status": "done",
-      "dependsOn": ["PP-002"],
+      "dependsOn": [
+        "PP-002"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -331,7 +382,9 @@
       "title": "Evidence bundle format",
       "milestone": "M2",
       "status": "done",
-      "dependsOn": ["BF-003"],
+      "dependsOn": [
+        "BF-003"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -367,7 +420,10 @@
       "title": "Contract mismatch detector: profile vs. composed packs (narrow slice)",
       "milestone": "M2",
       "status": "done",
-      "dependsOn": ["PP-001", "PP-007"],
+      "dependsOn": [
+        "PP-001",
+        "PP-007"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -378,7 +434,9 @@
         "claude-setup/pack-composition.js",
         "claude-setup/tests/pack-composition.test.js"
       ],
-      "verification": ["npm run check"],
+      "verification": [
+        "npm run check"
+      ],
       "notes": "This is a deliberately narrow slice of the roadmap's full BC-005 ('Contract mismatch detectors: schema/API/migration/UI/requirement drift checks'), pulled forward to close M2's 'convergence checks' completion criterion (D-004) without waiting on BC-001..004 (agent I/O contract, work isolation, scheduler, convergence graph), none of which exist yet. It reuses claude-setup/pack-composition.js (PP-007) and claude-setup/application-profile.js (PP-001) as-is via a new --profile flag and validateProfileFit() export — no new artifact type, no new machinery. Schema/API/migration/UI drift detection (the rest of BC-005's real scope) stays out of scope until BC-001..004 land; do not treat this entry as satisfying the full BC-005 vision from the long-term roadmap table."
     },
     {
@@ -386,7 +444,10 @@
       "title": "Mobile golden stack",
       "milestone": "M3",
       "status": "done",
-      "dependsOn": ["PP-002", "EP-001"],
+      "dependsOn": [
+        "PP-002",
+        "EP-001"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -481,7 +542,9 @@
       "title": "Claude Code adapter (rules, skills, agents)",
       "milestone": "M4",
       "status": "done",
-      "dependsOn": ["MT-001"],
+      "dependsOn": [
+        "MT-001"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -531,7 +594,9 @@
       "title": "Evidence and pain-point discovery layer before intent",
       "milestone": "M1",
       "status": "done",
-      "dependsOn": ["BF-001"],
+      "dependsOn": [
+        "BF-001"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -550,7 +615,9 @@
         "phases/A-adopt-existing.md",
         "phases/07-handoff.md"
       ],
-      "verification": ["node scripts/check-roadmap.js"],
+      "verification": [
+        "node scripts/check-roadmap.js"
+      ],
       "notes": "Adopted from an external research review on 2026-09-23 (see D-005). Deliberately opt-in, not a mandatory gate, to keep the existing Progressive rigor principle intact — this must not become required ceremony for small tasks. Gating criteria in standards/discovery-and-validation.md is a 3-condition table (new-product, major-initiative touching multiple workflows/roles across >1 milestone, or the problem is still opinion-only with no evidence) with an explicit 'default is skip' statement, so it composes with (not on top of) /intent's own existing track:trivial check rather than adding a second gate everyone has to clear. phases/07-handoff.md's Phase 7 install map was also updated (not in the original artifacts list) to actually copy the 3 new templates into adopter projects and create docs/discovery/ — without this, the templates would exist in buaflow/ but never reach an adopter, silently breaking the 'opt-in step' claim. No JSON schema/registry entry was added for these templates (unlike state/readiness/pack etc.) since nothing currently needs to parse them automatically — plain markdown matches every other discovery-layer template in this repo (intent/spec/plan/task/adr); revisit only if DV-002's traceability check needs real parsing."
     },
     {
@@ -558,7 +625,9 @@
       "title": "Traceability chain extended upstream to evidence and pain points",
       "milestone": "M1",
       "status": "done",
-      "dependsOn": ["DV-001"],
+      "dependsOn": [
+        "DV-001"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -573,7 +642,10 @@
         "templates/pain-point-register.tpl.md",
         "templates/process-flow.tpl.md"
       ],
-      "verification": ["npm test", "npm run check"],
+      "verification": [
+        "npm test",
+        "npm run check"
+      ],
       "notes": "Adopted from an external research review on 2026-09-23 (see D-005). Scoped to pain-point ids only, not the acceptance text's 'or objective id' — no 'objective' artifact type exists anywhere in this system yet (checked schemas/, templates/, IC-001's product-graph 'outcomes' category is a different, unwired concept), so checking for one would mean inventing an undefined concept; deliberately left out rather than guessed at, same posture as other narrow-slice decisions this session (D-006/D-007/D-008). Also scoped to intents only, not 'a feature' (spec) — specs already trace back to their source intent via docs-lint's existing check #7 (accepted intent must be pointed to by a task or spec), so checking intents alone extends the traceability chain upstream through that existing link without duplicating the check at the spec layer. The gate condition is the coarsest possible: any project without docs/discovery/pain-point-register.md is completely unaffected (the whole new check block is skipped), matching the acceptance text's 'projects that skip the discovery layer are unaffected' literally, not just approximately. Caught and fixed one real bug found while building this: the pain-point-register template's own example row used PP-001 (a real-looking id) instead of the -000 sentinel convention this repo already uses for template placeholders (T-000, I-000) — copying the template verbatim would have produced a false 'real' pain point immediately; fixed to PP-000 in the template (and EVD-000 in evidence-register.tpl.md, CH-000 in process-flow.tpl.md, for the same reason) before docs-lint.js was written to treat PP-000 specifically as non-real. Also renamed evidence ids from EV-xxx to EVD-xxx (evidence-register.tpl.md, pain-point-register.tpl.md) after noticing EV-xxx already means eval case (docs/evals/EV-000-*.md) in the same adopter docs/ tree — caught before any adopter could hit the collision. 5 new docs-lint tests; full suite 142/142."
     },
     {
@@ -581,15 +653,23 @@
       "title": "Business outcome review after release, distinct from the config-learning loop",
       "milestone": "M1",
       "status": "done",
-      "dependsOn": ["BF-001"],
+      "dependsOn": [
+        "BF-001"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
         "Outcome-review template records baseline, target, actual metric and a keep/iterate/rollback/monitor/open-new-intent decision",
         "phases/08-tune-and-evolve.md documents outcome review as a separate activity from the existing AGENTS.md/rule/hook config-learning loop, with its own trigger (milestone close or post-release), so the two loops are not conflated"
       ],
-      "artifacts": ["templates/outcome-review.tpl.md", "phases/08-tune-and-evolve.md", "phases/07-handoff.md"],
-      "verification": ["node scripts/check-roadmap.js"],
+      "artifacts": [
+        "templates/outcome-review.tpl.md",
+        "phases/08-tune-and-evolve.md",
+        "phases/07-handoff.md"
+      ],
+      "verification": [
+        "node scripts/check-roadmap.js"
+      ],
       "notes": "Adopted from an external research review on 2026-09-23 (see D-005). New §8.9 in phases/08-tune-and-evolve.md opens with an explicit contrast against §8.1 (config-learning loop) — different question (did the AI/process behave correctly vs. did the business pain point actually get fixed), different evidence (AI behavior vs. real business/user metrics), and states plainly that passing §8.1 does not imply §8.9 would pass, so the two cannot be conflated by a reader skimming just one of them. Added a trigger row to the phase's own 'ทำเมื่อไหร่' table (same table DV-002/other triggers already live in) rather than inventing a separate mechanism. The template deliberately reuses the SAME metric named in process-flow.tpl.md's to-be 'success metric' column (not a newly-invented one at review time) — changing what's measured after the fact would let a failing initiative redefine success post-hoc; a metric change is treated as a lesson about the original to-be estimate, not a fresh start. gated the same opt-in way as DV-001/DV-002: only for initiatives that actually have discovery-layer artifacts (docs/discovery/) to review against; ordinary features skip it. phases/07-handoff.md's install map was updated (not in the original artifacts list, same gap-closing reasoning as DV-001) so outcome-review.tpl.md actually reaches adopter projects instead of sitting unused in buaflow/. This closes out all of DV-001..003 (Discovery and Validation workstream) in one session."
     },
     {
@@ -597,7 +677,9 @@
       "title": "Continuous verification of the Buaflow kit itself",
       "milestone": "M3",
       "status": "done",
-      "dependsOn": ["BF-004"],
+      "dependsOn": [
+        "BF-004"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -611,7 +693,9 @@
         "AI_SDLC_COMPARISON.md",
         "CLI.md"
       ],
-      "verification": ["npm run check"],
+      "verification": [
+        "npm run check"
+      ],
       "notes": "Opened 2026-09-23 from the direction review recorded in D-011. The gap is narrow but load-bearing: scripts/check-repository.js already performs every check this item needs — none of it is new work — but no CI workflow has ever run it. All three workflows in .github/workflows/ target reference apps, which are examples, while the gate/validator/adapter-generator machinery that every other claim in this repository rests on had no automated enforcement at all. That is principle 1 of the roadmap (the machine decides status) not being applied to Buaflow itself. Work done 2026-09-23: .github/workflows/kit-check.yml runs npm run check on push to main, on every pull request and on manual dispatch, with no path filter on purpose (check-repository.js syntax-checks every .js and parses every .json in the repository, reference apps included, so any change can break it) and with no install step, because the kit declares zero dependencies and that is itself part of the contract — the check must work from a bare checkout. Hygiene: the empty stray directory under reference-apps/, left by a shell command that broke on a Windows path on 2026-09-23, was removed; AI_SDLC_COMPARISON.md (referenced by this roadmap's section 12) and CLI.md (referenced twice by README.md) were committed, since tracked documents were pointing at untracked files; and a root .gitignore now covers node_modules/, .verify.log and aidlc-starter-template/ — the third-party starter reviewed in D-001 and deliberately not merged, which check-repository.js already skips. Kept in_progress rather than marked done: a CI workflow that has never run proves nothing, so this follows the same rule PP-003/004/005 followed — evidence stays provisional until a real run confirms it. Marking it done requires a green run of the kit check workflow recorded here. That run happened: https://github.com/Khattiya01/buaflow/actions/runs/35827509962 is green on the first attempt, on commit c6c4288, and it did real work rather than passing vacuously — syntax PASS, json PASS, roadmap PASS (27 items), artifacts PASS (10 registered types), pack contracts and their binding to the reference apps PASS (9 packs), regression suite 160/160. It also proved the zero-dependency claim: the workflow has no install step and npm run check completed from a bare checkout. One difference worth knowing for anyone comparing output: CI reports 47 JavaScript and 114 JSON files where a local run reports 222 and 2324, because check-repository.js walks the working tree and a developer machine has build output and installed trees that are gitignored. CI checks what is committed, which is the stricter and more meaningful set. Marked done 2026-09-23."
     },
     {
@@ -619,7 +703,10 @@
       "title": "Evidence freshness as a readiness control",
       "milestone": "M3",
       "status": "done",
-      "dependsOn": ["BF-003", "EP-001"],
+      "dependsOn": [
+        "BF-003",
+        "EP-001"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -637,7 +724,10 @@
         ".github/workflows/ci-expo-fastapi-postgres-sync.yml",
         "standards/readiness-levels.md"
       ],
-      "verification": ["npm test", "npm run check"],
+      "verification": [
+        "npm test",
+        "npm run check"
+      ],
       "notes": "Opened 2026-09-23 per D-011; this is the concrete answer to D-010's second open question ('this golden stack's pinned dependencies are now a year old, how does an adopter know'). Deliberately NOT implemented as the pack.schema.json 'upgrade' field it was originally imagined as: a hand-written upgrade[] ledger is a promise a human has to keep writing, and every fixture proves nobody does — all nine are still []. A freshness control plus a scheduled re-verify makes staleness a machine-detected fact instead, which is what principle 7 (evidence over confidence) actually asks for. Whether upgrade[] survives at all is PP-010's call, not this item's. Work done 2026-09-23. Design choice that avoided a schema change entirely: the window is supplied by the VERIFIER via --max-age-days, not declared by the manifest. A manifest that sets its own expiry can declare itself valid forever, and how long evidence stays trustworthy is a property of the reviewer's risk appetite rather than of the evidence — an internal tool and a bank reach different answers about an identical manifest. Without --max-age-days nothing is judged: the age is reported and the outcome is unchanged, so every manifest written before this control existed behaves exactly as before, which is the additive requirement from BF-006's versioning policy met without touching readiness-manifest.schema.json. Two signals expire a manifest: age past the supplied window, and a commit that is no longer an ancestor of HEAD (rebased away, force-pushed over, or from a branch that never merged), which means the evidence describes source that is not in the current history. Anything undeterminable — no git, not a work tree, a shallow clone missing the commit — reports 'unknown' and never fails, so a minimal environment is never punished; the lineage check also only spawns git when a window was supplied, keeping the default path free. 'expired' is a third outcome beside pass and fail, with its own exit code 4, because forcing it into two values requires lying in one direction or the other: nobody did anything wrong, and the claim is no longer true. validateManifest's existing 'ok' still means errors-only, so evidence-bundle.js and every other caller are untouched and an expired manifest can still be reported on rather than refused. This finally enforces rule 5 of standards/readiness-levels.md ('readiness ผูกกับ commit/build หนึ่งชุด ห้ามนำ report เก่ามาอ้างกับ source ชุดใหม่'), which had been stated since R0-R4 was written and never checked by anything. Cadence: the three reference-app workflows gained a weekly schedule trigger so their real verification commands re-run without anyone touching the code, and evidence-freshness.yml is the cheap always-runnable half (no databases, no browsers, no install) that checks all three manifests against a 90-day window. 10 new tests, suite 152/152. Proven end to end outside the test suite: a manifest backdated to 2025-01-01 reports 'readiness R3: EXPIRED (25/25 controls, 630d old)' and exits 4. Kept in_progress until the workflows had actually run, for the same reason as BF-008 — a workflow that has never run proves nothing. They ran: https://github.com/Khattiya01/buaflow/actions/runs/35827509927 is green on the first attempt, on commit c6c4288, with all three matrix jobs doing real work — each of nextjs-postgres-crud, react-fastapi-postgres-crud and expo-fastapi-postgres-sync reported \"readiness R3: PASS (25/25 controls, 0d old)\" against the 90-day window, so the control ran, computed a real age and judged it, rather than skipping. The expired path is covered by the test suite and was separately proven with a backdated manifest. The weekly schedule on the three reference-app workflows cannot be confirmed until its first Monday fires; that is a cron trigger on already-green workflows, not new logic. Marked done 2026-09-23."
     },
     {
@@ -645,7 +735,10 @@
       "title": "Pack contract v2: recipe and assertion, not template",
       "milestone": "M3",
       "status": "done",
-      "dependsOn": ["PP-002", "PP-003"],
+      "dependsOn": [
+        "PP-002",
+        "PP-003"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -672,7 +765,10 @@
         "packs/expo-fastapi-postgres-sync.json",
         "phases/06-scaffold.md"
       ],
-      "verification": ["npm test", "npm run check"],
+      "verification": [
+        "npm test",
+        "npm run check"
+      ],
       "notes": "Opened 2026-09-23 per D-011, which resolves D-010's first open question by choosing the opposite of the obvious answer: Buaflow will NOT build a template generator that stamps code out of a pack. A template generator freezes a dependency snapshot at authoring time and so manufactures staleness on every run; it duplicates what create-*/cookiecutter/Yeoman have done for fifteen years; and it directly contradicts phases/06-scaffold.md, which already tells the AI to use the framework's own CLI precisely so the scaffold is current rather than remembered from last year. The durable asset is the assertion set, not the code. Built and closed 2026-09-23. Shape of v2: `setup` (ordered framework-owner CLI commands) and `requiredArtifacts` (renamed from generatedArtifacts, meaning changed from ' files this pack writes ' to ' files that must be present afterwards ') replace the v1 generator framing; `implementedBy` names the reference app that proves the pack; `upgrade` is removed. The unpinned-scaffolder rule is enforced by command SHAPE, not by a flag the pack author sets — an early draft had a `scaffolds: true` boolean and it was dropped, because any rule a pack can opt out of by omitting a field is not a rule. Only the launcher's own tool token is judged (npx/bunx/dlx/npm create/uvx/pipx run), so an application pinning its own dependencies is untouched, which is correct: that is what a lockfile is for. A self-test of the detector caught a real bug before it shipped — the leading-flag pattern allowed a space-separated flag value, so `npx --yes create-next-app@16.3.5` had the flag swallow the tool token and passed; only `--flag=value` is consumed now. The binding check found a real drift on its first run: nextjs-postgres asserted `.claude/stack.json`, which reference-apps/nextjs-postgres-crud has never contained — removed, and a test now pins that exact failure. Migration is registered \"manual\" rather than \"supported\", and the migrator refuses v1 -> v2 with an explanation instead of transforming: a v1 pack recorded no setup commands anywhere (v1 assumed a generator would write the files), so there is nothing to derive a recipe from, and a placeholder recipe would be a lie that validates. All nine packs were rewritten by hand with real commands taken from how the reference apps were actually built; v0/v1 fixtures are kept as the before-state the versioning policy requires, and v2/pack.json is the new after-state. One check was deliberately WEAKENED and it should not be missed in review: pack-composition's artifact-path collision was an error in v1, because two packs generating the same path meant one silently overwrote the other. Under v2 an artifact is an existence assertion, and auth-rbac and audit-log both legitimately need prisma/migrations/ to exist, so the check now emits a warning naming every claimant and no longer fails a valid composition. The genuine question it was really asking — whose recipe decides the contents — survives as that warning. npm run check now runs the pack contract plus its binding to the reference apps, so BF-008's CI enforces it. phases/06-scaffold.md gained an explicit cross-reference so its rule 1/3 and the pack contract are visibly one rule rather than two that happen to agree. Suite 160/160. Left for a separate decision, NOT silently done here: the nine packs still live under packs/, which is a test-fixture path for what is meant to be a product catalog. Where the catalog belongs (packs/ in this repo, shipped to .claude/packs/ in an adopter project, or somewhere else) is a real question that changes artifact paths in four done work items, and it was left to the user rather than folded into this item."
     },
     {
@@ -682,7 +778,10 @@
       "status": "done",
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
-      "dependsOn": ["BF-005", "EP-001"],
+      "dependsOn": [
+        "BF-005",
+        "EP-001"
+      ],
       "acceptance": [
         "A verifier reaches a pass/fail decision from artifacts and command output alone and never treats the builder's self-report as evidence",
         "The claim 'the verifier works' is itself evidence-backed: it catches seeded defects across a seeded-defect corpus at a stated threshold",
@@ -696,7 +795,10 @@
         "standards/readiness-levels.md",
         "phases/07-handoff.md"
       ],
-      "verification": ["npm test", "npm run check"],
+      "verification": [
+        "npm test",
+        "npm run check"
+      ],
       "notes": "Pulled ahead of BC-001/BC-002/BC-003 on 2026-09-23 per D-011. The rationale is the model-durability test applied to the whole backlog: as models improve, work that tells an AI how to write code loses value, while work that independently proves what was produced gains value, because the better the model the less a human reads its output. By that test this is the highest-value unbuilt item in the repository. Promoted to 'ready' on 2026-09-23 once PP-010 closed, then built and closed the same day. The gap it closes, stated precisely: readiness.json is written by whoever did the work, and readiness.js only ever checked that the DECLARATION was well formed plus that file evidence exists. A command evidence item such as npm test was never re-run by anything, so those controls rested entirely on the builder saying so — the exact thing principle 1 forbids, sitting unnoticed inside the mechanism meant to enforce it. claude-setup/verifier.js (exposed as `buaflow audit`) reaches its verdict from artifacts and command output only, and never reads control.status as an input; it decides first and compares afterwards, and a test pins that property by giving a control a claimed status of fail whose evidence in fact reproduces, which must still come back confirmed. Three verdicts rather than two: confirmed, refuted, unverifiable. Collapsing unverifiable into confirmed is how a verification system dies quietly, so it is kept distinct everywhere, including in the exit code path. Deliberate judgements worth re-reading before changing: an empty file is REFUTED rather than confirmed, because `touch evidence/report.json` satisfies the existence check readiness.js performs and is the cheapest way for a placeholder to pass as evidence; a non-terminating command is UNVERIFIABLE rather than refuted, because the reference apps genuinely cite `npm run dev` for start-path and exit status cannot be evidence for a command that is not meant to exit; not-applicable is left alone entirely, because applicability is a judgement about the product and a machine re-running commands has no authority over it; and without --execute nothing is run at all, so the safe default yields unverifiable rather than a silent pass. Evidence that the verifier itself works: claude-setup/tests/verifier.test.js is a seeded-defect corpus of nine defects — non-zero exit, unrunnable command, missing file, empty file, empty directory, absent control, control with no evidence, non-terminating command, and claim/verdict independence — and the stated threshold is all of them, since a deterministic re-executor missing any one is a bug rather than a tuning knob. What it explicitly does NOT catch is written down in the same file: a suite that passes while asserting nothing, evidence that is real but irrelevant to its control, and a command that passes here but would fail elsewhere. Running it for real against reference-apps/nextjs-postgres-crud changed the design twice: its primary-flow Playwright evidence exits 1 in a bare checkout because it needs a built app and a database, so a refuted command is now worded as did not reproduce in this environment and the CLI prints a caveat, because refuted must not be read as the builder lied; and the control-level summary was swallowing the useful per-evidence reason, so unverifiable controls now report why. The same run surfaced a finding about the reference apps rather than about the verifier: 6 of 25 R3 controls rest entirely on evidence nothing has ever re-checked (five commands and one CI URL), which is worth acting on separately. BC-001/002/003 were not needed and were not touched, which was the point of pulling this item ahead of them. 20 new tests, suite 180/180."
     },
     {
@@ -719,7 +821,10 @@
       "title": "Machine-checkable evidence for the six controls nothing could verify",
       "milestone": "M3",
       "status": "done",
-      "dependsOn": ["BC-006", "EP-001"],
+      "dependsOn": [
+        "BC-006",
+        "EP-001"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -737,7 +842,10 @@
         "reference-apps/expo-fastapi-postgres-sync/docs/evidence/readiness.json",
         "claude-setup/tests/verifier.test.js"
       ],
-      "verification": ["npm test", "npm run check"],
+      "verification": [
+        "npm test",
+        "npm run check"
+      ],
       "notes": "Opened and closed 2026-09-23, directly from what BC-006 found on its first real run: every reference app had exactly six controls the verifier could only call unverifiable — version-control, start-path, build, verification, automated-tests and ci. Five carried nothing but a command, and ci carried nothing but a URL. They are the most basic controls in the whole R0-R4 model, and they were the least checkable ones in the repository. The fix attaches artifacts that already existed or that record something that already happened, rather than inventing new ones. evidence/ci-run.json is the CI run each manifest ALREADY cited as a URL, materialized from the GitHub API: run id, workflow, event, branch, commit, conclusion, timings, and every job with its non-skipped steps by name and conclusion. The generator asserts two things before writing and throws otherwise: the run concluded success, and its head SHA equals the manifest commit. All three matched exactly (ef0a5d1, 0867902, 483d129), so nothing had to be reconciled. That file is what turns a claim like automated-tests into something checkable from the repository alone: the step list names Unit tests, Integration tests and E2E tests, run on the exact commit the manifest is about. start-path instead cites evidence/clean-environment-rehearsal.json, which records the documented start path booting from nothing to a passing health check, because a dev-server command can never terminate and so can never be pass/fail evidence. automated-tests also cites the existing playwright-report.json. The command evidence stays attached in every case, so --execute still re-runs it where an environment allows; this raises the floor without lowering the ceiling. Result: 25 of 25 controls confirmed statically in all three apps, zero unverifiable, down from 19 confirmed and 6 unverifiable. Deliberately NOT changed: generatedAt and commit in the three manifests. Nothing was re-verified and no evidence became newer — the same facts were made checkable — so moving those fields would have claimed a freshness that did not happen, which is exactly what EP-010 exists to prevent. The regression guard is the point of the item rather than a nicety: the reference-app test in verifier.test.js now requires counts.unverifiable to be 0 and counts.confirmed to be 25, not merely that nothing is refuted, so a future control added with only a command reintroduces the gap loudly in CI instead of quietly. Evidence bundles were regenerated for all three apps afterwards. Confirmed by CI on commit b6be628, where all five workflows ran green: kit check (35829552066), evidence freshness (35829552064), and the full verification suites of all three reference apps, which the evidence changes triggered — nextjs-postgres-crud (35829552117), react-fastapi-postgres-crud (35829552075) and expo-fastapi-postgres-sync (35829552087, including its android prebuild job). The reference-app runs matter here specifically: they re-executed in a clean environment the same commands whose results this item made checkable, so the new evidence files describe runs that still reproduce."
     },
     {
@@ -745,7 +853,10 @@
       "title": "Bind the capability packs a reference app actually proves, and make the rest visibly unproven",
       "milestone": "M3",
       "status": "done",
-      "dependsOn": ["PP-010", "PP-007"],
+      "dependsOn": [
+        "PP-010",
+        "PP-007"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -761,7 +872,10 @@
         "claude-setup/pack.js",
         "claude-setup/tests/pack.test.js"
       ],
-      "verification": ["npm test", "npm run check"],
+      "verification": [
+        "npm test",
+        "npm run check"
+      ],
       "notes": "Opened and closed 2026-09-23, from the gap packs/README.md had been left stating in prose: six capability packs carried no implementedBy, meaning no reference app had ever proved those recipes work. Two of the six turned out to be already implemented by reference-apps/nextjs-postgres-crud and only needed their assertions corrected to what that app really contains, so they were bound rather than rewritten: auth-rbac now asserts lib/auth.ts, lib/guard.ts, proxy.ts (Next.js 16 renamed middleware to proxy) and prisma/migrations; audit-log asserts lib/audit.ts, prisma/schema.prisma and prisma/migrations. Binding auth-rbac immediately paid for the whole exercise by exposing a defect in the recipe PP-010 itself had written: it installed iron-session and bcrypt, and the only app implementing this capability uses neither. That app signs session cookies with a node:crypto HMAC and hashes passwords with scrypt, deliberately, so the capability adds no third-party auth library and no supply-chain surface at all — the old recipe would have sent the next project to install two packages it does not need. The recipe and description were corrected and both packs went to 2.1.0. This is exactly the failure mode implementedBy exists to catch, and it was invisible for as long as the pack pointed at nothing. The remaining four (db, storage, notification, background-jobs) were NOT bound, because nothing in this repository implements them and inventing a binding would be the lie the whole mechanism is meant to prevent. What changed instead is that their status is now machine-enforced rather than documented: pack.js prints a bound/unproven summary on every --repo-root run (currently 5/9), and a test pins the exact unproven set, so binding a pack fails until the list shrinks and adding an unproven pack fails until someone writes down that it is unproven. A second test re-checks every bound pack against its app inside the suite, so the binding survives even if the check is removed from scripts/check-repository.js. A latent contract problem was found and deliberately left unfixed, with the reasoning written down rather than papered over: all six capability packs assert Node/Next.js paths (lib/*.ts, app/api/**/route.ts) and therefore only work on nextjs-postgres, yet only auth-rbac declares requiresPacks. db is worse than the others — it declares conflictsWithPacks nextjs-postgres, so it targets a Node stack that lacks persistence, and no such stack exists in the catalog, which makes it unusable with anything currently shipped. Fixing that honestly needs capability-based dependencies (requires something providing persistence) rather than the identity-based requiresPacks the contract has today, which is a contract change and not a fixture edit. Recorded in packs/README.md as a known limitation. Suite 180 to 182, npm run check passes."
     },
     {
@@ -851,7 +965,7 @@
       "id": "EP-002",
       "title": "Requirement coverage: approved exceptions",
       "milestone": "M4",
-      "status": "backlog",
+      "status": "done",
       "dependsOn": [
         "EP-001"
       ],
@@ -860,9 +974,41 @@
         "An expired exception fails the gate rather than ageing into silence",
         "The exception record is machine-readable and counted in the same coverage report as proven requirements"
       ],
-      "artifacts": [],
-      "verification": [],
-      "notes": "Narrowed by the D-013 audit from the original row (every accepted requirement points to proof OR an approved exception). The coverage half is done: readiness.js requires requirements-traceability at R2, docs-lint enforces the intent/spec/task chain, DV-002 extended it upstream to pain points, and all three reference apps ship docs/requirements-traceability.md. The exception half does not exist at all — there is no waiver record anywhere in the repository, and readiness.js only offers not-applicable, which is restricted to four conditional controls and means something different (the capability is absent, not that the risk was accepted). Without it the only way to ship a known, accepted gap is to lie in the manifest or to not record it, which is the failure mode the whole evidence model exists to prevent."
+      "artifacts": [
+        "schemas/requirement-coverage.schema.json",
+        "templates/requirement-coverage.tpl.json",
+        "claude-setup/requirement-coverage.js",
+        "claude-setup/tests/requirement-coverage.test.js",
+        "claude-setup/readiness.js",
+        "claude-setup/gate.js",
+        "claude-setup/tests/cli.test.js",
+        "bin/buaflow.js",
+        "scripts/check-repository.js",
+        "scripts/check-artifacts.js",
+        "schemas/registry.json",
+        "schemas/compatibility.json",
+        "standards/requirement-exceptions.md",
+        "standards/readiness-levels.md",
+        "reference-apps/nextjs-postgres-crud/docs/evidence/requirement-coverage.json",
+        "reference-apps/react-fastapi-postgres-crud/docs/evidence/requirement-coverage.json",
+        "reference-apps/expo-fastapi-postgres-sync/docs/evidence/requirement-coverage.json",
+        "reference-apps/nextjs-postgres-crud/docs/requirements-traceability.md",
+        "reference-apps/react-fastapi-postgres-crud/docs/requirements-traceability.md",
+        "reference-apps/expo-fastapi-postgres-sync/docs/requirements-traceability.md",
+        "CLI.md",
+        "UPGRADE.md",
+        "VERSION.md",
+        "phases/07-handoff.md",
+        "claude-setup/README.md"
+      ],
+      "verification": [
+        "npm test",
+        "npm run check",
+        "node claude-setup/requirement-coverage.js --root reference-apps/nextjs-postgres-crud --file docs/evidence/requirement-coverage.json --max-window-days 90"
+      ],
+      "notes": "Narrowed by the D-013 audit from the original row (every accepted requirement points to proof OR an approved exception). The coverage half is done: readiness.js requires requirements-traceability at R2, docs-lint enforces the intent/spec/task chain, DV-002 extended it upstream to pain points, and all three reference apps ship docs/requirements-traceability.md. The exception half does not exist at all — there is no waiver record anywhere in the repository, and readiness.js only offers not-applicable, which is restricted to four conditional controls and means something different (the capability is absent, not that the risk was accepted). Without it the only way to ship a known, accepted gap is to lie in the manifest or to not record it, which is the failure mode the whole evidence model exists to prevent.\n\nWork done 2026-09-23. The artifact is docs/evidence/requirement-coverage.json (requirement-coverage 1.0): every accepted requirement answers with exactly one of proof or an exception, and having both is an error because one of the two is then untrue. The decisive design choice was refusing manual-only proof. Without it the whole mechanism is bypassable by typing \"checked by hand\", and the repository already contained the case that proves it: nextjs-postgres-crud's traceability table claimed the audit trail was verified against a live database during PP-003, which is evidence living in a session that no longer exists. It is now REQ-004, an accepted risk expiring 2026-12-22, and react-fastapi-postgres-crud proves the same requirement with a real test, so the honest reading is a missing test in one app rather than a design flaw.\n\nThe corpus is not invented: all 12 exceptions across the three apps come from the \"Known limitations (not fixed — documented instead of hidden)\" sections already written in docs/security-notes.md, plus that one traceability row. Those sections were honest and machine-invisible at the same time, which is a third failure mode next to lying in a manifest and not recording the gap at all. One item was deliberately NOT converted: expo's Math.random local ids, whose own note argues no requirement goes unmet because ids are never capability tokens; recording it would inflate the pile of accepted risk, which is the disease D-013 and D-014 had just treated.\n\nExpiry is deliberately the opposite call from EP-010. There the window is the verifier's because evidence that declares its own freshness declares itself fresh forever, and the outcome is EXPIRED, which is nobody's fault. Here expiresOn belongs to the person who signed for the risk, so passing it is a promise that was not kept and the outcome is FAIL. The 2099 loophole is closed the same way EP-010 closed its own: --max-window-days is supplied by the verifier, unset means reported not judged, and npm run check supplies 90 days for the reference apps, the same number evidence-freshness.yml already uses. gate.js deliberately supplies none, because how much risk may be pre-accepted is the adopting project's appetite, not the kit's.\n\nAdditive throughout, which is why 3.1.0 is MINOR: a project with no requirement-coverage.json is not checked, and no gate that passed before fails now. readiness.js changed only by exporting validateEvidence so both artifacts share one definition of what counts as evidence — two definitions drifting apart is contract-drift, a named class in EV-003's taxonomy.\n\nNamed requirement-coverage.js rather than coverage.js after finding the collision: .claude/run.js already has a coverage subcommand meaning test coverage, and the CLI command is buaflow requirements for the same reason.\n\nProven beyond the suite: backdating one exception to 2026-06-01 turns npm run check red and names the control, and restoring it turns it green. Suite 250/250 (was 233), 45 work items, 35 done.",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23"
     },
     {
       "id": "EP-003",
@@ -1051,7 +1197,10 @@
       "title": "Change impact engine",
       "milestone": "M4",
       "status": "done",
-      "dependsOn": ["IC-001","DV-002"],
+      "dependsOn": [
+        "IC-001",
+        "DV-002"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -1075,7 +1224,10 @@
       "title": "Convergence graph",
       "milestone": "M4",
       "status": "done",
-      "dependsOn": ["BC-005","PP-001"],
+      "dependsOn": [
+        "BC-005",
+        "PP-001"
+      ],
       "startedAt": "2026-09-23",
       "completedAt": "2026-09-23",
       "acceptance": [
@@ -1193,12 +1345,19 @@
       "decision": "Dropped the four capability packs no reference app implements — db, storage, notification and background-jobs — instead of investing in proving them, at the user's direction ('do they need proving? if not, drop them'). auth-rbac and audit-log stay, because reference-apps/nextjs-postgres-crud really implements both. The catalogue is now five packs, all bound, and pack.js reports 'all 5 bound to a reference app'. The pinned unproven list in pack.test.js is now empty, so the next pack added without a binding fails CI until someone writes down that it is unproven. Composition tests were moved off the product catalogue onto purpose-built fixtures at claude-setup/tests/fixtures/packs/, and three stack packs had a stale conflictsWithPacks entry pointing at the dropped db removed.",
       "reason": "The decisive evidence came from this repository, one item earlier. PP-011 bound auth-rbac to the only app implementing it and immediately found the recipe was wrong: it installed iron-session and bcrypt, while that app signs sessions with a node:crypto HMAC and hashes with scrypt deliberately, adding no third-party auth dependency at all. One attempt at binding, one wrong recipe found. An unproven recipe is therefore not neutral — it is a guidance-defect waiting to be followed, which is a named class in the taxonomy EV-003 shipped, with that exact incident as its citation. Proving the remaining four is not cheap either: it would mean adding S3, SMTP and a queue with a worker process to a reference app, which is days of work and makes the reference apps heavier at the same time the direction since D-011 has been to stop growing them. db was worse than unproven: it declares conflictsWithPacks nextjs-postgres, so it targets a Node stack that lacks persistence, and no such stack exists in the catalogue — it could not be composed with anything shipped. Keeping four unusable or unverified entries made the catalogue look larger than the truth, which is the same disease D-013 had just cured in the roadmap.",
       "impact": "The design reasoning inside those packs was real and is preserved here rather than in a file that pretends to be executable: storage insisted on presigned upload and download so file bytes never pass through the app server; notification insisted on a single send() entry point so every notification goes through one place that can be tested, logged and rate-limited; background-jobs insisted the worker run as its own process rather than a thread inside the web server, so the deployment manifest has a command to point at; db established that persistence added later still belongs behind a migration, not an ad-hoc schema edit. Any future pack for those capabilities should start from those constraints and from a project that actually implements them. Two consequences worth acting on: audit-log's dependency on 'some pack providing persistence' can now only be satisfied by nextjs-postgres, which makes capability-based requiresPacks the next real contract gap rather than a footnote; and PP-007 is left done with a reduced artifact list and a note, because the work happened and pretending otherwise would be a worse record than an honest shrink."
+    },
+    {
+      "id": "D-015",
+      "date": "2026-09-23",
+      "decision": "Closed EP-002 by shipping requirement-coverage 1.0 plus .claude/requirement-coverage.js, and by converting the reference apps' prose 'Known limitations' into 12 real approved exceptions with owners, risk levels and a 2026-12-22 expiry. Four rules carry the contract: a requirement answers with proof or with an exception and never both or neither; an exception must carry owner, reason, risk, acceptedOn and expiresOn; a lapsed exception FAILS rather than warns; and proof consisting only of manual evidence is not proof. Kit release 3.1.0, MINOR, because the check runs only where the record exists. Named requirement-coverage rather than coverage, and the CLI command buaflow requirements, because .claude/run.js already uses the word coverage for test coverage.",
+      "reason": "standards/readiness-levels.md rule 4 has said since R0-R4 was written that an exception or waiver is an accepted risk and does not turn a control into a pass, and nothing anywhere let anyone write one down — the same shape as the rule-5 gap EP-010 closed. The consequence was visible in this repository rather than hypothetical: all three reference apps keep a 'Known limitations (not fixed — documented instead of hidden)' section in docs/security-notes.md. Those entries are honest and completely invisible to every gate, which is a third failure mode beside lying in a manifest and not recording the gap: no owner, no risk level, no date anyone is ever reminded of. Refusing manual-only proof was the rule with the most teeth, and the repository supplied its own justification: nextjs-postgres-crud's traceability table claimed the audit trail was proven by observing rows in a live database during PP-003, which is evidence stored in a session that no longer exists. If that counts as proof, the exception mechanism is bypassable by typing a sentence.",
+      "impact": "The expiry rule is deliberately the inverse of EP-010's, and the difference is the point: evidence freshness is judged against a window the verifier supplies because evidence that sets its own expiry sets it to forever, and an expired manifest is nobody's fault; an exception's expiry belongs to the human who accepted the risk, so passing it is an unkept promise and fails. The forever loophole is closed in EP-010's own shape — --max-window-days, unset means reported not judged, 90 days in npm run check for the reference apps. gate.js supplies no window on purpose, because an internal tool and a bank reach different answers about an identical exception. Two consequences for later work: the 12 exceptions all expire on 2026-12-22, so that date is now a real deadline at which either a test gets written or a named person re-accepts each risk, and EP-003 (ASVS mapping) should cite exceptions rather than restate them, since a mapped control that is knowingly unmet is exactly what this record is for. Control-level waivers stay out of scope: this artifact is keyed by requirement, and readiness.js's not-applicable still means the capability is absent rather than the risk accepted."
     }
   ],
   "lastSession": {
     "date": "2026-09-23",
-    "summary": "D-014 answered the question the user put directly: do the four unproven capability packs need proving, and if not, drop them. They do not, and they are dropped — db, storage, notification and background-jobs. The decisive evidence came from this repository one item earlier: PP-011 bound auth-rbac to the only app implementing it and immediately found the recipe wrong, installing iron-session and bcrypt while that app signs sessions with a node:crypto HMAC and hashes with scrypt, deliberately adding no third-party auth dependency. One attempt at binding produced one wrong recipe, which makes an unproven recipe not neutral but a guidance-defect waiting to be followed — a named class in the taxonomy EV-003 had just shipped, with that exact incident as its citation. Proving the remaining four was not cheap either: S3, SMTP and a queue with a worker process added to a reference app, days of work, making reference apps heavier at the same time the direction since D-011 has been to stop growing them. db was worse than unproven: it declared a conflict with nextjs-postgres, so it targeted a Node stack lacking persistence, and no such stack exists in the catalogue, meaning it could not compose with anything shipped. The catalogue is now five packs and pack.js reports 'all 5 bound to a reference app'; the pinned unproven list in pack.test.js is empty, so the next pack added without a binding fails CI until someone writes down that it is unproven. The design reasoning inside the dropped packs was real and is preserved in D-014 and packs/README.md rather than in files that pretend to be executable: presigned upload and download so file bytes never cross the app server, one send() entry point for notifications, a worker running as its own process rather than a thread in the web server, and persistence added later still arriving through a migration. Composition tests were moved off the product catalogue onto purpose-built fixtures at claude-setup/tests/fixtures/packs/, since a test that breaks when a pack is retired is testing the catalogue rather than the logic; three stack packs had a stale conflictsWithPacks entry pointing at the dropped db removed; and PP-007 stays done with a reduced artifact list plus a note, because the work genuinely happened and rewriting that would be a worse record than an honest shrink. The roadmap validator caught the dangling artifacts the moment the files were deleted, which is the mechanism working as intended. Suite 233/233, 45 work items, 34 done.",
-    "next": "Everything the user has asked for is finished and only backlog remains. The sharpest open item is now capability-based pack dependencies: audit-log needs 'some pack providing persistence' and requiresPacks is identity-based, so it cannot be expressed; before D-014 db was a second possible answer, and after it nextjs-postgres is the only one, which turns a footnote into a real contract gap worth an item. EV-009 stays parked at the user's request and is what M5 needs, what would give the north-star metric a denominator that is not Buaflow's own reference apps, and what closes the declared operations-failure gap in the failure taxonomy. BC-001 stays in backlog per D-011. The five narrowed EP items each state in their notes exactly what exists and what does not, so none re-does a finished half, and EP-005 can copy the rehearsal pattern EP-006 already established. Still unconfirmed: the weekly cron EP-010 added has not fired its first Monday. And verifier.js --execute has side effects — it once destroyed 238 lines of real evidence — so run it on a clean working tree and check git status afterwards.",
-    "verifiedAt": "2026-09-23T23:55:00.0000000+07:00"
+    "summary": "EP-002 shipped: requirement coverage with approved exceptions. The gap D-013's audit had narrowed it to was the exception half — there was no waiver record anywhere in the repository, so the only ways to ship a known accepted gap were to lie in a readiness manifest or to leave it unrecorded. The repository turned out to be using a third way that is just as bad: all three reference apps keep a 'Known limitations (not fixed — documented instead of hidden)' section in docs/security-notes.md, honest and completely invisible to every gate. Those 12 entries are now real exceptions with an owner, a risk level and a 2026-12-22 expiry, in docs/evidence/requirement-coverage.json, checked by .claude/requirement-coverage.js and by npm run check with a 90-day window. The rule with the most teeth is that manual-only proof is not proof: without it the mechanism is bypassable by typing 'checked by hand', and nextjs-postgres-crud's audit-trail row was exactly that claim, now honestly recorded as REQ-004, an accepted risk, while react-fastapi-postgres-crud proves the same requirement with a real test. Expiry is deliberately the inverse of EP-010's: there the window is the verifier's and EXPIRED is nobody's fault, here the date belongs to the person who signed for the risk so passing it FAILS; the 2099 loophole is closed the same way, with --max-window-days supplied by the verifier. Release 3.1.0 is MINOR because the check runs only where the record exists and no previously passing gate now fails; readiness.js changed only by exporting validateEvidence so both artifacts share one definition of evidence. Named requirement-coverage rather than coverage after finding that .claude/run.js already uses that word for test coverage; the CLI command is buaflow requirements. Two stale claims fixed along the way: CLI.md had been missing the audit command since 3.0.0, and nextjs-postgres-crud's traceability doc still said version-control and ci were unclosed when both had closed. Suite 250/250, 45 work items, 35 done.",
+    "next": "M4 has four items left, all narrowed by D-013 and none blocked: EP-003 (ASVS mapping and threat boundaries as artifacts — it should cite requirement exceptions rather than restate them, since a mapped control that is knowingly unmet is what EP-002's record is for), EP-004 (licenses, provenance and checksums — evidence/ci-run.json already records workflow, run and commit, so provenance is a smaller job than the row implies), EP-005 (restore rehearsal — copy the pattern EP-006 established for migration rollback), and EP-007 (profile-driven thresholds — application-profile.schema.json carries none at all today). current.focus is EP-003. Outside M4: EV-009 stays parked at the user's request and is what M5 needs; BC-001 stays in backlog per D-011; capability-based pack dependencies still have no work item. Two dates to watch: the 12 exceptions all expire 2026-12-22, and the weekly cron EP-010 added has still not fired its first Monday. And verifier.js --execute still has side effects — it once destroyed 238 lines of real evidence — so run it on a clean working tree and check git status afterwards.",
+    "verifiedAt": "2026-09-23T23:59:00.0000000+07:00"
   }
 }

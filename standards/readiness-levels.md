@@ -7,7 +7,7 @@
 1. ระดับสูงรวมข้อกำหนดของระดับต่ำกว่าทั้งหมด
 2. การผ่านมาจาก evidence ที่ตรวจซ้ำได้ ไม่ใช่ข้อความสรุปของผู้สร้างหรือ AI
 3. `not-applicable` ใช้ได้เฉพาะ control ที่มาตรฐานกำหนดว่า conditional และต้องมีเหตุผลเฉพาะโปรเจกต์
-4. exception/waiver เป็นการยอมรับความเสี่ยง ไม่ทำให้ control กลายเป็น `pass`
+4. exception/waiver เป็นการยอมรับความเสี่ยง ไม่ทำให้ control กลายเป็น `pass` — ที่ที่เขียน exception ลงไปคือ `docs/evidence/requirement-coverage.json` ดู `standards/requirement-exceptions.md` (EP-002) · ข้อนี้ประกาศไว้ตั้งแต่วันแรกและไม่มีอะไรบังคับมันจนถึง 3.1.0
 5. readiness ผูกกับ commit/build หนึ่งชุด ห้ามนำ report เก่ามาอ้างกับ source ชุดใหม่
 6. `First Runnable` และ `Production Candidate` ต้องรายงานแยกกันเสมอ
 

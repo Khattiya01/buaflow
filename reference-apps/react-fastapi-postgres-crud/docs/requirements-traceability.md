@@ -32,6 +32,23 @@ different golden stack reaching R3).
   route guard (see `docs/security-notes.md`'s "Known limitations").
 - Two separate dependency ecosystems audited (pip + npm) instead of one.
 
+## Machine-readable form (EP-002)
+
+`docs/evidence/requirement-coverage.json` carries the same content as the table above in a form a
+gate can read: every requirement answers with either reproducible proof or an **approved
+exception** carrying an owner, a reason, a risk level and an expiry date.
+
+```bash
+node .claude/requirement-coverage.js --file docs/evidence/requirement-coverage.json
+```
+
+Four of this app's seventeen requirements are covered by an exception. All four are the entries
+already written under "Known limitations" in `docs/security-notes.md` — no in-app rate limiting
+(REQ-014), no CSRF token (REQ-015), no session-key rotation (REQ-016), and the client-side route
+guard that ships the app shell to an unauthenticated browser before redirecting it (REQ-017).
+They were already documented honestly; what they lacked was an owner, a risk level, and a date
+anyone would be reminded of.
+
 ## Status
 
 All 25 R0-R3 controls pass with real, checked evidence — see

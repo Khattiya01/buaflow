@@ -4,7 +4,8 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
-| **v2.3.4** | [v2.3.4 → v3.0.0](#v234--v300-major--ต้องลงมือถ้าเคยใช้-pack) ข้างล่างนี้ | ~2 นาที หรือนานกว่านั้นถ้ามี pack |
+| **v3.0.0** | [v3.0.0 → v3.1.0](#v300--v310-minor--คัดลอกไฟล์-จบ) ข้างล่างนี้ | ~1 นาที |
+| **v2.3.4** | [v2.3.4 → v3.0.0](#v234--v300-major--ต้องลงมือถ้าเคยใช้-pack) แล้วต่อด้วย v3.1.0 | ~2 นาที หรือนานกว่านั้นถ้ามี pack |
 | **v2.3.3** | [v2.3.3 → v2.3.4](#v233--v234-copy-ไฟล์เดียว) แล้วต่อด้วย v3.0.0 | ~1 นาที |
 | **v2.3.2** | [v2.3.2 → v2.3.3](#v232--v233-copy-ไฟล์--1-คำสั่ง) แล้วต่อด้วย v2.3.4 | ~3 นาที |
 | **v2.3.1** | [v2.3.1 → v2.3.2](#v231--v232-copy-ไฟล์เดียว) แล้วต่อด้วย v2.3.3, v2.3.4 | ~4 นาที |
@@ -12,6 +13,45 @@
 | **v2.2** | [v2.2 → v2.3](#v22--v23-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.1 | ~15 นาที |
 | **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) แล้วต่อด้วย v2.3 | ~15 นาที |
 | **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2, v2.3 | ~1 session |
+
+---
+
+## v3.0.0 → v3.1.0 (MINOR — คัดลอกไฟล์ จบ)
+
+**ใครได้รับผลกระทบจริง:** ไม่มีใครถูกบังคับ — ถ้าโปรเจกต์ไม่มี `docs/evidence/requirement-coverage.json`
+ไม่มีอะไรเปลี่ยนเลย ทั้ง `gate.js` และ `readiness.js` ทำงานเหมือนเดิมทุกอย่าง
+
+### 1. คัดลอกไฟล์
+
+```bash
+cp buaflow/claude-setup/requirement-coverage.js .claude/requirement-coverage.js
+cp buaflow/claude-setup/gate.js                 .claude/gate.js
+cp buaflow/claude-setup/readiness.js            .claude/readiness.js
+```
+
+`readiness.js` เปลี่ยนแค่การ export `validateEvidence` ออกมาให้ `requirement-coverage.js` ใช้
+กติกา "อะไรนับเป็นหลักฐาน" ชุดเดียวกัน — พฤติกรรมของ `readiness.js` เองไม่เปลี่ยน แต่ต้องคัดลอกไปด้วย
+เพราะ `requirement-coverage.js` `require` มันตรง ๆ
+
+### 2. (ถ้าต้องการใช้) สร้าง requirement coverage record
+
+```bash
+cp buaflow/templates/requirement-coverage.tpl.json docs/evidence/requirement-coverage.json
+node .claude/requirement-coverage.js --file docs/evidence/requirement-coverage.json
+```
+
+ที่มันแก้: ก่อนหน้านี้ถ้าโปรเจกต์มีช่องโหว่ที่**รู้อยู่แล้วและยอมรับแล้ว** มีแค่สามทาง —
+ประกาศ `pass` (โกหก), ใช้ `not-applicable` (ผิดความหมาย ใช้ได้แค่ 4 conditional control),
+หรือเขียนไว้ใน prose (ไม่มีเจ้าของ ไม่หมดอายุ ไม่มีใครถูกเตือน) ตอนนี้มีทางที่สี่ที่เครื่องอ่านได้
+อ่าน `standards/requirement-exceptions.md` ก่อนเขียน exception ข้อแรก
+
+ตัวอย่างจริงที่ลอกได้อยู่ที่ `reference-apps/*/docs/evidence/requirement-coverage.json` ทั้งสามตัว
+
+### 3. ตรวจว่ายังผ่านเหมือนเดิม
+
+```bash
+node .claude/gate.js
+```
 
 ---
 

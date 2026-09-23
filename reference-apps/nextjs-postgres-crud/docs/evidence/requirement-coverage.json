@@ -1,0 +1,172 @@
+{
+  "$schema": "../../../../schemas/requirement-coverage.schema.json",
+  "schemaVersion": "1.0",
+  "_": "EP-002 · the machine-readable half of docs/requirements-traceability.md · check with: node ../../claude-setup/requirement-coverage.js --root . --file docs/evidence/requirement-coverage.json",
+  "project": "nextjs-postgres-crud",
+  "generatedAt": "2026-09-23T23:00:00.000Z",
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "statement": "Persistence is real and lifecycle-tested against a real Postgres, not a mock",
+      "source": "internal-crud profile, persistence: required",
+      "proof": [
+        { "type": "command", "value": "npm run test:integration" },
+        { "type": "file", "value": "tests/integration/api.test.ts" },
+        { "type": "file", "value": "evidence/migration-rollback-rehearsal.json" }
+      ]
+    },
+    {
+      "id": "REQ-002",
+      "statement": "The ownership boundary is enforced: a member cannot read or mutate another member's task",
+      "source": "internal-crud profile, access-control: required",
+      "proof": [
+        { "type": "command", "value": "npm run test:integration" },
+        { "type": "file", "value": "lib/guard.ts" },
+        { "type": "file", "value": "tests/integration/api.test.ts" }
+      ]
+    },
+    {
+      "id": "REQ-003",
+      "statement": "The accessibility budget is kept even though the profile makes it optional for an internal tool",
+      "source": "internal-crud profile, accessibility (deliberately kept required in this app's readiness manifest)",
+      "proof": [
+        { "type": "file", "value": "tests/e2e/accessibility.spec.ts" },
+        { "type": "file", "value": "evidence/axe-login.json" },
+        { "type": "file", "value": "evidence/axe-tasks.json" }
+      ]
+    },
+    {
+      "id": "REQ-004",
+      "statement": "The audit trail records who changed which task, when, and what changed",
+      "source": "internal-crud profile clarification question audit-trail",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "The audit_logs rows were observed by hand against a live database during PP-003 and no automated test asserts their contents, so the only evidence is a session that no longer exists. Recorded as an accepted gap rather than dressed up as proof: react-fastapi-postgres-crud proves the same requirement automatically in test_delete_is_soft_and_recorded_in_audit_log, which makes this this app's missing test rather than a flaw in the design.",
+        "risk": "medium",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "lib/audit.ts is the single write path and recordAudit is called on every create, update and delete in app/api/tasks/route.ts and app/api/tasks/[id]/route.ts, so the code path does run under tests/integration/api.test.ts — what is unasserted is the content of the rows it writes, not whether it is reached."
+      }
+    },
+    {
+      "id": "REQ-005",
+      "statement": "The primary flow works end to end: sign in, manage own tasks, sign out",
+      "source": "PP-003 acceptance (reference app reaches R3)",
+      "proof": [
+        { "type": "command", "value": "npx playwright test tests/e2e/primary-flow.spec.ts" },
+        { "type": "file", "value": "tests/e2e/primary-flow.spec.ts" }
+      ]
+    },
+    {
+      "id": "REQ-006",
+      "statement": "The app is deployable as a pinned, reproducible container image built from zero",
+      "source": "nextjs-postgres pack, deployment-package evidence",
+      "proof": [
+        { "type": "file", "value": "Dockerfile" },
+        { "type": "file", "value": "evidence/clean-environment-rehearsal.json" }
+      ]
+    },
+    {
+      "id": "REQ-007",
+      "statement": "Database migrations are forward-and-back safe and the rollback is rehearsed",
+      "source": "nextjs-postgres pack, database-migration evidence",
+      "proof": [
+        { "type": "file", "value": "prisma/migrations/20260922161307_init/rollback.sql" },
+        { "type": "file", "value": "evidence/migration-rollback-rehearsal.json" }
+      ]
+    },
+    {
+      "id": "REQ-008",
+      "statement": "No secrets are committed to the repository",
+      "source": "R3 control set, secrets-scan",
+      "proof": [
+        { "type": "command", "value": "gitleaks detect --no-git --redact" },
+        { "type": "file", "value": "evidence/gitleaks-report.json" }
+      ]
+    },
+    {
+      "id": "REQ-009",
+      "statement": "The production dependency tree carries no unaddressed high or critical findings",
+      "source": "R3 control set, dependency-scan",
+      "proof": [
+        { "type": "command", "value": "npm audit --omit=dev --json" },
+        { "type": "file", "value": "evidence/npm-audit.json" },
+        { "type": "file", "value": "evidence/dependency-scan-notes.md" }
+      ]
+    },
+    {
+      "id": "REQ-010",
+      "statement": "The build is reproducible from a lockfile and an SBOM describes what shipped",
+      "source": "R3 control set, sbom",
+      "proof": [
+        { "type": "file", "value": "package-lock.json" },
+        { "type": "file", "value": "evidence/sbom.cdx.json" }
+      ]
+    },
+    {
+      "id": "REQ-011",
+      "statement": "The app is observable in production: structured logs and a health endpoint that is actually exercised",
+      "source": "R3 control set, observability and health-check",
+      "proof": [
+        { "type": "file", "value": "lib/log.ts" },
+        { "type": "file", "value": "app/api/health/route.ts" },
+        { "type": "file", "value": "evidence/clean-environment-rehearsal.json" }
+      ]
+    },
+    {
+      "id": "REQ-012",
+      "statement": "Deploy, diagnose, incident and recovery steps are written down for an operator who did not build this",
+      "source": "R3 control set, runbook",
+      "proof": [
+        { "type": "file", "value": "docs/runbook.md" }
+      ]
+    },
+    {
+      "id": "REQ-013",
+      "statement": "The threat boundary and the controls that defend it are documented",
+      "source": "R3 control set, security-controls",
+      "proof": [
+        { "type": "file", "value": "docs/security-notes.md" }
+      ]
+    },
+    {
+      "id": "REQ-014",
+      "statement": "Authentication endpoints resist credential-stuffing and brute-force attempts",
+      "source": "docs/security-notes.md, Known limitations",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "There is no rate limiting on /api/auth/login inside the app. A network or edge rate limiter is expected to sit in front of it in production, and this reference app does not ship the deployment layer that would provide one, so the control is out of its own boundary rather than forgotten.",
+        "risk": "medium",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "Passwords are hashed with scrypt (lib/auth.ts), so a successful guess still costs per attempt; docs/runbook.md names the edge rate limiter as a deployment prerequisite."
+      }
+    },
+    {
+      "id": "REQ-015",
+      "statement": "Mutating requests cannot be forged from another origin",
+      "source": "docs/security-notes.md, Known limitations",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "There is no CSRF token. The app relies on sameSite lax on the session cookie plus a required application/json content type on every mutating request, which together block the simple cross-site form attack but are weaker than a token if the app ever grows a form-based mutation path.",
+        "risk": "low",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "sameSite=lax on the session cookie (lib/auth.ts) and a JSON-only mutation surface (app/api/tasks/route.ts, app/api/tasks/[id]/route.ts)."
+      }
+    },
+    {
+      "id": "REQ-016",
+      "statement": "The session signing secret can be rotated without logging every user out",
+      "source": "docs/security-notes.md, Known limitations",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "There is a single SESSION_SECRET and no grace-period rollover with two valid keys, so rotating it invalidates every session at once. Accepted at this app's size: the operational cost is a forced re-login, which docs/runbook.md documents as the expected consequence.",
+        "risk": "low",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "docs/runbook.md states the blast radius of a rotation, so an operator is not surprised by it."
+      }
+    }
+  ]
+}

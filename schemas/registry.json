@@ -112,6 +112,16 @@
         "docs/evidence/failures/*.json"
       ],
       "migration": "supported"
+    },
+    {
+      "type": "requirement-coverage",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/requirement-coverage.schema.json",
+      "paths": [
+        "docs/evidence/requirement-coverage.json"
+      ],
+      "migration": "supported"
     }
   ]
 }

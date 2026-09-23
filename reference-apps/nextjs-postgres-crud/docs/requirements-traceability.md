@@ -21,10 +21,30 @@ PP-003's own acceptance criteria.
 | Operable: deploy/diagnose/incident/recovery documented | R3 control set, `runbook` | `docs/runbook.md` |
 | Threat boundary and controls documented | R3 control set, `security-controls` | `docs/security-notes.md` |
 
-## Not yet closed (see `docs/evidence/readiness.json` for the authoritative status)
+## Machine-readable form (EP-002)
 
-- **version-control**: this working tree has not been committed yet — pending the user's go-ahead
-  (see PP-003 session notes / `development/state.json`).
-- **ci**: `.github/workflows/ci.yml` exists and runs the exact same commands documented above, but
-  no real GitHub Actions run has executed yet — that requires the repository to be pushed to a
-  real remote, which has not been authorized.
+`docs/evidence/requirement-coverage.json` carries the same content as the table above in a form a
+gate can read: every requirement answers with either reproducible proof or an **approved
+exception** carrying an owner, a reason, a risk level and an expiry date.
+
+```bash
+node .claude/requirement-coverage.js --file docs/evidence/requirement-coverage.json
+```
+
+Four of this app's sixteen requirements are covered by an exception rather than by proof, and that
+is the honest count:
+
+- **REQ-004, the audit trail.** The row above says it was verified by hand against a live database
+  during PP-003. That is not reproducible evidence, so it is recorded as an accepted risk expiring
+  2026-12-22 rather than counted as proven. `react-fastapi-postgres-crud` proves the same
+  requirement automatically, which makes this a missing test here rather than a flaw in the design.
+- **REQ-014, REQ-015 and REQ-016** are the three entries under "Known limitations" in
+  `docs/security-notes.md`: no in-app rate limiting, no CSRF token, and no session-key rotation.
+  They were already documented honestly; what they lacked was an owner, a risk level, and a date
+  anyone would be reminded of.
+
+## Status
+
+All 25 R0-R3 controls pass with real, checked evidence — see `docs/evidence/readiness.json`.
+`version-control` and `ci` both closed once the repository was pushed; the CI run this app cites is
+recorded in `evidence/ci-run.json`.

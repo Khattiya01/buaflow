@@ -37,6 +37,25 @@ relevant controls from `react-fastapi-postgres`'s pack contract it extends.
 - Bearer-token authentication (in addition to the existing cookie path), since React
   Native's `fetch` has no cookie jar — see `docs/sync-contract.md`.
 
+## Machine-readable form (EP-002)
+
+`docs/evidence/requirement-coverage.json` carries the same content as the table above in a form a
+gate can read: every requirement answers with either reproducible proof or an **approved
+exception** carrying an owner, a reason, a risk level and an expiry date.
+
+```bash
+node .claude/requirement-coverage.js --file docs/evidence/requirement-coverage.json
+```
+
+Four of this app's twenty-one requirements are covered by an exception: no in-app rate limiting
+(REQ-018), no CSRF token on the cookie path (REQ-019), no session-key rotation (REQ-020), and
+last-write-wins conflict resolution discarding the content of a losing edit (REQ-021, the one
+`docs/sync-contract.md` already lists under "What this contract does not promise"). The fifth
+entry under "Known limitations", `Math.random`-based local ids, is deliberately **not** recorded as
+an exception: its own note explains that ids are never used as capability tokens or secrets, so no
+requirement goes unmet. It is a design note, and turning it into an exception would make the pile
+of accepted risk look bigger than it is.
+
 ## Status
 
 All 25 R0-R3 controls pass with real, checked evidence — see `docs/evidence/readiness.json`.

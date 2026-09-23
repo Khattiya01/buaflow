@@ -141,6 +141,50 @@ test('resume reads persisted state without a vendor-specific session', () => {
   }
 });
 
+test('requirements delegates to the requirement-coverage control and keeps the same exit-code contract', () => {
+  const root = temporaryProject('buaflow-cli-');
+  try {
+    const unavailable = runCli(root, ['requirements']);
+    assert.equal(unavailable.status, 3, 'an uninstalled control is unavailable, not a failure');
+
+    fs.mkdirSync(path.join(root, '.claude'), { recursive: true });
+    for (const name of ['readiness.js', 'requirement-coverage.js']) {
+      fs.copyFileSync(path.join(repositoryRoot, 'claude-setup', name), path.join(root, '.claude', name));
+    }
+
+    const requirement = (exception) => ({
+      schemaVersion: '1.0',
+      project: 'cli-fixture',
+      generatedAt: '2026-09-23T00:00:00.000Z',
+      requirements: [{
+        id: 'REQ-001',
+        statement: 'Something this fixture accepted and cannot prove',
+        source: 'cli fixture',
+        exception,
+      }],
+    });
+    const file = path.join(root, 'docs', 'evidence', 'requirement-coverage.json');
+    const base = {
+      owner: 'a named human',
+      reason: 'accepted deliberately for a reason long enough to be a real sentence',
+      risk: 'low',
+      acceptedOn: '2026-09-01',
+    };
+
+    writeJson(file, requirement({ ...base, expiresOn: '2099-01-01' }));
+    const live = runCli(root, ['requirements']);
+    assert.equal(live.status, 0, live.stderr);
+    assert.equal(json(live).data.result.totals.excepted, 1);
+
+    writeJson(file, requirement({ ...base, acceptedOn: '2020-01-01', expiresOn: '2020-06-01' }));
+    const lapsed = runCli(root, ['requirements']);
+    assert.equal(lapsed.status, 1, lapsed.stdout + lapsed.stderr);
+    assert.equal(json(lapsed).data.result.totals.expired, 1);
+  } finally {
+    cleanup(root);
+  }
+});
+
 test('invalid CLI input returns a JSON error envelope with exit code 2', () => {
   const root = temporaryProject('buaflow-cli-');
   try {

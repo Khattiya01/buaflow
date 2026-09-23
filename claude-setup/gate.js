@@ -2,7 +2,7 @@
 /**
  * gate.js — ประตูเดียวที่ทุกอย่างต้องผ่านก่อนเข้า main
  *
- *   node .claude/gate.js               รันครบ: verify → check-config → docs-lint
+ *   node .claude/gate.js               รันครบ: verify → check-config → docs-lint → requirement-coverage
  *   node .claude/gate.js --docs-only   ข้าม verify (ใช้กับ commit ที่แตะแต่ docs/)
  *   node .claude/gate.js --release M1  เพิ่มเงื่อนไข release ของ milestone
  *
@@ -121,6 +121,13 @@ if (PRODUCTION && SECRETS.mode !== 'required') {
 }
 add('check-config', process.execPath, [path.join(CLAUDE, 'check-config.js')]);
 add('docs-lint', process.execPath, [path.join(CLAUDE, 'docs-lint.js'), ...(RELEASE ? ['--release', RELEASE] : [])]);
+// EP-002 — เฉพาะโปรเจกต์ที่มี requirement coverage record เท่านั้น: ไม่มีไฟล์ = ไม่ตรวจ
+// พฤติกรรมเดิมไม่เปลี่ยน (additive ตาม BF-006) มีไฟล์แล้ว exception ที่เลยวันหมดอายุทำให้ gate ตก
+// ไม่ส่ง --max-window-days ที่นี่โดยตั้งใจ: หน้าต่างที่ยอมรับได้เป็นนโยบายของผู้ตรวจในโปรเจกต์นั้น
+// ไม่ใช่ของ kit — ใส่เองได้ใน CI ของโปรเจกต์ เหมือนที่ evidence-freshness ทำกับ --max-age-days
+if (fs.existsSync(path.join(ROOT, 'docs', 'evidence', 'requirement-coverage.json'))) {
+  add('requirement-coverage', process.execPath, [path.join(CLAUDE, 'requirement-coverage.js'), '--file', 'docs/evidence/requirement-coverage.json']);
+}
 if (PRODUCTION) {
   add('readiness', process.execPath, [
     path.join(CLAUDE, 'readiness.js'),

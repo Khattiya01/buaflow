@@ -60,6 +60,19 @@ run('pack contracts and their binding to reference apps', process.execPath, [
   '--dir', path.join(root, 'packs'),
   '--repo-root', root,
 ]);
+// EP-002 — every reference app answers for each of its requirements with proof or with an
+// exception a named owner accepted until a date. The 90-day window is the kit's policy as the
+// verifier, the same one evidence-freshness.yml supplies, not something a record may declare
+// about itself.
+for (const app of ['nextjs-postgres-crud', 'react-fastapi-postgres-crud', 'expo-fastapi-postgres-sync']) {
+  run(`requirement coverage and approved exceptions (${app})`, process.execPath, [
+    path.join(root, 'claude-setup', 'requirement-coverage.js'),
+    '--root', path.join(root, 'reference-apps', app),
+    '--file', 'docs/evidence/requirement-coverage.json',
+    '--max-window-days', '90',
+  ]);
+}
+
 run('regression tests', process.execPath, [path.join(root, 'scripts', 'run-tests.js')]);
 
 console.log('\nrepository check: PASS');

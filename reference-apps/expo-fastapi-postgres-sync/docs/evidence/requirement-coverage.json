@@ -1,0 +1,221 @@
+{
+  "$schema": "../../../../schemas/requirement-coverage.schema.json",
+  "schemaVersion": "1.0",
+  "_": "EP-002 · the machine-readable half of docs/requirements-traceability.md · check with: node ../../claude-setup/requirement-coverage.js --root . --file docs/evidence/requirement-coverage.json",
+  "project": "expo-fastapi-postgres-sync",
+  "generatedAt": "2026-09-23T23:00:00.000Z",
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "statement": "A documented sync and offline contract exists and says what it does not promise",
+      "source": "PP-005 acceptance",
+      "proof": [
+        { "type": "file", "value": "docs/sync-contract.md" }
+      ]
+    },
+    {
+      "id": "REQ-002",
+      "statement": "Offline creation and edits are queued locally and durably persisted",
+      "source": "PP-005 acceptance, docs/sync-contract.md",
+      "proof": [
+        { "type": "command", "value": "cd mobile && npm test" },
+        { "type": "file", "value": "mobile/src/sync/engine.test.ts" },
+        { "type": "file", "value": "mobile/src/sync/engine.ts" }
+      ]
+    },
+    {
+      "id": "REQ-003",
+      "statement": "A task created while genuinely offline survives and reaches the server once connectivity returns",
+      "source": "PP-005 acceptance, docs/sync-contract.md",
+      "proof": [
+        { "type": "command", "value": "npx playwright test tests/e2e/offline-sync.spec.ts" },
+        { "type": "file", "value": "tests/e2e/offline-sync.spec.ts" },
+        { "type": "file", "value": "evidence/playwright-report.json" }
+      ]
+    },
+    {
+      "id": "REQ-004",
+      "statement": "Conflicts resolve by last write wins on the server clock, and a stale client edit is rejected rather than silently applied",
+      "source": "docs/sync-contract.md",
+      "proof": [
+        { "type": "command", "value": "python -m pytest backend/tests/integration/test_sync.py" },
+        { "type": "file", "value": "backend/tests/integration/test_sync.py" }
+      ]
+    },
+    {
+      "id": "REQ-005",
+      "statement": "Persistence is real and lifecycle-tested against a real Postgres on the server side",
+      "source": "react-fastapi-postgres pack pattern extended with sync semantics",
+      "proof": [
+        { "type": "command", "value": "python -m pytest backend/tests/integration" },
+        { "type": "file", "value": "backend/tests/integration/test_sync.py" },
+        { "type": "file", "value": "evidence/migration-rollback-rehearsal.json" }
+      ]
+    },
+    {
+      "id": "REQ-006",
+      "statement": "The ownership boundary is enforced on sync pushes, not only on plain REST calls",
+      "source": "internal-crud profile, access-control: required, extended to the sync surface",
+      "proof": [
+        { "type": "command", "value": "python -m pytest backend/tests/integration/test_sync.py" },
+        { "type": "file", "value": "backend/app/guard.py" },
+        { "type": "file", "value": "backend/tests/integration/test_sync.py" }
+      ]
+    },
+    {
+      "id": "REQ-007",
+      "statement": "The accessibility budget is kept even though the profile makes it optional",
+      "source": "the same deliberately stricter choice PP-003 and PP-004 made",
+      "proof": [
+        { "type": "file", "value": "tests/e2e/accessibility.spec.ts" },
+        { "type": "file", "value": "evidence/axe-login.json" },
+        { "type": "file", "value": "evidence/axe-tasks.json" }
+      ]
+    },
+    {
+      "id": "REQ-008",
+      "statement": "The primary flow works end to end: sign in, manage own tasks, sign out",
+      "source": "PP-005 acceptance",
+      "proof": [
+        { "type": "command", "value": "npx playwright test tests/e2e/primary-flow.spec.ts" },
+        { "type": "file", "value": "tests/e2e/primary-flow.spec.ts" }
+      ]
+    },
+    {
+      "id": "REQ-009",
+      "statement": "The app is deployable as a pinned, reproducible container image built from zero",
+      "source": "expo-fastapi-postgres-sync pack, deployment-package evidence",
+      "proof": [
+        { "type": "file", "value": "Dockerfile" },
+        { "type": "file", "value": "evidence/clean-environment-rehearsal.json" }
+      ]
+    },
+    {
+      "id": "REQ-010",
+      "statement": "The native Android distribution channel actually compiles and links, not only the web export",
+      "source": "PP-005 acceptance (mobile reference app), docs/runbook.md Native builds",
+      "proof": [
+        { "type": "command", "value": "cd mobile && npx expo prebuild --platform android && cd android && ./gradlew assembleDebug" },
+        { "type": "file", "value": "evidence/ci-run.json" },
+        { "type": "url", "value": "https://github.com/Khattiya01/buaflow/actions/runs/35818912160" }
+      ]
+    },
+    {
+      "id": "REQ-011",
+      "statement": "Database migrations are forward-and-back safe through a real Alembic downgrade, and the rollback is rehearsed",
+      "source": "expo-fastapi-postgres-sync pack, database-migration evidence",
+      "proof": [
+        { "type": "file", "value": "backend/alembic/versions/8f3a1c9d2b47_init.py" },
+        { "type": "file", "value": "evidence/migration-rollback-rehearsal.json" }
+      ]
+    },
+    {
+      "id": "REQ-012",
+      "statement": "No secrets are committed to the repository",
+      "source": "R3 control set, secrets-scan",
+      "proof": [
+        { "type": "command", "value": "gitleaks detect --no-git --redact" },
+        { "type": "file", "value": "evidence/gitleaks-report.json" }
+      ]
+    },
+    {
+      "id": "REQ-013",
+      "statement": "Both production dependency trees, Python and JavaScript, carry no unaddressed findings",
+      "source": "R3 control set, dependency-scan",
+      "proof": [
+        { "type": "file", "value": "evidence/pip-audit.json" },
+        { "type": "file", "value": "evidence/npm-audit-mobile.json" },
+        { "type": "file", "value": "docs/security-notes.md" }
+      ]
+    },
+    {
+      "id": "REQ-014",
+      "statement": "Both builds are reproducible from lockfiles and an SBOM describes each side of what shipped",
+      "source": "R3 control set, sbom",
+      "proof": [
+        { "type": "file", "value": "backend/requirements-lock.txt" },
+        { "type": "file", "value": "mobile/package-lock.json" },
+        { "type": "file", "value": "evidence/sbom-backend.cdx.json" },
+        { "type": "file", "value": "evidence/sbom-mobile.cdx.json" }
+      ]
+    },
+    {
+      "id": "REQ-015",
+      "statement": "The app is observable in production: structured logs and a health endpoint that is actually exercised",
+      "source": "R3 control set, observability and health-check",
+      "proof": [
+        { "type": "file", "value": "backend/app/log.py" },
+        { "type": "file", "value": "backend/app/routers/health.py" },
+        { "type": "file", "value": "evidence/clean-environment-rehearsal.json" }
+      ]
+    },
+    {
+      "id": "REQ-016",
+      "statement": "Deploy, diagnose, incident and recovery steps are written down, including the native build path",
+      "source": "R3 control set, runbook",
+      "proof": [
+        { "type": "file", "value": "docs/runbook.md" }
+      ]
+    },
+    {
+      "id": "REQ-017",
+      "statement": "The threat boundary and the controls that defend it are documented",
+      "source": "R3 control set, security-controls",
+      "proof": [
+        { "type": "file", "value": "docs/security-notes.md" }
+      ]
+    },
+    {
+      "id": "REQ-018",
+      "statement": "Authentication endpoints resist credential-stuffing and brute-force attempts",
+      "source": "docs/security-notes.md, Known limitations",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "There is no rate limiting on /api/auth/login inside the app. A network or edge rate limiter is expected to sit in front of it in production, and this reference app does not ship the deployment layer that would provide one, so the control is out of its own boundary rather than forgotten.",
+        "risk": "medium",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "Password hashing costs per attempt (backend/app/auth.py); docs/runbook.md names the edge rate limiter as a deployment prerequisite."
+      }
+    },
+    {
+      "id": "REQ-019",
+      "statement": "Mutating requests cannot be forged from another origin on the cookie-authenticated web path",
+      "source": "docs/security-notes.md, Known limitations",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "There is no CSRF token on the web path. Mitigated by samesite lax on the session cookie and a required application/json content type on every mutating request. The native client is not exposed at all: it never sends the cookie, only a bearer token, which a cross-site request cannot forge.",
+        "risk": "low",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "samesite=lax on the session cookie (backend/app/auth.py), a JSON-only mutation surface, and a bearer-token path that carries no ambient credential."
+      }
+    },
+    {
+      "id": "REQ-020",
+      "statement": "The session signing secret can be rotated without logging every user out",
+      "source": "docs/security-notes.md, Known limitations",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "There is a single SESSION_SECRET and no grace-period rollover with two valid keys, so rotating it invalidates every session at once, cookie and bearer token alike. Accepted at this app's size: the operational cost is a forced re-login, which docs/runbook.md documents as the expected consequence.",
+        "risk": "low",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "docs/runbook.md states the blast radius of a rotation, so an operator is not surprised by it."
+      }
+    },
+    {
+      "id": "REQ-021",
+      "statement": "A concurrent edit made on another device is never silently discarded",
+      "source": "docs/sync-contract.md, What this contract does not promise",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "Last-write-wins by server clock can discard the content of the losing edit without telling anyone. This is the deliberate trade-off for a single-user task list, where two devices editing the same row at the same moment is rare and the cost of merge machinery is not. A multi-user product would not be allowed to accept this.",
+        "risk": "medium",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "The rule is stated in docs/sync-contract.md rather than left implicit, and the stale-edit rejection path is tested (backend/tests/integration/test_sync.py::test_push_update_conflicts_when_client_edit_is_stale), so the loss is bounded to the content of a losing edit and never to a whole row."
+      }
+    }
+  ]
+}

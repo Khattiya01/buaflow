@@ -19,6 +19,7 @@ const expectedSources = {
   'pack': 'templates/pack.tpl.json',
   'evidence-bundle': 'templates/evidence-bundle.tpl.json',
   'failure-record': 'templates/failure-record.tpl.json',
+  'requirement-coverage': 'templates/requirement-coverage.tpl.json',
   'product-development-state': 'development/state.json',
 };
 

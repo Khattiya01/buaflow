@@ -3,6 +3,33 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.1.0 — 2026-09-23
+
+> โปรเจกต์ที่ใช้ v3.0.0 → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.0.0 → v3.1.0)
+> **MINOR:** ของเดิมทำงานเหมือนเดิมทุกอย่าง โปรเจกต์ที่ไม่มี `docs/evidence/requirement-coverage.json`
+> ไม่ถูกตรวจข้อใหม่นี้เลย ไม่มี gate ไหนที่เคยผ่านแล้วกลายเป็นไม่ผ่าน
+
+- **Requirement coverage + approved exception** (`schemas/requirement-coverage.schema.json`,
+  `claude-setup/requirement-coverage.js`, EP-002) — requirement หนึ่งข้อตอบได้ด้วย **proof** หรือ
+  **exception ที่มี `owner` / `reason` / `risk` / `acceptedOn` / `expiresOn`** อย่างใดอย่างหนึ่ง
+  มีทั้งคู่ = อย่างใดอย่างหนึ่งโกหก · ไม่มีเลย = requirement ที่ไม่มีใครตอบ · **exception ที่เลยวัน
+  หมดอายุทำให้ gate ตก** ไม่ใช่แค่เตือน · `proof` ที่เป็น manual ล้วนไม่นับเป็น proof เพราะถ้านับ
+  กลไกนี้เลี่ยงได้ด้วยประโยคเดียว
+  > ทำไมถึงต้องมี: `standards/readiness-levels.md` ข้อ 4 เขียนไว้ตั้งแต่วันแรกว่า exception/waiver
+  > ไม่ทำให้ control กลายเป็น `pass` แต่ไม่เคยมีที่ให้เขียน exception ลงไปเลย ผลคือ reference app
+  > ทั้งสามตัวเก็บ "Known limitations" ไว้เป็น prose ใน `docs/security-notes.md` — ซื่อสัตย์
+  > แต่ไม่มีเจ้าของ ไม่มีวันหมดอายุ และไม่มี gate ไหนอ่านมัน ตอนนี้ของพวกนั้นเป็น exception จริง
+  > 12 ข้อกระจายอยู่ในสามแอป และหมดอายุพร้อมกันวันที่ 2026-12-22
+- **`buaflow requirements`** — คำสั่งใหม่ที่ delegate ไป `.claude/requirement-coverage.js`
+  (ตั้งชื่อว่า `requirements` ไม่ใช่ `coverage` เพราะ `.claude/run.js coverage` หมายถึง test coverage อยู่แล้ว)
+- **`--max-window-days N`** — เพดานว่า "รับความเสี่ยงล่วงหน้าได้นานที่สุดกี่วัน" เป็นนโยบายของ
+  **ผู้ตรวจ** ไม่ใช่ของ record เหมือน `--max-age-days` ของ EP-010 · ไม่ใส่ = รายงาน ไม่ตัดสิน ·
+  `npm run check` ของ kit ใช้ 90 วันกับ reference app ทั้งสามตัว
+- `standards/requirement-exceptions.md` — สัญญาฉบับเต็มและเหตุผลว่าทำไมมันต่างจาก evidence-freshness
+- สาระเพิ่ม: `CLI.md` เพิ่มแถว `audit` ที่ขาดหายไปตั้งแต่ v3.0.0 และ
+  `reference-apps/nextjs-postgres-crud/docs/requirements-traceability.md` เลิกบอกว่า `version-control`
+  กับ `ci` ยังไม่ปิด ทั้งที่ปิดไปแล้วทั้งคู่
+
 ## v3.0.0 — 2026-09-23
 
 > โปรเจกต์ที่ใช้ v2.3.4 → **[UPGRADE.md](UPGRADE.md)** หัวข้อ v2.3.4 → v3.0.0

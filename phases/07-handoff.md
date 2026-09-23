@@ -67,13 +67,14 @@ buaflow/claude-setup/check-config.js →  .claude/check-config.js
 buaflow/claude-setup/docs-lint.js    →  .claude/docs-lint.js      ตรวจว่า artifact chain ยังตรงกัน
 buaflow/claude-setup/readiness.js    →  .claude/readiness.js      ตรวจ R0-R4 จาก evidence manifest
 buaflow/claude-setup/verifier.js     →  .claude/verifier.js       ตรวจซ้ำ evidence ของ manifest นั้นอย่างอิสระ ไม่เชื่อคำประกาศของผู้สร้าง (BC-006)
+buaflow/claude-setup/requirement-coverage.js → .claude/requirement-coverage.js  requirement ทุกข้อมี proof หรือ approved exception ที่ยังไม่หมดอายุ (EP-002)
 buaflow/claude-setup/failure-taxonomy.js → .claude/failure-taxonomy.js  หมวดความล้มเหลว + ตรวจ failure record (EV-003)
 buaflow/claude-setup/convergence.js   →  .claude/convergence.js    กราฟความเชื่อมโยงของ artifact — อะไรลอยอยู่ อะไรยังไม่มีหลักฐาน (BC-004)
 buaflow/claude-setup/change-impact.js →  .claude/change-impact.js  แก้ตรงนี้แล้วอะไรต้องทบทวน — ลิงก์ที่ resolve ไม่ได้ = ไม่รู้ ไม่ใช่ไม่กระทบ (IC-006)
 buaflow/claude-setup/board.js        →  .claude/board.js          generate board.md จากไฟล์ task
 buaflow/claude-setup/prototype.js    →  .claude/prototype.js      click-through prototype จาก canvas baseline (เฉพาะโปรเจกต์ที่ใช้ canvas)
 buaflow/claude-setup/pixel.js        →  .claude/pixel.js          เทียบหน้าจริงกับ canvas baseline เป็นตัวเลข (เฉพาะโปรเจกต์ที่ใช้ canvas · ต้องมี pixelmatch + pngjs + Playwright เป็น dev dependency)
-buaflow/claude-setup/gate.js         →  .claude/gate.js           ด่านเดียว: verify + audit + secrets + check-config + docs-lint
+buaflow/claude-setup/gate.js         →  .claude/gate.js           ด่านเดียว: verify + audit + secrets + check-config + docs-lint + requirement-coverage
 buaflow/claude-setup/verify.js       →  .claude/verify.js         ทางเข้าเดียวของคำสั่งตรวจ
 buaflow/claude-setup/run.js          →  .claude/run.js            คำสั่งรอง: coverage / audit / apiTest
 buaflow/claude-setup/stack-config.js →  .claude/stack-config.js   ตัวอ่าน stack.json ที่สคริปต์อื่นใช้ร่วมกัน
@@ -82,6 +83,7 @@ buaflow/claude-setup/ci/pre-push.tpl →  .husky/pre-push
 buaflow/claude-setup/ci/*.yml.tpl    →  .github/workflows/gate.yml และ/หรือ .gitlab-ci.yml
 buaflow/claude-setup/settings.json.tpl  →  .claude/settings.json
 buaflow/templates/readiness-manifest.tpl.json → docs/evidence/readiness.json
+buaflow/templates/requirement-coverage.tpl.json → docs/evidence/requirement-coverage.json (เมื่อโปรเจกต์มี requirement ที่ต้องตอบ)
 buaflow/templates/failure-record.tpl.json → docs/evidence/failures/F-00x.json (เมื่อมีเรื่องให้บันทึก)
 ```
 

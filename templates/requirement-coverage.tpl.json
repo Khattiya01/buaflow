@@ -1,0 +1,31 @@
+{
+  "$schema": "../../../buaflow/schemas/requirement-coverage.schema.json",
+  "schemaVersion": "1.0",
+  "_": "requirement ทุกข้อต้องมีคนตอบ (EP-002) · เก็บที่ docs/evidence/requirement-coverage.json · ตรวจด้วย node .claude/requirement-coverage.js · หนึ่ง requirement มี proof หรือ exception ได้อย่างใดอย่างหนึ่ง ไม่ใช่ทั้งคู่และไม่ใช่ไม่มีเลย · proof ที่เป็น manual ล้วนไม่นับ มันคือ exception ที่ยังไม่ได้เขียน · exception ที่เลย expiresOn ทำให้ gate ตก",
+  "project": "<ชื่อโปรเจกต์>",
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "statement": "<requirement ข้อนี้พูดว่าอะไร>",
+      "source": "<มาจากไหน — profile, pack, intent, spec, acceptance criteria>",
+      "proof": [
+        { "type": "command", "value": "<คำสั่งที่รันซ้ำได้>" },
+        { "type": "file", "value": "<ไฟล์ในโปรเจกต์ที่พิสูจน์มัน>" }
+      ]
+    },
+    {
+      "id": "REQ-002",
+      "statement": "<requirement ที่ยังทำไม่ได้ และตัดสินใจรับความเสี่ยงไว้แทน>",
+      "source": "<มาจากไหน>",
+      "exception": {
+        "owner": "<ชื่อคนที่ตอบเรื่องนี้ได้ ไม่ใช่ชื่อทีม>",
+        "reason": "<ทำไมถึงรับความเสี่ยงนี้ไว้ อย่างน้อย 20 ตัวอักษร>",
+        "risk": "medium",
+        "acceptedOn": "2026-01-01",
+        "expiresOn": "2026-04-01",
+        "compensatingControl": "<อะไรที่ยืนแทนหลักฐานที่ขาดไป ตัดฟิลด์นี้ออกได้ถ้าไม่มี>"
+      }
+    }
+  ]
+}
