@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/control-set-v1.json",
+  "title": "Buaflow external control set v1",
+  "description": "A named, versioned security control set copied from its publisher, not written here. Buaflow ships these so a security baseline can be checked against a real standard rather than against a checklist this repository invented. Each chapter carries the sha256 of the upstream source file it was extracted from, so the copy is traceable back to a tag rather than trusted.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "name", "version", "reference", "source", "retrievedAt", "chapters"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "_": { "type": "string" },
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9.-]+$" },
+    "name": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "minLength": 1 },
+    "level": { "type": "integer", "minimum": 1 },
+    "reference": { "type": "string", "pattern": "^https://" },
+    "source": { "type": "string", "pattern": "^https://" },
+    "retrievedAt": { "type": "string", "format": "date" },
+    "chapters": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/chapter" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "chapter": {
+      "type": "object",
+      "required": ["id", "title", "sections"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^V[0-9]+$" },
+        "title": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "sections": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/section" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "section": {
+      "type": "object",
+      "required": ["id", "title", "requirements"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^V[0-9]+\\.[0-9]+$" },
+        "title": { "type": "string", "minLength": 1 },
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/requirement" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "requirement": {
+      "type": "object",
+      "required": ["id", "text"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^V[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "text": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  }
+}

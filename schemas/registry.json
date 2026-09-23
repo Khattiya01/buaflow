@@ -122,6 +122,26 @@
         "docs/evidence/requirement-coverage.json"
       ],
       "migration": "supported"
+    },
+    {
+      "type": "security-baseline",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/security-baseline.schema.json",
+      "paths": [
+        "docs/evidence/security-baseline.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "control-set",
+      "classification": "internal",
+      "latestVersion": "1.0",
+      "schema": "schemas/control-set.schema.json",
+      "paths": [
+        "standards/control-sets/*.json"
+      ],
+      "migration": "manual"
     }
   ]
 }

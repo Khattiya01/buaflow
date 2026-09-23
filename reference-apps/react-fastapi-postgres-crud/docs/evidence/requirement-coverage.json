@@ -3,16 +3,25 @@
   "schemaVersion": "1.0",
   "_": "EP-002 · the machine-readable half of docs/requirements-traceability.md · check with: node ../../claude-setup/requirement-coverage.js --root . --file docs/evidence/requirement-coverage.json",
   "project": "react-fastapi-postgres-crud",
-  "generatedAt": "2026-09-23T23:00:00.000Z",
+  "generatedAt": "2026-09-23T23:30:00.000Z",
   "requirements": [
     {
       "id": "REQ-001",
       "statement": "Persistence is real and lifecycle-tested against a real Postgres, not a mock",
       "source": "internal-crud profile, persistence: required",
       "proof": [
-        { "type": "command", "value": "python -m pytest backend/tests/integration" },
-        { "type": "file", "value": "backend/tests/integration/test_api.py" },
-        { "type": "file", "value": "evidence/migration-rollback-rehearsal.json" }
+        {
+          "type": "command",
+          "value": "python -m pytest backend/tests/integration"
+        },
+        {
+          "type": "file",
+          "value": "backend/tests/integration/test_api.py"
+        },
+        {
+          "type": "file",
+          "value": "evidence/migration-rollback-rehearsal.json"
+        }
       ]
     },
     {
@@ -20,9 +29,18 @@
       "statement": "The ownership boundary is enforced: a member cannot read or mutate another member's task",
       "source": "internal-crud profile, access-control: required",
       "proof": [
-        { "type": "command", "value": "python -m pytest backend/tests/integration" },
-        { "type": "file", "value": "backend/app/guard.py" },
-        { "type": "file", "value": "backend/tests/integration/test_api.py" }
+        {
+          "type": "command",
+          "value": "python -m pytest backend/tests/integration"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/guard.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/tests/integration/test_api.py"
+        }
       ]
     },
     {
@@ -30,9 +48,18 @@
       "statement": "The accessibility budget is kept even though the profile makes it optional for an internal tool",
       "source": "internal-crud profile, accessibility (deliberately kept required in this app's readiness manifest)",
       "proof": [
-        { "type": "file", "value": "tests/e2e/accessibility.spec.ts" },
-        { "type": "file", "value": "evidence/axe-login.json" },
-        { "type": "file", "value": "evidence/axe-tasks.json" }
+        {
+          "type": "file",
+          "value": "tests/e2e/accessibility.spec.ts"
+        },
+        {
+          "type": "file",
+          "value": "evidence/axe-login.json"
+        },
+        {
+          "type": "file",
+          "value": "evidence/axe-tasks.json"
+        }
       ]
     },
     {
@@ -40,9 +67,18 @@
       "statement": "The audit trail records who changed which task, when, and what changed",
       "source": "internal-crud profile clarification question audit-trail",
       "proof": [
-        { "type": "command", "value": "python -m pytest backend/tests/integration/test_api.py::test_delete_is_soft_and_recorded_in_audit_log" },
-        { "type": "file", "value": "backend/app/audit.py" },
-        { "type": "file", "value": "backend/app/models.py" }
+        {
+          "type": "command",
+          "value": "python -m pytest backend/tests/integration/test_api.py::test_delete_is_soft_and_recorded_in_audit_log"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/audit.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/models.py"
+        }
       ]
     },
     {
@@ -50,8 +86,14 @@
       "statement": "The primary flow works end to end: sign in, manage own tasks, sign out",
       "source": "PP-004 acceptance (a second, materially different golden stack reaches R3)",
       "proof": [
-        { "type": "command", "value": "npx playwright test tests/e2e/primary-flow.spec.ts" },
-        { "type": "file", "value": "tests/e2e/primary-flow.spec.ts" }
+        {
+          "type": "command",
+          "value": "npx playwright test tests/e2e/primary-flow.spec.ts"
+        },
+        {
+          "type": "file",
+          "value": "tests/e2e/primary-flow.spec.ts"
+        }
       ]
     },
     {
@@ -59,8 +101,14 @@
       "statement": "The app is deployable as a pinned, reproducible container image built from zero",
       "source": "react-fastapi-postgres pack, deployment-package evidence",
       "proof": [
-        { "type": "file", "value": "Dockerfile" },
-        { "type": "file", "value": "evidence/clean-environment-rehearsal.json" }
+        {
+          "type": "file",
+          "value": "Dockerfile"
+        },
+        {
+          "type": "file",
+          "value": "evidence/clean-environment-rehearsal.json"
+        }
       ]
     },
     {
@@ -68,8 +116,14 @@
       "statement": "Database migrations are forward-and-back safe through a real Alembic downgrade, and the rollback is rehearsed",
       "source": "react-fastapi-postgres pack, database-migration evidence",
       "proof": [
-        { "type": "file", "value": "backend/alembic/versions/2e65734c6b45_init.py" },
-        { "type": "file", "value": "evidence/migration-rollback-rehearsal.json" }
+        {
+          "type": "file",
+          "value": "backend/alembic/versions/2e65734c6b45_init.py"
+        },
+        {
+          "type": "file",
+          "value": "evidence/migration-rollback-rehearsal.json"
+        }
       ]
     },
     {
@@ -77,8 +131,14 @@
       "statement": "No secrets are committed to the repository",
       "source": "R3 control set, secrets-scan",
       "proof": [
-        { "type": "command", "value": "gitleaks detect --no-git --redact" },
-        { "type": "file", "value": "evidence/gitleaks-report.json" }
+        {
+          "type": "command",
+          "value": "gitleaks detect --no-git --redact"
+        },
+        {
+          "type": "file",
+          "value": "evidence/gitleaks-report.json"
+        }
       ]
     },
     {
@@ -86,9 +146,18 @@
       "statement": "Both production dependency trees, Python and JavaScript, carry no unaddressed findings",
       "source": "R3 control set, dependency-scan",
       "proof": [
-        { "type": "file", "value": "evidence/pip-audit.json" },
-        { "type": "file", "value": "evidence/npm-audit.json" },
-        { "type": "file", "value": "docs/security-notes.md" }
+        {
+          "type": "file",
+          "value": "evidence/pip-audit.json"
+        },
+        {
+          "type": "file",
+          "value": "evidence/npm-audit.json"
+        },
+        {
+          "type": "file",
+          "value": "docs/security-notes.md"
+        }
       ]
     },
     {
@@ -96,10 +165,22 @@
       "statement": "Both builds are reproducible from lockfiles and an SBOM describes each side of what shipped",
       "source": "R3 control set, sbom",
       "proof": [
-        { "type": "file", "value": "backend/requirements-lock.txt" },
-        { "type": "file", "value": "frontend/package-lock.json" },
-        { "type": "file", "value": "evidence/sbom-backend.cdx.json" },
-        { "type": "file", "value": "evidence/sbom-frontend.cdx.json" }
+        {
+          "type": "file",
+          "value": "backend/requirements-lock.txt"
+        },
+        {
+          "type": "file",
+          "value": "frontend/package-lock.json"
+        },
+        {
+          "type": "file",
+          "value": "evidence/sbom-backend.cdx.json"
+        },
+        {
+          "type": "file",
+          "value": "evidence/sbom-frontend.cdx.json"
+        }
       ]
     },
     {
@@ -107,9 +188,18 @@
       "statement": "The app is observable in production: structured logs and a health endpoint that is actually exercised",
       "source": "R3 control set, observability and health-check",
       "proof": [
-        { "type": "file", "value": "backend/app/log.py" },
-        { "type": "file", "value": "backend/app/routers/health.py" },
-        { "type": "file", "value": "evidence/clean-environment-rehearsal.json" }
+        {
+          "type": "file",
+          "value": "backend/app/log.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/routers/health.py"
+        },
+        {
+          "type": "file",
+          "value": "evidence/clean-environment-rehearsal.json"
+        }
       ]
     },
     {
@@ -117,7 +207,10 @@
       "statement": "Deploy, diagnose, incident and recovery steps are written down for an operator who did not build this",
       "source": "R3 control set, runbook",
       "proof": [
-        { "type": "file", "value": "docs/runbook.md" }
+        {
+          "type": "file",
+          "value": "docs/runbook.md"
+        }
       ]
     },
     {
@@ -125,7 +218,10 @@
       "statement": "The threat boundary and the controls that defend it are documented",
       "source": "R3 control set, security-controls",
       "proof": [
-        { "type": "file", "value": "docs/security-notes.md" }
+        {
+          "type": "file",
+          "value": "docs/security-notes.md"
+        }
       ]
     },
     {
@@ -178,6 +274,110 @@
         "acceptedOn": "2026-09-23",
         "expiresOn": "2026-12-22",
         "compensatingControl": "The real authorization boundary is the API layer and is identical to PP-003's: backend/app/guard.py, proven by the ownership-boundary tests in backend/tests/integration/test_api.py. No data is served with the shell."
+      }
+    },
+    {
+      "id": "REQ-101",
+      "statement": "Traffic to the application is encrypted in transit and the browser is told to keep it that way",
+      "source": "OWASP ASVS 5.0.0 L1 V3.4.1, V12.1.1, V12.2.1, V12.2.2 via docs/evidence/security-baseline.json",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "The application speaks plain HTTP inside its container and emits no Strict-Transport-Security header. TLS termination, certificate issuance and protocol-version policy belong to an edge this reference app deliberately does not ship, which is the same boundary the rate-limiting exception draws. Accepted as an app-boundary decision rather than an oversight; a deployment that skips the edge is running it wrong.",
+        "risk": "medium",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "docs/runbook.md names the reverse proxy as a deployment prerequisite, and the session cookie is issued with the Secure attribute whenever the app runs in production mode."
+      }
+    },
+    {
+      "id": "REQ-102",
+      "statement": "Browser-side defences are configured: response context controls and clearing authenticated data at session end",
+      "source": "OWASP ASVS 5.0.0 L1 V3.2.1, V14.3.1 via docs/evidence/security-baseline.json",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "No Content-Security-Policy, X-Content-Type-Options, Referrer-Policy or frame-ancestors directive is emitted, and nothing clears the SPA's in-memory React state or sends Clear-Site-Data when the session ends. Surfaced by the ASVS baseline on 2026-09-23; it was never recorded before because the prose security notes only listed what the app does, never what it omits.",
+        "risk": "medium",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "Every API response is JSON with a JSON content type, the app renders no untrusted HTML and uses no framing, and the session cookie is httpOnly so client-side script cannot read it."
+      }
+    },
+    {
+      "id": "REQ-103",
+      "statement": "The session cookie name itself signals the security properties the browser must enforce",
+      "source": "OWASP ASVS 5.0.0 L1 V3.3.1 via docs/evidence/security-baseline.json",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "The cookie is named \"session\" with neither the __Host- nor the __Secure- prefix. Adopting __Host- requires Secure on every response, which would stop the app working over plain HTTP in local development and in the container rehearsal, so the change is a development-workflow decision rather than a one-line fix.",
+        "risk": "low",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "The cookie is already httpOnly, sameSite=lax, path-scoped to / and marked Secure in production, which is what the prefix would have forced."
+      }
+    },
+    {
+      "id": "REQ-104",
+      "statement": "Signing out actually ends the session, and a captured session token stops working",
+      "source": "OWASP ASVS 5.0.0 L1 V7.2.4, V7.4.1 via docs/evidence/security-baseline.json",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "The session is a self-contained signed token and logout only deletes the cookie, so a token captured beforehand keeps being accepted for the rest of its 8-hour lifetime, and re-authenticating does not invalidate the previous one. Fixing it means a terminated-token list, a per-user signing key or a switch to reference tokens — an architecture change, not a patch. Surfaced by the ASVS baseline on 2026-09-23 and the most serious thing it found.",
+        "risk": "high",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "The token lifetime is capped at 8 hours, it is httpOnly and sameSite=lax so script cannot read it and it is not sent on cross-site navigations, and it is Secure in production so it does not travel in clear text."
+      }
+    },
+    {
+      "id": "REQ-105",
+      "statement": "A user can change their own password",
+      "source": "OWASP ASVS 5.0.0 L1 V6.2.2 via docs/evidence/security-baseline.json",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "The application has no change-password function at all: accounts exist because the seed created them. This is a missing feature of a reference app built to exercise the pack contract, not a defect in an implemented flow, but a user genuinely cannot rotate a credential they believe is compromised.",
+        "risk": "medium",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "An operator can rotate a credential out of band by re-running the seed with a new password; docs/runbook.md is the place that would document it."
+      }
+    },
+    {
+      "id": "REQ-106",
+      "statement": "No account with a publicly known password exists in a deployed instance",
+      "source": "OWASP ASVS 5.0.0 L1 V6.3.2 via docs/evidence/security-baseline.json",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "Accounts with passwords published in this repository are created by backend/app/db.py so the end-to-end suites have something to sign in as. Anyone who runs the seed against a reachable instance has handed out an admin account. The seed is what makes the E2E evidence reproducible, so removing it would remove the proof that the app works.",
+        "risk": "high",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "Seeding is a separate explicit command and is not part of the container start path; docs/runbook.md treats seeded data as development data."
+      }
+    },
+    {
+      "id": "REQ-107",
+      "statement": "How fast a vulnerable third-party component must be replaced is written down",
+      "source": "OWASP ASVS 5.0.0 L1 V15.1.1 via docs/evidence/security-baseline.json",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "Dependencies are audited on every CI run and re-audited weekly, but no document states the risk-based time frame within which a finding must be remediated, so \"audited\" has no deadline attached to it and a known finding could sit indefinitely without breaking a rule.",
+        "risk": "low",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "The dependency-scan control is required at R3 and fails the build on unaddressed findings, and EP-010 re-runs the audit weekly, so a new advisory turns CI red without anyone deciding to look."
+      }
+    },
+    {
+      "id": "REQ-108",
+      "statement": "A request path cannot be turned into a filesystem path outside the directory the application intends to serve",
+      "source": "OWASP ASVS 5.0.0 L1 V5.3.2 via docs/evidence/security-baseline.json",
+      "exception": {
+        "owner": "khattiya dokbua",
+        "reason": "The single-page-app fallback joins the request path onto the static directory to decide whether a real file exists. The web framework is expected to normalise traversal sequences before the handler runs, and no test in this repository proves that it does. Recorded as unverified rather than claimed as safe, because an assumption about someone else's framework is not evidence.",
+        "risk": "medium",
+        "acceptedOn": "2026-09-23",
+        "expiresOn": "2026-12-22",
+        "compensatingControl": "The static directory contains build output only, the container runs the application as a non-root user, and nothing writes to that directory at runtime."
       }
     }
   ]

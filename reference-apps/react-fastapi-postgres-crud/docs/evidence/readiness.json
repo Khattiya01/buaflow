@@ -93,6 +93,10 @@
       "evidence": [
         {
           "type": "file",
+          "value": "docs/evidence/requirement-coverage.json"
+        },
+        {
+          "type": "file",
           "value": "docs/requirements-traceability.md"
         }
       ]
@@ -230,6 +234,10 @@
     "security-controls": {
       "status": "pass",
       "evidence": [
+        {
+          "type": "file",
+          "value": "docs/evidence/security-baseline.json"
+        },
         {
           "type": "file",
           "value": "docs/security-notes.md"

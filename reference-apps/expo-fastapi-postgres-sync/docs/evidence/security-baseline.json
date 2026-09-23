@@ -1,0 +1,685 @@
+{
+  "$schema": "../../../../schemas/security-baseline.schema.json",
+  "schemaVersion": "1.0",
+  "_": "EP-003 · threat boundary + ASVS mapping ที่เครื่องตรวจได้ · ตรวจด้วย: node ../../claude-setup/security-baseline.js --root . --file docs/evidence/security-baseline.json · control ที่ not-met ต้องชี้ไป exception ใน requirement-coverage.json ที่มีเจ้าของและวันหมดอายุ",
+  "project": "expo-fastapi-postgres-sync",
+  "generatedAt": "2026-09-23T23:30:00.000Z",
+  "controlSet": "owasp-asvs-5.0.0-l1",
+  "excludedChapters": [
+    {
+      "chapter": "V10",
+      "reason": "There is no OAuth or OIDC anywhere in this app: it issues its own session token after a local password check and is never an authorization server or a relying party."
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "TB-001",
+      "name": "HTTP API",
+      "untrusted": "any HTTP client on the network: request bodies, path and query parameters, and the session cookie or bearer token presented with them",
+      "trusted": "everything below backend/app/db.py, which performs no authorization checks of its own",
+      "assets": [
+        "user credentials",
+        "session tokens",
+        "task rows belonging to other users",
+        "the audit log"
+      ],
+      "entryPoints": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/auth.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/routers/health.py"
+        }
+      ],
+      "enforcedBy": [
+        {
+          "type": "file",
+          "value": "backend/app/auth.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/guard.py"
+        }
+      ]
+    },
+    {
+      "id": "TB-002",
+      "name": "Sync push boundary",
+      "untrusted": "a batch of offline mutations replayed by a client that may have been offline for an arbitrary time, including rows it does not own",
+      "trusted": "the reconciled server state written after ownership and conflict checks",
+      "assets": [
+        "task rows belonging to other users",
+        "the server clock used for conflict resolution"
+      ],
+      "entryPoints": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        }
+      ],
+      "enforcedBy": [
+        {
+          "type": "file",
+          "value": "backend/app/guard.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/tests/integration/test_sync.py"
+        }
+      ]
+    }
+  ],
+  "controls": [
+    {
+      "id": "V1.2.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "mobile/src/screens/TasksScreen.tsx"
+        },
+        {
+          "type": "file",
+          "value": "mobile/src/screens/LoginScreen.tsx"
+        }
+      ],
+      "note": "Values are interpolated through the framework’s escaping renderer; the app contains no raw HTML injection point."
+    },
+    {
+      "id": "V1.2.2",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/main.py"
+        }
+      ],
+      "note": "The only dynamically built URL is the login redirect, whose parameter is set through the URL API rather than string concatenation."
+    },
+    {
+      "id": "V1.2.3",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        }
+      ],
+      "note": "Responses are produced by the framework’s JSON serializer; no JavaScript or JSON is assembled as text."
+    },
+    {
+      "id": "V1.2.4",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/db.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/tests/integration/test_sync.py"
+        },
+        {
+          "type": "command",
+          "value": "python -m pytest backend/tests/integration"
+        }
+      ],
+      "note": "All database access goes through SQLAlchemy; no raw SQL string is built anywhere in the app."
+    },
+    {
+      "id": "V1.2.5",
+      "status": "not-applicable",
+      "rationale": "The application makes no operating-system calls: it has no shell-out, no subprocess and no command execution path at runtime."
+    },
+    {
+      "id": "V1.3.1",
+      "status": "not-applicable",
+      "rationale": "There is no WYSIWYG editor and no field that accepts HTML; every text field is stored and rendered as plain text."
+    },
+    {
+      "id": "V1.3.2",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/auth.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/guard.py"
+        }
+      ],
+      "note": "No eval or dynamic code execution feature is used anywhere in the application source."
+    },
+    {
+      "id": "V1.5.1",
+      "status": "not-applicable",
+      "rationale": "The application parses no XML at all: every request and response body is JSON."
+    },
+    {
+      "id": "V2.1.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "docs/security-notes.md"
+        }
+      ],
+      "note": "The threat-boundary section states which inputs are untrusted and how each is validated before use."
+    },
+    {
+      "id": "V2.2.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/tests/integration/test_sync.py"
+        },
+        {
+          "type": "command",
+          "value": "python -m pytest backend/tests/integration"
+        }
+      ],
+      "note": "Malformed bodies and unknown enum values are rejected with 400 rather than coerced, and the integration suite asserts it."
+    },
+    {
+      "id": "V2.2.2",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/guard.py"
+        }
+      ],
+      "note": "Validation runs in the API layer; the client is never trusted to have validated anything."
+    },
+    {
+      "id": "V2.3.1",
+      "status": "not-applicable",
+      "rationale": "The application has no multi-step business flow: every operation is a single authenticated request that is complete on its own."
+    },
+    {
+      "id": "V3.2.1",
+      "status": "not-met",
+      "exception": "REQ-102",
+      "note": "No Content-Security-Policy, Content-Disposition or Sec-Fetch validation is applied to any response."
+    },
+    {
+      "id": "V3.2.2",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "mobile/src/screens/TasksScreen.tsx"
+        }
+      ],
+      "note": "Text is rendered through the framework’s text nodes; the app never assigns to innerHTML."
+    },
+    {
+      "id": "V3.3.1",
+      "status": "not-met",
+      "exception": "REQ-103",
+      "note": "The session cookie is named \"session\" and carries neither the __Host- nor the __Secure- prefix."
+    },
+    {
+      "id": "V3.4.1",
+      "status": "not-met",
+      "exception": "REQ-101",
+      "note": "No Strict-Transport-Security header is emitted by the application."
+    },
+    {
+      "id": "V3.4.2",
+      "status": "not-applicable",
+      "rationale": "The application sets no CORS headers and serves its client from its own origin, so there is no Access-Control-Allow-Origin value to get wrong."
+    },
+    {
+      "id": "V3.5.1",
+      "status": "not-applicable",
+      "rationale": "This application does rely on the CORS preflight mechanism — a JSON content type on every mutating request — so this requirement’s precondition does not hold; the preflight case is answered at V3.5.2."
+    },
+    {
+      "id": "V3.5.2",
+      "status": "not-met",
+      "exception": "REQ-019",
+      "note": "The defence is that mutating endpoints require application/json, which is not a CORS-safelisted content type. Nothing tests that a text/plain body is actually rejected, so the mitigation is asserted rather than proven."
+    },
+    {
+      "id": "V3.5.3",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        }
+      ],
+      "note": "Every state-changing operation uses POST, PATCH or DELETE; no GET endpoint mutates anything."
+    },
+    {
+      "id": "V4.1.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/routers/health.py"
+        }
+      ],
+      "note": "Every response with a body is produced by the framework’s JSON responder, which sets application/json."
+    },
+    {
+      "id": "V4.4.1",
+      "status": "not-applicable",
+      "rationale": "The application opens no WebSocket connections; all traffic is request/response HTTP."
+    },
+    {
+      "id": "V5.2.1",
+      "status": "not-applicable",
+      "rationale": "The application accepts no uploads of any kind, so there is no file size it must survive."
+    },
+    {
+      "id": "V5.2.2",
+      "status": "not-applicable",
+      "rationale": "No file is ever accepted from a client, so there is no extension or content type to validate."
+    },
+    {
+      "id": "V5.3.1",
+      "status": "not-applicable",
+      "rationale": "There is no public folder that untrusted input can write to; the static directory contains build output only."
+    },
+    {
+      "id": "V5.3.2",
+      "status": "not-met",
+      "exception": "REQ-108",
+      "note": "The SPA fallback joins the request path onto the static directory to decide whether to serve a real file. The framework is expected to normalise the path first, and nothing in this repository tests that a traversal attempt is rejected."
+    },
+    {
+      "id": "V6.1.1",
+      "status": "not-met",
+      "exception": "REQ-018",
+      "note": "No documentation defines rate limiting, anti-automation or adaptive response for the login endpoint."
+    },
+    {
+      "id": "V6.2.1",
+      "status": "not-applicable",
+      "rationale": "There is no user-facing path that sets a password: accounts are seeded, so no minimum length can be enforced at a place the user reaches."
+    },
+    {
+      "id": "V6.2.2",
+      "status": "not-met",
+      "exception": "REQ-105",
+      "note": "The application has no change-password function at all."
+    },
+    {
+      "id": "V6.2.3",
+      "status": "not-applicable",
+      "rationale": "There is no password change function for this rule to govern; its absence is recorded at V6.2.2."
+    },
+    {
+      "id": "V6.2.4",
+      "status": "not-applicable",
+      "rationale": "There is no registration or password change path at which a candidate password could be checked against a breached-password list."
+    },
+    {
+      "id": "V6.2.5",
+      "status": "not-applicable",
+      "rationale": "No composition rules exist because no user-facing path sets a password."
+    },
+    {
+      "id": "V6.2.6",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "mobile/src/screens/LoginScreen.tsx"
+        }
+      ],
+      "note": "The password field uses a masked password input."
+    },
+    {
+      "id": "V6.2.7",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "mobile/src/screens/LoginScreen.tsx"
+        }
+      ],
+      "note": "The login form installs no paste, autocomplete or password-manager blocking handler."
+    },
+    {
+      "id": "V6.2.8",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/auth.py"
+        }
+      ],
+      "note": "The submitted password is verified exactly as received; only the email is normalised."
+    },
+    {
+      "id": "V6.3.1",
+      "status": "not-met",
+      "exception": "REQ-018",
+      "note": "No credential-stuffing or brute-force control is implemented in the application."
+    },
+    {
+      "id": "V6.3.2",
+      "status": "not-met",
+      "exception": "REQ-106",
+      "note": "Seeded accounts with known passwords ship with the repository (backend/app/db.py) so the E2E suites have something to log in as."
+    },
+    {
+      "id": "V6.4.1",
+      "status": "not-applicable",
+      "rationale": "The application generates no initial passwords or activation codes; credentials only ever arrive through the seed."
+    },
+    {
+      "id": "V6.4.2",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/auth.py"
+        }
+      ],
+      "note": "There are no password hints and no knowledge-based authentication anywhere in the app."
+    },
+    {
+      "id": "V7.2.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/auth.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/guard.py"
+        }
+      ],
+      "note": "Every token is verified on the server; the client never decides whether a session is valid."
+    },
+    {
+      "id": "V7.2.2",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/auth.py"
+        }
+      ],
+      "note": "A fresh token is generated per login and carries per-session claims; no static API key or shared secret stands in for a session."
+    },
+    {
+      "id": "V7.2.3",
+      "status": "not-applicable",
+      "rationale": "Reference tokens are not used: the session is a self-contained signed token, which is answered under V9."
+    },
+    {
+      "id": "V7.2.4",
+      "status": "not-met",
+      "exception": "REQ-104",
+      "note": "A new token is issued on authentication, but the previous self-contained token is not terminated and stays valid until its own expiry."
+    },
+    {
+      "id": "V7.4.1",
+      "status": "not-met",
+      "exception": "REQ-104",
+      "note": "Logout deletes the cookie. A token captured beforehand remains accepted until it expires, because nothing maintains a terminated-token list or a per-user signing key."
+    },
+    {
+      "id": "V7.4.2",
+      "status": "not-applicable",
+      "rationale": "The application has no way to disable or delete a user account, so there is no event that should terminate that user’s sessions."
+    },
+    {
+      "id": "V8.1.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "docs/security-notes.md"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/guard.py"
+        }
+      ],
+      "note": "The member and admin rules, and the ownership rule for task rows, are written down and implemented in one place."
+    },
+    {
+      "id": "V8.2.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/guard.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/tests/integration/test_sync.py"
+        },
+        {
+          "type": "command",
+          "value": "python -m pytest backend/tests/integration"
+        }
+      ],
+      "note": "Every task route checks the caller’s permission before acting."
+    },
+    {
+      "id": "V8.2.2",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/guard.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/tests/integration/test_sync.py"
+        },
+        {
+          "type": "command",
+          "value": "python -m pytest backend/tests/integration"
+        }
+      ],
+      "note": "Cross-user access to a task by id is rejected, and the integration suite proves it for read and for both mutations."
+    },
+    {
+      "id": "V8.3.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/guard.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        }
+      ],
+      "note": "Authorization is enforced in the API layer; no client-side check is load-bearing."
+    },
+    {
+      "id": "V9.1.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/auth.py"
+        }
+      ],
+      "note": "The signature is verified before the payload is read (itsdangerous URLSafeTimedSerializer, the audited standard library for this in Python, with a fixed salt and a single algorithm)."
+    },
+    {
+      "id": "V9.1.2",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/auth.py"
+        }
+      ],
+      "note": "Exactly one algorithm can ever be used, and the token format carries no algorithm field for a caller to influence, so the \"none\" attack has no surface."
+    },
+    {
+      "id": "V9.1.3",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/auth.py"
+        }
+      ],
+      "note": "The verification key comes from the SESSION_SECRET environment variable alone; nothing in the token can point at another key source."
+    },
+    {
+      "id": "V9.2.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/auth.py"
+        }
+      ],
+      "note": "Expiry is checked on every decode, and an expired token is rejected rather than merely reported."
+    },
+    {
+      "id": "V11.3.1",
+      "status": "not-applicable",
+      "rationale": "The application encrypts nothing: it uses hashing and a MAC only, so there is no block mode or padding scheme in play."
+    },
+    {
+      "id": "V11.3.2",
+      "status": "not-applicable",
+      "rationale": "No cipher is used anywhere; the only cryptography is password hashing and session signing."
+    },
+    {
+      "id": "V11.4.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/auth.py"
+        }
+      ],
+      "note": "Only SHA-256 and bcrypt with a per-user generated salt are used; no MD5 or SHA-1 appears anywhere in the application."
+    },
+    {
+      "id": "V12.1.1",
+      "status": "not-met",
+      "exception": "REQ-101",
+      "note": "The application speaks plain HTTP and configures no TLS versions of its own."
+    },
+    {
+      "id": "V12.2.1",
+      "status": "not-met",
+      "exception": "REQ-101",
+      "note": "TLS is expected to terminate at a proxy this reference app does not ship."
+    },
+    {
+      "id": "V12.2.2",
+      "status": "not-met",
+      "exception": "REQ-101",
+      "note": "No certificate is issued or configured by the application."
+    },
+    {
+      "id": "V13.4.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": ".dockerignore"
+        },
+        {
+          "type": "file",
+          "value": "Dockerfile"
+        }
+      ],
+      "note": "The build context excludes .git, so no source-control metadata reaches the deployable image."
+    },
+    {
+      "id": "V14.2.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/auth.py"
+        },
+        {
+          "type": "file",
+          "value": "backend/app/routers/sync.py"
+        }
+      ],
+      "note": "Credentials travel in the request body and the session as an Authorization bearer header; no URL or query string carries a secret, including on the sync endpoints."
+    },
+    {
+      "id": "V14.3.1",
+      "status": "not-met",
+      "exception": "REQ-102",
+      "note": "Nothing clears the offline store (SQLite on native, localStorage on the web export) when the session ends, and no Clear-Site-Data header is sent."
+    },
+    {
+      "id": "V15.1.1",
+      "status": "not-met",
+      "exception": "REQ-107",
+      "note": "No document states how quickly a vulnerable third-party component must be replaced."
+    },
+    {
+      "id": "V15.2.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "evidence/pip-audit.json"
+        },
+        {
+          "type": "file",
+          "value": "evidence/ci-run.json"
+        }
+      ],
+      "note": "The production dependency tree is audited in CI and ships with no unaddressed findings."
+    },
+    {
+      "id": "V15.3.1",
+      "status": "met",
+      "evidence": [
+        {
+          "type": "file",
+          "value": "backend/app/routers/auth.py"
+        }
+      ],
+      "note": "The login response returns a chosen subset of user fields; the password hash never leaves the data layer."
+    }
+  ]
+}

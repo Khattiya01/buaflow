@@ -73,6 +73,17 @@ for (const app of ['nextjs-postgres-crud', 'react-fastapi-postgres-crud', 'expo-
   ]);
 }
 
+// EP-003 — ทุก control ของ ASVS 5.0.0 L1 ที่ไม่ได้ถูก exclude ต้องมีคำตอบ และคำตอบว่า not-met
+// ต้องชี้ไป exception ที่มีเจ้าของและวันหมดอายุใน requirement-coverage.json ของแอปเดียวกัน
+for (const app of ['nextjs-postgres-crud', 'react-fastapi-postgres-crud', 'expo-fastapi-postgres-sync']) {
+  run(`security baseline and threat boundaries (${app})`, process.execPath, [
+    path.join(root, 'claude-setup', 'security-baseline.js'),
+    '--root', path.join(root, 'reference-apps', app),
+    '--file', 'docs/evidence/security-baseline.json',
+    '--control-sets', path.join(root, 'standards', 'control-sets'),
+  ]);
+}
+
 run('regression tests', process.execPath, [path.join(root, 'scripts', 'run-tests.js')]);
 
 console.log('\nrepository check: PASS');

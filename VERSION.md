@@ -3,6 +3,35 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.2.0 — 2026-09-23
+
+> โปรเจกต์ที่ใช้ v3.1.0 → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.1.0 → v3.2.0)
+> **MINOR:** โปรเจกต์ที่ไม่มี `docs/evidence/security-baseline.json` ไม่ถูกตรวจข้อใหม่นี้เลย
+
+- **Security baseline: threat boundary + control set ภายนอก** (`schemas/security-baseline.schema.json`,
+  `claude-setup/security-baseline.js`, EP-003) — `standards/deployment-ready-contract.md` สั่งไว้ตั้งแต่
+  วันแรกว่า control `security-controls` ต้องการ "threat boundary + applicable ASVS/control proof"
+  แต่คำว่า ASVS มีอยู่แค่สองไฟล์ในเรพ และไม่มีอะไรผลิตหรือตรวจ mapping นั้น · ตอนนี้ threat boundary
+  เป็น **ข้อมูล** (entry point + ไฟล์ที่บังคับกฎ ซึ่งต้องมีอยู่จริง) และทุก control ของ control set
+  ต้องมีคำตอบ — ข้อที่หายไปเฉย ๆ ทำให้ตก
+- **`standards/control-sets/owasp-asvs-5.0.0-l1.json`** — สำเนา OWASP ASVS 5.0.0 เฉพาะ Level 1
+  (70 ข้อจาก 345 ข้อ ใน 15 บท) ดึงจาก tag `v5.0.0` ของ repo ต้นทาง พร้อม `sha256` ของไฟล์ต้นฉบับ
+  รายบท **ไม่ใช่ checklist ที่เขียนเอง** — `standards/security-checklist.md` ยังอยู่ แต่ถูกระบุชัดว่า
+  ใช้ review รายวัน ไม่ใช่ฐานของการอ้างว่าผ่านมาตรฐาน
+- **`not-met` ต้องชี้ไป approved exception ของ EP-002 ที่มีอยู่จริง** — ช่องโหว่ที่ยอมรับแล้วมีที่อยู่
+  ที่เดียวในโปรเจกต์ และหมดอายุด้วยกติกาเดียวกัน · ชี้ไป requirement ที่พิสูจน์แล้วถูกปฏิเสธ
+  ไม่งั้น requirement ที่ผ่านจะถูกใช้ฟอก control ที่ไม่ผ่าน
+- **`buaflow security`** — คำสั่งใหม่ที่ delegate ไป `.claude/security-baseline.js`
+- **สิ่งที่ baseline ครั้งแรกเจอ** — map กับ reference app สามตัวแล้วพบ 7 ช่องที่ `docs/security-notes.md`
+  ไม่เคยเขียนถึง เพราะ prose บอกได้แค่ว่าแอปทำอะไร ไม่เคยบอกว่าไม่ได้ทำอะไร: **logout ไม่ทำให้
+  session token ที่ถูกดักไว้ใช้ไม่ได้** (V7.4.1, risk high), **บัญชี seed ที่รหัสผ่านอยู่ในเรพ**
+  (V6.3.2, risk high), ไม่มี security header เลย, TLS/HSTS ฝากไว้กับ edge ที่ไม่ได้ ship,
+  ไม่มีฟังก์ชันเปลี่ยนรหัสผ่าน, cookie ไม่มี `__Host-` prefix, ไม่มีกำหนดเวลาเปลี่ยน dependency
+  ที่มีช่องโหว่ — ทั้งหมดถูกบันทึกเป็น exception ที่มีเจ้าของและหมดอายุ 2026-12-22 ตามการตัดสินใจ
+  ของเจ้าของโปรเจกต์ ไม่ได้ถูกแก้
+  > reference app ทั้งสามผ่าน R3 ครบทุก control อยู่แล้วก่อนหน้านี้ และยังผ่านอยู่ · baseline ไม่ได้
+  > ทำให้แอปแย่ลง มันทำให้สิ่งที่เป็นจริงอยู่แล้วมองเห็นได้ — 30 met / 16 not-applicable / 15–16 not-met
+
 ## v3.1.0 — 2026-09-23
 
 > โปรเจกต์ที่ใช้ v3.0.0 → คัดลอกไฟล์ทับ จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.0.0 → v3.1.0)

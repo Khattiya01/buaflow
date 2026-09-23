@@ -20,6 +20,7 @@ node buaflow/bin/buaflow.js <command>
 | `readiness [--file path] [--level R0-R4]` | รัน `.claude/readiness.js` | ไม่เขียน |
 | `audit [--file path] [--level R0-R4] [--execute]` | รัน `.claude/verifier.js` — ตรวจซ้ำจาก artifact และผลการรันจริง ไม่อ่าน `control.status` เป็นข้อมูลเข้า (BC-006) | ไม่เขียน เว้นแต่ใส่ `--execute` ซึ่งรันคำสั่งจริงของโปรเจกต์ และคำสั่งพวกนั้นเขียนไฟล์ทับได้ |
 | `requirements [--file path]` | รัน `.claude/requirement-coverage.js` — requirement ทุกข้อต้องมี proof หรือ approved exception ที่ยังไม่หมดอายุ (EP-002) ค่า default ของ `--file` คือ `docs/evidence/requirement-coverage.json` | ไม่เขียน |
+| `security [--file path]` | รัน `.claude/security-baseline.js` — ทุก control ของ control set ภายนอกต้องมีคำตอบ และ control ที่ not-met ต้องชี้ไป approved exception (EP-003) | ไม่เขียน |
 | `resume` | สรุป `.buaflow/project.json`, `docs/planning/_state.md` และ task ที่ in-progress | ไม่เขียน |
 
 ทุก command รับ `--root <path>` เพื่อกำหนด project root และ `--json` เพื่อ output ที่ agent/CI parse ได้

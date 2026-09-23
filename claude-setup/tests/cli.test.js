@@ -185,6 +185,49 @@ test('requirements delegates to the requirement-coverage control and keeps the s
   }
 });
 
+test('security delegates to the security-baseline control and keeps the same exit-code contract', () => {
+  const root = temporaryProject('buaflow-cli-');
+  try {
+    const unavailable = runCli(root, ['security']);
+    assert.equal(unavailable.status, 3, 'an uninstalled control is unavailable, not a failure');
+
+    fs.mkdirSync(path.join(root, '.claude'), { recursive: true });
+    for (const name of ['readiness.js', 'requirement-coverage.js', 'security-baseline.js']) {
+      fs.copyFileSync(path.join(repositoryRoot, 'claude-setup', name), path.join(root, '.claude', name));
+    }
+    // The control set the kit ships has to be reachable from the adopter project; standards/
+    // control-sets under the project root is the first of the default lookup paths.
+    fs.cpSync(path.join(repositoryRoot, 'standards', 'control-sets'), path.join(root, 'standards', 'control-sets'), { recursive: true });
+
+    write(path.join(root, 'src', 'api.ts'), '// entry point\n');
+    const baseline = {
+      schemaVersion: '1.0',
+      project: 'cli-fixture',
+      generatedAt: '2026-09-23T00:00:00.000Z',
+      controlSet: 'owasp-asvs-5.0.0-l1',
+      excludedChapters: [],
+      boundaries: [{
+        id: 'TB-001',
+        name: 'HTTP API',
+        untrusted: 'any client on the network sending request bodies',
+        trusted: 'everything below the data layer, which re-checks nothing',
+        assets: ['rows belonging to other users'],
+        entryPoints: [{ type: 'file', value: 'src/api.ts' }],
+        enforcedBy: [{ type: 'file', value: 'src/api.ts' }],
+      }],
+      controls: [{ id: 'V8.2.2', status: 'met', evidence: [{ type: 'file', value: 'src/api.ts' }] }],
+    };
+    writeJson(path.join(root, 'docs', 'evidence', 'security-baseline.json'), baseline);
+
+    // One control answered out of seventy: the baseline is incomplete, so this must fail.
+    const incomplete = runCli(root, ['security']);
+    assert.equal(incomplete.status, 1, incomplete.stdout + incomplete.stderr);
+    assert.match(json(incomplete).data.result.errors.join('\n'), /unanswered/);
+  } finally {
+    cleanup(root);
+  }
+});
+
 test('invalid CLI input returns a JSON error envelope with exit code 2', () => {
   const root = temporaryProject('buaflow-cli-');
   try {

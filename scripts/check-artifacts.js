@@ -20,6 +20,8 @@ const expectedSources = {
   'evidence-bundle': 'templates/evidence-bundle.tpl.json',
   'failure-record': 'templates/failure-record.tpl.json',
   'requirement-coverage': 'templates/requirement-coverage.tpl.json',
+  'security-baseline': 'templates/security-baseline.tpl.json',
+  'control-set': 'standards/control-sets/owasp-asvs-5.0.0-l1.json',
   'product-development-state': 'development/state.json',
 };
 

@@ -4,15 +4,55 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
-| **v3.0.0** | [v3.0.0 → v3.1.0](#v300--v310-minor--คัดลอกไฟล์-จบ) ข้างล่างนี้ | ~1 นาที |
-| **v2.3.4** | [v2.3.4 → v3.0.0](#v234--v300-major--ต้องลงมือถ้าเคยใช้-pack) แล้วต่อด้วย v3.1.0 | ~2 นาที หรือนานกว่านั้นถ้ามี pack |
-| **v2.3.3** | [v2.3.3 → v2.3.4](#v233--v234-copy-ไฟล์เดียว) แล้วต่อด้วย v3.0.0 | ~1 นาที |
+| **v3.1.0** | [v3.1.0 → v3.2.0](#v310--v320-minor--คัดลอกไฟล์-จบ) ข้างล่างนี้ | ~1 นาที |
+| **v3.0.0** | [v3.0.0 → v3.1.0](#v300--v310-minor--คัดลอกไฟล์-จบ) แล้วต่อด้วย v3.2.0 | ~2 นาที |
+| **v2.3.4** | [v2.3.4 → v3.0.0](#v234--v300-major--ต้องลงมือถ้าเคยใช้-pack) แล้วต่อด้วย v3.1.0, v3.2.0 | ~2 นาที หรือนานกว่านั้นถ้ามี pack |
+| **v2.3.3** | [v2.3.3 → v2.3.4](#v233--v234-copy-ไฟล์เดียว) แล้วต่อด้วย v3.0.0 ขึ้นไป | ~1 นาที |
 | **v2.3.2** | [v2.3.2 → v2.3.3](#v232--v233-copy-ไฟล์--1-คำสั่ง) แล้วต่อด้วย v2.3.4 | ~3 นาที |
 | **v2.3.1** | [v2.3.1 → v2.3.2](#v231--v232-copy-ไฟล์เดียว) แล้วต่อด้วย v2.3.3, v2.3.4 | ~4 นาที |
 | **v2.3** | [v2.3 → v2.3.1](#v23--v231-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.2 | ~5 นาที |
 | **v2.2** | [v2.2 → v2.3](#v22--v23-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.1 | ~15 นาที |
 | **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) แล้วต่อด้วย v2.3 | ~15 นาที |
 | **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2, v2.3 | ~1 session |
+
+---
+
+## v3.1.0 → v3.2.0 (MINOR — คัดลอกไฟล์ จบ)
+
+**ใครได้รับผลกระทบจริง:** ไม่มีใครถูกบังคับ — ไม่มี `docs/evidence/security-baseline.json` = ไม่ถูกตรวจ
+
+### 1. คัดลอกไฟล์
+
+```bash
+cp buaflow/claude-setup/security-baseline.js .claude/security-baseline.js
+cp buaflow/claude-setup/gate.js             .claude/gate.js
+```
+
+`security-baseline.js` `require` ทั้ง `readiness.js` และ `requirement-coverage.js` (ที่คัดลอกไปแล้วใน 3.1.0)
+เพื่อใช้กติกา "อะไรนับเป็นหลักฐาน" และทะเบียน exception ชุดเดียวกัน ต้องมีครบทั้งสามไฟล์ใน `.claude/`
+
+### 2. (ถ้าต้องการใช้) สร้าง security baseline
+
+```bash
+cp buaflow/templates/security-baseline.tpl.json docs/evidence/security-baseline.json
+node .claude/security-baseline.js --file docs/evidence/security-baseline.json
+```
+
+ตัวตรวจจะหา control set จาก `standards/control-sets/` หรือ `../buaflow/standards/control-sets/` เอง
+(ใส่ `--control-sets <dir>` ถ้าโครงสร้างต่างจากนี้) · kit ให้มา 1 ชุด: `owasp-asvs-5.0.0-l1`
+
+> **เตรียมใจไว้ว่ารอบแรกจะตก** และนั่นคือจุดประสงค์ — baseline บังคับให้ตอบ **ทุก** control
+> ข้อที่ตอบไม่ได้ว่า met ต้องกลายเป็น `not-met` ที่ชี้ไป approved exception ใน
+> `requirement-coverage.json` ซึ่งมีเจ้าของและวันหมดอายุ ตอนที่ทำกับ reference app ของ kit เอง
+> มันเจอ 7 ช่องที่เอกสาร prose ไม่เคยเขียนถึง รวมถึงข้อที่ risk = high สองข้อ
+
+อ่าน `standards/security-baseline.md` ก่อนเริ่ม
+
+### 3. ตรวจว่ายังผ่านเหมือนเดิม
+
+```bash
+node .claude/gate.js
+```
 
 ---
 

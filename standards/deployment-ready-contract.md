@@ -39,7 +39,7 @@
 | `primary-flow` | flow test/report | ไม่ |
 | `build` | successful build command/report | ไม่ |
 | `verification` | standard verify result | ไม่ |
-| `requirements-traceability` | accepted requirement-to-proof map | ไม่ |
+| `requirements-traceability` | accepted requirement-to-proof map — proof หรือ approved exception ที่ `docs/evidence/requirement-coverage.json` ดู `standards/requirement-exceptions.md` (EP-002) | ไม่ |
 | `automated-tests` | automated test report | ไม่ |
 | `persistence` | data lifecycle/persistence test | ใช่ |
 | `access-control` | authn/authz/ownership tests | ใช่ |
@@ -50,7 +50,7 @@
 | `rollback` | rehearsed rollback/recovery report | ไม่ |
 | `secrets-scan` | scanner result for relevant history/artifact | ไม่ |
 | `dependency-scan` | dependency vulnerability report/policy | ไม่ |
-| `security-controls` | threat boundary + applicable ASVS/control proof | ไม่ |
+| `security-controls` | threat boundary + applicable ASVS/control proof — เป็น artifact ที่ `docs/evidence/security-baseline.json` ตั้งแต่ 3.2.0 ดู `standards/security-baseline.md` (EP-003) | ไม่ |
 | `end-to-end-tests` | production-like E2E result | ไม่ |
 | `observability` | log/metric/trace contract and smoke evidence | ไม่ |
 | `health-check` | startup/readiness/liveness behavior as applicable | ไม่ |
