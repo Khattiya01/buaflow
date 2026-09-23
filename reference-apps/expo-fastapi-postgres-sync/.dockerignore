@@ -1,0 +1,15 @@
+**/node_modules
+**/__pycache__
+**/.venv
+**/.venv-prod
+.git
+**/.env
+**/.env.*
+!**/.env.example
+mobile/dist
+mobile/.expo
+mobile/android
+backend/static
+tests/e2e/playwright-report
+tests/e2e/test-results
+evidence

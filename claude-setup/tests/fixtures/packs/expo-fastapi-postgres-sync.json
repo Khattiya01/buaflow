@@ -1,0 +1,39 @@
+{
+  "$schema": "../../../../schemas/pack.schema.json",
+  "schemaVersion": "1.0",
+  "id": "expo-fastapi-postgres-sync",
+  "kind": "stack",
+  "name": "Expo (React Native) + FastAPI + PostgreSQL, offline/sync",
+  "description": "Buaflow's mobile golden stack: an Expo (React Native + TypeScript) client with an offline-first local store (SQLite on native, localStorage on the web export — see docs/sync-contract.md for why), synced against a FastAPI + PostgreSQL backend through a pull/push sync API with last-write-wins conflict resolution. Materially different from the two web golden stacks: the client persists data locally BEFORE any network round trip, and the API contract is a sync protocol (cursor-based pull, batched push with per-change outcomes), not plain CRUD.",
+  "version": "1.0.0",
+  "inputs": [
+    { "name": "projectName", "type": "string", "required": true, "description": "Package name used for the mobile app's and backend's manifests of the generated app." },
+    { "name": "includeAuth", "type": "boolean", "required": false, "default": false, "description": "Scaffold a starter bearer-token auth module (login returns a signed token used as an Authorization header, since a native mobile client has no browser cookie jar)." },
+    { "name": "orm", "type": "enum", "required": true, "options": ["sqlalchemy"], "description": "ORM used by the backend to talk to PostgreSQL." },
+    { "name": "localStore", "type": "enum", "required": true, "options": ["expo-sqlite"], "description": "On-device persistence used by the native (iOS/Android) build. The web export target always uses localStorage instead — see docs/sync-contract.md; this is a platform split, not a generator input choice." }
+  ],
+  "generatedArtifacts": [
+    { "path": "backend/pyproject.toml", "description": "FastAPI sync-backend manifest with pinned dependency ranges." },
+    { "path": "backend/app/models.py", "description": "SQLAlchemy models — Task's updated_at/deleted_at pair is the sync cursor and conflict-resolution version, and the soft-delete tombstone the sync contract needs." },
+    { "path": "backend/app/routers/sync.py", "description": "The sync contract itself: GET /api/sync/pull (cursor-based) and POST /api/sync/push (batched, per-change last-write-wins outcomes)." },
+    { "path": "mobile/package.json", "description": "Expo (React Native + TypeScript) app manifest with pinned dependency ranges." },
+    { "path": "mobile/src/sync/engine.ts", "description": "The pure, storage-agnostic client-side sync engine (merge/reconcile/conflict logic) — exhaustively unit-testable without a device or network." },
+    { "path": "Dockerfile", "description": "Multi-stage production build (mobile web export -> Python runtime) used for the deployment-package control; the native iOS/Android build is a separate, non-containerized artifact — see docs/runbook.md." }
+  ],
+  "compatibility": {
+    "requiresPacks": [],
+    "conflictsWithPacks": ["db"],
+    "profiles": ["content", "internal-crud", "saas"]
+  },
+  "verification": [
+    { "id": "typecheck", "command": "cd backend && mypy app && cd ../mobile && npm run typecheck", "description": "Backend strict mypy and the mobile TypeScript app both compile with no errors." },
+    { "id": "test", "command": "cd backend && pytest && cd ../mobile && npm test && cd ../tests/e2e && npm test", "description": "Backend sync integration suite, the mobile app's pure sync-engine unit suite, and the e2e suite (including a genuine offline/online round trip) all pass." },
+    { "id": "build", "command": "docker build -t expo-fastapi-postgres-sync .", "description": "Production multi-stage build succeeds, proving the web deployment-package control." }
+  ],
+  "upgrade": [],
+  "operationalEvidence": [
+    { "control": "persistence", "evidence": "Alembic migrations under backend/alembic/versions/ give a repeatable, versioned server-side persistence lifecycle; the client's own local persistence (expo-sqlite / localStorage) is documented and tested separately in docs/sync-contract.md." },
+    { "control": "database-migration", "evidence": "Alembic supports a real downgrade() natively; the generated migration ships forward and backward paths together, rehearsed end to end — same mechanism as react-fastapi-postgres." },
+    { "control": "deployment-package", "evidence": "The generated multi-stage Dockerfile builds a pinned, reproducible production image serving the mobile web export directly from FastAPI (the web distribution channel); a debug Android APK built via expo prebuild + Gradle in CI proves the native distribution channel compiles and links (see mobile/eas.json for the credentialed, non-Buaflow-owned path to a real app-store build)." }
+  ]
+}

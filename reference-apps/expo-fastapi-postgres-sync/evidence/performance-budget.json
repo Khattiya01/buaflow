@@ -1,0 +1,12 @@
+{
+  "budgetMs": 4000,
+  "login": {
+    "domContentLoaded": 34.699999928474426,
+    "loadEvent": 36.299999952316284
+  },
+  "tasks": {
+    "domContentLoaded": 15.800000071525574,
+    "loadEvent": 16.100000023841858
+  },
+  "generatedAt": "2026-09-23T04:24:21.764Z"
+}

@@ -1,0 +1,19 @@
+{
+  "$comment": "Documents how this app's NATIVE (iOS/Android app-store) distribution channel is built once a real Expo/EAS account and signing credentials are configured — see docs/runbook.md. Buaflow itself does not run EAS builds or hold app-store credentials (out of the product's scope, per BUAFLOW_PRODUCT_ROADMAP.md section 2); the Android debug APK built in this app's own CI (scripts/build-android-debug.sh) is what actually proves native buildability without needing those credentials.",
+  "cli": {
+    "version": ">= 13.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  }
+}

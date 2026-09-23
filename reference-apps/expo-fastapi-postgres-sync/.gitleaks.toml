@@ -1,0 +1,21 @@
+title = "expo-fastapi-postgres-sync gitleaks config"
+
+# Extend gitleaks' default rule set instead of replacing it.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated/local-only paths that are never committed — see .gitignore"
+paths = [
+  '''node_modules/''',
+  '''\.venv/''',
+  '''\.venv-prod/''',
+  '''__pycache__/''',
+  '''(^|/)\.env$''',
+  '''mobile/dist/''',
+  '''mobile/\.expo/''',
+  '''mobile/android/''',
+  '''backend/static/''',
+  '''tests/e2e/playwright-report/''',
+  '''tests/e2e/test-results/''',
+]

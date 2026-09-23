@@ -124,7 +124,7 @@ test('--dir validates every pack in the fixtures directory', () => {
   assert.equal(result.status, 0, result.stderr);
   const parsed = JSON.parse(result.stdout);
   assert.equal(parsed.ok, true);
-  assert.equal(parsed.results.length, 8); // nextjs-postgres, react-fastapi-postgres, auth-rbac, db, storage, notification, background-jobs, audit-log
+  assert.equal(parsed.results.length, 9); // nextjs-postgres, react-fastapi-postgres, expo-fastapi-postgres-sync, auth-rbac, db, storage, notification, background-jobs, audit-log
   assert.ok(parsed.results.every((r) => r.ok));
 });
 

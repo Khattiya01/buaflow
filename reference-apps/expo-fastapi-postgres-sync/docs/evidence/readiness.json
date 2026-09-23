@@ -1,0 +1,165 @@
+{
+  "$schema": "../../../../schemas/readiness-manifest.schema.json",
+  "schemaVersion": "1.0",
+  "project": "expo-fastapi-postgres-sync",
+  "profile": "internal-crud",
+  "targetLevel": "R3",
+  "commit": "0000000000000000000000000000000000000000",
+  "generatedAt": "2026-09-23T04:30:00.000Z",
+  "controls": {
+    "version-control": {
+      "status": "pass",
+      "evidence": [{ "type": "command", "value": "git rev-parse HEAD" }]
+    },
+    "start-path": {
+      "status": "pass",
+      "evidence": [
+        { "type": "command", "value": "docker compose up -d" },
+        { "type": "command", "value": "python -m uvicorn app.main:app --reload" },
+        { "type": "command", "value": "cd mobile && npx expo start" }
+      ]
+    },
+    "primary-flow": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "tests/e2e/primary-flow.spec.ts" },
+        { "type": "command", "value": "npx playwright test primary-flow.spec.ts" }
+      ]
+    },
+    "build": {
+      "status": "pass",
+      "evidence": [
+        { "type": "command", "value": "docker build -t expo-fastapi-postgres-sync ." },
+        { "type": "command", "value": "cd mobile && npx expo prebuild --platform android && cd android && ./gradlew assembleDebug" }
+      ]
+    },
+    "verification": {
+      "status": "pass",
+      "evidence": [
+        { "type": "command", "value": "pytest" },
+        { "type": "command", "value": "ruff check app scripts tests" },
+        { "type": "command", "value": "mypy app" },
+        { "type": "command", "value": "cd mobile && npm run typecheck && npm run lint && npm test" }
+      ]
+    },
+    "requirements-traceability": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "docs/requirements-traceability.md" }]
+    },
+    "automated-tests": {
+      "status": "pass",
+      "evidence": [
+        { "type": "command", "value": "pytest" },
+        { "type": "command", "value": "cd mobile && npm test" },
+        { "type": "command", "value": "cd tests/e2e && npx playwright test" }
+      ]
+    },
+    "persistence": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "backend/app/models.py" },
+        { "type": "file", "value": "evidence/migration-rollback-rehearsal.json" },
+        { "type": "file", "value": "docs/sync-contract.md" }
+      ]
+    },
+    "access-control": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "backend/app/guard.py" },
+        { "type": "command", "value": "pytest tests/integration" }
+      ]
+    },
+    "ci": {
+      "status": "pass",
+      "evidence": [
+        { "type": "url", "value": "https://github.com/Khattiya01/buaflow/actions" }
+      ]
+    },
+    "deployment-package": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "Dockerfile" },
+        { "type": "file", "value": "evidence/clean-environment-rehearsal.json" },
+        { "type": "file", "value": "docs/runbook.md" }
+      ]
+    },
+    "runtime-config": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "backend/.env.example" },
+        { "type": "file", "value": "mobile/.env.example" }
+      ]
+    },
+    "database-migration": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "evidence/migration-rollback-rehearsal.json" }]
+    },
+    "rollback": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "backend/alembic/versions/8f3a1c9d2b47_init.py" },
+        { "type": "file", "value": "evidence/migration-rollback-rehearsal.json" },
+        { "type": "file", "value": "docs/runbook.md" }
+      ]
+    },
+    "secrets-scan": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "evidence/gitleaks-report.json" }]
+    },
+    "dependency-scan": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "evidence/pip-audit.json" },
+        { "type": "file", "value": "evidence/npm-audit-mobile.json" }
+      ]
+    },
+    "security-controls": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "docs/security-notes.md" }]
+    },
+    "end-to-end-tests": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "evidence/playwright-report.json" },
+        { "type": "command", "value": "npx playwright test" }
+      ]
+    },
+    "observability": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "backend/app/log.py" },
+        { "type": "file", "value": "backend/app/routers/health.py" }
+      ]
+    },
+    "health-check": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "evidence/clean-environment-rehearsal.json" }]
+    },
+    "performance": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "evidence/performance-budget.json" }]
+    },
+    "accessibility": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "evidence/axe-login.json" },
+        { "type": "file", "value": "evidence/axe-tasks.json" }
+      ]
+    },
+    "sbom": {
+      "status": "pass",
+      "evidence": [
+        { "type": "file", "value": "evidence/sbom-backend.cdx.json" },
+        { "type": "file", "value": "evidence/sbom-mobile.cdx.json" }
+      ]
+    },
+    "runbook": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "docs/runbook.md" }]
+    },
+    "clean-environment": {
+      "status": "pass",
+      "evidence": [{ "type": "file", "value": "evidence/clean-environment-rehearsal.json" }]
+    }
+  }
+}

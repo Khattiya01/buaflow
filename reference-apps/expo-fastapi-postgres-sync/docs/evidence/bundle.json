@@ -1,0 +1,20 @@
+{
+  "$schema": "../../buaflow/schemas/evidence-bundle.schema.json",
+  "schemaVersion": "1.0",
+  "project": "expo-fastapi-postgres-sync",
+  "commit": "0000000000000000000000000000000000000000",
+  "generatedAt": "2026-09-23T04:26:47.210Z",
+  "readinessManifestPath": "docs/evidence/readiness.json",
+  "reportIndexPath": "docs/evidence/bundle-index.md",
+  "toolVersions": {
+    "node": "v24.12.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "summary": {
+    "level": "R3",
+    "ok": true,
+    "passed": 25,
+    "required": 25
+  }
+}
