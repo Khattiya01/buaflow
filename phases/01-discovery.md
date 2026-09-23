@@ -3,6 +3,13 @@
 > เป้าหมาย: ได้เอกสาร requirement ที่ละเอียดพอจะตัดสินใจ tech stack ได้ใน Phase 2
 > **ห้ามแตะเรื่อง framework ใน Phase นี้** ถ้าผู้ใช้พูดถึง ให้จดไว้ใน "ข้อจำกัด" แล้วบอกว่าจะสรุปกัน Phase 2
 
+## ก่อนเริ่ม — ต้องทำ Operational Discovery ก่อนไหม (ทางเลือก)
+
+เช็คเงื่อนไขใน `standards/discovery-and-validation.md` ก่อนถามกลุ่มคำถามด้านล่าง — **ส่วนใหญ่ไม่เข้าเงื่อนไข ข้ามได้เลย**
+เข้าเงื่อนไข (new-product ขนาดใหญ่ / major initiative / ปัญหายังเป็นแค่ความเห็นไม่มีหลักฐาน) → ทำ
+`templates/evidence-register.tpl.md` + `templates/process-flow.tpl.md` (as-is) + `templates/pain-point-register.tpl.md`
+ก่อน แล้วใช้ทะเบียน pain point ประกอบตอนถาม **กลุ่ม B** ด้านล่าง (ตอบแทนคำถามที่ทะเบียนตอบไว้แล้ว ไม่ต้องถามซ้ำ)
+
 ## วิธีทำ
 
 ถาม **ทีละกลุ่ม** กลุ่มละไม่เกิน 4 คำถาม รอคำตอบแล้วค่อยไปกลุ่มถัดไป

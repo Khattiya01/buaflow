@@ -17,6 +17,9 @@
  *   6. WIP: in-progress ได้ทีละ 1 (ต่อ assignee)
  *   7. intent ที่ accepted ต้องชี้ไป spec หรือ task ที่มีจริง
  *   8. (--release <M>) ทุก task ใน milestone นั้นต้อง done และไม่มี task -test ค้าง
+ *   9. (DV-002, warn เท่านั้น) มี docs/discovery/pain-point-register.md ที่มีแถวจริงแล้ว →
+ *      intent ที่ไม่อ้าง pain-point id ไหนเลยจะถูกเตือน — โปรเจกต์ที่ไม่ได้ใช้ discovery layer (DV-001)
+ *      ไม่มีไฟล์นี้ จึงไม่โดนเช็คข้อนี้เลย ไม่กระทบพฤติกรรมเดิม
  *
  * exit 0 = ผ่าน | exit 1 = มีข้อที่ต้องแก้
  * ไม่มี dependency — Node ล้วน รันได้ทุก OS
@@ -167,6 +170,35 @@ if (!exists(INTENTS_DIR)) {
       warn(`intents/${f}: draft ค้างเกิน 30 วัน — ตัดสิน หรือ defer (Phase 8.5)`);
   }
   ok(`อ่าน intent ได้ ${n} ไฟล์`);
+}
+
+// ── 9. discovery linkage (DV-002, warn only) ──────────────────────────
+// projects that never ran the discovery layer (DV-001) have no pain-point-register.md at all,
+// so this block never runs for them — existing behavior for every other project is unchanged.
+const PAIN_POINT_REGISTER = 'docs/discovery/pain-point-register.md';
+if (exists(PAIN_POINT_REGISTER)) {
+  head('Discovery linkage — docs/discovery/pain-point-register.md');
+  const registerRows = read(PAIN_POINT_REGISTER).match(/^\|\s*(PP-\d+)\s*\|/gm) || [];
+  // PP-000 คือแถวตัวอย่างในตัว template เอง (pain-point-register.tpl.md) ไม่ใช่ pain point จริง — ตัดทิ้ง
+  const painPointIds = new Set(registerRows.map((row) => row.match(/PP-\d+/)[0]).filter((id) => id !== 'PP-000'));
+  if (!painPointIds.size) {
+    ok('ทะเบียน pain point ยังไม่มีแถวจริง (มีแต่ตัวอย่าง PP-000) — ยังไม่ต้องเช็ค linkage');
+  } else if (!exists(INTENTS_DIR)) {
+    warn(`มี ${PAIN_POINT_REGISTER} แล้วแต่ยังไม่มี ${INTENTS_DIR} ให้เช็ค linkage`);
+  } else {
+    // เช็คแค่ intent — spec ที่โยงมาจาก intent (เช็คข้อ 7 ด้านบนแล้ว) สืบทอด linkage นี้ต่อโดยอัตโนมัติ
+    // ผ่านสายที่มีอยู่แล้ว ไม่ต้องเช็คซ้ำที่ชั้น spec
+    let unlinked = 0;
+    for (const f of listMd(INTENTS_DIR)) {
+      const text = read(`${INTENTS_DIR}/${f}`);
+      const linked = [...painPointIds].some((id) => text.includes(id));
+      if (!linked) {
+        warn(`intents/${f}: ไม่อ้าง pain-point id ใดเลย (มีในทะเบียน: ${[...painPointIds].join(', ')}) — โปรเจกต์นี้ใช้ discovery layer แล้ว ควรโยงกลับถ้าเกี่ยวข้อง`);
+        unlinked++;
+      }
+    }
+    if (!unlinked) ok(`intent ทุกไฟล์อ้างถึง pain point ในทะเบียนแล้ว (${painPointIds.size} pain point)`);
+  }
 }
 
 // ── board ↔ tasks ──────────────────────────────────────────────────────

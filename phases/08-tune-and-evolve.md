@@ -13,6 +13,7 @@
 | **AI พลาดเรื่องเดิม 2 ครั้ง** | ทำข้อ 8.1 ทันที ไม่ต้องรอรอบ |
 | **ทุกเดือน** | ข้อ 8.5 (เก็บกวาด) |
 | **ผู้ใช้แจ้งว่าแก้ canvas บน claude.ai/design แล้ว** (โปรเจกต์ที่ใช้เส้นทาง D — ไม่มีระบบแจ้งอัตโนมัติ ต้องรอผู้ใช้บอก) | ทำข้อ 8.8 ทันที |
+| **ปิด milestone หรือหลัง release** ของงานที่มี pain point / process flow อ้างอิง (มาจาก discovery layer) | ข้อ 8.9 — business outcome review |
 
 ---
 
@@ -196,3 +197,26 @@ rule จะเงียบไปเลยโดยไม่มี error บอ�
    + `last_storybook_sync` ใน `docs/design/brief.md` (ไว้ให้ `/ui` เช็คว่า storybook stale ไหมก่อนเปิด canvas ครั้งหน้า)
 7. **มี `prototype_url` ใน brief → `/prototype` regenerate แล้ว publish ทับ URL เดิม** — prototype คือ view ของ baseline
    baseline เปลี่ยนแล้วไม่ regenerate = ทีมกดดู design ที่ไม่มีอยู่แล้ว
+
+## 8.9 Business outcome review (คนละลูปกับ config-learning ข้อ 8.1)
+
+> **แยกคำถามให้ชัด:** ข้อ 8.1 ถามว่า *"AI ทำงานถูกไหม, config ต้องปรับไหม"* — วัดจากพฤติกรรมของ AI/process
+> ข้อนี้ถามว่า *"สิ่งที่ส่งไปแก้ pain point ทางธุรกิจจริงไหม"* — วัดจากตัวเลขของธุรกิจ/ผู้ใช้จริง
+> **AI ทำตามแผนถูกทุกจุด (8.1 ผ่านหมด) ไม่ได้แปลว่า pain point ถูกแก้** — อาจแก้ผิดจุด, ผู้ใช้ไม่ได้ใช้
+> feature ใหม่ตามคาด, หรือ solution ใช้ได้จริงแต่ pain point ไม่ได้หนักเท่าที่ประเมินไว้ตอนแรก
+> เพราะฉะนั้นห้ามเอาผลของ 8.1 มาแทนข้อนี้ และห้ามข้ามข้อนี้เพราะ 8.1 ผ่านแล้ว
+
+**ใช้เมื่อ:** initiative นั้นมี pain point / process flow มาจาก discovery layer เท่านั้น (`docs/discovery/`
+มีไฟล์ที่เกี่ยวข้องอยู่จริง) — feature เล็กที่ไม่ได้ผ่าน discovery layer ตั้งแต่ต้น **ไม่ต้องทำข้อนี้**
+เหมือนเดิมกับหลักการ opt-in ของ `standards/discovery-and-validation.md`
+
+**ทำยังไง:**
+
+1. เปิด `templates/outcome-review.tpl.md` → `docs/discovery/outcome-review/OR-000-<slug>.md`
+2. ดึง baseline จากทะเบียนหลักฐาน (`docs/discovery/evidence-register.md`) และ target จาก success metric
+   ที่ตกลงไว้ตอน to-be ใน process flow (`docs/discovery/process-flow/PF-xxx-*.md`) — **ห้ามคิด metric ใหม่ตอนนี้**
+   metric ที่เปลี่ยนหลังส่งมอบแล้วคือสัญญาณว่าตอน to-be ตกลง metric กันไม่รอบคอบพอ ให้บันทึกไว้เป็นบทเรียน
+3. วัด `actual` จริงหลัง release — ยังวัดไม่ได้ (เพิ่ง release ไม่กี่วัน) → เขียนตรง ๆ ว่ายังวัดไม่ได้ อย่าเดา
+4. เลือก decision หนึ่งข้อ (`keep` / `iterate` / `rollback` / `monitor` / `open-new-intent`) พร้อมเหตุผลที่อ้างตัวเลข
+5. `iterate` / `rollback` / `open-new-intent` → เปิด `/intent` ใหม่ทันที อย่าปล่อยลอย — outcome review ที่ไม่นำไปสู่
+   การกระทำต่อคือรายงานที่ไม่มีใครอ่านซ้ำ

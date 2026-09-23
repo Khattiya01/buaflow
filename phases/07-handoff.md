@@ -162,12 +162,17 @@ buaflow/templates/adr.tpl.md           →  docs/templates/
 buaflow/templates/eval-case.tpl.md     →  docs/templates/
 buaflow/templates/design-brief.tpl.md  →  docs/templates/
 buaflow/templates/prototype-flow.tpl.json →  docs/templates/
+buaflow/templates/evidence-register.tpl.md    →  docs/templates/
+buaflow/templates/process-flow.tpl.md         →  docs/templates/
+buaflow/templates/pain-point-register.tpl.md  →  docs/templates/
+buaflow/templates/outcome-review.tpl.md       →  docs/templates/
 buaflow/claude-setup/evals/*.md        →  docs/evals/
 ```
 
 ระหว่าง copy ให้ **ปรับเนื้อหาให้ตรงกับ stack จริง** อย่า copy ดิบ ๆ
 
-สร้างโฟลเดอร์เปล่าพร้อม `.gitkeep`: `docs/intents/`, `docs/plans/`, `docs/incidents/`, `docs/releases/`
+สร้างโฟลเดอร์เปล่าพร้อม `.gitkeep`: `docs/intents/`, `docs/plans/`, `docs/incidents/`, `docs/releases/`, `docs/discovery/`
+(`docs/discovery/` ใช้เฉพาะตอนเข้าเงื่อนไข `docs/standards/discovery-and-validation.md` — ส่วนใหญ่จะว่างเปล่าตลอด และไม่เป็นไร)
 
 ## 7.7 `CONTRIBUTING.md` และ `README.md` ของโปรเจกต์
 

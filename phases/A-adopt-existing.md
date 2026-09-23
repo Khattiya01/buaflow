@@ -169,6 +169,7 @@ playbook เตือนไว้ชัด: **ห้ามมี 2 sources of tr
 | module ใหม่ทั้งก้อน (หลาย feature) | `/intent` **1 ใบต่อ epic** แล้ว `/spec` ทีละ feature · ตอนถาม requirement ให้ยืมกลุ่มคำถาม B (ขอบเขต) และ C (ข้อมูล/สิทธิ์) จาก `phases/01-discovery.md` มาใช้ในขั้น requirements.md ได้ — ไม่ต้องรัน Phase 1 ทั้งขั้น |
 | ของใหม่ต้องแตะ data model เดิม | `design.md` เขียน DB change เป็น diff เทียบ schema ที่ล็อกไว้ใน A.1 — ห้าม migration แบบ destructive ต่อตารางเดิมโดยไม่ expand/contract (`rules/db-migration.md`) |
 | ของใหม่ขัดกับ convention เดิม | มาตรา 9.1 ตัดสิน: ของใหม่ตามธรรมนูญ ของเก่าแตะเฉพาะไฟล์ที่กำลังแก้ — ถ้าอยากยกทั้งระบบ = intent แยก |
+| **module ใหม่ทั้งก้อน และเป็น major initiative** (กระทบหลาย workflow/role, ปัญหายังไม่มีหลักฐานชัด) | เช็ค `standards/discovery-and-validation.md` ก่อน `/intent` — ทำ evidence register + process flow (as-is จาก workflow จริงของระบบเดิม) + pain-point register ก่อน ไม่ใช่แค่ยืมกลุ่มคำถาม B/C เฉย ๆ |
 
 **ห้ามเริ่มของใหม่ก่อน A.2 ผ่าน** — verify ที่พังตั้งแต่ก่อนแตะอะไร คือสาเหตุอันดับหนึ่งที่ AI เริ่มมองข้าม error ในโปรเจกต์เก่า
 
