@@ -1,0 +1,52 @@
+{
+  "_": "MT-007 — capabilities the workflow in core/ uses that a given AI tool may not have, how to detect each use in core content, and what to do without it. scripts/generate-workflow-manual.js renders core/skills and core/agents into plain step-by-step playbooks for a tool that has none of them, appending the fallbacks each skill needs. Every capability core uses must be listed here; npm run check fails otherwise.",
+  "schemaVersion": "1.0",
+  "capabilities": [
+    {
+      "id": "slash-command-arguments",
+      "detect": "\\{\\{ARGUMENTS\\}\\}",
+      "without": "There is no argument variable: read the task id or topic the person gave you in their message, and use it wherever this playbook says <argument>."
+    },
+    {
+      "id": "inline-shell",
+      "detect": "\\{\\{shell:",
+      "without": "Nothing runs before you start reading. Run each command marked \"Run first\" yourself, in the project root, and read its output before continuing."
+    },
+    {
+      "id": "subagents",
+      "detect": "\\bsubagent\\b|Agent\\(",
+      "without": "Do the delegated step yourself, serially, in this same session: open the matching playbook under agents/ and follow it with exactly the inputs this step names. Keep what it asks you to read to what it lists — the delegation existed to keep that context small."
+    },
+    {
+      "id": "builtin-code-review",
+      "detect": "/code-review|/security-review",
+      "without": "There is no built-in reviewer. Read the diff yourself (git diff main...HEAD) once for bugs — off-by-one, null/undefined, error paths, races — and once for security if it touches auth, input handling, files, SQL or secrets. Report findings the way the step describes."
+    },
+    {
+      "id": "path-scoped-rules",
+      "detect": "\\.claude/rules|path-scoped rules",
+      "without": "Rules are not loaded for you when you touch a file. Before editing, open rules/ and read every rule whose paths match the files you are about to change."
+    },
+    {
+      "id": "session-hooks",
+      "detect": "\\bhook\\b|guard-edit|guard-bash",
+      "without": "Nothing blocks a forbidden edit or command during the session. Check .claude/stack.json \"protected\" before editing a file, never bypass git hooks, and run node .claude/gate.js before pushing — the gate is the same rules enforced outside the session."
+    },
+    {
+      "id": "model-tiers",
+      "detect": "^modelTier:",
+      "without": "There is one model. Ignore the tier; the playbook works the same, only slower or more expensive."
+    }
+  ],
+  "guarantees": [
+    { "id": "verify-before-merge", "enforcedBy": "gate", "holdsWithoutSession": true, "note": "gate.js runs verify from the pre-push hook and CI, so it holds whatever tool wrote the code." },
+    { "id": "artifact-chain-consistent", "enforcedBy": "gate", "holdsWithoutSession": true, "note": "docs-lint runs in the gate." },
+    { "id": "config-health", "enforcedBy": "gate", "holdsWithoutSession": true, "note": "check-config runs in the gate." },
+    { "id": "dependency-and-secret-scan", "enforcedBy": "gate", "holdsWithoutSession": true, "note": "audit and secrets steps of the gate, per auditMode/secretsMode." },
+    { "id": "evidence-artifacts-valid", "enforcedBy": "gate", "holdsWithoutSession": true, "note": "requirement coverage, security baseline, supply chain, operational readiness, budgets and evals run in the gate when their files exist." },
+    { "id": "no-merge-into-main-by-ai", "enforcedBy": "session-hook + host", "holdsWithoutSession": false, "note": "guard-bash and the settings deny list stop it inside a Claude Code session only. Outside one, only branch protection on the git host stops it — which is the host's setting, not the kit's." },
+    { "id": "protected-files-not-hand-edited", "enforcedBy": "session-hook", "holdsWithoutSession": false, "note": "guard-edit blocks the edit inside a session. The gate cannot tell who changed a file, so a protected file edited by another tool is not caught; review is the only remaining check." },
+    { "id": "tests-untouched-on-bugfix-branch", "enforcedBy": "session-hook", "holdsWithoutSession": false, "note": "guard-edit only. Outside a session, review the diff of test files on fix/ and hotfix/ branches by hand." },
+    { "id": "no-hook-bypass", "enforcedBy": "session-hook + host", "holdsWithoutSession": false, "note": "guard-bash blocks --no-verify inside a session; outside, CI running the same gate is what catches a bypassed pre-push." }
+  ]
+}

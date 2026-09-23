@@ -128,6 +128,10 @@ add('docs-lint', process.execPath, [path.join(CLAUDE, 'docs-lint.js'), ...(RELEA
 if (fs.existsSync(path.join(ROOT, 'docs', 'evidence', 'requirement-coverage.json'))) {
   add('requirement-coverage', process.execPath, [path.join(CLAUDE, 'requirement-coverage.js'), '--file', 'docs/evidence/requirement-coverage.json']);
 }
+// IC-004 — การเดาที่เปิดค้างเลยวันหมดอายุทำให้ gate ตก · ไม่มีไฟล์ = ไม่ตรวจ
+if (fs.existsSync(path.join(ROOT, 'docs', 'evidence', 'assumptions.json'))) {
+  add('assumptions', process.execPath, [path.join(CLAUDE, 'assumption-ledger.js'), '--file', 'docs/evidence/assumptions.json']);
+}
 // EP-003 — เงื่อนไขเดียวกัน: ไม่มีไฟล์ = ไม่ตรวจ · control ที่ not-met ต้องชี้ไป exception ที่มีอยู่จริง
 if (fs.existsSync(path.join(ROOT, 'docs', 'evidence', 'security-baseline.json'))) {
   add('security-baseline', process.execPath, [path.join(CLAUDE, 'security-baseline.js'), '--file', 'docs/evidence/security-baseline.json']);
@@ -155,6 +159,10 @@ if (fs.existsSync(path.join(ROOT, 'docs', 'evals')) &&
     ...(fs.existsSync(path.join(ROOT, 'docs', 'evals', 'runs')) ? ['--runs', 'docs/evals/runs'] : []),
     '--root', '.',
   ]);
+}
+// EV-006 — config change ที่ rollout ต้องมี eval หลังแก้ที่ผ่านจริงและไม่ถดถอย · ไม่มีโฟลเดอร์ = ไม่ตรวจ
+if (fs.existsSync(path.join(ROOT, 'docs', 'evidence', 'changes'))) {
+  add('change-proposals', process.execPath, [path.join(CLAUDE, 'change-proposal.js'), '--dir', 'docs/evidence/changes', '--root', '.']);
 }
 if (PRODUCTION) {
   add('readiness', process.execPath, [

@@ -1,0 +1,22 @@
+{
+  "$schema": "../../buaflow/schemas/assumption-ledger.schema.json",
+  "schemaVersion": "1.0",
+  "_": "ทะเบียนการเดา (IC-004) · เก็บที่ docs/evidence/assumptions.json · ตรวจ: node .claude/assumption-ledger.js · ถามคนได้ = ใช้ [NEEDS CLARIFICATION] ไม่ใช่ที่นี่ · ที่นี่คือการเดาที่ต้องทำเพื่อเดินต่อ แล้วต้องถูกพิสูจน์หรือหมดอายุให้เห็น",
+  "project": "<project>",
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "assumptions": [
+    {
+      "id": "A-001",
+      "statement": "<การเดาหนึ่งข้อ เขียนให้ผิดได้ เช่น ผู้ใช้พร้อมกันไม่เกิน 50 คนในปีแรก>",
+      "madeIn": "<ไฟล์ที่อาศัยการเดานี้ เช่น docs/intents/I-001-x.md>",
+      "owner": "<ชื่อคนที่ยืนยันหรือหักล้างได้>",
+      "impact": "high",
+      "madeOn": "2026-01-01",
+      "expiresOn": "2026-02-01",
+      "verification": {
+        "method": "<ถามใคร วัดอะไร หรือเทสไหนจะตกถ้าเดาผิด>",
+        "status": "open"
+      }
+    }
+  ]
+}

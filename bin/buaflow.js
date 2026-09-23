@@ -17,7 +17,7 @@ const { spawnSync } = require('node:child_process');
 const KIT_ROOT = path.resolve(__dirname, '..');
 const PACKAGE = JSON.parse(fs.readFileSync(path.join(KIT_ROOT, 'package.json'), 'utf8'));
 const EXIT = Object.freeze({ OK: 0, FAILED: 1, INPUT: 2, UNAVAILABLE: 3 });
-const COMMANDS = Object.freeze(['init', 'doctor', 'assess', 'ci', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'security', 'supply', 'operations', 'budgets', 'evals', 'resume']);
+const COMMANDS = Object.freeze(['init', 'doctor', 'intake', 'assess', 'ci', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'assumptions', 'security', 'supply', 'operations', 'budgets', 'evals', 'changes', 'resume']);
 
 function usage() {
   return [
@@ -26,6 +26,7 @@ function usage() {
     'Commands:',
     '  init          create .buaflow/project.json without touching source code',
     '  doctor        inspect local prerequisites and installed Buaflow controls',
+    '  intake        turn an issue-tracker export, a CSV or a plain list into draft intents (--file, --write)',
     '  assess        answer "which readiness level is this project at" from the repository itself,',
     '                without a manifest and before any control is installed',
     '  ci            run the gate from a clean checkout on this machine and record it (no hosted CI needed)',
@@ -34,11 +35,13 @@ function usage() {
     '  readiness     validate an R0-R4 evidence manifest',
     '  audit         re-check that manifest independently, from artifacts and command output',
     '  requirements  check that every requirement has proof or an unexpired approved exception',
+    '  assumptions   check that every guess has an owner, an expiry and a way to be checked (IC-004)',
     '  security      check the threat boundaries and the external control-set mapping',
     '  supply        check dependency licences, build provenance and artifact checksums',
     '  operations    check the restore rehearsal and the incident-hook contract',
     '  budgets       check measured performance and accessibility against the profile ceilings',
     '  evals         check eval cases and the runs that claim to have passed them',
+    '  changes       check that each AI-config change names its evidence and was kept or rolled back on eval results (EV-006)',
     '  resume        summarize persisted project state for any human or AI tool',
     '',
     'assess options: --execute  also run the build/verify/test commands it finds',
@@ -186,7 +189,7 @@ function commandDoctor(root, options) {
   }
 
   const claude = path.join(root, '.claude');
-  const controls = ['verify.js', 'readiness.js', 'verifier.js', 'requirement-coverage.js', 'security-baseline.js', 'supply-chain.js', 'operational-readiness.js', 'budgets.js', 'eval-harness.js', 'gate.js', 'check-config.js'];
+  const controls = ['verify.js', 'readiness.js', 'verifier.js', 'requirement-coverage.js', 'assumption-ledger.js', 'security-baseline.js', 'supply-chain.js', 'operational-readiness.js', 'budgets.js', 'eval-harness.js', 'change-proposal.js', 'gate.js', 'check-config.js'];
   const installed = controls.filter((name) => fs.existsSync(path.join(claude, name)));
   installed.length ? pass('controls', `${installed.length}/${controls.length} core controls installed`) : warning('controls', 'no .claude controls installed yet; this is normal before Phase 7');
   if (fs.existsSync(path.join(root, 'docs', 'planning', '_state.md'))) pass('planning-state', 'docs/planning/_state.md found');
@@ -203,11 +206,13 @@ function commandDelegated(command, root, options) {
   const scriptName = command === 'verify' ? 'verify.js'
     : command === 'audit' ? 'verifier.js'
       : command === 'requirements' ? 'requirement-coverage.js'
+        : command === 'assumptions' ? 'assumption-ledger.js'
         : command === 'security' ? 'security-baseline.js'
           : command === 'supply' ? 'supply-chain.js'
             : command === 'operations' ? 'operational-readiness.js'
               : command === 'budgets' ? 'budgets.js'
                 : command === 'evals' ? 'eval-harness.js'
+                  : command === 'changes' ? 'change-proposal.js'
         : 'readiness.js';
   const script = path.join(root, '.claude', scriptName);
   if (!fs.existsSync(script)) {
@@ -219,6 +224,8 @@ function commandDelegated(command, root, options) {
     ? ['--cases', options.file || 'docs/evals',
        ...(fs.existsSync(path.join(root, 'docs', 'evals', 'runs')) ? ['--runs', 'docs/evals/runs'] : []),
        '--root', root, '--json']
+    : command === 'changes'
+    ? ['--dir', options.file || 'docs/evidence/changes', '--root', root, '--json']
     : command === 'budgets'
     ? ['--root', root, '--file', options.file || 'docs/evidence/budgets.json', '--json']
     : command === 'operations'
@@ -229,6 +236,8 @@ function commandDelegated(command, root, options) {
     ? ['--root', root, '--file', options.file || 'docs/evidence/security-baseline.json', '--json']
     : command === 'requirements'
     ? ['--root', root, '--file', options.file || 'docs/evidence/requirement-coverage.json', '--json']
+    : command === 'assumptions'
+    ? ['--root', root, '--file', options.file || 'docs/evidence/assumptions.json', '--json']
     : command === 'readiness'
     ? ['--file', options.file || 'docs/evidence/readiness.json', ...(options.level ? ['--level', options.level] : []), '--json']
     : command === 'audit'
@@ -243,7 +252,7 @@ function commandDelegated(command, root, options) {
   const result = runNode(root, script, args);
   const code = result.status === 0 ? EXIT.OK : EXIT.FAILED;
   let childJson = null;
-  const emitsJson = command === 'readiness' || command === 'audit' || command === 'requirements' || command === 'security' || command === 'supply' || command === 'operations' || command === 'budgets' || command === 'evals';
+  const emitsJson = command === 'readiness' || command === 'audit' || command === 'requirements' || command === 'assumptions' || command === 'security' || command === 'supply' || command === 'operations' || command === 'budgets' || command === 'evals' || command === 'changes';
   if (emitsJson && result.stdout.trim()) {
     try { childJson = JSON.parse(result.stdout); } catch { /* output is retained below for diagnosis */ }
   }
@@ -316,6 +325,16 @@ function commandCi(root) {
   }, record.uncommittedChangesNotIncluded ? [`${record.uncommittedChangesNotIncluded} uncommitted change(s) were not part of this run`] : [], failed ? [`${failed.name}: ${failed.outputTail.split(/\r?\n/).slice(-3).join(' | ')}`] : []);
 }
 
+// IC-003: work that already waits in another tracker enters the artifact chain as drafts.
+function commandIntake(root, options) {
+  if (!options.file) return envelope('intake', EXIT.INPUT, 'nothing to import', {}, [], ['--file <issues.json|backlog.csv|notes.md> is required']);
+  const args = ['--root', root, '--from', options.file, '--json', ...(options.write ? ['--write'] : [])];
+  const result = runNode(root, path.join(KIT_ROOT, 'claude-setup', 'intake.js'), args);
+  if (result.status !== 0) return envelope('intake', result.status === 2 ? EXIT.INPUT : EXIT.FAILED, 'intake could not run', {}, [], [result.stderr.trim()]);
+  const report = JSON.parse(result.stdout);
+  return envelope('intake', EXIT.OK, `${report.created.length} draft intent(s) ${report.written ? 'written' : 'would be written — add --write'} · ${report.skipped.length} skipped`, { written: report.written, result: report });
+}
+
 function commandResume(root) {
   const warnings = [];
   const data = { projectManifest: null, planning: null, inProgressTasks: [] };
@@ -374,6 +393,7 @@ function main(argv = process.argv.slice(2)) {
     : command === 'doctor' ? commandDoctor(options.root, options)
       : command === 'resume' ? commandResume(options.root)
         : command === 'assess' ? commandAssess(options.root, options)
+          : command === 'intake' ? commandIntake(options.root, options)
           : command === 'benchmark' ? commandBenchmark(options.root)
             : command === 'ci' ? commandCi(options.root)
         : commandDelegated(command, options.root, options);
@@ -383,4 +403,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { COMMANDS, EXIT, commandAssess, commandBenchmark, commandCi, commandDoctor, commandInit, commandResume, main, parse };
+module.exports = { COMMANDS, EXIT, commandAssess, commandIntake, commandBenchmark, commandCi, commandDoctor, commandInit, commandResume, main, parse };

@@ -83,7 +83,16 @@ Briefly:
 - Small Conventional Commits referencing the task id
 - Anything out of scope → **stop and ask**; propose a new task; never do it "while you're there"
 - Plan no longer works → **stop, fix plan.md first**; never drift silently
-- **Same spot fails twice in a row → stop.** Tell the user; consider `/clear` and a sharper restart — do not keep retrying in the same turn
+- **Repair loop — classify before you fix, and stop inside the budget:**
+
+  | The failure is | Budget | What to do |
+  |---|---|---|
+  | `implementation-defect` — your code is wrong, the error points at it | **2 attempts** at the same spot | fix, rerun verify; a third failure means your model of the problem is wrong — stop |
+  | `spec-gap` — the plan/AC does not say what should happen | **0** | do not guess; stop and ask |
+  | `toolchain-failure` / FLAKY in the gate / missing service (DB down, port busy) | **0 code changes** | the code is not the problem; report what failed and what you checked |
+  | `integration-mismatch` / `contract-drift` — two sides disagree | **1** | fix the side the plan owns; if it is the other side, stop and ask |
+
+  When you stop, ask **one** question and give the minimum to answer it: the failing line (not the whole log), what you tried and why it did not work, and the class above. If it cost more than one attempt, record it as `docs/evidence/failures/F-0xx.json` (`docs/templates/failure-record.tpl.json`). Do not keep retrying in the same turn, and do not widen the change to make the error go away.
 
 ## 6. Self-check before finishing
 

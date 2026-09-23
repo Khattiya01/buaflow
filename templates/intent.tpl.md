@@ -31,7 +31,7 @@ decided: YYYY-MM-DD
 <สิ่งที่ห้ามพังระหว่างทาง เช่น ของเดิมต้องใช้ได้อยู่ / ห้าม breaking change / ต้องเสร็จก่อนวันที่>
 
 ## คำถามที่ยังไม่มีคำตอบ
-- [NEEDS CLARIFICATION: <คำถาม>]
+- [NEEDS CLARIFICATION (scope): <คำถาม> — scope แทนด้วยเรื่องที่คำตอบจะเปลี่ยน: architecture / security / cost / data / scope / ux / legal]
 
 ---
 

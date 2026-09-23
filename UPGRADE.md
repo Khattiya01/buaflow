@@ -4,6 +4,7 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
+| **v3.9.0** | [v3.9.0 → v3.10.0](#v390--v3100-minor--คัดลอกไฟล์ทับ-จบ) ข้างล่างนี้ | ~2 นาที |
 | **v3.8.x** | [v3.8.1 → v3.9.0](#v381--v390-minor--คัดลอกไฟล์ทับ-จบ) ข้างล่างนี้ | ~1 นาที |
 | **v3.7.0** | [v3.7.0 → v3.8.0](#v370--v380-minor--คัดลอกไฟล์ทับ-จบ) ข้างล่างนี้ | ~1 นาที |
 | **v3.6.0** | [v3.6.0 → v3.7.0](#v360--v370-minor--คัดลอกไฟล์ทับ-จบ) ข้างล่างนี้ | ~1 นาที |
@@ -21,6 +22,18 @@
 | **v2.2** | [v2.2 → v2.3](#v22--v23-copy-ไฟล์อย่างเดียว) แล้วต่อด้วย v2.3.1 | ~15 นาที |
 | **v2.1** | [v2.1 → v2.2](#v21--v22-เล็ก-ทำได้ระหว่าง-task) แล้วต่อด้วย v2.3 | ~15 นาที |
 | **v1.0** | [v1.0 → v2.1](#v10--v21) แล้วต่อด้วย v2.2, v2.3 | ~1 session |
+
+---
+
+## v3.9.0 → v3.10.0 (MINOR — คัดลอกไฟล์ทับ จบ)
+
+```bash
+for f in assumption-ledger.js change-proposal.js docs-lint.js gate.js; do cp buaflow/claude-setup/$f .claude/$f; done
+cp -r buaflow/claude-setup/skills/* .claude/skills/
+cp buaflow/templates/assumption-ledger.tpl.json buaflow/templates/change-proposal.tpl.json docs/templates/
+```
+
+สิ่งที่อาจเห็นต่าง: docs-lint มี warning ใหม่สำหรับ `[NEEDS CLARIFICATION: …]` ที่ไม่มี tag และ AC ที่ไม่ใช่ EARS — ไม่มีอะไรตก
 
 ---
 

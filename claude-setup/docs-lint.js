@@ -222,6 +222,68 @@ if (exists('docs/backlog/board.md')) {
 }
 
 // ── 8. release gate ────────────────────────────────────────────────────
+// ── IC-002: ถามเฉพาะสิ่งที่เปลี่ยนการตัดสินใจจริง และมีงบคำถาม ──────────────────
+// คำถามที่ไม่บอกว่าคำตอบจะเปลี่ยนอะไร คือคำถามที่ AI ถามเพราะถามได้ ไม่ใช่เพราะต้องรู้ · ผลที่เห็นจริง
+// ใน eval EV-002 ของ trial แรก: ถาม 4 ข้อแต่มีข้อเสนอพร้อมเหตุผลข้อเดียว · tag บังคับให้ต้องคิดก่อนถาม
+// ว่าคำตอบเปลี่ยน architecture / security / cost / data / scope / ux / legal ข้อไหน · ถ้าไม่เปลี่ยนอะไร
+// ให้ตั้งค่าเริ่มต้นแล้วบอก หรือบันทึกเป็น assumption (IC-004) แทนการถาม · warn ใน 3.x
+const DIMENSIONS = new Set(['architecture', 'security', 'cost', 'data', 'scope', 'ux', 'legal']);
+const QUESTION_BUDGET = 8;
+const questionFiles = [
+  ...(exists('docs/intents') ? listMd('docs/intents').map((f) => `docs/intents/${f}`) : []),
+  ...(exists('docs/specs') ? fs.readdirSync(path.join(ROOT, 'docs', 'specs'), { withFileTypes: true }).filter((e) => e.isDirectory()).flatMap((e) => listMd(`docs/specs/${e.name}`).map((f) => `docs/specs/${e.name}/${f}`)) : []),
+];
+let questionsSeen = 0;
+if (questionFiles.length) head('Clarification budget (IC-002)');
+for (const file of questionFiles) {
+  const markers = read(file).match(NEEDS) || [];
+  questionsSeen += markers.length;
+  const untagged = markers.filter((m) => {
+    const tag = m.match(/^\[NEEDS CLARIFICATION\s*\(([a-z]+)\)/i);
+    return !tag || !DIMENSIONS.has(tag[1].toLowerCase());
+  });
+  if (untagged.length) warn(`${file}: ${untagged.length} คำถามไม่บอกว่าคำตอบเปลี่ยนการตัดสินใจเรื่องไหน — เขียนเป็น [NEEDS CLARIFICATION (security): …] (${[...DIMENSIONS].join('/')}) ถ้าไม่เปลี่ยนอะไรเลย ไม่ต้องถาม`);
+  if (markers.length > QUESTION_BUDGET) warn(`${file}: คำถามค้าง ${markers.length} ข้อ เกินงบ ${QUESTION_BUDGET} — ข้อที่ผลกระทบต่ำให้ตั้งค่าเริ่มต้นหรือบันทึกเป็น assumption แทน`);
+}
+if (questionsSeen) ok(`คำถามค้าง ${questionsSeen} ข้อใน intents/specs`);
+
+// ── IC-005: acceptance criteria เป็น EARS และ trace ไปที่ test plan ได้ ─────────
+// spec skill สั่งมาตลอดว่า AC ต้องเป็น EARS 4 แบบและ design ต้องมี test plan ต่อ AC แต่ไม่มีอะไรตรวจ
+// ⇒ AI เขียน "ระบบต้องจัดการ error ได้ดี" แล้วไม่มีใครรู้จนถึงตอนเขียนเทส · เป็น warn ใน 3.x โดยตั้งใจ
+// (โปรเจกต์ที่มี spec อยู่แล้วไม่ควรตกทันทีจาก MINOR release) ตาม standards/release-policy.md
+const EARS = [
+  /^WHEN\b.+\bTHE SYSTEM SHALL\b/i,
+  /^WHILE\b.+\bTHE SYSTEM SHALL\b/i,
+  /^IF\b.+\bTHEN THE SYSTEM SHALL\b/i,
+  /^THE SYSTEM SHALL\b/i,
+];
+if (exists('docs/specs')) {
+  head('Requirements — EARS + trace (IC-005)');
+  let acTotal = 0;
+  for (const spec of fs.readdirSync(path.join(ROOT, 'docs', 'specs'), { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name)) {
+    const reqFile = `docs/specs/${spec}/requirements.md`;
+    if (!exists(reqFile)) continue;
+    const acs = [];
+    for (const line of read(reqFile).split(/\r?\n/)) {
+      const m = line.match(/\*\*(AC-\d+)\*\*\s*(.*)$/);
+      if (m) acs.push({ id: m[1], text: m[2].replace(/\*\*/g, '').trim() });
+    }
+    acTotal += acs.length;
+    const seenAc = new Set();
+    for (const ac of acs) {
+      if (seenAc.has(ac.id)) warn(`${reqFile}: ${ac.id} ซ้ำ — trace ไปเทสไม่ได้ถ้า id ไม่ unique`);
+      seenAc.add(ac.id);
+      if (!EARS.some((form) => form.test(ac.text))) warn(`${reqFile}: ${ac.id} ไม่ใช่ EARS 4 แบบ (WHEN/WHILE/IF…THEN/THE SYSTEM SHALL) — แปลงเป็นชื่อเทสตรง ๆ ไม่ได้`);
+    }
+    const trace = ['design.md', 'tasks.md'].map((f) => `docs/specs/${spec}/${f}`).filter(exists).map(read).join('\n');
+    if (trace) {
+      const untraced = [...seenAc].filter((id) => !new RegExp(`\\b${id}\\b`).test(trace));
+      if (untraced.length) warn(`${reqFile}: ${untraced.join(', ')} ไม่ถูกอ้างใน design.md/tasks.md — AC ที่ไม่มีทางพิสูจน์คือ AC ที่เขียนไม่ดี`);
+    }
+  }
+  if (acTotal) ok(`ตรวจ AC ${acTotal} ข้อใน docs/specs/`);
+}
+
 if (RELEASE_MS) {
   head(`Release gate — milestone ${RELEASE_MS}`);
   const inMs = [...tasks.entries()].filter(([, { fm }]) => fm.milestone === RELEASE_MS);

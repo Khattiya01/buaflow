@@ -13,7 +13,8 @@ Talk to the user in Thai. All three spec files are written in full Thai (EARS ke
 
 - **One file at a time; the user approves before the next file.** Never write all three at once.
 - **No code until all three files are approved.**
-- **No guessing** — `[NEEDS CLARIFICATION: <question>]`, collected at the end of the file. A file with markers left **cannot pass the gate** (`docs-lint` catches it).
+- **No guessing** — `[NEEDS CLARIFICATION (<dimension>): <question>]` where `<dimension>` is the decision the answer changes (`architecture`/`security`/`cost`/`data`/`scope`/`ux`/`legal`); a question that changes none of them is not asked. Collected at the end of the file. A file with markers left **cannot pass the gate** (`docs-lint` catches it).
+- **A guess nobody can answer yet** (load in year one, which provider the customer will pick) is not a clarification question — the user chooses to proceed on it. Record it in `docs/evidence/assumptions.json` (template `docs/templates/assumption-ledger.tpl.json`): a person who can confirm it, impact, an expiry date and how it will be checked. The gate fails when one is still open past its expiry.
 - Whenever you offer options, recommend one with the trade-off.
 
 ## Before starting — read only what is needed

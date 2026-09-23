@@ -76,6 +76,8 @@ buaflow/claude-setup/supply-chain.js  → .claude/supply-chain.js   licence ท�
 buaflow/claude-setup/operational-readiness.js → .claude/operational-readiness.js  restore ที่ซ้อมจริง + incident hook ที่เป็นสัญญา (EP-005)
 buaflow/claude-setup/budgets.js       → .claude/budgets.js        performance/accessibility budget ที่มาจาก profile (EP-007)
 buaflow/claude-setup/failure-taxonomy.js → .claude/failure-taxonomy.js  หมวดความล้มเหลว + ตรวจ failure record (EV-003)
+buaflow/claude-setup/assumption-ledger.js → .claude/assumption-ledger.js  การเดาที่มีเจ้าของและวันหมดอายุ (IC-004)
+buaflow/claude-setup/change-proposal.js → .claude/change-proposal.js  การแก้ config ที่พิสูจน์ด้วย eval (EV-006)
 buaflow/claude-setup/eval-harness.js  → .claude/eval-harness.js   eval case + run ที่ตรึงเวอร์ชันของเคสไว้ (EV-004)
 buaflow/claude-setup/convergence.js   →  .claude/convergence.js    กราฟความเชื่อมโยงของ artifact — อะไรลอยอยู่ อะไรยังไม่มีหลักฐาน (BC-004)
 buaflow/claude-setup/change-impact.js →  .claude/change-impact.js  แก้ตรงนี้แล้วอะไรต้องทบทวน — ลิงก์ที่ resolve ไม่ได้ = ไม่รู้ ไม่ใช่ไม่กระทบ (IC-006)

@@ -41,7 +41,9 @@ Separate the **symptom** from the **solution the user already has in mind**.
 3. **What "better" looks like** — how success is measured
 4. **What must not break** — existing behavior / deadline / business constraints
 
-Anything unanswered → `[NEEDS CLARIFICATION: <question>]` **never fill it in yourself**
+Anything unanswered → `[NEEDS CLARIFICATION (<dimension>): <question>]` **never fill it in yourself**. `<dimension>` is the decision the answer changes: `architecture`, `security`, `cost`, `data`, `scope`, `ux` or `legal`. A question whose answer changes none of those is not asked — pick a sensible default, say which one, and move on. More than 8 open questions in one file means low-impact ones should become defaults or assumptions.
+
+If the user chooses to proceed on something nobody can answer yet, that is an assumption, not a clarification: record it in `docs/evidence/assumptions.json` with a person who can confirm it, its impact, an expiry date and how it will be checked (`docs/templates/assumption-ledger.tpl.json`).
 
 ## Step 3 — Check for duplicates
 

@@ -1,0 +1,53 @@
+{
+  "_": "Reference app matrix (EV-001). Which kinds of project the kit has actually been proven on, and which it has not. scripts/check-reference-matrix.js checks every in-repository app exists and prints the empty cells, so a gap is a line of output rather than an assumption. 'external' apps live outside this repository and are recorded with the evidence of what was done there.",
+  "schemaVersion": "1.0",
+  "dimensions": {
+    "origin": ["greenfield", "brownfield"],
+    "surface": ["web", "api-web", "mobile"],
+    "complexity": ["simple", "complex"]
+  },
+  "apps": [
+    {
+      "id": "nextjs-postgres-crud",
+      "path": "reference-apps/nextjs-postgres-crud",
+      "origin": "greenfield",
+      "surface": "web",
+      "complexity": "simple",
+      "authoredBy": "buaflow",
+      "proves": "One Next.js + PostgreSQL CRUD app to R3 in a clean environment (PP-003), with the full evidence set EP-002..007.",
+      "benchmark": 0.97
+    },
+    {
+      "id": "react-fastapi-postgres-crud",
+      "path": "reference-apps/react-fastapi-postgres-crud",
+      "origin": "greenfield",
+      "surface": "api-web",
+      "complexity": "simple",
+      "authoredBy": "buaflow",
+      "proves": "A second web stack with a separate Python API to R3 (PP-004).",
+      "benchmark": 0.97
+    },
+    {
+      "id": "expo-fastapi-postgres-sync",
+      "path": "reference-apps/expo-fastapi-postgres-sync",
+      "origin": "greenfield",
+      "surface": "mobile",
+      "complexity": "simple",
+      "authoredBy": "buaflow",
+      "proves": "An offline-first mobile client with a sync API to R3 (PP-005).",
+      "benchmark": 0.97
+    },
+    {
+      "id": "bluepeak-hub",
+      "external": true,
+      "location": "C:/Projects/BluePeak/Bluepeak_Hub (branch buaflow/phase-a-adoption)",
+      "origin": "brownfield",
+      "surface": "api-web",
+      "complexity": "complex",
+      "authoredBy": "outside",
+      "proves": "Adoption of a mature monorepo the kit did not write (EV-009): Phase A 7/7, R2 10/10 with local clean-checkout CI, eval baseline 2/5, fourteen findings fed back into the kit.",
+      "evidence": "development/trials/ev-009-bluepeak-hub.md",
+      "benchmark": 0.39
+    }
+  ]
+}

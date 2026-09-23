@@ -51,11 +51,14 @@ console.log(`json: PASS (${jsonFiles.length} files)`);
 
 // EV-008 — every command an onboarding document tells a reader to run must exist and parse.
 run('onboarding documents name only real commands', process.execPath, [path.join(root, 'scripts', 'check-docs-commands.js')]);
+// EV-001 — which kinds of project the kit is proven on; the empty cells are printed every time.
+run('reference app matrix', process.execPath, [path.join(root, 'scripts', 'check-reference-matrix.js')]);
 run('roadmap state', process.execPath, [path.join(root, 'scripts', 'check-roadmap.js')]);
 run('artifact contracts', process.execPath, [path.join(root, 'scripts', 'check-artifacts.js')]);
 run('release compatibility matrix', process.execPath, [path.join(root, 'scripts', 'check-compatibility.js')]);
 run('workflow rules (core → Claude adapter)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-rules.js'), '--check']);
 run('workflow skills (core → Claude adapter)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-skills.js'), '--check']);
+run('workflow manual playbooks (core → any tool, MT-007)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-manual.js'), '--check']);
 run('workflow agents (core → Claude adapter)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-agents.js'), '--check']);
 run('pack contracts and their binding to reference apps', process.execPath, [
   path.join(root, 'claude-setup', 'pack.js'),

@@ -1563,6 +1563,200 @@
         "npm run check"
       ],
       "notes": "Chosen as the next item on 2026-09-23. BC-005 already built a narrow slice of this — profile versus composed packs — and proved the approach works by reading two existing contracts rather than inventing a new one; PP-010 added a third edge by binding packs to the reference apps that implement them. This item generalizes that instead of starting over. It pairs with IC-006: the change-impact engine answers what a change touches, the convergence graph answers what is connected to nothing, and both read the same links. Built 2026-09-23 alongside IC-006, which reads the same graph. The graph is derived on every run from artifacts that already exist — intent and task frontmatter, pain-point ids cited in intent bodies, readiness controls and their evidence, packs and profiles and the controls they touch — so nobody maintains it by hand; a hand-maintained graph would be wrong inside a week. Two reports that are deliberately not merged: unconnected (no edges at all, in or out) and unproven (connected, but no path reaches a commit or an evidence node). Collapsing them would drown the real signal, because every not-yet-finished intent would read as an orphan and nobody would look at the list twice. Proof is reached in either direction on purpose: an intent counts as proven because a task points AT it and that task carries a commit, not because the intent points anywhere itself. A link whose target does not exist is recorded in unresolved and the target is never invented as a node, which is what IC-006 depends on — a silently dropped link becomes \"no impact\" later, the most dangerous answer a change-impact tool can give. This generalizes BC-005 rather than replacing it: that item proved the approach on one edge (profile versus composed packs) by reading two existing contracts instead of inventing a new one. All three reference apps come back fully connected with no unresolved links, asserted by a test. 11 tests."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
+      "dependsOn": [],
+      "verification": [
+        "npm run check",
+        "node --test claude-setup/tests/assumption-ledger.test.js"
+      ],
+      "id": "IC-004",
+      "title": "Assumption/risk ledger with owner, impact, expiry and verification path",
+      "acceptance": [
+        "Every guess a project builds on is recorded with a person who can confirm it, its impact, an expiry and how it will be checked",
+        "An open assumption past its expiry fails the gate; a refuted one must say what changed; the verifier, not the ledger, bounds the window"
+      ],
+      "artifacts": [
+        "schemas/assumption-ledger.schema.json",
+        "templates/assumption-ledger.tpl.json",
+        "claude-setup/assumption-ledger.js",
+        "claude-setup/tests/assumption-ledger.test.js",
+        "claude-setup/gate.js",
+        "core/skills/intent.md",
+        "core/skills/spec.md"
+      ],
+      "notes": "Deliberately the same shape as EP-002 exceptions: an exception is a known gap someone accepted, an assumption is an unknown someone chose to proceed on. Owners like \"AI\" or \"team\" are refused because they cannot confirm anything. A manual confirmation (asking the business owner) is accepted as real evidence for an assumption, unlike for a requirement, but reported as not reproducible."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
+      "dependsOn": [],
+      "verification": [
+        "npm run check"
+      ],
+      "id": "IC-002",
+      "title": "Smart clarification and a question budget",
+      "acceptance": [
+        "A clarification question states which decision its answer changes (architecture, security, cost, data, scope, ux, legal); a question that changes none is not asked",
+        "More than eight open questions in one file is reported, pointing at defaults or assumptions instead"
+      ],
+      "artifacts": [
+        "claude-setup/docs-lint.js",
+        "claude-setup/tests/docs-lint.test.js",
+        "core/skills/intent.md",
+        "core/skills/spec.md",
+        "templates/intent.tpl.md"
+      ],
+      "notes": "Enforced as docs-lint warnings in 3.x so existing intents and specs do not fail on a MINOR upgrade. The trial's EV-002 eval run is the observed failure: four questions, only one with a recommendation."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
+      "dependsOn": [],
+      "verification": [
+        "npm run check"
+      ],
+      "id": "IC-003",
+      "title": "Idea intake from issue trackers, CSV and plain lists",
+      "acceptance": [
+        "GitHub and GitLab exports, a CSV with a title column and a plain bullet list become draft intents without inventing problem, evidence or outcome",
+        "The four /intent questions the source does not answer become tagged markers; nothing is imported twice or overwritten; the default is a dry run"
+      ],
+      "artifacts": [
+        "claude-setup/intake.js",
+        "claude-setup/tests/intake.test.js",
+        "bin/buaflow.js",
+        "CLI.md"
+      ],
+      "notes": "Interview and existing-docs intake stay with /intent and Phase A, which already take them as conversation; generator output is brownfield and goes through assess + Phase A. What was missing was batch import of work already waiting in another tracker, which Phase A.1 counted and then dropped."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
+      "dependsOn": [],
+      "verification": [
+        "npm run check"
+      ],
+      "id": "IC-005",
+      "title": "Intent-to-requirement check: EARS acceptance criteria that trace to a test plan",
+      "acceptance": [
+        "Every AC in docs/specs/*/requirements.md is one of the four EARS forms",
+        "Every AC id is referenced by design.md or tasks.md of the same spec"
+      ],
+      "artifacts": [
+        "claude-setup/docs-lint.js",
+        "claude-setup/tests/docs-lint.test.js"
+      ],
+      "notes": "The compiling is done by the AI in /spec (D-011: the AI of the day builds, Buaflow proves); this item is the proof half. Warnings in 3.x for the same upgrade reason as IC-002."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
+      "dependsOn": [
+        "EV-004"
+      ],
+      "verification": [
+        "npm run check",
+        "node --test claude-setup/tests/change-proposal.test.js"
+      ],
+      "id": "EV-006",
+      "title": "Feedback-to-change loop: evidence, proposal, eval, rollout or rollback",
+      "acceptance": [
+        "Each change to the AI configuration records the evidence that motivated it and the eval cases it should decide",
+        "Rollout requires a clean baseline after-run of every expected case that passes at the current case revision, and no case that passed before failing after; rollback requires a reason"
+      ],
+      "artifacts": [
+        "schemas/change-proposal.schema.json",
+        "templates/change-proposal.tpl.json",
+        "claude-setup/change-proposal.js",
+        "claude-setup/tests/change-proposal.test.js",
+        "claude-setup/gate.js",
+        "phases/08-tune-and-evolve.md"
+      ],
+      "notes": "Phase 8.1 already escalated lessons from AGENTS.md to rules to hooks; nothing recorded whether an escalation worked, and the trial's ablation found a hook whose removal changed nothing. Phase 8.4 still told readers to fill a Markdown results table that EV-004 removed; corrected here."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
+      "dependsOn": [],
+      "verification": [
+        "npm run check"
+      ],
+      "id": "EV-001",
+      "title": "Reference app matrix",
+      "acceptance": [
+        "The matrix records origin, surface and complexity of every project the kit is proven on, including the outside trial",
+        "Every in-repository app exists, an external one points at its record, and the unproven cells are printed on every check"
+      ],
+      "artifacts": [
+        "reference-apps/matrix.json",
+        "scripts/check-reference-matrix.js",
+        "claude-setup/tests/reference-matrix.test.js",
+        "scripts/check-repository.js"
+      ],
+      "notes": "4 of 12 cells proven. The empty cells are reported, not failed: principle 5 and D-011 chose depth over breadth and ruled out a fourth golden stack."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
+      "dependsOn": [],
+      "verification": [
+        "npm run check",
+        "node scripts/generate-workflow-manual.js --check"
+      ],
+      "id": "MT-007",
+      "title": "Graceful degradation: the workflow without tool-specific features",
+      "acceptance": [
+        "The same core workflow renders as plain playbooks usable by a tool with no slash commands, subagents, inline commands, built-in reviewers, path-scoped rules or hooks, with a fallback for each feature a playbook uses",
+        "The guarantees that do not survive without session features are stated, and a feature core uses without a mapped fallback fails the check"
+      ],
+      "artifacts": [
+        "core/capabilities.json",
+        "scripts/generate-workflow-manual.js",
+        "manual/README.md",
+        "claude-setup/tests/workflow-manual.test.js",
+        "scripts/check-repository.js"
+      ],
+      "notes": "Not a vendor adapter (D-006): it is the floor every tool can fall to. Four guarantees are stated as session-only, including no-self-merge and protected files, because the gate cannot tell who edited a file."
+    },
+    {
+      "milestone": "M6",
+      "status": "done",
+      "startedAt": "2026-09-23",
+      "completedAt": "2026-09-23",
+      "dependsOn": [],
+      "verification": [
+        "npm run check",
+        "node claude-setup/eval-harness.js --cases claude-setup/evals --root ."
+      ],
+      "id": "BC-007",
+      "title": "Repair loop with limits",
+      "acceptance": [
+        "A failing check is classified with the failure taxonomy before it is fixed, and each class has an attempt budget (environment and flaky failures: no code changes; spec gaps: none)",
+        "Stopping asks one question with the failing line, what was tried and the class, and a costly failure is recorded as a failure record"
+      ],
+      "artifacts": [
+        "core/skills/task.md",
+        "claude-setup/skills/task/SKILL.md",
+        "claude-setup/evals/EV-005.json"
+      ],
+      "notes": "Delivered as workflow content plus an eval case, because a repair loop is agent behaviour and the eval harness is how the kit checks behaviour. Grounded in K-9: the gate learned to name FLAKY in 3.7.0, but nothing told the agent that such a failure must not be fixed in code. The eval is unrun: this session wrote it and may not grade it."
     }
   ],
   "decisions": [
@@ -1726,6 +1920,13 @@
       "decision": "EV-008 (onboarding) now depends on EV-010 instead of EV-009.",
       "reason": "D-020 made EV-008 wait on EV-009 so onboarding would be written from what an outside adoption actually got wrong rather than imagined problems. That material now exists (K-1..K-14, the eval baseline) and the fixable parts are fixed in EV-010 and kit 3.8.0. The part of EV-009 still open, reviewer-minutes and a CI run, carries no information about where a reader gets stuck, so waiting on it would delay onboarding without improving it.",
       "impact": "EV-008 becomes startable. Its acceptance is unchanged: troubleshooting must still come from the recorded findings and every command it names must exist."
+    },
+    {
+      "id": "D-024",
+      "date": "2026-09-23",
+      "decision": "Following the user's instructions of 2026-09-23 (evening): (1) reviewer-minutes for EV-009 are measured by an AI-proxy reviewer — a separate fresh session reviewing a separate builder session — with the risk that it is not human time explicitly accepted by the user; (2) hosted CI is replaced by a local clean-checkout run (buaflow ci) until a project goes live with free CI, and that closes the R1->R2 leg; (3) which paths are locked (K-14) is decided per project, and the kit only requires rules and protected paths to agree; (4) the no-self-merge rule stays where it is for now; (5) after M5, M6 is scoped to Claude Code only (no Codex/Copilot adapters) plus plugin/MCP, and the unscheduled roadmap items (IC-002..005, EV-006, EV-001, MT-007, BC-007) are pulled into M6.",
+      "reason": "The user said so directly, and each choice is consistent with earlier decisions: D-006/D-008 already limited adapters to Claude until asked; D-011 already said Buaflow proves and the AI builds, which is how IC-002..005 and EV-006 were built (validators and warnings, not generators); the AI-proxy reviewer keeps the separation EV-004 made enforceable (builder and reviewer are different sessions) even though it cannot be a human.",
+      "impact": "EV-009 can close with its four numbers, one of them labelled as an AI proxy wherever it is reported. Items that D-011 deliberately parked stay parked and are not reopened by (5): BC-001/002/003 (parallel scheduling) and PP-008/009 (commercial and Thai packs, which D-011 and D-014 say may only exist as recipe-and-assertion packs proven by a real implementation — no project in hand needs one). MT-003/004 stay unstarted."
     }
   ],
   "lastSession": {

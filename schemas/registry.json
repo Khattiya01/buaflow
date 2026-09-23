@@ -124,6 +124,16 @@
       "migration": "supported"
     },
     {
+      "type": "assumption-ledger",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/assumption-ledger.schema.json",
+      "paths": [
+        "docs/evidence/assumptions.json"
+      ],
+      "migration": "supported"
+    },
+    {
       "type": "security-baseline",
       "classification": "public",
       "latestVersion": "1.0",
@@ -190,6 +200,16 @@
       "schema": "schemas/eval-run.schema.json",
       "paths": [
         "docs/evals/runs/*.json"
+      ],
+      "migration": "supported"
+    },
+    {
+      "type": "change-proposal",
+      "classification": "public",
+      "latestVersion": "1.0",
+      "schema": "schemas/change-proposal.schema.json",
+      "paths": [
+        "docs/evidence/changes/CP-*.json"
       ],
       "migration": "supported"
     }
