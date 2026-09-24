@@ -192,6 +192,33 @@ test('a pull that conflicts never leaves the store mid-rebase, and nothing is co
   assert.equal(localEvents(b.root).length, 2, 'every event is still in the project');
 });
 
+test('a conflict someone is resolving in the store is left exactly as it is', (t) => {
+  const w = world(t);
+  const a = w.machine('a');
+  const b = w.machine('b');
+  a.cmd('setup', '--store', a.store, '--machine', 'same');
+  b.cmd('setup', '--store', b.store, '--machine', 'same');
+  git(b.store, 'remote', 'set-url', 'origin', path.join(w.base, 'gone.git'));
+  b.record(1);
+  b.cmd('sync');
+  a.record(1);
+  a.cmd('sync');
+  git(b.store, 'remote', 'set-url', 'origin', w.bare);
+  // The person follows the message: pull --rebase by hand, and is now in the middle of resolving it.
+  assert.notEqual(git(b.store, 'pull', '--rebase', '--quiet').status, 0);
+  const gitDir = git(b.store, 'rev-parse', '--absolute-git-dir').stdout.trim();
+  assert.ok(fs.existsSync(path.join(gitDir, 'rebase-merge')) || fs.existsSync(path.join(gitDir, 'rebase-apply')));
+  const status = git(b.store, 'status', '--porcelain').stdout;
+
+  b.record(1);
+  const r = b.cmd('sync');
+  assert.equal(r.code, 3);
+  assert.match(r.errors.join(), /a rebase is in progress/);
+  assert.ok(fs.existsSync(path.join(gitDir, 'rebase-merge')) || fs.existsSync(path.join(gitDir, 'rebase-apply')), 'their rebase is still there');
+  assert.equal(git(b.store, 'status', '--porcelain').stdout, status, 'their working tree is untouched');
+  git(b.store, 'rebase', '--abort');
+});
+
 test('a store left on a detached HEAD gets nothing appended or committed', (t) => {
   const w = world(t);
   const a = w.machine('a');

@@ -182,7 +182,7 @@ evals/drafts/                                   ← ผลของ eval-draft
   - commit ล้ม (เช่น store ไม่มี user.name) → ตัดไฟล์ที่เพิ่ง append กลับขนาดเดิม ไม่ให้รอบหน้า append ซ้ำบนของที่ค้าง
   - ส่งเฉพาะบรรทัดที่จบด้วย `\n` · lock อยู่ใน `git rev-parse --absolute-git-dir` (ใช้ได้กับ store ที่เป็น worktree) · git ที่ออกเน็ตตั้ง `GIT_TERMINAL_PROMPT=0` และ timeout 60 วินาที
   - push ทุกรอบแม้ไม่มีอะไรใหม่ เพื่อส่ง commit ที่ค้างจากรอบที่ push ล้ม · sync เฉพาะเมื่อยินยอม `enabled`
-  - pull ล้ม → `rebase --abort` ทันที ห้ามปล่อย clone ค้างกลาง rebase · ไม่ append เลยถ้า store ไม่ได้อยู่บน branch, กำลัง rebase/merge อยู่ หรือ pull ล้มขณะที่ remote มี commit ที่ rebase เข้ามาไม่ได้ (เช่น 2 เครื่องใช้ชื่อ machine ซ้ำ) → exit 3 พร้อมบอกวิธีแก้ offset ไม่ขยับ event อยู่ในโปรเจกต์ครบ (EV-011.4 /check) · offline ธรรมดายังทำงานตามเดิม
+  - ถ้ามีคนกำลัง rebase/merge อยู่ใน store (เช่นกำลังแก้ conflict ตามที่ข้อความบอก) sync ไม่แตะ แค่รายงาน · pull ของ sync เองล้ม → `rebase --abort` เฉพาะ rebase ที่ตัวเองเริ่ม ห้ามปล่อย clone ค้างกลาง rebase · ไม่ append เลยถ้า store ไม่ได้อยู่บน branch, กำลัง rebase/merge อยู่ หรือ pull ล้มขณะที่ remote มี commit ที่ rebase เข้ามาไม่ได้ (เช่น 2 เครื่องใช้ชื่อ machine ซ้ำ) → exit 3 พร้อมบอกวิธีแก้ offset ไม่ขยับ event อยู่ในโปรเจกต์ครบ (EV-011.4 /check) · offline ธรรมดายังทำงานตามเดิม
   - SessionEnd เริ่ม sync อย่างเดียว ไม่เขียน marker (session ที่กำลังจบไม่ได้ทำงานอะไรแล้ว)
   - ข้อความตอนเปิด session ยังเป็น 1 บรรทัด: แจ้งว่ากำลังเก็บ + ยังไม่ได้ตั้งค่าที่เก็บกลาง (ถ้าไม่มี) + ค้าง sync n event (ถ้ามี)
 - spawn แบบ detached: `spawn(process.execPath, [usage.js, 'sync', '--root', root], {detached: true, stdio: 'ignore', windowsHide: true}).unref()`

@@ -552,13 +552,19 @@ function commitOrUndo(store, rel, appended, message) {
 // vanish with the next `rebase --abort`. Offline is fine (this machine's files are only written here); a store
 // that is not on a branch, or is mid-rebase or mid-merge, gets nothing appended. Returns why, or null.
 function pullClean(store, gitDir) {
+  // Someone may be resolving a conflict in the store right now: look before pulling, and never touch their work.
+  const rebasing = () => ['rebase-merge', 'rebase-apply'].some((name) => fs.existsSync(path.join(gitDir, name)));
+  const busy = () => {
+    if (rebasing()) return 'a rebase is in progress — finish or abort it, then sync again';
+    if (fs.existsSync(path.join(gitDir, 'MERGE_HEAD'))) return 'a merge is in progress — finish or abort it, then sync again';
+    return null;
+  };
+  const before = busy();
+  if (before) return before;
   const pulled = gitRemote(store, ['pull', '--rebase', '--quiet']) !== null;
-  if (!pulled) {
-    git(store, ['rebase', '--abort']);
-    git(store, ['merge', '--abort']);
-  }
-  if (['rebase-merge', 'rebase-apply'].some((name) => fs.existsSync(path.join(gitDir, name)))) return 'a rebase is in progress — finish or abort it, then sync again';
-  if (fs.existsSync(path.join(gitDir, 'MERGE_HEAD'))) return 'a merge is in progress — finish or abort it, then sync again';
+  if (!pulled && rebasing()) git(store, ['rebase', '--abort']); // the rebase this pull started, and only that one
+  const after = busy();
+  if (after) return after;
   if (git(store, ['symbolic-ref', '-q', 'HEAD']) === null) return 'HEAD is detached — check out the branch the store pushes, then sync again';
   // Fetched but could not rebase: every push would be refused, so appending would only move offsets for nothing.
   if (!pulled && Number(git(store, ['rev-list', '--count', 'HEAD..@{u}']) || 0) > 0) {
