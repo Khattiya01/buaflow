@@ -47,7 +47,8 @@ function usage() {
     '  resume        summarize persisted project state for any human or AI tool',
     '  usage         internal opt-in usage capture (EV-011): consent --enable|--disable, status,',
     '                record check --task <id> --verdict pass|fail [--findings <file|->] [--level <l>],',
-    '                setup --store <path to your clone> [--machine <id>], sync',
+    '                setup --store <path to your clone> [--machine <id>], sync,',
+    '                report [--out <file>] [--since YYYY-MM-DD], show <project>/<task>',
     '',
     'assess options: --execute  also run the build/verify/test commands it finds',
     '                --write <path>  write a draft readiness manifest (never overwrites without --force)',
@@ -426,7 +427,9 @@ function commandInstall(root, options) {
 // EV-011: in-process so the hook and the CLI share one implementation.
 function commandUsage(root, options) {
   const result = require(path.join(KIT_ROOT, 'claude-setup', 'usage.js')).runCommand(root, options.args);
-  return envelope('usage', result.code, result.summary, result.data, result.warnings, result.errors);
+  // report and show are read by people: their Markdown rides as text, which emit() prints after the summary.
+  const { text, ...data } = result.data || {};
+  return { ...envelope('usage', result.code, result.summary, data, result.warnings, result.errors), ...(text ? { text } : {}) };
 }
 
 function commandResume(root) {

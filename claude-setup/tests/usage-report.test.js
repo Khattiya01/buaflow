@@ -1,0 +1,187 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const test = require('node:test');
+const { cleanup, repositoryRoot, runNode, temporaryProject, write, writeJson } = require('./helpers');
+const report = require('../usage-report');
+const { parse } = require('../../bin/buaflow');
+
+const hookScript = path.join(repositoryRoot, 'claude-setup', 'hooks', 'usage-capture.js');
+const cli = path.join(repositoryRoot, 'bin', 'buaflow.js');
+const NOW = new Date('2026-09-24T12:00:00.000Z');
+
+let serial = 0;
+function ev(fields) {
+  serial++;
+  return {
+    schemaVersion: '1.0',
+    id: `00000000-0000-4000-8000-${String(serial).padStart(12, '0')}`,
+    type: 'check.result',
+    at: `2026-09-${String(10 + (serial % 10)).padStart(2, '0')}T0${serial % 10}:00:00.000Z`,
+    project: 'alpha',
+    task: 'T-1',
+    model: 'unknown',
+    kitVersion: '3.13.0',
+    commit: 'abc1234',
+    sessionId: null,
+    machine: 'm1',
+    data: {},
+    ...fields,
+  };
+}
+
+const lines = (events) => `${events.map((e) => JSON.stringify(e)).join('\n')}\n`;
+
+// alpha: T-1 (opus) fails once, moves back once (and a teammate's clone reconciles the same move), is fixed by T-2.
+//        T-3 (sonnet) fails once. T-4 has only the same reconciled move from two clones.
+// beta:  readiness from an older audit and a newer snapshot.
+function fixture(t) {
+  const base = temporaryProject('buaflow-report-');
+  t.after(() => cleanup(base));
+  const store = path.join(base, 'store');
+  const home = path.join(base, 'home');
+  writeJson(path.join(home, '.buaflow', 'usage.json'), { schemaVersion: '1.0', store, machine: 'm1', lastReviewAt: null });
+  const opus = 'claude-opus-5-5';
+  const sonnet = 'claude-sonnet-5';
+  const failT1 = ev({ at: '2026-09-11T10:00:00.000Z', model: opus, data: { verdict: 'fail', findings: ['must-fix: x'], level: 'medium' } });
+  const m1 = [
+    ev({ type: 'intent.opened', task: null, at: '2026-09-10T08:00:00.000Z', model: opus, data: { path: 'docs/intents/I-001-x.md', content: '# intent' } }),
+    ev({ type: 'task.created', at: '2026-09-10T09:00:00.000Z', model: opus, data: { path: 'docs/backlog/tasks/T-1.md', acceptance: ['AC-1'], estimate: '1', fixes: null, content: '---\nid: T-1\nintent: docs/intents/I-001-x.md\n---\n' } }),
+    failT1,
+    ev({ at: '2026-09-12T10:00:00.000Z', model: opus, data: { verdict: 'pass', findings: [], level: 'medium' } }),
+    ev({ type: 'task.status', at: '2026-09-11T09:00:00.000Z', model: opus, data: { from: 'todo', to: 'in-progress' } }),
+    ev({ type: 'task.status', at: '2026-09-11T11:00:00.000Z', model: opus, data: { from: 'review', to: 'in-progress' } }),
+    ev({ type: 'task.done', at: '2026-09-13T10:00:00.000Z', model: opus, data: { commit: 'def5678', started: '2026-09-10', closed: '2026-09-13', sessions: 2 } }),
+    ev({ type: 'task.created', task: 'T-2', at: '2026-09-14T09:00:00.000Z', model: sonnet, data: { fixes: 'T-1', acceptance: [], content: '' } }),
+    ev({ task: 'T-2', at: '2026-09-14T10:00:00.000Z', model: sonnet, data: { verdict: 'pass', findings: [], level: 'low' } }),
+    ev({ task: 'T-3', at: '2026-09-15T10:00:00.000Z', model: sonnet, data: { verdict: 'fail', findings: [], level: 'low' } }),
+    ev({ type: 'task.status', task: 'T-4', at: '2026-09-16T10:00:00.000Z', data: { from: 'review', to: 'in-progress', source: 'reconcile' } }),
+    { ...ev({ at: '2026-09-17T10:00:00.000Z' }), schemaVersion: '9.0' },
+  ];
+  const m2 = [
+    failT1, // a sync that died after appending, before saving its offset: the same line again
+    ev({ type: 'task.status', at: '2026-09-11T12:00:00.000Z', machine: 'm2', data: { from: 'review', to: 'in-progress', source: 'reconcile' } }),
+    ev({ type: 'task.status', task: 'T-4', at: '2026-09-16T11:00:00.000Z', machine: 'm2', data: { from: 'review', to: 'in-progress', source: 'reconcile' } }),
+  ];
+  const beta = [
+    ev({ type: 'verifier.audit', project: 'beta', task: null, at: '2026-09-10T10:00:00.000Z', data: { level: 'R3', ok: false, executed: true, counts: { confirmed: 1, refuted: 1, unverifiable: 0 }, verdicts: [], generatedAt: '2026-09-01T00:00:00.000Z' } }),
+    ev({ type: 'readiness.snapshot', project: 'beta', task: null, at: '2026-09-20T10:00:00.000Z', data: { level: 'R2', generatedAt: '2026-09-15T00:00:00.000Z', manifestCommit: 'x', outcome: 'pass', passed: 9, required: 9 } }),
+  ];
+  write(path.join(store, 'events', 'alpha', 'm1', '2026-09-10.jsonl'), lines(m1));
+  write(path.join(store, 'events', 'alpha', 'm2', '2026-09-11.jsonl'), lines(m2));
+  write(path.join(store, 'events', 'beta', 'm1', '2026-09-10.jsonl'), lines(beta));
+  const env = { HOME: home, USERPROFILE: home };
+  const run = (fn) => {
+    const saved = { HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE };
+    Object.assign(process.env, env);
+    try { return fn(); } finally {
+      for (const [key, value] of Object.entries(saved)) {
+        if (value === undefined) delete process.env[key]; else process.env[key] = value;
+      }
+    }
+  };
+  const machine = () => JSON.parse(fs.readFileSync(path.join(home, '.buaflow', 'usage.json'), 'utf8'));
+  return { base, store, home, env, run, machine };
+}
+
+test('AC-22 by model: fail rate, tasks moved backward and tasks fixed later, with each task under the model most of its events name', (t) => {
+  const f = fixture(t);
+  const r = f.run(() => report.report({ now: NOW, pull: false }));
+  assert.equal(r.code, 0, r.errors.join());
+  const row = (model) => r.data.models.find((m) => m.model === model);
+  assert.deepEqual(row('claude-opus-5-5'), { model: 'claude-opus-5-5', tasks: 1, checks: 2, fails: 1, backwardTasks: 1, fixedTasks: 1, failRate: 0.5 });
+  assert.deepEqual(row('claude-sonnet-5'), { model: 'claude-sonnet-5', tasks: 2, checks: 2, fails: 1, backwardTasks: 0, fixedTasks: 0, failRate: 0.5 });
+  assert.deepEqual(row('unknown'), { model: 'unknown', tasks: 1, checks: 0, fails: 0, backwardTasks: 1, fixedTasks: 0, failRate: null });
+  assert.match(r.data.text, /\| claude-opus-5-5 \| 1 \| 50% \(1\/2\) \| 1 \| 1 \|/);
+});
+
+test('AC-23 by project: the newer of audit and snapshot, and the evidence age in days', (t) => {
+  const f = fixture(t);
+  const r = f.run(() => report.report({ now: NOW, pull: false }));
+  const beta = r.data.projects.find((p) => p.project === 'beta');
+  assert.deepEqual(beta, { project: 'beta', level: 'R2', outcome: 'pass', source: 'readiness.snapshot', evidenceAgeDays: 9, lastEventAt: '2026-09-20T10:00:00.000Z' });
+  const alpha = r.data.projects.find((p) => p.project === 'alpha');
+  assert.equal(alpha.level, null, 'no readiness recorded is shown as unknown, not guessed');
+});
+
+test('AC-25 and AC-19: an unknown schema version is skipped and counted, a repeated id is counted once', (t) => {
+  const f = fixture(t);
+  const r = f.run(() => report.report({ now: NOW, pull: false }));
+  assert.equal(r.data.counts.skipped, 1);
+  assert.equal(r.data.counts.duplicates, 1);
+  assert.match(r.data.text, /skipped 1 with an unknown schema version/);
+  assert.match(r.summary, /skipped 1/);
+});
+
+test('AC-26 tasks worth a look: ranked by score, a move reconciled in two clones counted once, each with a command that parses', (t) => {
+  const f = fixture(t);
+  const r = f.run(() => report.report({ now: NOW, pull: false }));
+  assert.deepEqual(r.data.watch.map((w) => [w.key, w.score]), [['alpha/T-1', 4], ['alpha/T-3', 1], ['alpha/T-4', 1]]);
+  assert.deepEqual(r.data.watch[0], { key: 'alpha/T-1', model: 'claude-opus-5-5', score: 4, fails: 1, backward: 1, fixedBy: ['alpha/T-2'] });
+  for (const w of r.data.watch) {
+    const command = r.data.text.match(new RegExp(`\`(buaflow usage eval-draft --task ${w.key})\``))[1];
+    const parsed = parse(command.split(' ').slice(1));
+    assert.equal(parsed.command, 'usage');
+    assert.deepEqual(parsed.options.args, ['eval-draft', '--task', w.key]);
+  }
+});
+
+test('report writes --out, filters --since, and records when the review happened', (t) => {
+  const f = fixture(t);
+  const out = path.join(f.base, 'reports', 'r.md');
+  const r = f.run(() => report.report({ now: NOW, pull: false, out }));
+  assert.equal(r.data.text, undefined);
+  assert.match(fs.readFileSync(out, 'utf8'), /^# Buaflow usage report — 2026-09-24/);
+  assert.equal(f.machine().lastReviewAt, NOW.toISOString());
+  const since = f.run(() => report.report({ now: NOW, pull: false, since: '2026-09-15' }));
+  assert.deepEqual(since.data.watch.map((w) => w.key), ['alpha/T-3', 'alpha/T-4']);
+});
+
+test('the CLI prints the report as Markdown and keeps it in --json', (t) => {
+  const f = fixture(t);
+  const plain = runNode(cli, { cwd: f.base, env: f.env, args: ['usage', 'report'] });
+  assert.equal(plain.status, 0, plain.stderr);
+  assert.match(plain.stdout, /^buaflow usage: OK — /m);
+  assert.match(plain.stdout, /## Tasks worth a look/);
+  assert.doesNotMatch(plain.stdout, /^ {2}text:/m, 'printed once, as text, not again as a data field');
+  const json = JSON.parse(runNode(cli, { cwd: f.base, env: f.env, args: ['usage', 'report', '--json'] }).stdout);
+  assert.match(json.text, /## By model/);
+});
+
+test('AC-24 show: one task from its intent to done, in time order; an unknown task exits 1', (t) => {
+  const f = fixture(t);
+  const r = f.run(() => report.show('alpha/T-1', { pull: false }));
+  assert.equal(r.code, 0);
+  const types = r.data.events.map((e) => e.type);
+  assert.equal(types[0], 'intent.opened');
+  assert.equal(types.at(-1), 'task.done');
+  const times = r.data.events.map((e) => e.at);
+  assert.deepEqual(times, [...times].sort());
+  assert.match(r.data.text, /review → in-progress \(outside a session\)/);
+  assert.equal(f.run(() => report.show('alpha/T-99', { pull: false })).code, 1);
+  const cliMissing = runNode(cli, { cwd: f.base, env: f.env, args: ['usage', 'show', 'alpha/T-99', '--json'] });
+  assert.equal(cliMissing.status, 1);
+});
+
+test('AC-27 opening the Buaflow repository says how many events arrived since the last review; any other repository says nothing', (t) => {
+  const f = fixture(t);
+  const repo = path.join(f.base, 'buaflow');
+  writeJson(path.join(repo, 'package.json'), { name: 'buaflow' });
+  writeJson(path.join(repo, 'development', 'state.json'), {});
+  const other = path.join(f.base, 'other');
+  writeJson(path.join(other, 'package.json'), { name: 'shop' });
+
+  const start = (root) => runNode(hookScript, { cwd: root, env: f.env, input: { cwd: root, hook_event_name: 'SessionStart', session_id: 's' } });
+  // 11 usable lines from m1 (one is schema 9.0), 2 from m2 (one repeats an id), 2 from beta
+  const first = JSON.parse(start(repo).stdout).systemMessage;
+  assert.match(first, /มี event ใหม่ 15 รายการ/);
+  assert.match(first, /ยังไม่เคย review/);
+  assert.equal(start(other).stdout, '');
+
+  writeJson(path.join(f.home, '.buaflow', 'usage.json'), { ...f.machine(), lastReviewAt: '2026-09-15T00:00:00.000Z' });
+  assert.match(JSON.parse(start(repo).stdout).systemMessage, /มี event ใหม่ 4 รายการในที่เก็บกลางตั้งแต่ review ล่าสุด \(2026-09-15\)/);
+  f.run(() => report.report({ now: NOW, pull: false }));
+  assert.equal(start(repo).stdout, '', 'nothing new since this review');
+});

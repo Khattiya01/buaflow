@@ -489,6 +489,16 @@ function observeWrite(root, found, who) {
 
 // One line at session start (AC-5), plus what needs doing on this machine (AC-18) and what is still waiting.
 function sessionNotice(consentState, root) {
+  const review = root ? reviewNotice(root) : null;
+  const own = projectNotice(consentState, root);
+  return [own, review].filter(Boolean).join(' · ') || null;
+}
+
+function reviewNotice(root) {
+  try { return require('./usage-report.js').reviewNotice(root); } catch { return null; }
+}
+
+function projectNotice(consentState, root) {
   if (consentState === 'enabled') {
     const parts = ['โปรเจกต์นี้เก็บข้อมูลการใช้งาน Buaflow — ปิดได้ที่ .buaflow/usage.json (enabled: false) หรือ buaflow usage consent --disable'];
     if (!readMachineConfig()?.store) parts.push(`เครื่องนี้ยังไม่ได้ตั้งค่าที่เก็บกลาง: ${SETUP_HINT}`);
@@ -680,9 +690,10 @@ function startBackgroundSync(root) {
 
 function parseArgs(args) {
   const [sub, ...rest] = args;
-  const options = { sub, kind: null, enable: false, disable: false, project: null, task: null, verdict: null, findings: null, level: null, store: null, machine: null };
+  const options = { sub, kind: null, enable: false, disable: false, project: null, task: null, verdict: null, findings: null, level: null, store: null, machine: null, target: null, out: null, since: null };
   let index = 0;
   if (sub === 'record') options.kind = rest[index++];
+  if (sub === 'show') options.target = rest[index++];
   for (; index < rest.length; index++) {
     const arg = rest[index];
     const value = () => {
@@ -699,9 +710,13 @@ function parseArgs(args) {
     else if (arg === '--level') options.level = value();
     else if (arg === '--store') options.store = value();
     else if (arg === '--machine') options.machine = value();
+    else if (arg === '--out') options.out = value();
+    else if (arg === '--since') options.since = value();
     else throw new Error(`unknown usage option: ${arg}`);
   }
-  if (!['consent', 'status', 'record', 'setup', 'sync'].includes(sub)) throw new Error('usage needs a subcommand: consent, status, record, setup or sync');
+  if (!['consent', 'status', 'record', 'setup', 'sync', 'report', 'show'].includes(sub)) throw new Error('usage needs a subcommand: consent, status, record, setup, sync, report or show');
+  if (sub === 'show' && !/^[a-z0-9][a-z0-9._-]*\/[A-Za-z0-9._-]+$/.test(options.target || '')) throw new Error('usage show needs <project>/<task>, e.g. bluepeak-hub/T-012');
+  if (options.since && !/^\d{4}-\d{2}-\d{2}$/.test(options.since)) throw new Error('--since must be YYYY-MM-DD');
   if (sub === 'setup' && !options.store) throw new Error('usage setup needs --store <path to your clone of the central store>');
   if (sub === 'consent' && options.enable === options.disable) throw new Error('usage consent needs exactly one of --enable or --disable');
   if (sub === 'record') {
@@ -740,6 +755,9 @@ function runCommand(start, args) {
 
   if (options.sub === 'setup') return setup(start, options);
   if (options.sub === 'sync') return sync(root);
+  // Reading the store is kit-only (usage-report.js is never installed into a project).
+  if (options.sub === 'report') return require('./usage-report.js').report({ out: options.out && path.resolve(start, options.out), since: options.since });
+  if (options.sub === 'show') return require('./usage-report.js').show(options.target);
 
   if (options.sub === 'consent') {
     if (git(root, ['rev-parse', '--is-inside-work-tree']) !== 'true') return { code: 1, summary: 'not a git repository', data: {}, warnings: [], errors: ['consent is stored in the project and committed; run it inside the project repository'] };
@@ -784,6 +802,7 @@ function main(argv = process.argv.slice(2)) {
   const out = { schemaVersion: '1.0', command: 'usage', status: result.code === 0 ? 'ok' : 'error', ...result };
   if (json) process.stdout.write(`${JSON.stringify(out, null, 2)}\n`);
   else {
+    if (out.data?.text) process.stdout.write(out.data.text);
     console.log(`buaflow usage: ${out.status.toUpperCase()} — ${out.summary}`);
     for (const warning of out.warnings) console.log(`  warn: ${warning}`);
     for (const error of out.errors) console.log(`  fail: ${error}`);

@@ -142,6 +142,11 @@ evals/drafts/                                   ← ผลของ eval-draft
 - **ลำดับสถานะ** สำหรับตัดสิน "ย้อนกลับ": `backlog < todo < in-progress < review < done` (`blocked` ไม่นับ)
 - **ตามโปรเจกต์:** readiness ล่าสุดจาก `verifier.audit` หรือ `readiness.snapshot` ที่ใหม่กว่า + อายุ `generatedAt` เป็นวัน + วันที่มี event ล่าสุด
 - **task ที่ควรดู:** คะแนน = (จำนวน check fail) + (จำนวนครั้งที่ย้อนกลับ) + 2 × (จำนวน task ที่ `fixes:` ชี้มา) เรียงมากไปน้อย แถวละ 1 คำสั่ง `eval-draft` ที่ copy ไปรันได้
+- ตัดสินตอนทำ EV-011.5:
+  - `task.status` ที่ `source: reconcile` นับเฉพาะเมื่อไม่มี event จากใน session ที่ project/task/from/to เดียวกัน และ reconcile ซ้ำหลายเครื่องนับครั้งเดียว (เพื่อนเปลี่ยนสถานะแล้วทุกเครื่อง pull มา reconcile ซ้ำกัน)
+  - report/show อยู่ใน `claude-setup/usage-report.js` ที่เป็น kit-only (`install.js` ไม่คัดลอกเข้าโปรเจกต์) เพราะใช้เฉพาะใน repo Buaflow · `usage.js` ที่ทุก hook โหลดจึงไม่โตขึ้น
+  - report/show `git pull --ff-only` แบบไม่บังคับก่อนอ่าน (offline หรือ clone ที่แยกทางแล้ว = อ่านตามที่มี) · ข้อความ AC-27 นับจาก clone ตามที่มี ไม่ pull ตอนเปิด session
+  - ไม่มี `--out` → พิมพ์ Markdown ออก stdout (ใน `--json` อยู่ที่ `text`) · readiness ที่ไม่มีบันทึกแสดง `—` ไม่เดา
 
 ### ร่าง eval case (AC-21)
 
