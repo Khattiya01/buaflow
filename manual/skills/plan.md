@@ -63,9 +63,10 @@ Also state: the point you are least sure about / what you decided on their behal
 
 ## Step 5 — Close the plan
 
-1. Commit `docs/plans/<T-xxx>.md` (`docs: add plan for T-xxx`)
-2. Set `plan:` in the task file
-3. Tell the user to leave plan mode and run `/task <T-xxx>`
+1. Set `approved_by:` in plan.md to the name of the person who approved it in Step 4 (`git config user.name` when that is the person running this session). Never your own name, and never leave the `<ใครอนุมัติ>` placeholder: an approved plan is what usage capture records as `plan.approved`
+2. Commit `docs/plans/<T-xxx>.md` (`docs: add plan for T-xxx`)
+3. Set `plan:` in the task file
+4. Tell the user to leave plan mode and run `/task <T-xxx>`
 
 ## If the plan stops working mid-implementation
 

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/usage-event-v1.json",
+  "title": "Buaflow usage event v1",
+  "description": "One lifecycle event recorded in a project that opted in (EV-011), one JSON object per line in .buaflow/usage/events/<date>.jsonl and in the central store. Unknown values are recorded as unknown or null, never guessed: a model nobody could read is 'unknown', not the model that was probably used.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "type", "at", "project", "task", "model", "kitVersion", "commit", "sessionId", "machine", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "id": { "type": "string", "pattern": "^[0-9a-f-]{36}$" },
+    "type": { "enum": ["intent.opened", "plan.approved", "task.created", "task.status", "task.done", "check.result", "verifier.audit", "readiness.snapshot"] },
+    "at": { "type": "string", "format": "date-time" },
+    "project": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$" },
+    "task": { "type": ["string", "null"] },
+    "model": { "type": "string", "minLength": 1, "description": "Model id read from the session, or 'unknown'." },
+    "kitVersion": { "type": "string" },
+    "commit": { "type": ["string", "null"] },
+    "sessionId": { "type": ["string", "null"] },
+    "machine": { "type": ["string", "null"] },
+    "data": { "type": "object" }
+  }
+}

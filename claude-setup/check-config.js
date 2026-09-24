@@ -324,7 +324,7 @@ if (settings?.hooks) {
     ? fs.readdirSync(path.join(CLAUDE, 'hooks')).filter((f) => f.endsWith('.js'))
     : [];
   onDisk.filter((f) => !wired.has(f)).forEach((f) => warn(`hooks/${f} มีไฟล์แต่ไม่ได้ผูกใน settings.json = ไม่ทำงาน`));
-  if (PLUGIN_MODE && cmds.some((c) => /(guard-bash|guard-edit|session-context|format-changed|guard-new-component).js$/.test(c))) {
+  if (PLUGIN_MODE && cmds.some((c) => /(guard-bash|guard-edit|session-context|format-changed|guard-new-component|usage-capture).js$/.test(c))) {
     warn('settings.json ผูก hook ของ Buaflow จาก .claude/hooks/ และเปิด plugin buaflow@buaflow ด้วย = ทุก hook รันสองรอบ · ลบรายการเหล่านั้นออกจาก "hooks"');
   }
 } else if (PLUGIN_MODE) {

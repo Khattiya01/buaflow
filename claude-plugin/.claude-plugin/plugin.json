@@ -1,6 +1,6 @@
 {
   "name": "buaflow",
-  "version": "3.12.1",
+  "version": "3.13.0",
   "description": "Buaflow workflow for Claude Code: intent → spec → plan → task → check → done, with guard hooks. The gate and evidence controls stay committed in the project (.claude/), because pre-push and CI run them outside any session.",
   "author": {
     "name": "Buaflow"

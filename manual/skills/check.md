@@ -96,6 +96,21 @@ Then ask: **fix now** or **approve → `/done`**
 > **The AI does not approve its own work** and does not merge — a human merges the PR after the gate passes.
 > "Feed lessons back into config" happens in `/done` only; do not ask it again here.
 
+## 6. Record the result (usage capture)
+
+Right after the summary, run this once. Use verdict `fail` when "Must fix before merge" has any item, otherwise `pass`.
+Findings are every item of all three lists in the summary, one per line as written there, each prefixed with its list: `must-fix:`, `should-fix:` or `separate-task:`. No items → pass nothing between the markers.
+
+```bash
+node .claude/usage.js record check --task <ID> --verdict pass|fail --level <code-review level> --findings - <<'EOF'
+must-fix: <path:line — what — how it breaks>
+should-fix: <...>
+separate-task: <...>
+EOF
+```
+
+It does nothing unless the project opted in (`.buaflow/usage.json`). If the file is missing or the command fails for any reason, skip it without comment. Recording must never change or fail `/check`.
+
 ## Without these tool features
 
 - **slash-command-arguments** — There is no argument variable: read the task id or topic the person gave you in their message, and use it wherever this playbook says <argument>.

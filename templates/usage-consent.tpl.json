@@ -1,0 +1,9 @@
+{
+  "$schema": "../../../buaflow/schemas/usage-consent.schema.json",
+  "schemaVersion": "1.0",
+  "_": "คำตอบยินยอมให้ Buaflow เก็บข้อมูลการใช้งาน (EV-011) · เก็บที่ .buaflow/usage.json และ commit · ปิดได้ทุกเมื่อด้วย enabled: false หรือ buaflow usage consent --disable · ข้อมูลที่เก็บไปแล้วไม่ถูกลบ",
+  "enabled": true,
+  "project": "<ชื่อโปรเจกต์ ใช้เป็นชื่อโฟลเดอร์ในที่เก็บกลาง>",
+  "decidedBy": "<git config user.name ของคนที่ตอบ>",
+  "decidedAt": "2026-01-01"
+}

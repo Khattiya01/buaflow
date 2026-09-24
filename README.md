@@ -7,7 +7,7 @@
 <p><strong>Plan อย่างมีหลักฐาน · Build อย่างมีขอบเขต · ตัดสินความพร้อมด้วยเครื่อง · คนเป็นผู้อนุมัติ</strong></p>
 
 <p>
-  <img alt="Buaflow version 3.12.1" src="https://img.shields.io/badge/version-3.12.1-e85aad?style=for-the-badge">
+  <img alt="Buaflow version 3.13.0" src="https://img.shields.io/badge/version-3.13.0-e85aad?style=for-the-badge">
   <img alt="Claude Code" src="https://img.shields.io/badge/Claude_Code-plugin_%2B_kit-D97757?style=for-the-badge">
   <img alt="Readiness R0 to R4" src="https://img.shields.io/badge/readiness-R0–R4-2563EB?style=for-the-badge">
   <img alt="Zero dependencies" src="https://img.shields.io/badge/node_22-zero_dependencies-16A34A?style=for-the-badge">
@@ -48,7 +48,7 @@ AI เขียนโค้ดได้เร็วและเก่งขึ�
 v2.x คือ **SDLC workflow สำหรับทำงานกับ AI** — phase, skill, rule, hook และ gate · v3.x เก็บทั้งหมดนั้นไว้
 แล้วเพิ่มคำตอบของคำถามที่ v2 ตอบไม่ได้: **"แล้วตอนนี้พร้อมส่งมอบหรือยัง"**
 
-| | v2.3.4 | v3.12.1 |
+| | v2.3.4 | v3.13.0 |
 |---|---|---|
 | เป้าหมาย | ทำงานกับ AI อย่างมีระเบียบ | ส่งมอบแอปที่พิสูจน์ความพร้อมได้ถึง R3 |
 | "เสร็จแล้ว" | verify + gate ผ่าน | + readiness manifest ที่ผูกกับ commit และถูก verifier ตรวจซ้ำ |
