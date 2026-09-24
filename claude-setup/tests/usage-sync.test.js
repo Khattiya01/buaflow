@@ -179,6 +179,9 @@ test('a pull that conflicts never leaves the store mid-rebase, and nothing is co
   a.record(1);
   assert.equal(a.cmd('sync').code, 0);
   git(b.store, 'remote', 'set-url', 'origin', w.bare);
+  // A store that keeps no reflog must not hide which rebase is sync's own.
+  git(b.store, 'config', 'core.logAllRefUpdates', 'false');
+  fs.rmSync(path.join(b.store, '.git', 'logs'), { recursive: true, force: true });
   b.record(1);
   const pendingBefore = b.run(() => usage.pendingEvents(b.root));
 

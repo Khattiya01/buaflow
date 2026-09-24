@@ -564,7 +564,8 @@ function pullClean(store, gitDir) {
   };
   const before = busy();
   if (before) return before;
-  const pulled = gitRemote(store, ['pull', '--rebase', '--quiet']) !== null;
+  // The tag lives in HEAD's reflog, so sync's pull writes one even in a store that turned reflogs off.
+  const pulled = gitRemote(store, ['-c', 'core.logAllRefUpdates=true', 'pull', '--rebase', '--quiet']) !== null;
   // Abort only a rebase whose reflog carries sync's tag: one a person starts in the same seconds says "pull --rebase".
   const ours = () => (git(store, ['reflog', '-1', '--format=%gs', 'HEAD']) || '').startsWith(SYNC_REFLOG_ACTION);
   if (!pulled && rebasing() && ours()) git(store, ['rebase', '--abort']);
