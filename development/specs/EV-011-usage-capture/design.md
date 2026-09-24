@@ -95,7 +95,7 @@ repo นี้ไม่มี `docs/constitution.md` จึงตรวจกั
 ### 4. Config ต่อเครื่อง `~/.buaflow/usage.json`
 
 ```json
-{ "schemaVersion": "1.0", "store": "D:/repos/buaflow-telemetry", "machine": "devteam1-laptop", "lastReviewAt": null }
+{ "schemaVersion": "1.0", "store": "D:/repos/buaflow-telemetry", "machine": "devteam1-laptop", "lastReviewAt": null, "reviewedEvents": null }
 ```
 
 ตั้งค่าด้วย `buaflow usage setup --store <path ของ clone>` (ผู้ใช้ clone private repo เองก่อน · `machine` มีค่าเริ่มต้นจาก `os.hostname()`)
@@ -121,7 +121,7 @@ evals/drafts/                                   ← ผลของ eval-draft
 | `buaflow usage setup --store <path> [--machine <id>]` | เขียน config ของเครื่อง · store ต้องเป็น git work tree | 0 · 1 ถ้าไม่ใช่ git repo | AC-18 |
 | `buaflow usage sync` | sync ทันที (foreground) และบอกจำนวนที่ส่ง/ค้าง | 0 · 3 ถ้า push ไม่สำเร็จ (event ยังอยู่ครบ) | AC-16, AC-17 |
 | `buaflow usage status` | ยินยอมไหม · ค้างกี่ event · store อยู่ไหน | 0 | AC-5, AC-18 |
-| `buaflow usage report [--out <file>] [--since <date>]` | Markdown ไฟล์เดียว: ตามโมเดล / ตามโปรเจกต์ / task ที่ควรดู · อัปเดต `lastReviewAt` | 0 | AC-22, 23, 25, 26 |
+| `buaflow usage report [--out <file>] [--since <date>]` | Markdown ไฟล์เดียว: ตามโมเดล / ตามโปรเจกต์ / task ที่ควรดู · อัปเดต `lastReviewAt` และ `reviewedEvents` | 0 · 1 ถ้าเครื่องนี้ยังไม่ได้ตั้งค่าที่เก็บกลาง หรือสั่งจาก `.claude/usage.js` ในโปรเจกต์ (report อยู่ใน kit เท่านั้น) | AC-22, 23, 25, 26 |
 | `buaflow usage show <project>/<task>` | timeline ของ task นั้น | 0 · 1 ถ้าไม่เจอ | AC-24 |
 | `buaflow usage eval-draft --task <project>/<task> [--out <dir>]` | ร่าง eval case ลง `evals/drafts/` | 0 · 1 ถ้าไม่เจอ task | AC-21 |
 
@@ -147,6 +147,8 @@ evals/drafts/                                   ← ผลของ eval-draft
   - report/show อยู่ใน `claude-setup/usage-report.js` ที่เป็น kit-only (`install.js` ไม่คัดลอกเข้าโปรเจกต์) เพราะใช้เฉพาะใน repo Buaflow · `usage.js` ที่ทุก hook โหลดจึงไม่โตขึ้น
   - report/show `git pull --ff-only` แบบไม่บังคับก่อนอ่าน (offline หรือ clone ที่แยกทางแล้ว = อ่านตามที่มี) · ข้อความ AC-27 นับจาก clone ตามที่มี ไม่ pull ตอนเปิด session
   - ไม่มี `--out` → พิมพ์ Markdown ออก stdout (ใน `--json` อยู่ที่ `text`) · readiness ที่ไม่มีบันทึกแสดง `—` ไม่เดา
+  - ข้อความ AC-27 นับ event ที่ **มาถึง** หลัง review ไม่ใช่ event ที่ **เกิด** หลัง review: `report` บันทึก `reviewedEvents` (จำนวน event ไม่ซ้ำทั้ง store ตอนนั้น) แล้วตอนเปิด session แสดง จำนวนตอนนี้ − `reviewedEvents` · store โตอย่างเดียวจึงนับเครื่องที่ sync ช้าได้ถูก · `setup` ชี้ไป store อื่น → ล้างค่า review เพราะเป็นของ store เดิม (EV-011.5 /check)
+  - ไม่มี event ใหม่ → ไม่แสดงบรรทัด AC-27 เลย เพื่อให้บรรทัดนั้นมีความหมายทุกครั้งที่ขึ้น (ค่าที่ AI แนะนำตอน /check · เสนอเจ้าของแล้ว ยังไม่ได้เลือกให้แสดงทุกครั้ง — เปลี่ยนได้ด้วยบรรทัดเดียวใน `reviewNotice`)
 
 ### ร่าง eval case (AC-21)
 

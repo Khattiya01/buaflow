@@ -21,27 +21,29 @@ function walk(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)]));
 }
 
+// One line of the store: the event, or which count it goes to instead.
+function classify(line, seen) {
+  let event;
+  try { event = JSON.parse(line); } catch { return 'unreadable'; }
+  if (event?.schemaVersion !== usage.SCHEMA_VERSION) return 'skipped';
+  if (seen.has(event.id)) return 'duplicates';
+  seen.add(event.id);
+  return event;
+}
+
 // Every event once (AC-19: a sync that died mid-way may have appended a line twice), known versions only (AC-25).
-function readStore(store, { since = null } = {}) {
+function readStore(store) {
   const seen = new Set();
-  const events = [];
-  let duplicates = 0;
-  let skipped = 0;
-  let unreadable = 0;
+  const out = { events: [], duplicates: 0, skipped: 0, unreadable: 0 };
   for (const file of walk(path.join(store, 'events')).filter((f) => f.endsWith('.jsonl')).sort()) {
-    for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
-      if (!line.trim()) continue;
-      let event;
-      try { event = JSON.parse(line); } catch { unreadable++; continue; }
-      if (event?.schemaVersion !== usage.SCHEMA_VERSION) { skipped++; continue; }
-      if (seen.has(event.id)) { duplicates++; continue; }
-      seen.add(event.id);
-      if (since && String(event.at) < since) continue;
-      events.push(event);
+    for (const line of fs.readFileSync(file, 'utf8').split('\n').filter((l) => l.trim())) {
+      const found = classify(line, seen);
+      if (typeof found === 'string') out[found]++;
+      else out.events.push(found);
     }
   }
-  events.sort((a, b) => String(a.at).localeCompare(String(b.at)));
-  return { events, duplicates, skipped, unreadable };
+  out.events.sort((a, b) => String(a.at).localeCompare(String(b.at)));
+  return out;
 }
 
 const taskKey = (event) => `${event.project}/${event.task}`;
@@ -83,15 +85,16 @@ function summarizeTasks(events) {
     if (!tasks.has(key)) tasks.set(key, { key, events: [], checks: 0, fails: 0, backward: 0, fixedBy: new Set() });
     return tasks.get(key);
   };
-  for (const e of events) if (e.task) get(taskKey(e)).events.push(e);
-  for (const e of events) {
-    if (e.type === 'check.result' && e.task) {
-      get(taskKey(e)).checks++;
-      if (e.data?.verdict === 'fail') get(taskKey(e)).fails++;
+  for (const e of events.filter((x) => x.task)) {
+    const task = get(taskKey(e));
+    task.events.push(e);
+    if (e.type === 'check.result') {
+      task.checks++;
+      if (e.data?.verdict === 'fail') task.fails++;
     }
-    if (e.type === 'task.created' && e.task) for (const target of fixesOf(e)) get(`${e.project}/${target}`).fixedBy.add(taskKey(e));
+    if (e.type === 'task.created') for (const target of fixesOf(e)) get(`${e.project}/${target}`).fixedBy.add(taskKey(e));
   }
-  for (const move of statusMoves(events)) if (move.task && isBackward(move)) get(taskKey(move)).backward++;
+  for (const move of statusMoves(events).filter((m) => m.task && isBackward(m))) get(taskKey(move)).backward++;
   for (const task of tasks.values()) {
     task.model = modelOf(task.events);
     task.score = task.fails + task.backward + 2 * task.fixedBy.size;
@@ -186,7 +189,9 @@ function report({ out = null, since = null, now = new Date(), pull = true } = {}
   const config = machineConfig();
   if (!config?.store) return { code: 1, summary: 'no central store on this machine', data: {}, warnings: [], errors: ['buaflow usage setup --store <path to your clone>'] };
   if (pull) pullQuietly(config.store);
-  const read = readStore(config.store, { since });
+  // Everything is read, so the reviewed count covers the whole store even when --since narrows the page.
+  const all = readStore(config.store);
+  const read = since ? { ...all, events: all.events.filter((e) => String(e.at) >= since) } : all;
   const tasks = summarizeTasks(read.events);
   const watch = tasks.filter((t) => t.score > 0)
     .sort((a, b) => b.score - a.score || a.key.localeCompare(b.key))
@@ -205,8 +210,8 @@ function report({ out = null, since = null, now = new Date(), pull = true } = {}
     fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
     fs.writeFileSync(path.resolve(out), text);
   }
-  // Reviewing is what the session notice counts from (AC-27).
-  fs.writeFileSync(usage.machineConfigFile(), `${JSON.stringify({ ...config, lastReviewAt: result.now }, null, 2)}\n`);
+  // Reviewing is what the session notice counts from (AC-27): how many events existed, not when they happened.
+  fs.writeFileSync(usage.machineConfigFile(), `${JSON.stringify({ ...config, lastReviewAt: result.now, reviewedEvents: all.events.length }, null, 2)}\n`);
   const skippedNote = read.skipped ? ` · skipped ${read.skipped} with an unknown schema version` : '';
   return { code: 0, summary: `${read.events.length} event(s), ${watch.length} task(s) worth a look${skippedNote}${out ? ` → ${out}` : ''}`, data: { ...result, text: out ? undefined : text, out }, warnings: [], errors: [] };
 }
@@ -247,14 +252,18 @@ function isBuaflowRepo(root) {
 }
 
 // AC-27: opening the Buaflow repository on a machine with a store says how much is waiting to be reviewed.
+// Counted by arrival, not by each event's own time: a laptop that syncs a week late still brings new events.
+// The store only grows, so what is there now minus what the last report saw is what arrived since.
+// Nothing new → no line, so the line keeps meaning something (EV-011.5 decision).
 function reviewNotice(root) {
   if (!isBuaflowRepo(root)) return null;
   const config = machineConfig();
   if (!config?.store) return null;
-  const since = config.lastReviewAt || null;
-  const fresh = readStore(config.store).events.filter((e) => !since || String(e.at) > since).length;
+  const reviewed = Number.isInteger(config.reviewedEvents) ? config.reviewedEvents : 0;
+  const fresh = Math.max(0, readStore(config.store).events.length - reviewed);
   if (!fresh) return null;
-  return `มี event ใหม่ ${fresh} รายการในที่เก็บกลางตั้งแต่ review ล่าสุด (${since ? since.slice(0, 10) : 'ยังไม่เคย review'}) — buaflow usage report`;
+  const last = config.lastReviewAt ? config.lastReviewAt.slice(0, 10) : 'ยังไม่เคย review';
+  return `มี event ใหม่ ${fresh} รายการในที่เก็บกลางตั้งแต่ review ล่าสุด (${last}) — buaflow usage report`;
 }
 
-module.exports = { STATUS_RANK, evalDraftCommand, isBuaflowRepo, readStore, report, reviewNotice, show, statusMoves, summarizeTasks };
+module.exports = { report, reviewNotice, show };

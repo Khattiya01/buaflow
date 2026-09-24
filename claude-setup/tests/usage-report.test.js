@@ -180,8 +180,36 @@ test('AC-27 opening the Buaflow repository says how many events arrived since th
   assert.match(first, /ยังไม่เคย review/);
   assert.equal(start(other).stdout, '');
 
-  writeJson(path.join(f.home, '.buaflow', 'usage.json'), { ...f.machine(), lastReviewAt: '2026-09-15T00:00:00.000Z' });
+  // A review on 09-15 that saw the 11 events there were then.
+  writeJson(path.join(f.home, '.buaflow', 'usage.json'), { ...f.machine(), lastReviewAt: '2026-09-15T00:00:00.000Z', reviewedEvents: 11 });
   assert.match(JSON.parse(start(repo).stdout).systemMessage, /มี event ใหม่ 4 รายการในที่เก็บกลางตั้งแต่ review ล่าสุด \(2026-09-15\)/);
   f.run(() => report.report({ now: NOW, pull: false }));
   assert.equal(start(repo).stdout, '', 'nothing new since this review');
+});
+
+// A laptop that was offline syncs a week late: its events are older than the review but arrived after it.
+test('AC-27 counts by arrival: an event recorded before the review but pulled after it is still new', (t) => {
+  const f = fixture(t);
+  const repo = path.join(f.base, 'buaflow');
+  writeJson(path.join(repo, 'package.json'), { name: 'buaflow' });
+  writeJson(path.join(repo, 'development', 'state.json'), {});
+  f.run(() => report.report({ now: NOW, pull: false }));
+  assert.equal(f.machine().reviewedEvents, 15);
+  const late = ev({ project: 'gamma', task: 'T-9', at: '2026-09-01T00:00:00.000Z', machine: 'laptop' });
+  write(path.join(f.store, 'events', 'gamma', 'laptop', '2026-09-01.jsonl'), lines([late]));
+  const out = runNode(hookScript, { cwd: repo, env: f.env, input: { cwd: repo, hook_event_name: 'SessionStart', session_id: 's' } });
+  assert.match(JSON.parse(out.stdout).systemMessage, /มี event ใหม่ 1 รายการ.*\(2026-09-24\)/);
+});
+
+test('report and show from a project say they run from the kit instead of failing on a missing module', (t) => {
+  const f = fixture(t);
+  const project = path.join(f.base, 'project');
+  fs.mkdirSync(path.join(project, '.claude'), { recursive: true });
+  for (const name of ['usage.js', 'convergence.js']) fs.copyFileSync(path.join(repositoryRoot, 'claude-setup', name), path.join(project, '.claude', name));
+  for (const args of [['report'], ['show', 'alpha/T-1']]) {
+    const r = runNode(path.join(project, '.claude', 'usage.js'), { cwd: project, env: f.env, args: [...args, '--json'] });
+    assert.equal(r.status, 1, r.stderr);
+    assert.equal(r.stderr, '');
+    assert.match(JSON.parse(r.stdout).summary, /runs from the Buaflow kit/);
+  }
 });

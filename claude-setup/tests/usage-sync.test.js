@@ -85,13 +85,16 @@ test('usage setup records the store for this machine only when it is a git work 
   assert.equal(bad.code, 1);
   assert.equal(fs.existsSync(path.join(a.home, '.buaflow', 'usage.json')), false);
 
-  writeJson(path.join(a.home, '.buaflow', 'usage.json'), { schemaVersion: '1.0', store: 'old', machine: 'old-name', lastReviewAt: '2026-09-01' });
+  const config = () => JSON.parse(fs.readFileSync(path.join(a.home, '.buaflow', 'usage.json'), 'utf8'));
+  writeJson(path.join(a.home, '.buaflow', 'usage.json'), { schemaVersion: '1.0', store: a.store, machine: 'old-name', lastReviewAt: '2026-09-01', reviewedEvents: 7 });
   const ok = a.cmd('setup', '--store', path.join(a.store, 'events', '..'), '--machine', 'Dev Laptop #1');
   assert.equal(ok.code, 0, ok.errors.join());
-  const config = JSON.parse(fs.readFileSync(path.join(a.home, '.buaflow', 'usage.json'), 'utf8'));
-  assert.equal(config.store, path.resolve(a.store));
-  assert.equal(config.machine, 'dev-laptop-1');
-  assert.equal(config.lastReviewAt, '2026-09-01');
+  assert.equal(config().store, path.resolve(a.store));
+  assert.equal(config().machine, 'dev-laptop-1');
+  assert.deepEqual([config().lastReviewAt, config().reviewedEvents], ['2026-09-01', 7], 'the same store keeps what was reviewed');
+  writeJson(path.join(a.home, '.buaflow', 'usage.json'), { ...config(), store: path.join(w.base, 'another-clone') });
+  a.cmd('setup', '--store', a.store);
+  assert.deepEqual([config().lastReviewAt, config().reviewedEvents], [null, null], 'a different store starts the count again');
   assert.equal(a.cmd('setup').code, 2, 'setup without --store is an input error');
 });
 

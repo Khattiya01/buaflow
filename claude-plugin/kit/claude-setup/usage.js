@@ -562,11 +562,15 @@ function setup(start, { store, machine }) {
     return result(1, 'the store is not a git work tree', {}, [], [`${dir}: clone the private store repository first, then point --store at the clone`]);
   }
   const previous = readMachineConfig() || {};
+  const top = path.resolve(git(dir, ['rev-parse', '--show-toplevel']));
+  // What was reviewed belongs to one store: pointing at another clone starts the count again.
+  const sameStore = previous.store && path.resolve(previous.store) === top;
   const config = {
     schemaVersion: SCHEMA_VERSION,
-    store: path.resolve(git(dir, ['rev-parse', '--show-toplevel'])),
+    store: top,
     machine: sanitizeName(machine || previous.machine || os.hostname()),
-    lastReviewAt: previous.lastReviewAt ?? null,
+    lastReviewAt: sameStore ? previous.lastReviewAt ?? null : null,
+    reviewedEvents: sameStore ? previous.reviewedEvents ?? null : null,
   };
   fs.mkdirSync(path.dirname(machineConfigFile()), { recursive: true });
   fs.writeFileSync(machineConfigFile(), `${JSON.stringify(config, null, 2)}\n`);
@@ -738,6 +742,17 @@ function readFindings(source) {
   }
 }
 
+// Reading the store is kit-only: usage-report.js is never installed into a project, so .claude/usage.js says so.
+function readStoreCommand(start, options) {
+  let reader;
+  try { reader = require('./usage-report.js'); } catch {
+    return { code: 1, summary: `usage ${options.sub} runs from the Buaflow kit, not from a project`, data: {}, warnings: [], errors: [`run buaflow usage ${options.sub} in the Buaflow repository; the store is read there`] };
+  }
+  return options.sub === 'report'
+    ? reader.report({ out: options.out && path.resolve(start, options.out), since: options.since })
+    : reader.show(options.target);
+}
+
 // Result shape matches the CLI envelope fields: { code, summary, data, warnings, errors }.
 function runCommand(start, args) {
   // /check calls `usage record check` from wherever the session has cd-ed to — same root as the hook uses.
@@ -755,9 +770,7 @@ function runCommand(start, args) {
 
   if (options.sub === 'setup') return setup(start, options);
   if (options.sub === 'sync') return sync(root);
-  // Reading the store is kit-only (usage-report.js is never installed into a project).
-  if (options.sub === 'report') return require('./usage-report.js').report({ out: options.out && path.resolve(start, options.out), since: options.since });
-  if (options.sub === 'show') return require('./usage-report.js').show(options.target);
+  if (options.sub === 'report' || options.sub === 'show') return readStoreCommand(start, options);
 
   if (options.sub === 'consent') {
     if (git(root, ['rev-parse', '--is-inside-work-tree']) !== 'true') return { code: 1, summary: 'not a git repository', data: {}, warnings: [], errors: ['consent is stored in the project and committed; run it inside the project repository'] };
