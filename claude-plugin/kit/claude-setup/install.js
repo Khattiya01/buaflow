@@ -31,6 +31,10 @@ const PACKAGE = JSON.parse(fs.readFileSync(path.join(KIT, 'package.json'), 'utf8
 // Scripts that run from the kit itself and never belong in a project.
 const KIT_ONLY = new Set(['assess.js', 'benchmark.js', 'install.js', 'intake.js', 'kit-lock.js', 'local-ci.js', 'usage-report.js']);
 const PLUGIN_ID = 'buaflow@buaflow';
+// The kit's scripts are CommonJS. Node picks the module type from the nearest package.json, so in a
+// project whose own package.json says "type": "module" every .claude/*.js (and the plugin's hooks)
+// would load as ESM and fail on require. A package.json next to them stops that lookup.
+const COMMONJS_PACKAGE = `${JSON.stringify({ private: true, type: 'commonjs' }, null, 2)}\n`;
 
 function walk(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -79,6 +83,7 @@ function plan(root, options = {}) {
   // security-baseline.js looks here, so CI can check the mapping without the kit on the runner.
   for (const file of walk(path.join(KIT, 'standards', 'control-sets'))) control(file, path.join(claude, 'control-sets', path.basename(file)));
 
+  seed(null, path.join(claude, 'package.json'), COMMONJS_PACKAGE);
   seed(path.join(setup, 'stack.json'), path.join(claude, 'stack.json'));
   // Rules are fitted to each project (Phase A.5): seed the folder once, never file by file into one that exists.
   if (!fs.existsSync(path.join(claude, 'rules'))) for (const file of walk(path.join(setup, 'rules'))) seed(file, path.join(claude, 'rules', path.basename(file)));
@@ -154,4 +159,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { KIT_ONLY, main, plan };
+module.exports = { COMMONJS_PACKAGE, KIT_ONLY, main, plan };

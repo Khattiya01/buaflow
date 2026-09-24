@@ -65,6 +65,24 @@ test('without --plugin the session layer is installed into .claude/ too', () => 
   }
 });
 
+test('in a "type": "module" project the installed .claude/*.js still run as CommonJS', () => {
+  const root = temporaryProject('buaflow-install-esm-');
+  try {
+    write(path.join(root, 'package.json'), `${JSON.stringify({ name: 'esm-app', type: 'module' })}\n`);
+    run(root, '--write');
+    assert.equal(json(root, '.claude/package.json').type, 'commonjs');
+    for (const rel of ['.claude/hooks/session-context.js', '.claude/hooks/usage-capture.js', '.claude/board.js']) {
+      const r = runNode(path.join(root, rel), { cwd: root, input: { hook_event_name: 'SessionStart', cwd: root }, env: { CLAUDE_PROJECT_DIR: root } });
+      assert.doesNotMatch(r.stderr, /ES module|require is not defined/, `${rel}: ${r.stderr}`);
+    }
+    write(path.join(root, '.claude', 'package.json'), '{"type":"commonjs","name":"team"}\n');
+    run(root, '--write');
+    assert.equal(json(root, '.claude/package.json').name, 'team', 'a .claude/package.json the project has is kept');
+  } finally {
+    cleanup(root);
+  }
+});
+
 test('a second run changes nothing, and project files the kit only seeds are never overwritten', () => {
   const root = temporaryProject('buaflow-install-');
   try {

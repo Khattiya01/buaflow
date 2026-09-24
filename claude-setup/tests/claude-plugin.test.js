@@ -59,6 +59,25 @@ test('EV-011 usage-capture is wired where it listens and finds usage.js inside t
   assert.ok(files.has('kit/claude-setup/usage.js') && files.has('kit/claude-setup/convergence.js'), 'the hook resolves ../kit/claude-setup/usage.js');
 });
 
+test('a plugin cached inside a "type": "module" project still loads its hooks as CommonJS', () => {
+  const project = temporaryProject('buaflow-plugin-esm-');
+  try {
+    fs.writeFileSync(path.join(project, 'package.json'), `${JSON.stringify({ name: 'esm-app', type: 'module' })}\n`);
+    const pluginRoot = path.join(project, '.claude-local', 'plugins', 'cache', 'buaflow', 'buaflow', 'x');
+    for (const [rel, content] of build(repositoryRoot).files) {
+      fs.mkdirSync(path.dirname(path.join(pluginRoot, rel)), { recursive: true });
+      fs.writeFileSync(path.join(pluginRoot, rel), content);
+    }
+    for (const hook of ['kit-context.js', 'session-context.js', 'usage-capture.js']) {
+      const r = runNode(path.join(pluginRoot, 'hooks', hook), { cwd: project, input: { hook_event_name: 'SessionStart', cwd: project }, env: { CLAUDE_PROJECT_DIR: project, CLAUDE_PLUGIN_ROOT: pluginRoot } });
+      assert.doesNotMatch(r.stderr, /ES module|require is not defined/, `${hook}: ${r.stderr}`);
+      assert.equal(r.status, 0, `${hook}: ${r.stderr}`);
+    }
+  } finally {
+    cleanup(project);
+  }
+});
+
 test('the kit inside the plugin runs from there: its CLI installs a project', () => {
   const root = temporaryProject('buaflow-plugin-kit-');
   try {
