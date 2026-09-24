@@ -108,6 +108,7 @@ test('EV-011 skills: start asks once and only on a machine with a store, check r
   const args = command[1].replace('<ID>', 'T-001').replace('pass|fail', 'fail').replace('<code-review level>', 'medium').split(/\s+/).filter((a) => a !== '<<\'EOF\'');
   assert.equal(usage.parseArgs(args).verdict, 'fail', 'the command the skill shows parses');
   assert.match(check, /Recording must never change or fail `\/check`/);
+  assert.match(check, /every item of all three lists.+`must-fix:`, `should-fix:` or `separate-task:`/, 'findings have one fixed scope, so events compare across runs');
 
   const plan = files.get('skills/plan/SKILL.md');
   assert.match(plan, /Set `approved_by:`.+Never your own name, and never leave the `<ใครอนุมัติ>` placeholder/);

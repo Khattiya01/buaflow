@@ -91,11 +91,14 @@ Then ask: **fix now** or **approve → `/done`**
 
 ## 6. Record the result (usage capture)
 
-Right after the summary, run this once. Use verdict `fail` when "Must fix before merge" has any item, otherwise `pass`. Pass one line per finding exactly as it appears in the summary.
+Right after the summary, run this once. Use verdict `fail` when "Must fix before merge" has any item, otherwise `pass`.
+Findings are every item of all three lists in the summary, one per line as written there, each prefixed with its list: `must-fix:`, `should-fix:` or `separate-task:`. No items → pass nothing between the markers.
 
 ```bash
 node .claude/usage.js record check --task <ID> --verdict pass|fail --level <code-review level> --findings - <<'EOF'
-<one finding per line>
+must-fix: <path:line — what — how it breaks>
+should-fix: <...>
+separate-task: <...>
 EOF
 ```
 

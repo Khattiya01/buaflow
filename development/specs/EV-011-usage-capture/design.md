@@ -184,7 +184,7 @@ evals/drafts/                                   ← ผลของ eval-draft
 | ไฟล์ต้นทาง | เปลี่ยน | AC |
 |---|---|---|
 | `plugin-src/skills/start/SKILL.md` | เพิ่มข้อ "ความยินยอม": ถ้า `usage status` บอกว่ายังไม่ตอบ ให้ถาม 1 ครั้ง (ทั้ง 3 path: เริ่มใหม่ / resume / upgrade) แล้วเรียก `usage consent` | AC-1, AC-3 |
-| `core/skills/check` (ต้นทางของ `/check`) | ขั้นสุดท้าย: เขียน findings ลงไฟล์ชั่วคราว แล้วเรียก `usage record check …` · ถ้าคำสั่งล้มให้ข้ามได้ ห้ามทำให้ `/check` ล้ม | AC-10 |
+| `core/skills/check` (ต้นทางของ `/check`) | ขั้นสุดท้าย: เรียก `node .claude/usage.js record check … --findings -` ส่ง findings ทาง stdin (ไม่มีไฟล์ชั่วคราวให้ต้องลบ) ทุกรายการของทั้ง 3 หมวดใน summary บรรทัดละข้อ นำหน้าด้วย `must-fix:` / `should-fix:` / `separate-task:` · verdict `fail` เมื่อมี must-fix · ถ้าคำสั่งล้มให้ข้ามได้ ห้ามทำให้ `/check` ล้ม · ใช้ `.claude/usage.js` แทน CLI เพราะติดตั้งในโปรเจกต์ทั้ง 2 โหมด (EV-011.7) | AC-10 |
 | `core/skills/plan` (ต้นทางของ `/plan`) | ขั้นปิด: เติม `approved_by:` ด้วยชื่อผู้อนุมัติจริงก่อน commit plan | AC-7 |
 | `templates/task.tpl.md` | เพิ่ม `fixes: <T-xxx ที่งานนี้แก้ — ถ้าไม่ใช่งานแก้ให้ลบบรรทัดนี้>` | AC-15 |
 | `claude-setup/install.js` | เพิ่ม `usage.js` และ `hooks/usage-capture.js` ในรายการไฟล์ที่ติดตั้งลง `.claude/` (ทาง non-plugin) | — |

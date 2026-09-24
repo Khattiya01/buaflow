@@ -147,7 +147,7 @@ test('docs-lint (EV-011) accepts a task that carries fixes:, and the task templa
     assert.equal(withFixes.status, without.status, withFixes.stdout);
     assert.equal(withFixes.stdout.replace(/T-004/g, ''), without.stdout.replace(/T-004/g, ''), 'fixes: adds no finding');
     const template = require('node:fs').readFileSync(path.join(repositoryRoot, 'templates', 'task.tpl.md'), 'utf8');
-    assert.match(template, /^fixes: T-000\s+#.+ลบบรรทัดนี้$/m);
+    assert.match(template, /^fixes: <T-xxx .+ลบบรรทัดนี้>$/m);
   } finally {
     cleanup(root);
   }

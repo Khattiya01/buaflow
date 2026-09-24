@@ -166,6 +166,14 @@ test('template placeholders are recorded as null, never as values', (t) => {
   assert.equal(done.data.closed, null);
 });
 
+test('AC-15 a task that keeps the template\'s fixes: line unedited records fixes as null, not as a link', (t) => {
+  const p = project(t);
+  p.start();
+  const line = fs.readFileSync(path.join(repositoryRoot, 'templates', 'task.tpl.md'), 'utf8').match(/^fixes:.*$/m)[0];
+  p.put('docs/backlog/tasks/T-001-demo.md', task({ extra: line }));
+  assert.equal(p.events()[0].data.fixes, null);
+});
+
 test('AC-4 switching consent off stops recording and keeps what was already recorded', (t) => {
   const p = project(t);
   p.start();
