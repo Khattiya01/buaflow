@@ -97,6 +97,7 @@ node .claude/readiness.js --file docs/evidence/readiness.json --level R3
 | skill | ใครเรียกได้ | ทำอะไร |
 |---|---|---|
 | `/intent` | คน + Claude | เปิดงานใหม่ จับ "ทำไม" ก่อน |
+| `/elaborate` | คน + Claude | requirement คร่าว ๆ → research โดเมน แล้วเสนอสิ่งที่ขาดให้คนตัดสินก่อน spec |
 | `/spec` | คน + Claude | spec ของ feature ใหญ่ (3 ไฟล์ 3 gate) |
 | `/plan` | คน + Claude | วางแผนใน plan mode แล้ว commit ก่อนแตะโค้ด |
 | `/task` | คน + Claude | หยิบงานมาทำ |

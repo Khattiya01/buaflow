@@ -10,6 +10,7 @@ Use it when your AI tool has no slash commands, subagents, inline commands or ho
 |---|---|---|
 | Check finished work before asking a human to approve | [check](skills/check.md) | no |
 | Close a task that passed /check and was approved by the user | [done](skills/done.md) | yes |
+| Work out what a thin requirement leaves out before it is specced — the goal behind the ask, what the business domain normally needs around it, and what the system already has — then research it and propose additions for the user to decide | [elaborate](skills/elaborate.md) | no |
 | Urgent production fix procedure — record the symptom, find the cause, choose the approach, fix, release, then postmortem and feed back into the system | [hotfix](skills/hotfix.md) | yes |
 | Open new work by capturing "why" before "what" | [intent](skills/intent.md) | no |
 | Plan before touching code and save it as plan | [plan](skills/plan.md) | no |

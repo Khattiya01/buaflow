@@ -4,6 +4,7 @@ title: <ชื่อสั้นๆ ที่บอกว่าเรื่อ�
 author: <ใครเป็นคนเสนอ หรือ monitoring/postmortem ถ้ามาจากระบบ>
 source: user | postmortem | sonar | uat-feedback | monitoring | idea
 status: draft | review | accepted | rejected | deferred
+brief: open | fixed   # งานใหม่เท่านั้น — open = ลูกค้าให้มาคร่าว ๆ ให้เราคิดต่อ (→ /elaborate) · fixed = TOR/สัญญา ห้ามออกนอกที่เขียน · bug/งานเล็ก ลบบรรทัดนี้
 created: YYYY-MM-DD
 decided: YYYY-MM-DD
 ---
@@ -37,7 +38,7 @@ decided: YYYY-MM-DD
 
 ## การตัดสิน (เจ้าของโปรเจกต์กรอก)
 
-- [ ] **ทำ** → ไปต่อที่ `/spec` (feature ใหญ่) หรือสร้าง task ตรง ๆ (งานเล็ก)
+- [ ] **ทำ** → `brief: open` ไปที่ `/elaborate` ก่อน แล้วค่อย `/spec` (feature ใหญ่) หรือสร้าง task ตรง ๆ (งานเล็ก)
 - [ ] **ยังไม่ทำ** → ใส่ `status: deferred` พร้อมเงื่อนไขว่าเมื่อไหร่ถึงกลับมาดู
 - [ ] **ไม่ทำ** → ใส่ `status: rejected` พร้อมเหตุผล **อย่าลบไฟล์** เพราะอีก 3 เดือนจะมีคนเสนอซ้ำ
 

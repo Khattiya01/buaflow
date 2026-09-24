@@ -144,6 +144,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | IC-004 | Assumption/risk ledger | ✅ **done** — `assumption-ledger` 1.0 · เปิดค้างเลยวันหมดอายุ = gate ตก |
 | IC-005 | Intent-to-requirement compiler | ✅ **done (ครึ่งพิสูจน์)** — AI เขียนใน /spec ตาม D-011 · docs-lint ตรวจ EARS 4 แบบ + AC ทุกข้อถูกอ้างใน design/tasks |
 | IC-006 | Change impact engine | intent เปลี่ยนแล้วชี้ artifact/contract/test ที่ต้องทบทวน |
+| IC-007 | Requirement elaboration | ✅ **done (D-029, 3.14.0)** — `/intent` ถาม brief `open`/`fixed` · `/elaborate` หาเป้าหมายจริง research โดเมน แล้วเสนอสิ่งที่คำขอขาดพร้อมแหล่งที่มา ไม่จำกัดจำนวน · คนตัดสินเป็นกลุ่ม · ข้อที่รับเข้า spec โดยอ้าง `E-xx` · docs-lint warn · eval EV-006 · เปิดจากโปรเจกต์จริงที่ brief "dashboard ยอดขาย + ติดตามบิล" ถูกเขียนตามคำเดิม |
 
 ### Profiles and Packs — จำกัดทางเลือกเพื่อให้ผลิตได้เร็วและเชื่อถือได้
 

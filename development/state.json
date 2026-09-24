@@ -2,7 +2,7 @@
   "$schema": "./state.schema.json",
   "schemaVersion": "1.0",
   "product": "buaflow",
-  "updatedAt": "2026-09-24",
+  "updatedAt": "2026-09-25",
   "current": {
     "milestone": "M5",
     "focus": []
@@ -2039,6 +2039,43 @@
         "claude plugin install buaflow@buaflow into a throwaway CLAUDE_CONFIG_DIR, then run the cached kit-context hook and the cached CLI install"
       ],
       "notes": "Opened from the user's question on 2026-09-24: why install the plugin and still clone the folder. 3.11 plugin carried only skills/agents/hooks; everything the phases read and the CLI lived in the folder. The plugin now carries kit/ (192 files, ~1.7 MB; reference-apps, manual, core and the kit tests left out) and a SessionStart hook that states the kit path, because the Claude Code docs guarantee ${CLAUDE_PLUGIN_ROOT} substitution in hook commands but not in skill text. The plugin cache is plain files with no .git, so install detects an old kit file through the lock it writes rather than kit history. Verified by a real install into a throwaway config: the cache held kit/, the hook reported the cached path, and the cached CLI installed a project. What the plugin still cannot do, and the docs say so: install itself for teammates (the marketplace is added from project settings, the plugin is not), and carry permissions, rules or stack.json."
+    },
+    {
+      "id": "IC-007",
+      "title": "Requirement elaboration: research what a thin brief leaves out and propose it for a human decision",
+      "milestone": "M5",
+      "status": "done",
+      "startedAt": "2026-09-25",
+      "completedAt": "2026-09-25",
+      "dependsOn": [
+        "IC-002",
+        "IC-005"
+      ],
+      "acceptance": [
+        "/intent asks whether a new feature brief is open (think it through) or fixed (TOR/contract) and records brief: in the intent",
+        "/elaborate states the goal behind the ask, reads what the system already has, researches the domain with WebSearch/WebFetch, and writes every proposal it finds (no count cap) to docs/elaboration/ with a reason, a source, a must/should/could level and a decision",
+        "Proposals are decided by a person, in groups; accepted ones become requirements citing E-xx, change-request/rejected/deferred ones stay out of the ACs, and anything left pending when a round ends becomes deferred",
+        "docs-lint warns (3.x, never fails) on a proposal without a source, level or valid decision, on pending proposals after the work moved on, on an accepted proposal missing from the spec's requirements.md, and on an accepted brief: open intent with no elaboration unless it declares elaboration: skipped; projects that use neither brief: nor docs/elaboration/ see nothing new",
+        "The observed failure is kept as eval case EV-006 with an ablation of the skill"
+      ],
+      "artifacts": [
+        "core/skills/elaborate.md",
+        "core/skills/intent.md",
+        "core/skills/spec.md",
+        "claude-setup/skills/elaborate/SKILL.md",
+        "templates/elaboration.tpl.md",
+        "templates/intent.tpl.md",
+        "claude-setup/docs-lint.js",
+        "claude-setup/tests/docs-lint.test.js",
+        "claude-setup/evals/EV-006.json",
+        "manual/skills/elaborate.md"
+      ],
+      "verification": [
+        "npm run check",
+        "node --test claude-setup/tests/docs-lint.test.js",
+        "node claude-setup/eval-harness.js --cases claude-setup/evals --root ."
+      ],
+      "notes": "Opened from the owner's first real use after M9 (D-029): a customer asked for a dashboard of sales overview and invoice tracking (issued yet? paid yet?); /intent recorded exactly that and nobody proposed invoice states, aging, partial payment or credit notes until the owner said so, on a strong model. The cause was the kit, not the model: /intent is told never to fill gaps and to write in the user's words, /spec writes requirements from the intent, and no step between them asked anyone to think past the words or allowed research. Same D-011 split as the rest of the kit: the model of the day does the thinking and the research through lenses (goal fit, lifecycle, actors, exceptions, data, integration, domain rules), not a fixed per-domain checklist that would age; Buaflow proves that every proposal was decided by a person and that accepted ones reached the spec, with the E-xx citation keeping customer-asked and we-proposed requirements apart for scope and price conversations. The owner rejected a cap on the number of proposals (research is already paid for when the list is written); grouping by level, group decisions and pending→deferred at the end of a round are what keep a long list usable instead. EV-006 has no run yet: per claude-setup/evals/README.md the author of a config does not grade its eval, so it waits for a clean session and a different grader."
     }
   ],
   "decisions": [
@@ -2237,12 +2274,19 @@
       "decision": "Reopen usage capture as a new item, EV-011, rather than reviving EV-005, scoped to internal projects the owner runs with one-time consent per project and a private git repository as the store.",
       "reason": "D-013 dropped EV-005 because the only source was this repository measuring itself, and wrote the reopening condition down: real adopters, and an item written against their needs. Both now hold. EV-009 closed today on Bluepeak Hub, and the owner reports 2-5 internal projects using Buaflow through the plugin (PE-008). The privacy concern that made D-013 wary of building a collection path first does not apply: the projects are the owner's, the owner accepts full content, and consent is still asked once per project.",
       "impact": "EV-011 sits in M5 as backlog awaiting the owner's go-ahead to spec. EV-005 stays dropped with its reason, so the history of why it was not built is kept. If EV-011 produces enough real eval runs to compare models, MT-006 (model routing) meets its own reopening condition and should be written as a new item from that data. current moves from the completed M9 to M5 with EV-011 in focus."
+    },
+    {
+      "id": "D-029",
+      "date": "2026-09-25",
+      "decision": "Add requirement elaboration (IC-007): /intent asks whether a brief is open or fixed, and a new /elaborate step between /intent and /spec researches the domain and proposes what the brief leaves out, for a person to decide. No cap on the number of proposals; docs-lint checks decisions and traceability as warnings.",
+      "reason": "In the owner's first real use after M9, a thin customer brief (a dashboard of sales and invoice tracking) went into the intent and would have gone into the spec as written, on a strong model; the owner had to point out what was missing. The kit caused it: /intent forbids filling gaps and has no web tools, and nothing between intent and spec asked for more. A fixed list of what each kind of feature needs would age like the domain packs D-025 dropped, and would cap a better model at the list; asking the model to use the goal, the domain, research and the existing system does not, so the kit gets better as models do. The owner asked for the open/fixed question up front, because some customers want us to think the rest through and some hand over a contract that must not grow.",
+      "impact": "Kit 3.14.0 (MINOR): new skill, new template, a new optional brief: key in intents, and docs-lint warnings that only fire for projects that use brief: or docs/elaboration/. No public schema changes. The roadmap gains IC-007 as done; there are again no open roadmap items."
     }
   ],
   "lastSession": {
-    "date": "2026-09-24",
-    "summary": "EV-011 closed. Kit 3.13.0 shipped internal opt-in usage capture (PR #11); rollout found that a \"type\": \"module\" project broke every plugin hook and .claude script, fixed as 3.13.1 (PR #12). Bluepeak Hub and TRENDY both record into Khattiya01/buaflow-usage; usage report shows two projects.",
-    "next": "No open roadmap items. Watch the store: the first /check inside a TRENDY or Bluepeak Hub session gives the first model-tagged check.result, which is what the by-model comparison needs. Open in Bluepeak Hub: T-012; merging buaflow/phase-a-adoption is the owner's call. Parked until asked: MT-003/004. Known, not a task: bin/buaflow.js exits right after emit, which can cut piped stdout under load.",
-    "verifiedAt": "2026-09-24"
+    "date": "2026-09-25",
+    "summary": "IC-007 built on branch feat/IC-007-elaborate for kit 3.14.0: /elaborate (research the domain, propose what a thin brief leaves out, a person decides in groups), /intent asks brief: open | fixed, /spec cites accepted E-xx, docs-lint warns on undecided or untraced proposals, eval case EV-006 from the dashboard brief that exposed the gap. PR opened for the owner's review, not merged.",
+    "next": "Owner reviews and merges the IC-007 PR, then updates the plugin. First real use: run /elaborate on the next customer brief in a real project and compare the proposals with what the owner would have added; grade EV-006 in a clean session by someone other than its author. Still watching the usage store for the first model-tagged check.result. Parked until asked: MT-003/004.",
+    "verifiedAt": "2026-09-25"
   }
 }

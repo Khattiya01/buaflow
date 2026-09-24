@@ -18,7 +18,8 @@
 | ขั้น | อ่านอะไร | คายอะไร |
 |---|---|---|
 | `/intent` | คำเล่าของผู้ใช้ | intent.md ที่ตอบ "ทำไม / วัดยังไง / ห้ามพัง" ครบ |
-| `/spec` | **intent.md** (ไม่ถามซ้ำ) + constitution ม.4-6 + architecture เฉพาะหัวข้อที่เกี่ยว + schema.prisma | requirements / design / tasks |
+| `/elaborate` | intent.md + ส่วนของระบบที่เกี่ยว + เว็บที่ research | `docs/elaboration/` ข้อเสนอที่มีแหล่งที่มาและการตัดสิน |
+| `/spec` | **intent.md** (ไม่ถามซ้ำ) + elaboration ที่รับแล้ว + constitution ม.4-6 + architecture เฉพาะหัวข้อที่เกี่ยว + schema.prisma | requirements / design / tasks |
 | `/plan` | **ครั้งเดียวที่อ่านครบ**: task + spec + constitution + โค้ดเดิม + schema | plan.md ที่**คัด** AC + มาตรา + กติกา design + pattern ไว้ในหัวข้อ "ข้อกำหนดที่คัดมาแล้ว" |
 | `/task` | **plan.md ไฟล์เดียว** + โค้ดที่จะแตะ | โค้ด + บรรทัดสรุป verify |
 | `/check` | **plan.md ไฟล์เดียว** + diff | รายงานเฉพาะข้อที่ไม่ผ่าน |
@@ -51,7 +52,7 @@
 
 | ขั้น | โมเดล | ทำไม |
 |---|---|---|
-| `/intent`, `/spec` design, `/plan`, Phase 1-4 | **Opus** | งานคิด ผิดตรงนี้แพงกว่าทุกที่ |
+| `/intent`, `/elaborate`, `/spec` design, `/plan`, Phase 1-4 | **Opus** | งานคิด ผิดตรงนี้แพงกว่าทุกที่ |
 | `/task` ลงมือตามแผน, `/done`, hotfix ที่รู้สาเหตุแล้ว | **Sonnet** | ทำตามของที่คัดมาแล้ว |
 | `Explore`, `legacy-explorer`, `test-writer`, `code-reviewer` | **Haiku / Sonnet** (ตั้งใน `model:` ของ agent) | อ่านเยอะ ตัดสินน้อย |
 | `/check` | `/code-review medium` · diff แตะ auth/เงิน/migration → `high` + Opus | |
@@ -99,7 +100,7 @@
 | ช่วง | โหมด | เพราะ |
 |---|---|---|
 | `/task` `/check` `/done` `/hotfix` | lite ได้ | คำตอบในแชท ย่อได้ |
-| `/intent` `/spec` `/plan` Phase 1-5 | **off** | กำลังเขียน artifact ที่คนและ session อื่นอ่านซ้ำ — full mode ตัด ที่/ซึ่ง/ว่า ทำให้ AC กำกวม |
+| `/intent` `/elaborate` `/spec` `/plan` Phase 1-5 | **off** | กำลังเขียน artifact ที่คนและ session อื่นอ่านซ้ำ — full mode ตัด ที่/ซึ่ง/ว่า ทำให้ AC กำกวม |
 | full mode | ไม่แนะนำ | บล็อกสรุปของ `/task` ข้อ 4 และ `/check` ข้อ 5 ต้องอ่านแล้วตัดสินได้ ตัดคำเชื่อมแล้วเสี่ยงอ่านผิด |
 ติดตั้งระดับ user (`~/.pordee`) ไม่ใส่ในโปรเจกต์ และรัน EV-002 / EV-003 ซ้ำหลังเปิด เพื่อยืนยันว่าไฟล์ที่ AI เขียนยังเป็นภาษาเต็ม
 
