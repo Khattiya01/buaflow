@@ -34,6 +34,7 @@ An installed project with no `.buaflow/lock.json` was installed by a kit older t
 | State | Do |
 |---|---|
 | Installed, and either no lock or a lock older than the plugin kit | Upgrade. Tell the user which version you found. Follow `<KIT>/UPGRADE.md`: first the sections that bring a version older than 2.3.4 up to 2.3.4, then the "fast path". Run `install --plugin` as a dry run and show the user the result, especially any `conflict`. Run it with `--write` only after the user agrees. Then move the project to the plugin, as in the paragraph after this table. |
+| Installed, with a lock **newer** than the plugin kit | The user's plugin is out of date, not the project. Tell them to update it (section 7) and start a new session, then stop. Never run `install` from an older plugin: it would put older files over newer ones. |
 | Installed, with a lock equal to the plugin kit | Resume. Run `resume`, read `docs/planning/_state.md`, and continue from where it stopped. |
 | Not installed | Read `<KIT>/START-HERE.md` and do Phase 0 exactly as it says. For an existing codebase, also run `assess` and give the user its result with the Phase 0 questions. |
 
@@ -94,3 +95,16 @@ Before reporting Phase 7 complete, all of these must hold:
 - `node .claude/gate.js` runs.
 
 Tell the user one thing plainly: each teammate installs the plugin once: `/plugin install buaflow@buaflow` in the terminal app, or `claude plugin install buaflow@buaflow` in a terminal when using the VS Code extension. The marketplace is added for them automatically, but the plugin is not installed automatically. The gate protects `main` either way.
+
+## 7. Keeping the plugin and the project current
+
+Two things update separately, and both can fall behind without anything failing:
+
+| What | How it updates |
+|---|---|
+| The plugin: skills, agents, hooks and the kit | Claude Code. Auto-update is **off** for a third-party marketplace until each person turns it on once: `/plugin` → **Marketplaces** → `buaflow` → **Enable auto-update**. Updates then arrive in the background after a session starts and load at the next session or on `/reload-plugins`. Without it: `claude plugin marketplace update buaflow` then `claude plugin update buaflow@buaflow`, then a new session. In the VS Code extension, where `/plugin` is unavailable, use those two commands in a terminal. |
+| The project: gate, checkers and templates in `.claude/` and `docs/templates/` | Only `install --plugin --write`, run from the upgrade path in section 3, then committed. |
+
+The plugin's SessionStart hook compares the two at every session start and shows the user a one-line notice when either is behind.
+
+Tell the user about auto-update once, at the end of a new install (Phase 7) and after an upgrade. Claude Code keeps the setting per person and per machine, and nothing in the project can read it, so it cannot be checked from here. On a company machine, an administrator can turn it on for everyone with `"autoUpdate": true` on the `buaflow` entry of `extraKnownMarketplaces` in managed settings.

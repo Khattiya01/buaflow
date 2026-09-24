@@ -219,3 +219,29 @@ test('the plugin session hook tells a session where the kit is and what state th
     cleanup(root);
   }
 });
+
+// The plugin updates through Claude Code, the project's .claude/ only through install; either can lag silently.
+test('the plugin session hook tells the user, not only the model, when the project or the plugin is behind', () => {
+  const root = temporaryProject('buaflow-install-');
+  try {
+    const out = () => JSON.parse(runNode(kitContext, { cwd: root, env: { CLAUDE_PROJECT_DIR: root } }).stdout);
+    const version = json(repositoryRoot, 'claude-plugin/kit/package.json').version;
+    run(root, '--plugin', '--write');
+    assert.equal(out().systemMessage, undefined, 'nothing to say when both are current');
+    const setLock = (v) => write(path.join(root, '.buaflow', 'lock.json'), JSON.stringify({ ...json(root, '.buaflow/lock.json'), kitVersion: v }));
+
+    setLock('3.0.0');
+    assert.match(out().systemMessage, new RegExp(`plugin เป็น ${version.replace(/\./g, '\\.')} แล้ว แต่ gate และตัวตรวจในโปรเจกต์นี้ยังเป็น 3\\.0\\.0 → พิมพ์ /buaflow:start`));
+
+    setLock('99.0.0');
+    const ahead = out();
+    assert.match(ahead.systemMessage, /plugin ของคุณ .* เก่ากว่าที่โปรเจกต์นี้ติดตั้งไว้ \(99\.0\.0\) → รัน claude plugin marketplace update buaflow .*Enable auto-update/);
+    assert.match(ahead.hookSpecificOutput.additionalContext, /newer than this plugin/);
+    assert.doesNotMatch(ahead.hookSpecificOutput.additionalContext, /\/buaflow:start upgrades/, 'an older plugin must not offer to install over newer files');
+
+    fs.rmSync(path.join(root, '.buaflow', 'lock.json'));
+    assert.match(out().systemMessage, /เก่ากว่า 3\.11/);
+  } finally {
+    cleanup(root);
+  }
+});

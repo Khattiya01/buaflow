@@ -107,7 +107,9 @@ claude plugin install buaflow@buaflow
 ```
 
 แล้วเปิด session ใหม่ใน VS Code (ปิดแท็บแชทแล้วเปิดใหม่) — plugin โหลดตอนเริ่ม session · `/buaflow:start` ควรขึ้นในรายการคำสั่ง
-อัปเดตรุ่นใหม่ภายหลัง: `claude plugin marketplace update buaflow` แล้ว `claude plugin update buaflow@buaflow`
+อัปเดตรุ่นใหม่ภายหลัง: `claude plugin marketplace update buaflow` แล้ว `claude plugin update buaflow@buaflow` แล้วเปิด session ใหม่ ·
+ไม่อยากทำเองทุกรอบ → `/plugin` → **Marketplaces** → `buaflow` → **Enable auto-update** (ครั้งเดียวต่อเครื่อง · marketplace ของ third-party ปิดไว้เป็นค่าเริ่มต้น) ·
+plugin อัปเดตแล้ว **gate และตัวตรวจใน `.claude/` ของโปรเจกต์ยังไม่อัปเดต** จนกว่าจะรัน `/buaflow:start` (session แรกหลังอัปเดตจะแจ้งให้)
 
 ## gate
 

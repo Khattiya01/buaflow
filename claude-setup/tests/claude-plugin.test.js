@@ -135,12 +135,12 @@ test('EV-011 skills: start asks once and only on a machine with a store, check r
 });
 
 // f8791f6 left the "Not installed" row below a paragraph, where Markdown no longer reads it as part of the table.
-test('/buaflow:start offers all three paths inside one table', () => {
+test('/buaflow:start offers every path inside one table, including a plugin older than the project', () => {
   const { files } = build(repositoryRoot);
   const start = files.get('skills/start/SKILL.md');
   const section = start.slice(start.indexOf('## 3. Take exactly one path'), start.indexOf('## 4.'));
   const table = section.match(/^\| State \| Do \|\n\|---\|---\|\n((?:\|.*\|\n)+)/m);
   assert.ok(table, 'the table is there');
   const rows = table[1].trim().split('\n').map((row) => row.split('|')[1].trim());
-  assert.deepEqual(rows, ['Installed, and either no lock or a lock older than the plugin kit', 'Installed, with a lock equal to the plugin kit', 'Not installed']);
+  assert.deepEqual(rows, ['Installed, and either no lock or a lock older than the plugin kit', 'Installed, with a lock **newer** than the plugin kit', 'Installed, with a lock equal to the plugin kit', 'Not installed']);
 });
