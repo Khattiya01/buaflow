@@ -24,12 +24,30 @@ const lines = [
   `Where Buaflow documents say \`buaflow/<path>\`, read \`${KIT}${path.sep}<path>\`. Run the Buaflow CLI as: ${cli} <command>`,
 ];
 
+// Negative when a is older than b; null when either is not x.y.z.
+const compare = (a, b) => {
+  const [pa, pb] = [a, b].map((v) => (/^\d+\.\d+\.\d+$/.test(String(v)) ? String(v).split('.').map(Number) : null));
+  if (!pa || !pb) return null;
+  return pa[0] - pb[0] || pa[1] - pb[1] || pa[2] - pb[2];
+};
+
+// The plugin and the project update separately: the plugin through Claude Code, the gate and checkers
+// in .claude/ only through `install`. Either can fall behind without anything failing, so the user is told.
+let notice = null;
 const locked = json(path.join(ROOT, '.buaflow', 'lock.json'))?.kitVersion;
 if (has('.claude/gate.js') || has('.claude/skills') || has('.claude/commands')) {
+  const order = locked ? compare(locked, version) : null;
   // No lock means a kit older than 3.11 installed it (the lock arrived in 3.11) — an upgrade, not "installed".
-  if (!locked) lines.push(`This project has Buaflow installed from a kit older than 3.11 (no .buaflow/lock.json); the plugin kit is ${version}. /buaflow:start upgrades it.`);
-  else if (locked !== version) lines.push(`This project's Buaflow controls were installed at ${locked}; the plugin kit is ${version}. /buaflow:start upgrades them.`);
-  else lines.push(`This project's Buaflow controls are installed (${locked}).`);
+  if (!locked) {
+    lines.push(`This project has Buaflow installed from a kit older than 3.11 (no .buaflow/lock.json); the plugin kit is ${version}. /buaflow:start upgrades it.`);
+    notice = `Buaflow: โปรเจกต์นี้ติดตั้งจาก kit ที่เก่ากว่า 3.11 · plugin เป็น ${version} แล้ว → พิมพ์ /buaflow:start เพื่ออัปเกรด gate และตัวตรวจในโปรเจกต์`;
+  } else if (order !== null && order > 0) {
+    lines.push(`This project's Buaflow controls were installed at ${locked}, newer than this plugin (${version}). The user's plugin is out of date: tell them to update it and start a new session before relying on skills.`);
+    notice = `Buaflow: plugin ของคุณ (${version}) เก่ากว่าที่โปรเจกต์นี้ติดตั้งไว้ (${locked}) → รัน claude plugin marketplace update buaflow แล้ว claude plugin update buaflow@buaflow จากนั้นเปิด session ใหม่ · ไม่อยากทำเองอีก: /plugin → Marketplaces → buaflow → Enable auto-update`;
+  } else if (locked !== version) {
+    lines.push(`This project's Buaflow controls were installed at ${locked}; the plugin kit is ${version}. /buaflow:start upgrades them.`);
+    notice = `Buaflow: plugin เป็น ${version} แล้ว แต่ gate และตัวตรวจในโปรเจกต์นี้ยังเป็น ${locked} → พิมพ์ /buaflow:start เพื่ออัปเกรด แล้ว commit`;
+  } else lines.push(`This project's Buaflow controls are installed (${locked}).`);
 } else if (has('docs/planning/_state.md') || has('.buaflow/project.json')) {
   lines.push(`This project uses Buaflow but its gate and checkers are not installed yet — they are installed in Phase 7 with: ${cli} install --plugin --write`);
 } else {
@@ -38,4 +56,7 @@ if (has('.claude/gate.js') || has('.claude/skills') || has('.claude/commands')) 
 const folder = json(path.join(ROOT, 'buaflow', 'package.json'));
 if (folder?.name === 'buaflow') lines.push(`This project also has a buaflow/ folder (kit ${folder.version}). Use the plugin kit above unless the user says otherwise.`);
 
-process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: lines.join('\n') } }));
+process.stdout.write(JSON.stringify({
+  ...(notice ? { systemMessage: notice } : {}),
+  hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: lines.join('\n') },
+}));

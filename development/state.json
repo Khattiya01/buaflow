@@ -2076,6 +2076,34 @@
         "node claude-setup/eval-harness.js --cases claude-setup/evals --root ."
       ],
       "notes": "Opened from the owner's first real use after M9 (D-029): a customer asked for a dashboard of sales overview and invoice tracking (issued yet? paid yet?); /intent recorded exactly that and nobody proposed invoice states, aging, partial payment or credit notes until the owner said so, on a strong model. The cause was the kit, not the model: /intent is told never to fill gaps and to write in the user's words, /spec writes requirements from the intent, and no step between them asked anyone to think past the words or allowed research. Same D-011 split as the rest of the kit: the model of the day does the thinking and the research through lenses (goal fit, lifecycle, actors, exceptions, data, integration, domain rules), not a fixed per-domain checklist that would age; Buaflow proves that every proposal was decided by a person and that accepted ones reached the spec, with the E-xx citation keeping customer-asked and we-proposed requirements apart for scope and price conversations. The owner rejected a cap on the number of proposals (research is already paid for when the list is written); grouping by level, group decisions and pending→deferred at the end of a round are what keep a long list usable instead. EV-006 has no run yet: per claude-setup/evals/README.md the author of a config does not grade its eval, so it waits for a clean session and a different grader."
+    },
+    {
+      "id": "PE-009",
+      "title": "Plugin and project stay current: tell the user which side is behind",
+      "milestone": "M9",
+      "status": "done",
+      "startedAt": "2026-09-25",
+      "completedAt": "2026-09-25",
+      "dependsOn": [
+        "PE-008"
+      ],
+      "acceptance": [
+        "At session start the plugin hook shows the user a one-line notice when the project's lock is older than the plugin kit, when there is no lock, or when the lock is newer than the plugin (the user's plugin is out of date); nothing is shown when they match",
+        "When the plugin is older than the project, neither the hook nor /buaflow:start offers install, which would put older files over newer ones",
+        "/buaflow:start tells the user how to turn on auto-update for the buaflow marketplace after an install or upgrade, and states that it cannot check the setting"
+      ],
+      "artifacts": [
+        "plugin-src/hooks/kit-context.js",
+        "plugin-src/skills/start/SKILL.md",
+        "claude-setup/tests/install.test.js",
+        "claude-setup/tests/claude-plugin.test.js",
+        "TROUBLESHOOTING.md"
+      ],
+      "verification": [
+        "npm run check",
+        "node --test claude-setup/tests/install.test.js"
+      ],
+      "notes": "Opened from the owner's question after 3.14.0: people on the plugin have to update it by hand. Claude Code docs (discover-plugins): auto-update is on for official marketplaces and off for third-party ones until each person enables it under /plugin > Marketplaces, and an administrator can force it with \"autoUpdate\": true on the extraKnownMarketplaces entry in managed settings. The docs show autoUpdate only in managed settings, so install does not write it into a project's .claude/settings.json: it might be ignored, or might trip settings validation. The part auto-update cannot reach is the project side: .claude/ only changes through install, and the hook already told the model about a stale lock but not the user. The hook now sends the notice as systemMessage as well as additionalContext, which usage-capture already does for its own notice. It also catches a case nothing covered before: a teammate whose plugin is older than what the project installed."
     }
   ],
   "decisions": [
@@ -2285,7 +2313,7 @@
   ],
   "lastSession": {
     "date": "2026-09-25",
-    "summary": "IC-007 built on branch feat/IC-007-elaborate for kit 3.14.0: /elaborate (research the domain, propose what a thin brief leaves out, a person decides in groups), /intent asks brief: open | fixed, /spec cites accepted E-xx, docs-lint warns on undecided or untraced proposals, eval case EV-006 from the dashboard brief that exposed the gap. PR opened for the owner's review, not merged.",
+    "summary": "IC-007 built on branch feat/IC-007-elaborate for kit 3.14.0: /elaborate (research the domain, propose what a thin brief leaves out, a person decides in groups), /intent asks brief: open | fixed, /spec cites accepted E-xx, docs-lint warns on undecided or untraced proposals, eval case EV-006 from the dashboard brief that exposed the gap. PR opened for the owner's review, not merged. Then PE-009 (3.14.1): the plugin session hook tells the user when the project or their plugin is behind, and /buaflow:start explains auto-update.",
     "next": "Owner reviews and merges the IC-007 PR, then updates the plugin. First real use: run /elaborate on the next customer brief in a real project and compare the proposals with what the owner would have added; grade EV-006 in a clean session by someone other than its author. Still watching the usage store for the first model-tagged check.result. Parked until asked: MT-003/004.",
     "verifiedAt": "2026-09-25"
   }
