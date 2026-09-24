@@ -69,12 +69,12 @@ repo นี้ไม่มี `docs/constitution.md` จึงตรวจกั
 | `task.created` | hook: ไฟล์ `docs/backlog/tasks/T-*.md` ใหม่ | `{ path, acceptance: [..], estimate, fixes, content }` | AC-8 |
 | `task.status` | hook: `status:` ต่างจากค่าล่าสุดที่เคยเห็น | `{ from, to }` | AC-9 |
 | `check.result` | skill `/check` เรียก `buaflow usage record check` | `{ verdict: "pass"\|"fail", findings: [..], level }` | AC-10 |
-| `verifier.audit` | `buaflow audit` บันทึกหลังได้ผล | `{ counts, verdicts, level, generatedAt }` | AC-11, AC-23 |
+| `verifier.audit` | `buaflow audit` บันทึกหลังได้ผล | `{ level, ok, executed, counts, verdicts, generatedAt }` — `generatedAt` อ่านจาก manifest ที่ audit ตรวจจริง | AC-11, AC-23 |
 | `task.done` | hook: `task.status` ที่ `to: done` | `{ commit, started, closed, sessions }` | AC-12 |
-| `readiness.snapshot` | hook ตอน SessionStart: `docs/evidence/readiness.json` เปลี่ยนจากรอบก่อน | `{ level, generatedAt, outcome }` | AC-23 |
+| `readiness.snapshot` | hook ตอน SessionStart: เนื้อหา `docs/evidence/readiness.json` เปลี่ยนจากรอบก่อน (เทียบ JSON ที่ parse แล้ว จัดรูปใหม่ไม่นับ) และครั้งแรกที่เจอโปรเจกต์ | `{ level, generatedAt, manifestCommit, outcome, passed, required }` — `manifestCommit` คือ commit ที่ manifest บอกว่าประเมิน ต่างจาก `commit` ของ event ที่เป็น HEAD ตอนบันทึก | AC-23 |
 
 - `readiness.snapshot` ไม่ได้อยู่ใน requirements แต่ต้องมีเพื่อให้ AC-23 ใช้ได้ในโปรเจกต์ที่ไม่ค่อยรัน `buaflow audit`
-- ตัดสินตอนทำ EV-011.3: `readiness.snapshot` บันทึกตั้งแต่ครั้งแรกที่เจอโปรเจกต์ด้วย (readiness เป็นสถานะปัจจุบัน ไม่ใช่ประวัติ) และมี `commit`, `passed`, `required` เพิ่ม · `outcome` มาจาก `validateManifest` ของ `readiness.js` แบบไม่มี `--max-age-days` จึงไม่รัน git หรือคำสั่งใน evidence · อ่าน JSON ไม่ได้ → `outcome: "unreadable"` · `verifier.audit` มี `ok` และ `executed` เพิ่ม และบันทึกเฉพาะเมื่อสั่งผ่าน `buaflow audit` (ไม่ใช่ `node .claude/verifier.js` ตรง ๆ)
+- ตัดสินตอนทำ EV-011.3: `readiness.snapshot` บันทึกตั้งแต่ครั้งแรกที่เจอโปรเจกต์ด้วย (readiness เป็นสถานะปัจจุบัน ไม่ใช่ประวัติ) และมี `manifestCommit`, `passed`, `required` เพิ่ม · `outcome` มาจาก `validateManifest` ของ `readiness.js` แบบไม่มี `--max-age-days` จึงไม่รัน git หรือคำสั่งใน evidence · อ่าน JSON ไม่ได้ → `outcome: "unreadable"` · `verifier.audit` มี `ok` และ `executed` เพิ่ม และบันทึกเฉพาะเมื่อสั่งผ่าน `buaflow audit` (ไม่ใช่ `node .claude/verifier.js` ตรง ๆ)
 - `sessions` ใน `task.done` = จำนวน `sessionId` ที่ไม่ซ้ำกันใน state ของ task นั้น ถ้าไม่มีเลยให้เป็น `null` (R8)
 - `content` คือเนื้อหาไฟล์เอกสารตามจริง และก่อนเขียนจะผ่าน `redact()` ที่แทนรูปแบบ secret ชัด ๆ (`-----BEGIN .* PRIVATE KEY-----`, `AKIA[0-9A-Z]{16}`, `sk-[A-Za-z0-9_-]{20,}`, `ghp_[A-Za-z0-9]{36}`) ด้วย `[REDACTED]`
 

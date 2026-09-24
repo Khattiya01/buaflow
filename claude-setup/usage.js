@@ -430,11 +430,12 @@ const READINESS_FILE = path.join('docs', 'evidence', 'readiness.json');
 function readinessSnapshot(root, state) {
   let text;
   try { text = fs.readFileSync(path.join(root, READINESS_FILE), 'utf8'); } catch { return []; }
-  const hash = crypto.createHash('sha256').update(text).digest('hex');
-  if (hash === state.readinessHash) return [];
-  state.readinessHash = hash;
   let manifest = null;
   try { manifest = JSON.parse(text); } catch { /* recorded as unreadable below */ }
+  // Hash what it says, not how it is laid out: a formatter rewriting the file is not a new state.
+  const hash = crypto.createHash('sha256').update(manifest ? JSON.stringify(manifest) : text).digest('hex');
+  if (hash === state.readinessHash) return [];
+  state.readinessHash = hash;
   let checked = null;
   try { checked = manifest && require('./readiness.js').validateManifest(manifest, { root }); } catch { /* outcome stays null */ }
   return [{
@@ -443,7 +444,7 @@ function readinessSnapshot(root, state) {
     data: {
       level: manifest?.targetLevel ?? null,
       generatedAt: manifest?.generatedAt ?? null,
-      commit: manifest?.commit ?? null,
+      manifestCommit: manifest?.commit ?? null, // what the evidence describes; the event's own commit is HEAD now
       outcome: manifest ? checked?.outcome ?? null : 'unreadable',
       passed: checked?.passed ?? null,
       required: checked?.required ?? null,
@@ -452,11 +453,12 @@ function readinessSnapshot(root, state) {
 }
 
 // `buaflow audit` calls this with the verifier's result (AC-11). Never throws: an audit must not fail because recording did.
+// The manifest is read from where the verifier read it (start); the walked-up root only decides where events go.
 function recordAudit(start, { result, file = READINESS_FILE }) {
   try {
     const root = projectRoot(start);
     const marker = markerModel(readState(root));
-    const manifest = readJsonOr(path.resolve(root, file), {});
+    const manifest = readJsonOr(path.resolve(start, file), {});
     return record(root, {
       type: 'verifier.audit',
       task: null,

@@ -192,8 +192,12 @@ test('AC-23 session start records where readiness stands on first contact and ag
   p.start();
   assert.equal(snapshots().length, 1, 'unchanged since the last look');
   const expected = validateManifest(manifest('2026-09-20T00:00:00.000Z'), { root: p.root });
-  assert.deepEqual(snapshots()[0].data, { level: 'R0', generatedAt: '2026-09-20T00:00:00.000Z', commit: 'WORKTREE', outcome: expected.outcome, passed: expected.passed, required: expected.required });
+  assert.deepEqual(snapshots()[0].data, { level: 'R0', generatedAt: '2026-09-20T00:00:00.000Z', manifestCommit: 'WORKTREE', outcome: expected.outcome, passed: expected.passed, required: expected.required });
   assert.equal(snapshots()[0].model, 'unknown');
+
+  write(file, JSON.stringify(manifest('2026-09-20T00:00:00.000Z'))); // a formatter squeezes it onto one line
+  p.start();
+  assert.equal(snapshots().length, 1, 'the same content laid out differently is not a new state');
 
   writeJson(file, manifest('2026-09-24T00:00:00.000Z'));
   p.start();

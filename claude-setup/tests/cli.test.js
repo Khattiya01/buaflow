@@ -333,3 +333,28 @@ test('audit records verifier.audit with the verifier\'s own counts in an opted-i
     cleanup(home);
   }
 });
+
+// A monorepo: Buaflow lives in packages/app, git and the consent at the top. The event must describe the
+// manifest audit actually checked, not whatever readiness.json sits at the repository root.
+test('audit in a subfolder project records generatedAt from the manifest it audited', { skip: spawnSync('git', ['--version']).status !== 0 }, () => {
+  const top = temporaryProject('buaflow-cli-');
+  const home = temporaryProject('buaflow-home-');
+  try {
+    spawnSync('git', ['init', '-q'], { cwd: top });
+    writeJson(path.join(top, '.buaflow', 'usage.json'), { schemaVersion: '1.0', enabled: true, project: 'mono', decidedBy: 'Test', decidedAt: '2026-09-24' });
+    writeJson(path.join(top, 'docs', 'evidence', 'readiness.json'), { ...r0Manifest(), generatedAt: '2020-01-01T00:00:00.000Z' });
+    const app = path.join(top, 'packages', 'app');
+    fs.mkdirSync(path.join(app, '.claude'), { recursive: true });
+    for (const name of ['readiness.js', 'verifier.js']) fs.copyFileSync(path.join(repositoryRoot, 'claude-setup', name), path.join(app, '.claude', name));
+    writeJson(path.join(app, 'docs', 'evidence', 'readiness.json'), r0Manifest());
+    const r = runNode(cli, { cwd: app, env: { HOME: home, USERPROFILE: home }, args: ['audit', '--level', 'R0', '--json'] });
+    assert.equal(r.status, 0, r.stderr);
+    const dir = path.join(top, '.buaflow', 'usage', 'events');
+    const [event] = fs.readdirSync(dir).flatMap((f) => fs.readFileSync(path.join(dir, f), 'utf8').split('\n').filter(Boolean).map(JSON.parse));
+    assert.equal(event.type, 'verifier.audit');
+    assert.equal(event.data.generatedAt, '2026-09-22T12:00:00.000Z');
+  } finally {
+    cleanup(top);
+    cleanup(home);
+  }
+});
