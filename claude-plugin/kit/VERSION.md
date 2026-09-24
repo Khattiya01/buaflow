@@ -3,6 +3,15 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.13.1 — 2026-09-24
+
+> โปรเจกต์ที่ใช้ v3.13.0 → `buaflow install --write` จบ · ใช้ plugin → อัปเดต plugin แล้วเปิด session ใหม่ · **PATCH:** ไม่มี schema เปลี่ยน
+
+- **โปรเจกต์ที่ `package.json` เป็น `"type": "module"` ใช้ kit ได้แล้ว** — Node เลือกชนิด module จาก `package.json` ที่ใกล้ที่สุด ·
+  plugin ที่ cache อยู่ในโฟลเดอร์ของโปรเจกต์ (config dir แบบ project-local) และ `.claude/*.js` จึงถูกโหลดเป็น ES module แล้วล้มที่ `require`
+  (hook ของ SessionStart ขึ้น `hook error` ทุกตัว) · plugin มี `package.json` แบบ CommonJS ที่ root แล้ว และ `install` seed
+  `.claude/package.json` ให้ (มีอยู่แล้วไม่ทับ)
+
 ## v3.13.0 — 2026-09-24
 
 > โปรเจกต์ที่ใช้ v3.12.x → `buaflow install --write` จบ ([UPGRADE.md](UPGRADE.md) หัวข้อ v3.12.1 → v3.13.0) · **MINOR:** ไม่มี schema สาธารณะเปลี่ยน ·
