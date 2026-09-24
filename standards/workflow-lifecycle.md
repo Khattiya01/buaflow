@@ -9,7 +9,7 @@
 ```
 วางแผน (ครั้งเดียว)        วนทุกงาน                                              ปล่อยของ
 ──────────────────   ─────────────────────────────────────────────────    ──────────────────
-Phase 1-7 ของ kit →  intent → spec (ถ้าใหญ่) → plan → โค้ด → verify       →  local → uat → prd
+Phase 1-7 ของ kit →  intent → (elaborate) → spec (ถ้าใหญ่) → plan → โค้ด → verify       →  local → uat → prd
                         ↑      → check → PR (คนกด merge หลัง gate) → done     (ปล่อยเป็นรอบ ไม่ใช่ทีละ task)
                         │      trivial: task → โค้ด → check low → PR               │
                         └────── postmortem / งานนอก scope / /insights ────────────┘
@@ -34,6 +34,10 @@ Phase 1-7 ของ kit →  intent → spec (ถ้าใหญ่) → plan �
 | ของพังบน prd | `/hotfix` ก่อน แล้ว **เปิด intent** สำหรับการแก้รากของปัญหา |
 | finding จาก SonarQube / security | `/intent` ถ้าเป็นเรื่องใหญ่, task ถ้าเป็นจุดเดียว |
 | feedback จาก UAT | `/intent` |
+
+**requirement จากลูกค้าที่ให้มาคร่าว ๆ:** `/intent` จดคำของลูกค้าตามจริงและห้ามเดา จึงถามก่อนว่า brief เป็น
+`open` (ให้เราคิดต่อ) หรือ `fixed` (TOR/สัญญา) · `open` → `/elaborate` หาเป้าหมายจริง research โดเมน แล้วเสนอสิ่งที่ขาด
+พร้อมแหล่งที่มาลง `docs/elaboration/` ให้คนตัดสิน ข้อที่รับแล้วเท่านั้นเข้า spec · `fixed` → ข้อเสนอกลายเป็น change request
 
 **ทำไมไม่ให้เพิ่ม task ตรง ๆ:** task ลอย ๆ ที่ไม่มีที่มา จะไม่มีใครรู้ว่าทำไมถึงทำ
 พอถึงเวลาต้อง trade-off กลางทางก็ตัดสินไม่ได้ และพอจะตัดทิ้งก็ไม่มีใครกล้าตัด

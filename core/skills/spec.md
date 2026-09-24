@@ -21,6 +21,7 @@ Talk to the user in Thai. All three spec files are written in full Thai (EARS ke
 
 - The source intent `docs/intents/I-0xx-*.md` — **it already answers "why / how measured / what must not break". Do not re-ask the user.** Write the requirements from it.
   (no intent → go back to `/intent` first)
+- `docs/elaboration/I-0xx-*.md` if it exists — write `spec:` into its frontmatter. Every `accepted` proposal becomes a requirement that cites its `E-xx`, so it stays visible which requirements the customer asked for and which ones we proposed. `change-request`, `rejected` and `deferred` ones go under **out of scope this round**, never into the ACs. The intent says `brief: open` and there is no elaboration file → offer `/elaborate` first; if the user skips it, write `elaboration: skipped` in the intent's frontmatter.
 - `docs/constitution.md` art. 4, 5, 6 (used in design)
 - `docs/planning/04-architecture.md` **only the relevant sections** (API contract, auth, data)
 - `prisma/schema.prisma` if the feature touches data — this is the source of truth for the data model

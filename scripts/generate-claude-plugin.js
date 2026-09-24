@@ -49,7 +49,7 @@ function build(root) {
   const files = new Map();
   const put = (rel, content) => files.set(rel.replace(/\\/g, '/'), content);
 
-  const description = 'Buaflow workflow for Claude Code: intent → spec → plan → task → check → done, with guard hooks. The gate and evidence controls stay committed in the project (.claude/), because pre-push and CI run them outside any session.';
+  const description = 'Buaflow workflow for Claude Code: intent → elaborate → spec → plan → task → check → done, with guard hooks. The gate and evidence controls stay committed in the project (.claude/), because pre-push and CI run them outside any session.';
   put('.claude-plugin/plugin.json', `${JSON.stringify({
     name: 'buaflow',
     version: pkg.version,
@@ -116,7 +116,7 @@ function build(root) {
     '',
     '| Carried by the plugin | Written into the project by `buaflow install --plugin --write` in Phase 7 |',
     '|---|---|',
-    '| skills (/intent /spec /plan /task /check /done /hotfix /release /ui /prototype, and /buaflow:start) | `.claude/gate.js` and every checker it runs — pre-push and CI run them outside any session |',
+    '| skills (/intent /elaborate /spec /plan /task /check /done /hotfix /release /ui /prototype, and /buaflow:start) | `.claude/gate.js` and every checker it runs — pre-push and CI run them outside any session |',
     '| agents (code-reviewer, legacy-explorer, test-writer) | `.claude/settings.json` permissions — a plugin cannot ship permissions |',
     '| hooks (guard-edit, guard-bash, guard-new-component, format-changed, session-context, usage-capture, kit-context) | `.claude/rules/*.md` — their paths are fitted to each project in Phase A.5 |',
     '| the kit: START-HERE, phases, standards, templates, schemas, packs and the `buaflow` CLI | `.claude/stack.json` — the hooks read it from the project |',

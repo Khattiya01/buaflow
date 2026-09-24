@@ -134,6 +134,98 @@ test('docs-lint (IC-002) warns on untagged clarification questions and on a file
   }
 });
 
+// IC-007: /intent records the customer's words and must not invent; /elaborate proposes what they left out.
+// docs-lint proves every proposal was decided and every accepted one reached the spec.
+const elaboration = (rows, extra = '') => [
+  '---', 'intent: I-001', 'brief: open', extra, 'researched: 2026-09-25', '---', '',
+  '| ID | ข้อเสนอ | ทำไม | แหล่งที่มา | ระดับ | การตัดสิน |', '|---|---|---|---|---|---|',
+  '| E-000 | <ตัวอย่าง> | <ตัวอย่าง> | <URL> | must | pending |',
+  ...rows, '',
+].join('\n');
+const openIntent = (status, extra = '') => `---\nid: I-001\nstatus: ${status}\nbrief: open\n${extra}---\n\nsee docs/specs/F-01-dashboard/\n`;
+
+test('docs-lint (IC-007) warns on proposals without a source, a level or a decision, and ignores the template row', () => {
+  const root = temporaryProject();
+  try {
+    write(path.join(root, 'docs', 'intents', 'I-001-dashboard.md'), openIntent('draft'));
+    write(path.join(root, 'docs', 'elaboration', 'I-001-dashboard.md'), elaboration([
+      '| E-01 | aging report | ตามหนี้ก่อนเสีย | https://example.com/ar-aging | must | accepted |',
+      '| E-02 | แจ้งเตือนเกินกำหนด | ไม่มีใครต้องเปิดดูเอง | - | should | pending |',
+      '| E-03 | export | ส่งต่อบัญชี | ความรู้ทั่วไปของโดเมน | nice | maybe |',
+    ], 'spec: <docs/specs/F-xx-name/>'));
+    const result = runNode(docsLint, { args: [root] });
+    assert.equal(result.status, 0, 'warnings only in 3.x');
+    assert.match(result.stdout, /E-02 ไม่มีแหล่งที่มา/);
+    assert.match(result.stdout, /E-03 ระดับ "nice"/);
+    assert.match(result.stdout, /E-03 การตัดสิน "maybe"/);
+    assert.doesNotMatch(result.stdout, /E-000|E-01 ไม่มีแหล่งที่มา/);
+    assert.doesNotMatch(result.stdout, /ยังไม่ตัดสิน/, 'pending is fine while the intent is still a draft');
+    assert.match(result.stdout, /3 ข้อเสนอ · รับ 1 · ค้าง 1/);
+  } finally {
+    cleanup(root);
+  }
+});
+
+test('docs-lint (IC-007) warns when work moved on with proposals still pending or accepted ones missing from the spec', () => {
+  const root = temporaryProject();
+  try {
+    write(path.join(root, 'docs', 'intents', 'I-001-dashboard.md'), openIntent('accepted'));
+    write(path.join(root, 'docs', 'specs', 'F-01-dashboard', 'requirements.md'), '- [ ] **AC-1** WHEN finance opens the dashboard THE SYSTEM SHALL show aging buckets (E-01)\n');
+    write(path.join(root, 'docs', 'elaboration', 'I-001-dashboard.md'), elaboration([
+      '| E-01 | aging report | ตามหนี้ก่อนเสีย | https://example.com/ar-aging | must | accepted |',
+      '| E-02 | จ่ายบางส่วน | ยอดค้างต้องถูก | https://example.com/partial | must | accepted |',
+      '| E-03 | แจ้งเตือน | ไม่ต้องเปิดดูเอง | https://example.com/dunning | should | pending |',
+      '| E-04 | e-Tax invoice | กฎหมาย | https://example.com/etax | could | change-request |',
+    ], 'spec: docs/specs/F-01-dashboard/'));
+    const result = runNode(docsLint, { args: [root] });
+    assert.equal(result.status, 0, 'warnings only in 3.x');
+    assert.match(result.stdout, /ยังไม่ตัดสิน 1 ข้อ \(E-03\)/);
+    assert.match(result.stdout, /รับแล้วแต่ไม่อยู่ใน docs\/specs\/F-01-dashboard\/requirements\.md: E-02/);
+    assert.doesNotMatch(result.stdout, /requirements\.md: E-01/);
+    assert.doesNotMatch(result.stdout, /brief: open และ accepted แล้ว/);
+  } finally {
+    cleanup(root);
+  }
+});
+
+test('docs-lint (IC-007) asks an accepted open-brief intent to be elaborated, unless it says it skipped on purpose', () => {
+  const root = temporaryProject();
+  try {
+    write(path.join(root, 'docs', 'intents', 'I-001-dashboard.md'), openIntent('accepted'));
+    write(path.join(root, 'docs', 'intents', 'I-002-bug.md'), '---\nid: I-002\nstatus: accepted\n---\n\nsee docs/specs/F-01-dashboard/\n');
+    write(path.join(root, 'docs', 'specs', 'F-01-dashboard', 'requirements.md'), '');
+    const missing = runNode(docsLint, { args: [root] });
+    assert.equal(missing.status, 0, 'warnings only in 3.x');
+    assert.match(missing.stdout, /intents\/I-001-dashboard\.md: brief: open และ accepted แล้ว/);
+    assert.doesNotMatch(missing.stdout, /I-002-bug\.md: brief/, 'an intent without brief: is not asked');
+    write(path.join(root, 'docs', 'intents', 'I-001-dashboard.md'), openIntent('accepted', 'elaboration: skipped\n'));
+    const skipped = runNode(docsLint, { args: [root] });
+    assert.doesNotMatch(skipped.stdout, /brief: open และ accepted แล้ว/);
+  } finally {
+    cleanup(root);
+  }
+});
+
+test('docs-lint (IC-007) stays silent for a project that uses neither brief: nor docs/elaboration/', () => {
+  const root = temporaryProject();
+  try {
+    write(path.join(root, 'docs', 'intents', 'I-001-old.md'), '---\nid: I-001\nstatus: draft\n---\n');
+    const result = runNode(docsLint, { args: [root] });
+    assert.doesNotMatch(result.stdout, /Elaboration/);
+  } finally {
+    cleanup(root);
+  }
+});
+
+test('the elaboration template carries the columns docs-lint reads, and the intent template offers brief:', () => {
+  const fs = require('node:fs');
+  const tpl = fs.readFileSync(path.join(repositoryRoot, 'templates', 'elaboration.tpl.md'), 'utf8');
+  assert.match(tpl, /^\| ID \| ข้อเสนอ \| ทำไม \(ผูกกับเป้าหมาย\) \| แหล่งที่มา \| ระดับ \| การตัดสิน \|$/m);
+  assert.match(tpl, /^\| E-000 \|/m);
+  const intent = fs.readFileSync(path.join(repositoryRoot, 'templates', 'intent.tpl.md'), 'utf8');
+  assert.match(intent, /^brief: open \| fixed\s+#/m);
+});
+
 // EV-011 AC-15: `fixes:` links a task to the closed task it repairs; docs-lint must accept it as it is.
 test('docs-lint (EV-011) accepts a task that carries fixes:, and the task template offers the line', () => {
   const root = temporaryProject();
