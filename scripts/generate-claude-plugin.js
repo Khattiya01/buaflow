@@ -65,6 +65,9 @@ function build(root) {
   // Two hooks require('../stack-config.js'); it reads the PROJECT's .claude/stack.json through
   // CLAUDE_PROJECT_DIR, so the plugin's copy still follows each project's own configuration.
   put('stack-config.js', fs.readFileSync(path.join(setup, 'stack-config.js'), 'utf8'));
+  // The plugin cache can sit inside a project (a project-local config dir); without its own
+  // package.json, a project's "type": "module" makes Node load hooks/*.js as ESM and they fail on require.
+  put('package.json', require(path.join(setup, 'install.js')).COMMONJS_PACKAGE);
 
   // PE-008: the whole kit rides along under kit/, so nobody has to clone buaflow/ into a project.
   // Left out on purpose: reference-apps/ (examples, not runtime), manual/ (for tools without
