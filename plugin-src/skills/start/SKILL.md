@@ -23,16 +23,24 @@ If that line is missing, the plugin's SessionStart hook did not run. Tell the us
 
 Run `doctor` and read what exists before asking anything:
 
-- `.claude/gate.js` or `.buaflow/lock.json`: Buaflow is installed.
+- `.claude/gate.js`, `.claude/skills/`, `.claude/commands/` or `.buaflow/lock.json`: Buaflow is installed.
 - `docs/planning/_state.md`: a lifecycle is in progress.
 - Source code but none of the above: an existing codebase that has not adopted Buaflow.
+
+An installed project with no `.buaflow/lock.json` was installed by a kit older than 3.11, which had no lock. Treat it as an older version, never as current. Find its version from the signal table in `<KIT>/START-HERE.md` section 2.1.
 
 ## 3. Take exactly one path
 
 | State | Do |
 |---|---|
-| Installed, and the lock's kit version is older than the plugin kit | Upgrade. Follow `<KIT>/UPGRADE.md`, section "fast path". Run `install --plugin` as a dry run and show the user the result, especially any `conflict`. Run it with `--write` only after the user agrees. |
-| Installed and current | Resume. Run `resume`, read `docs/planning/_state.md`, and continue from where it stopped. |
+| Installed, and either no lock or a lock older than the plugin kit | Upgrade. Tell the user which version you found. Follow `<KIT>/UPGRADE.md`: first the sections that bring a version older than 2.3.4 up to 2.3.4, then the "fast path". Run `install --plugin` as a dry run and show the user the result, especially any `conflict`. Run it with `--write` only after the user agrees. Then move the project to the plugin, as in the next paragraph. |
+| Installed, with a lock equal to the plugin kit | Resume. Run `resume`, read `docs/planning/_state.md`, and continue from where it stopped. |
+
+Moving a project that copied the kit into `.claude/` over to the plugin takes three steps. Do each one only after the user agrees, then tell them to commit and push:
+
+1. Remove Buaflow's entries from the `hooks` block in `.claude/settings.json`. `install` and `doctor` name them.
+2. Delete `.claude/skills/`, `.claude/agents/` and `.claude/hooks/` only where the files came from the kit. Keep any skill, agent or hook the team wrote.
+3. The project's `buaflow/` folder is no longer needed.
 | Not installed | Read `<KIT>/START-HERE.md` and do Phase 0 exactly as it says. For an existing codebase, also run `assess` and give the user its result with the Phase 0 questions. |
 
 Every rule in START-HERE.md applies unchanged. In particular: one phase at a time, stop at the end of each phase, and never guess.

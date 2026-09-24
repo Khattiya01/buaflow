@@ -25,10 +25,11 @@ const lines = [
 ];
 
 const locked = json(path.join(ROOT, '.buaflow', 'lock.json'))?.kitVersion;
-if (has('.claude/gate.js')) {
-  lines.push(locked && locked !== version
-    ? `This project's Buaflow controls were installed at ${locked}; the plugin kit is ${version}. /buaflow:start upgrades them.`
-    : `This project's Buaflow controls are installed${locked ? ` (${locked})` : ''}.`);
+if (has('.claude/gate.js') || has('.claude/skills') || has('.claude/commands')) {
+  // No lock means a kit older than 3.11 installed it (the lock arrived in 3.11) — an upgrade, not "installed".
+  if (!locked) lines.push(`This project has Buaflow installed from a kit older than 3.11 (no .buaflow/lock.json); the plugin kit is ${version}. /buaflow:start upgrades it.`);
+  else if (locked !== version) lines.push(`This project's Buaflow controls were installed at ${locked}; the plugin kit is ${version}. /buaflow:start upgrades them.`);
+  else lines.push(`This project's Buaflow controls are installed (${locked}).`);
 } else if (has('docs/planning/_state.md') || has('.buaflow/project.json')) {
   lines.push(`This project uses Buaflow but its gate and checkers are not installed yet — they are installed in Phase 7 with: ${cli} install --plugin --write`);
 } else {

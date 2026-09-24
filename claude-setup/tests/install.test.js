@@ -191,6 +191,12 @@ test('the plugin session hook tells a session where the kit is and what state th
     assert.match(context(), /gate and checkers are not installed yet .* install --plugin --write/);
     run(root, '--plugin', '--write');
     assert.match(context(), /controls are installed/);
+    // A project a 2.x kit installed has .claude/ but no lock (the lock arrived in 3.11): an upgrade, never "current".
+    fs.rmSync(path.join(root, '.buaflow', 'lock.json'));
+    assert.match(context(), /installed from a kit older than 3\.11 .* upgrades it/);
+    fs.rmSync(path.join(root, '.claude', 'gate.js'));
+    write(path.join(root, '.claude', 'skills', 'task', 'SKILL.md'), '---\nname: task\n---\n');
+    assert.match(context(), /older than 3\.11/, 'a pre-2.3 install without gate.js is still an install');
   } finally {
     cleanup(root);
   }
