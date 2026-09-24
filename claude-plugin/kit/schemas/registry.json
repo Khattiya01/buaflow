@@ -212,6 +212,26 @@
         "docs/evidence/changes/CP-*.json"
       ],
       "migration": "supported"
+    },
+    {
+      "type": "usage-consent",
+      "classification": "internal",
+      "latestVersion": "1.0",
+      "schema": "schemas/usage-consent.schema.json",
+      "paths": [
+        ".buaflow/usage.json"
+      ],
+      "migration": "none"
+    },
+    {
+      "type": "usage-event",
+      "classification": "internal",
+      "latestVersion": "1.0",
+      "schema": "schemas/usage-event.schema.json",
+      "paths": [
+        ".buaflow/usage/events/*.jsonl"
+      ],
+      "migration": "none"
     }
   ]
 }

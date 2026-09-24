@@ -17,7 +17,7 @@ const { spawnSync } = require('node:child_process');
 const KIT_ROOT = path.resolve(__dirname, '..');
 const PACKAGE = JSON.parse(fs.readFileSync(path.join(KIT_ROOT, 'package.json'), 'utf8'));
 const EXIT = Object.freeze({ OK: 0, FAILED: 1, INPUT: 2, UNAVAILABLE: 3 });
-const COMMANDS = Object.freeze(['init', 'doctor', 'intake', 'assess', 'ci', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'assumptions', 'security', 'supply', 'operations', 'budgets', 'evals', 'changes', 'install', 'lock', 'resume']);
+const COMMANDS = Object.freeze(['init', 'doctor', 'intake', 'assess', 'ci', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'assumptions', 'security', 'supply', 'operations', 'budgets', 'evals', 'changes', 'install', 'lock', 'resume', 'usage']);
 
 function usage() {
   return [
@@ -45,6 +45,8 @@ function usage() {
     '  install       copy the gate, checkers and project seeds into .claude/ (--plugin, --write, --force)',
   '  lock          record which kit version and files are installed, or report files changed since (--write)',
     '  resume        summarize persisted project state for any human or AI tool',
+    '  usage         internal opt-in usage capture (EV-011): consent --enable|--disable, status,',
+    '                record check --task <id> --verdict pass|fail [--findings <file|->] [--level <l>]',
     '',
     'assess options: --execute  also run the build/verify/test commands it finds',
     '                --write <path>  write a draft readiness manifest (never overwrites without --force)',
@@ -60,7 +62,20 @@ function usage() {
 function parse(argv) {
   if (argv[0] === '--help' || argv[0] === '-h') return { command: 'help', options: { root: process.cwd(), json: false, help: true, force: false, strict: false, mode: 'new', level: null, file: null, execute: false, write: null, plugin: false } };
   const [command, ...rest] = argv;
-  const options = { root: process.cwd(), json: false, help: false, force: false, strict: false, mode: 'new', level: null, file: null, execute: false, write: null, plugin: false };
+  const options = { root: process.cwd(), json: false, help: false, force: false, strict: false, mode: 'new', level: null, file: null, execute: false, write: null, plugin: false, args: [] };
+  // usage has its own subcommands and flags; claude-setup/usage.js validates them
+  if (command === 'usage') {
+    for (let index = 0; index < rest.length; index++) {
+      const arg = rest[index];
+      if (arg === '--root') options.root = rest[++index];
+      else if (arg === '--json') options.json = true;
+      else if (arg === '--help' || arg === '-h') options.help = true;
+      else options.args.push(arg);
+    }
+    if (!options.root) throw new Error('--root requires a path');
+    options.root = path.resolve(options.root);
+    return { command, options };
+  }
   for (let index = 0; index < rest.length; index++) {
     const arg = rest[index];
     if (arg === '--root') options.root = rest[++index];
@@ -403,6 +418,12 @@ function commandInstall(root, options) {
   return out;
 }
 
+// EV-011: in-process so the hook and the CLI share one implementation.
+function commandUsage(root, options) {
+  const result = require(path.join(KIT_ROOT, 'claude-setup', 'usage.js')).runCommand(root, options.args);
+  return envelope('usage', result.code, result.summary, result.data, result.warnings, result.errors);
+}
+
 function commandResume(root) {
   const warnings = [];
   const data = { projectManifest: null, planning: null, inProgressTasks: [] };
@@ -466,6 +487,7 @@ function main(argv = process.argv.slice(2)) {
           : command === 'intake' ? commandIntake(options.root, options)
           : command === 'benchmark' ? commandBenchmark(options.root)
             : command === 'ci' ? commandCi(options.root)
+            : command === 'usage' ? commandUsage(options.root, options)
         : commandDelegated(command, options.root, options);
   emit(result, options.json);
   return result.code;
@@ -473,4 +495,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { COMMANDS, EXIT, commandInstall, commandLock, commandAssess, commandIntake, commandBenchmark, commandCi, commandDoctor, commandInit, commandResume, main, parse };
+module.exports = { COMMANDS, EXIT, commandInstall, commandLock, commandAssess, commandIntake, commandBenchmark, commandCi, commandDoctor, commandInit, commandResume, commandUsage, main, parse };
