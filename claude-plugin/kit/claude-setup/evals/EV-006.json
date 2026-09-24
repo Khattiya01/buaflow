@@ -1,0 +1,34 @@
+{
+  "$schema": "../../schemas/eval-case.schema.json",
+  "schemaVersion": "1.0",
+  "_": "เคสตั้งต้นของ kit (IC-007) · prompt คือ requirement จริงแบบที่ลูกค้าให้มา: บอกแค่ feature หลัก · ต้องมี intent I-001 ที่ brief: open อยู่แล้ว · ปิด core/skills/elaborate.md แล้วดูว่า AI ยังคิดต่อจากคำของลูกค้าเองหรือไม่",
+  "id": "EV-006",
+  "title": "requirement ที่ให้มาคร่าว ๆ ต้องถูกคิดต่อเป็นข้อเสนอที่มีแหล่งที่มาและรอคนตัดสิน ไม่ใช่ถูกเขียนเป็น spec ตามคำเดิม",
+  "authoredBy": "buaflow kit",
+  "origin": "observed-failure",
+  "observedIn": "development/state.json D-029 — โปรเจกต์จริง: ลูกค้าขอ dashboard ภาพรวมการขายและติดตามการออกบิล/การจ่าย · /intent สร้างตามคำเดิม ไม่มีใครเสนอสถานะบิล อายุหนี้ หรือการจ่ายบางส่วน จนผู้ใช้ต้องบอกเอง",
+  "setup": [
+    "มี docs/intents/I-001-sales-dashboard.md status: accepted, brief: open ที่เล่าคำขอด้านล่าง",
+    "ยังไม่มี docs/elaboration/ และยังไม่มี spec ของ feature นี้"
+  ],
+  "tests": [
+    "core/skills/elaborate.md",
+    "core/skills/intent.md",
+    "templates/elaboration.tpl.md"
+  ],
+  "prompt": "/elaborate I-001 — ลูกค้าอยากได้ dashboard ที่ดูภาพรวมการขาย และติดตามการออกบิลว่าออกแล้วหรือยัง จ่ายแล้วหรือยัง",
+  "criteria": [
+    { "id": "C1", "kind": "must-happen", "statement": "บอกเป้าหมายจริงของคำขอ (เช่น ให้ฝ่ายบัญชีรู้ว่าต้องตามเงินจากใคร) ก่อนเสนออะไร" },
+    { "id": "C2", "kind": "must-happen", "statement": "เสนอสิ่งที่ลูกค้าไม่ได้พูดแต่เป้าหมายต้องใช้ อย่างน้อยสามเรื่องจาก: สถานะของบิลครบวงจร, อายุหนี้/เกินกำหนด, การจ่ายบางส่วน, ยกเลิกบิล/ใบลดหนี้, สิทธิ์การมองเห็นตามบทบาท" },
+    { "id": "C3", "kind": "must-happen", "statement": "ทุกข้อเสนอมีแหล่งที่มา: URL ที่เปิดอ่านจริง path ใน repo หรือบอกตรง ๆ ว่ามาจากความรู้ทั่วไป" },
+    { "id": "C4", "kind": "must-happen", "statement": "เขียนข้อเสนอลง docs/elaboration/ แบบมีระดับ must/should/could และการตัดสิน pending แล้วให้ผู้ใช้ตัดสินเป็นกลุ่มได้" },
+    { "id": "C5", "kind": "must-not-happen", "statement": "เขียนข้อเสนอเข้า requirements.md หรือเริ่ม /spec เองก่อนผู้ใช้ตัดสิน" },
+    { "id": "C6", "kind": "must-not-happen", "statement": "ตัดข้อเสนอที่หาเจอทิ้งเพื่อให้เหลือตามจำนวนที่กำหนดเอง" }
+  ],
+  "ablation": {
+    "disable": ["core/skills/elaborate.md"],
+    "note": "ถ้าปิด skill แล้ว AI ยังคิดต่อ มีแหล่งที่มา และรอการตัดสินเหมือนเดิม แปลว่าโมเดลทำเองได้แล้ว — skill นี้เหลือแค่ส่วนที่ docs-lint ตรวจ"
+  },
+  "retain": ["transcript", "docs/elaboration/"],
+  "passWhen": { "minScore": 1 }
+}

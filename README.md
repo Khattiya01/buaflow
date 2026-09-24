@@ -7,7 +7,7 @@
 <p><strong>Plan อย่างมีหลักฐาน · Build อย่างมีขอบเขต · ตัดสินความพร้อมด้วยเครื่อง · คนเป็นผู้อนุมัติ</strong></p>
 
 <p>
-  <img alt="Buaflow version 3.13.1" src="https://img.shields.io/badge/version-3.13.1-e85aad?style=for-the-badge">
+  <img alt="Buaflow version 3.14.0" src="https://img.shields.io/badge/version-3.14.0-e85aad?style=for-the-badge">
   <img alt="Claude Code" src="https://img.shields.io/badge/Claude_Code-plugin_%2B_kit-D97757?style=for-the-badge">
   <img alt="Readiness R0 to R4" src="https://img.shields.io/badge/readiness-R0–R4-2563EB?style=for-the-badge">
   <img alt="Zero dependencies" src="https://img.shields.io/badge/node_22-zero_dependencies-16A34A?style=for-the-badge">
@@ -48,7 +48,7 @@ AI เขียนโค้ดได้เร็วและเก่งขึ�
 v2.x คือ **SDLC workflow สำหรับทำงานกับ AI** — phase, skill, rule, hook และ gate · v3.x เก็บทั้งหมดนั้นไว้
 แล้วเพิ่มคำตอบของคำถามที่ v2 ตอบไม่ได้: **"แล้วตอนนี้พร้อมส่งมอบหรือยัง"**
 
-| | v2.3.4 | v3.13.1 |
+| | v2.3.4 | v3.14.0 |
 |---|---|---|
 | เป้าหมาย | ทำงานกับ AI อย่างมีระเบียบ | ส่งมอบแอปที่พิสูจน์ความพร้อมได้ถึง R3 |
 | "เสร็จแล้ว" | verify + gate ผ่าน | + readiness manifest ที่ผูกกับ commit และถูก verifier ตรวจซ้ำ |
@@ -68,13 +68,13 @@ v2.x คือ **SDLC workflow สำหรับทำงานกับ AI** �
 | สิ่งที่มีให้ | จำนวน | หน้าที่ |
 |---|:---:|---|
 | **Lifecycle** | Phase 0–8 + Phase A | พาโปรเจกต์ใหม่จากโจทย์ไปถึง scaffold หรือรับช่วงโปรเจกต์เดิม |
-| **Skills** | 10 | workflow ตั้งแต่ `/intent` ถึง `/release` |
+| **Skills** | 11 | workflow ตั้งแต่ `/intent` ถึง `/release` |
 | **Rules / Hooks / Subagents** | 6 / 5 / 3 | กฎตามชนิดไฟล์ · guardrail นอกบทสนทนา · review/test/สำรวจ legacy แยก context |
 | **CLI (`buaflow`)** | 20 คำสั่ง | `assess`, `ci`, `benchmark`, `audit`, `install`, `lock` และตัวตรวจหลักฐานทุกชนิด — ใช้ได้จาก terminal, hook และ CI |
 | **Readiness** | R0–R4 · 28 control | ระดับความพร้อมที่ตัดสินจากหลักฐาน ไม่ใช่จากความรู้สึก |
 | **Schemas** | 21 ชนิด | สัญญาของ artifact ที่เครื่องอ่าน พร้อม registry และ migration |
 | **Stack packs** | 3 + 2 capability | recipe + assertion ที่ผูกกับ reference app ที่พิสูจน์มันจริง |
-| **Templates** | 35 | intent, spec, plan, task, ADR, constitution, evidence records และอื่น ๆ |
+| **Templates** | 36 | intent, spec, plan, task, ADR, constitution, evidence records และอื่น ๆ |
 
 ---
 
@@ -219,7 +219,7 @@ node buaflow/bin/buaflow.js resume
 ## Daily delivery loop หลัง Phase 7
 
 ```text
-intent → spec → plan → task/code → verify → check → draft PR → human approval → done
+intent → (elaborate) → spec → plan → task/code → verify → check → draft PR → human approval → done
    ↑                                                                     │
    └──── incident / out-of-scope / postmortem / change proposal + eval ─┘
 ```
@@ -227,6 +227,7 @@ intent → spec → plan → task/code → verify → check → draft PR → hum
 | Skill | ใช้เมื่อ | สิ่งสำคัญที่เกิดขึ้น |
 |---|---|---|
 | `/intent <เรื่อง>` | เปิดงานใหม่ | จับ "ทำไม", ผลลัพธ์ที่วัดได้ และสิ่งที่ห้ามพังก่อนคุย implementation |
+| `/elaborate I-0xx` | ลูกค้าให้ requirement มาคร่าว ๆ (`brief: open`) | หาเป้าหมายจริง research โดเมน แล้วเสนอสิ่งที่คำขอยังขาด พร้อมแหล่งที่มา ให้คนตัดสินเป็นกลุ่ม · ข้อที่รับเข้า spec โดยอ้าง `E-xx` |
 | `/spec F-xx` | feature ใหญ่ | `requirements.md` (EARS) → `design.md` → `tasks.md` โดยมี approval gate ทุกช่วง · การเดาลง assumption ledger |
 | `/plan T-xxx` | งานหลายไฟล์ หรือเสี่ยง | บีบ AC, constitution และ design rule ที่เกี่ยวลง `plan.md` ไฟล์เดียว |
 | `/task T-xxx` | เริ่มลงมือ | claim งาน เปิด draft PR วน implement/self-check ภายใต้งบ repair loop ตามชนิดความล้มเหลว |

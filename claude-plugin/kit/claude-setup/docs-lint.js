@@ -20,6 +20,9 @@
  *   9. (DV-002, warn เท่านั้น) มี docs/discovery/pain-point-register.md ที่มีแถวจริงแล้ว →
  *      intent ที่ไม่อ้าง pain-point id ไหนเลยจะถูกเตือน — โปรเจกต์ที่ไม่ได้ใช้ discovery layer (DV-001)
  *      ไม่มีไฟล์นี้ จึงไม่โดนเช็คข้อนี้เลย ไม่กระทบพฤติกรรมเดิม
+ *  10. (IC-007, warn เท่านั้น) docs/elaboration/*.md: ข้อเสนอทุกข้อมีแหล่งที่มา ระดับ และการตัดสิน ·
+ *      ข้อที่ accepted อยู่ใน requirements.md ของ spec · intent ที่ brief: open และ accepted ต้องผ่าน /elaborate
+ *      (หรือประกาศ elaboration: skipped)
  *
  * exit 0 = ผ่าน | exit 1 = มีข้อที่ต้องแก้
  * ไม่มี dependency — Node ล้วน รันได้ทุก OS
@@ -199,6 +202,62 @@ if (exists(PAIN_POINT_REGISTER)) {
     }
     if (!unlinked) ok(`intent ทุกไฟล์อ้างถึง pain point ในทะเบียนแล้ว (${painPointIds.size} pain point)`);
   }
+}
+
+// ── 10. elaboration (IC-007, warn only) ───────────────────────────────
+// /intent จดคำของลูกค้าตามจริงและห้ามเดา ⇒ ถ้าไม่มีขั้นที่สั่งให้คิดต่อ ไม่มีใครถามว่าที่ขอมาพอจะถึงเป้าหมายไหม
+// /elaborate คือขั้นนั้น ส่วนตรงนี้ตรวจว่าข้อเสนอทุกข้อมีคนตัดสิน และข้อที่รับแล้วไปถึง spec จริง
+// ใช้เฉพาะโปรเจกต์ที่มี docs/elaboration/ หรือ intent ที่ประกาศ brief: open ⇒ โปรเจกต์เดิมไม่โดนอะไรเลย
+const ELABORATION_DIR = 'docs/elaboration';
+const LEVELS = new Set(['must', 'should', 'could']);
+const DECISIONS = new Set(['pending', 'accepted', 'change-request', 'rejected', 'deferred']);
+const intentFiles = exists(INTENTS_DIR) ? listMd(INTENTS_DIR) : [];
+const intentFile = (id) => intentFiles.find((f) => f === `${id}.md` || f.startsWith(`${id}-`));
+const elaborated = new Set();
+const elaborationFiles = exists(ELABORATION_DIR) ? listMd(ELABORATION_DIR) : [];
+const openIntents = intentFiles.filter((f) => frontmatter(read(`${INTENTS_DIR}/${f}`))?.brief === 'open');
+if (elaborationFiles.length || openIntents.length) head('Elaboration — docs/elaboration/ (IC-007)');
+for (const f of elaborationFiles) {
+  const file = `${ELABORATION_DIR}/${f}`;
+  const text = read(file);
+  const fm = frontmatter(text) || {};
+  const intentName = !isPlaceholder(fm.intent) && intentFile(fm.intent);
+  if (!intentName) { warn(`${file}: intent: ไม่ชี้ไป intent ที่มีจริง — ข้อเสนอที่ไม่รู้ว่ามาจากคำขอไหนตัดสินไม่ได้`); continue; }
+  elaborated.add(intentName);
+  const rows = text.split(/\r?\n/)
+    .filter((line) => /^\|\s*E-\d+\s*\|/.test(line) && !/^\|\s*E-000\s*\|/.test(line))
+    .map((line) => line.replace(/^\||\|\s*$/g, '').split('|').map((c) => c.trim()));
+  const pending = [];
+  const accepted = [];
+  for (const cells of rows) {
+    const [id, , , source] = cells;
+    const level = cells[cells.length - 2];
+    const decision = cells[cells.length - 1];
+    if (cells.length < 6) { warn(`${file}: ${id} มี ${cells.length} ช่อง ไม่ครบ 6 (ID/ข้อเสนอ/ทำไม/แหล่งที่มา/ระดับ/การตัดสิน) — มี | ในช่องหรือเปล่า`); continue; }
+    if (!source || /^[-–—]?$|^</.test(source)) warn(`${file}: ${id} ไม่มีแหล่งที่มา — ใส่ URL ที่อ่านจริง path ใน repo หรือบอกตรง ๆ ว่ามาจากความรู้ทั่วไป`);
+    if (!LEVELS.has(level)) warn(`${file}: ${id} ระดับ "${level}" ไม่ใช่ ${[...LEVELS].join('/')}`);
+    if (!DECISIONS.has(decision)) warn(`${file}: ${id} การตัดสิน "${decision}" ไม่ใช่ ${[...DECISIONS].join('/')}`);
+    if (decision === 'pending') pending.push(id);
+    if (decision === 'accepted') accepted.push(id);
+  }
+  const intentStatus = frontmatter(read(`${INTENTS_DIR}/${intentName}`))?.status;
+  const specDir = isPlaceholder(fm.spec) ? null : String(fm.spec).replace(/\/$/, '');
+  if (pending.length && (intentStatus === 'accepted' || specDir))
+    warn(`${file}: ยังไม่ตัดสิน ${pending.length} ข้อ (${pending.join(', ')}) ทั้งที่งานไปต่อแล้ว — ปิดรอบให้เปลี่ยนเป็น deferred ไม่ใช่ปล่อย pending`);
+  if (specDir && accepted.length) {
+    const reqFile = `${specDir}/requirements.md`;
+    if (!exists(reqFile)) warn(`${file}: spec: ชี้ไป ${specDir} แต่ไม่มี requirements.md`);
+    else {
+      const missing = accepted.filter((id) => !new RegExp(`\\b${id}\\b`).test(read(reqFile)));
+      if (missing.length) warn(`${file}: รับแล้วแต่ไม่อยู่ใน ${reqFile}: ${missing.join(', ')} — ข้อที่ตกลงแล้วต้องเป็น requirement ที่อ้าง E-xx`);
+    }
+  }
+  ok(`${file}: ${rows.length} ข้อเสนอ · รับ ${accepted.length} · ค้าง ${pending.length}`);
+}
+for (const f of openIntents) {
+  const fm = frontmatter(read(`${INTENTS_DIR}/${f}`));
+  if (fm.status === 'accepted' && !elaborated.has(f) && fm.elaboration !== 'skipped')
+    warn(`intents/${f}: brief: open และ accepted แล้ว แต่ไม่มี docs/elaboration/ ของมัน — รัน /elaborate หรือใส่ elaboration: skipped ถ้าตั้งใจข้าม`);
 }
 
 // ── board ↔ tasks ──────────────────────────────────────────────────────
