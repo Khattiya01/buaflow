@@ -33,15 +33,15 @@ An installed project with no `.buaflow/lock.json` was installed by a kit older t
 
 | State | Do |
 |---|---|
-| Installed, and either no lock or a lock older than the plugin kit | Upgrade. Tell the user which version you found. Follow `<KIT>/UPGRADE.md`: first the sections that bring a version older than 2.3.4 up to 2.3.4, then the "fast path". Run `install --plugin` as a dry run and show the user the result, especially any `conflict`. Run it with `--write` only after the user agrees. Then move the project to the plugin, as in the next paragraph. |
+| Installed, and either no lock or a lock older than the plugin kit | Upgrade. Tell the user which version you found. Follow `<KIT>/UPGRADE.md`: first the sections that bring a version older than 2.3.4 up to 2.3.4, then the "fast path". Run `install --plugin` as a dry run and show the user the result, especially any `conflict`. Run it with `--write` only after the user agrees. Then move the project to the plugin, as in the paragraph after this table. |
 | Installed, with a lock equal to the plugin kit | Resume. Run `resume`, read `docs/planning/_state.md`, and continue from where it stopped. |
+| Not installed | Read `<KIT>/START-HERE.md` and do Phase 0 exactly as it says. For an existing codebase, also run `assess` and give the user its result with the Phase 0 questions. |
 
 Moving a project that copied the kit into `.claude/` over to the plugin takes three steps. Do each one only after the user agrees, then tell them to commit and push:
 
 1. Remove Buaflow's entries from the `hooks` block in `.claude/settings.json`. `install` and `doctor` name them.
 2. Delete `.claude/skills/`, `.claude/agents/` and `.claude/hooks/` only where the files came from the kit. Keep any skill, agent or hook the team wrote.
 3. The project's `buaflow/` folder is no longer needed.
-| Not installed | Read `<KIT>/START-HERE.md` and do Phase 0 exactly as it says. For an existing codebase, also run `assess` and give the user its result with the Phase 0 questions. |
 
 Every rule in START-HERE.md applies unchanged. In particular: one phase at a time, stop at the end of each phase, and never guess.
 
