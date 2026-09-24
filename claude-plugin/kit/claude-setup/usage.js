@@ -651,6 +651,14 @@ function pullClean(store, gitDir) {
   return null;
 }
 
+// A store cloned from an empty repository has no upstream yet: its first push names one, or every push would fail.
+function pushStore(store) {
+  if (git(store, ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']) !== null) return gitRemote(store, ['push', '--quiet']) !== null;
+  if (git(store, ['rev-parse', '--verify', '-q', 'HEAD']) === null) return true; // nothing committed yet, so nothing to push
+  const remote = (git(store, ['remote']) || '').split('\n')[0];
+  return Boolean(remote) && gitRemote(store, ['push', '--quiet', '-u', remote, 'HEAD']) !== null;
+}
+
 // Copies complete lines past the saved offset into <store>/events/<project>/<machine>/, commits, then pushes.
 // The offset moves only after the commit, so a crash in between re-sends lines and the report drops them by id.
 function sync(root, now = Date.now()) {
@@ -678,7 +686,7 @@ function sync(root, now = Date.now()) {
       writeSynced(root, { ...readState(root).synced, ...offsets });
     }
     // Push even with nothing new: a commit left by an earlier failed push goes out now.
-    if (gitRemote(store, ['push', '--quiet']) === null) {
+    if (!pushStore(store)) {
       return result(3, `${count} event(s) committed in the store; push failed — it retries on the next sync`, { synced: count, pushed: false });
     }
     return result(0, `synced ${count} event(s) to ${store}`, { synced: count, pushed: true, file: rel });

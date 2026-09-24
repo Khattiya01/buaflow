@@ -238,6 +238,36 @@ test('a store left on a detached HEAD gets nothing appended or committed', (t) =
   assert.equal(a.run(() => usage.pendingEvents(a.root)), 1);
 });
 
+// The real store starts as an empty repository: a clone with no commits, no branch on the server, no upstream.
+test('a store cloned from an empty repository gets its first push, and later ones follow the upstream it set', (t) => {
+  const base = temporaryProject('buaflow-empty-store-');
+  t.after(() => cleanup(base));
+  const bare = path.join(base, 'empty.git');
+  git(base, 'init', '--bare', '-q', bare);
+  const store = path.join(base, 'store');
+  git(base, 'clone', '-q', bare, store);
+  identity(store);
+  const home = path.join(base, 'home');
+  const root = path.join(base, 'project');
+  fs.mkdirSync(home);
+  fs.mkdirSync(root);
+  git(root, 'init', '-q');
+  writeJson(usage.consentFile(root), { schemaVersion: '1.0', enabled: true, project: 'demo', decidedBy: 'Test Owner', decidedAt: '2026-09-24' });
+  const run = (fn) => asMachine(home, fn);
+  run(() => usage.runCommand(root, ['setup', '--store', store, '--machine', 'm-1']));
+
+  assert.equal(run(() => usage.runCommand(root, ['sync'])).code, 0, 'nothing recorded yet, nothing to push, nothing wrong');
+  run(() => usage.record(root, { type: 'check.result', task: 'T-1', data: { verdict: 'pass', findings: [], level: null } }));
+  const first = run(() => usage.runCommand(root, ['sync']));
+  assert.equal(first.code, 0, `${first.summary} ${first.errors}`);
+  const branch = git(store, 'branch', '--show-current').stdout.trim();
+  assert.equal(git(base, '--git-dir', bare, 'ls-tree', '-r', '--name-only', branch).stdout.trim().split('\n').length, 1);
+
+  run(() => usage.record(root, { type: 'check.result', task: 'T-1', data: { verdict: 'fail', findings: [], level: null } }));
+  assert.equal(run(() => usage.runCommand(root, ['sync'])).code, 0);
+  assert.equal(git(base, '--git-dir', bare, 'show', `${branch}:events/demo/m-1/${fs.readdirSync(usage.eventsDir(root))[0]}`).stdout.split('\n').filter(Boolean).length, 2);
+});
+
 test('AC-2 a project that has not said yes, or said no, is never synced', (t) => {
   const w = world(t);
   const a = w.machine('a');
