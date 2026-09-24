@@ -394,24 +394,39 @@ function modelOf(input) {
 // Only SessionStart and a write to a watched file touch state.json; every other call refreshes the marker alone.
 function handleHook(root, input, now = new Date()) {
   const sessionId = input.session_id || null;
+  // Session start and end are the two moments a sync goes out (R6); it never runs inside the gate.
+  // A session that is ending does no work any more, so it leaves the marker to whoever runs next.
+  if (input.hook_event_name === 'SessionEnd') {
+    if (readMachineConfig()?.store) startBackgroundSync(root);
+    return [];
+  }
   const model = modelOf(input);
   writeMarker(root, { sessionId, model, at: now.toISOString() });
+  if (input.hook_event_name === 'SessionStart') {
+    const recorded = observeSessionStart(root);
+    if (readMachineConfig()?.store) startBackgroundSync(root);
+    return recorded;
+  }
   const found = input.hook_event_name === 'PostToolUse' ? watchedFile(root, input.tool_input?.file_path) : null;
-  // Session start and end are the two moments a sync goes out (R6); it never runs inside the gate.
-  if (input.hook_event_name === 'SessionEnd' && readMachineConfig()?.store) startBackgroundSync(root);
-  if (input.hook_event_name !== 'SessionStart' && !found) return [];
+  return found ? observeWrite(root, found, { model, sessionId }) : [];
+}
+
+// Changes made while no session was looking; the very first run only takes a baseline.
+function observeSessionStart(root) {
   const state = readState(root);
   let recorded = [];
-  if (!found) {
-    if (!state.baselineAt) baseline(root, state);
-    else recorded = recordObserved(root, state, reconcile(root, state));
-  } else {
-    if (!state.baselineAt) baseline(root, state, { except: found.rel });
-    const text = readText(root, found.rel);
-    if (text !== null) recorded = recordObserved(root, state, observeFile(root, state, found.rel, text), { model, sessionId });
-  }
+  if (!state.baselineAt) baseline(root, state);
+  else recorded = recordObserved(root, state, reconcile(root, state));
   writeState(root, state);
-  if (!found && readMachineConfig()?.store) startBackgroundSync(root);
+  return recorded;
+}
+
+function observeWrite(root, found, who) {
+  const state = readState(root);
+  if (!state.baselineAt) baseline(root, state, { except: found.rel });
+  const text = readText(root, found.rel);
+  const recorded = text === null ? [] : recordObserved(root, state, observeFile(root, state, found.rel, text), who);
+  writeState(root, state);
   return recorded;
 }
 
@@ -533,6 +548,25 @@ function commitOrUndo(store, rel, appended, message) {
   return false;
 }
 
+// Pull, and never leave the clone mid-rebase: commits made on a detached HEAD would advance the offsets and then
+// vanish with the next `rebase --abort`. Offline is fine (this machine's files are only written here); a store
+// that is not on a branch, or is mid-rebase or mid-merge, gets nothing appended. Returns why, or null.
+function pullClean(store, gitDir) {
+  const pulled = gitRemote(store, ['pull', '--rebase', '--quiet']) !== null;
+  if (!pulled) {
+    git(store, ['rebase', '--abort']);
+    git(store, ['merge', '--abort']);
+  }
+  if (['rebase-merge', 'rebase-apply'].some((name) => fs.existsSync(path.join(gitDir, name)))) return 'a rebase is in progress — finish or abort it, then sync again';
+  if (fs.existsSync(path.join(gitDir, 'MERGE_HEAD'))) return 'a merge is in progress — finish or abort it, then sync again';
+  if (git(store, ['symbolic-ref', '-q', 'HEAD']) === null) return 'HEAD is detached — check out the branch the store pushes, then sync again';
+  // Fetched but could not rebase: every push would be refused, so appending would only move offsets for nothing.
+  if (!pulled && Number(git(store, ['rev-list', '--count', 'HEAD..@{u}']) || 0) > 0) {
+    return 'the store has commits from its remote that do not rebase cleanly (two machines under one name?) — run git pull --rebase there and resolve it, then sync again';
+  }
+  return null;
+}
+
 // Copies complete lines past the saved offset into <store>/events/<project>/<machine>/, commits, then pushes.
 // The offset moves only after the commit, so a crash in between re-sends lines and the report drops them by id.
 function sync(root, now = Date.now()) {
@@ -546,7 +580,8 @@ function sync(root, now = Date.now()) {
   const lock = path.join(gitDir, 'buaflow-usage.lock');
   if (!takeLock(lock, now)) return result(0, 'another sync is running', { synced: 0, locked: true });
   try {
-    gitRemote(store, ['pull', '--rebase', '--quiet']); // may fail offline; this machine's files are only ever written here
+    const blocked = pullClean(store, gitDir);
+    if (blocked) return result(3, 'the central store needs attention — events stay here', { synced: 0, pending: pendingEvents(root) }, [], [`${store}: ${blocked}`]);
     const project = consent.consent.project;
     const machine = sanitizeName(config.machine || os.hostname());
     const target = path.join(store, 'events', project, machine);

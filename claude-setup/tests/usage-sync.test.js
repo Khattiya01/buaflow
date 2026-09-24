@@ -166,6 +166,45 @@ test('a commit that fails in the store leaves nothing behind, and the events go 
   assert.equal(w.pushed().length, 2, 'sent exactly once');
 });
 
+// Two machines under one name write the same file; the one whose push failed then pulls into a conflict.
+test('a pull that conflicts never leaves the store mid-rebase, and nothing is committed or lost until it is sorted out', (t) => {
+  const w = world(t);
+  const a = w.machine('a');
+  const b = w.machine('b');
+  a.cmd('setup', '--store', a.store, '--machine', 'same');
+  b.cmd('setup', '--store', b.store, '--machine', 'same');
+  git(b.store, 'remote', 'set-url', 'origin', path.join(w.base, 'gone.git'));
+  b.record(1);
+  assert.equal(b.cmd('sync').code, 3, 'b commits locally, cannot push');
+  a.record(1);
+  assert.equal(a.cmd('sync').code, 0);
+  git(b.store, 'remote', 'set-url', 'origin', w.bare);
+  b.record(1);
+  const pendingBefore = b.run(() => usage.pendingEvents(b.root));
+
+  const conflicted = b.cmd('sync');
+  assert.equal(conflicted.code, 3);
+  assert.match(conflicted.errors.join(), /needs attention|rebase|detached/);
+  const gitDir = git(b.store, 'rev-parse', '--absolute-git-dir').stdout.trim();
+  assert.equal(fs.existsSync(path.join(gitDir, 'rebase-merge')) || fs.existsSync(path.join(gitDir, 'rebase-apply')), false, 'the rebase was aborted');
+  assert.equal(git(b.store, 'symbolic-ref', '-q', 'HEAD').status, 0, 'back on a branch');
+  assert.equal(b.run(() => usage.pendingEvents(b.root)), pendingBefore, 'no offset moved');
+  assert.equal(localEvents(b.root).length, 2, 'every event is still in the project');
+});
+
+test('a store left on a detached HEAD gets nothing appended or committed', (t) => {
+  const w = world(t);
+  const a = w.machine('a');
+  a.cmd('setup', '--store', a.store, '--machine', 'm-a');
+  git(a.store, 'checkout', '-q', '--detach');
+  a.record(1);
+  const r = a.cmd('sync');
+  assert.equal(r.code, 3);
+  assert.match(r.errors.join(), /detached/);
+  assert.equal(git(a.store, 'status', '--porcelain', '--untracked-files=all').stdout, '');
+  assert.equal(a.run(() => usage.pendingEvents(a.root)), 1);
+});
+
 test('AC-2 a project that has not said yes, or said no, is never synced', (t) => {
   const w = world(t);
   const a = w.machine('a');
@@ -245,11 +284,13 @@ test('SessionEnd returns at once and the sync it starts finishes on its own', as
   const a = w.machine('a');
   a.cmd('setup', '--store', a.store, '--machine', 'm-a');
   a.record(2);
+  const marker = fs.existsSync(usage.markerFile(a.root)) ? fs.readFileSync(usage.markerFile(a.root), 'utf8') : null;
   const started = Date.now();
-  const r = runNode(hookScript, { cwd: a.root, env: { HOME: a.home, USERPROFILE: a.home }, input: { cwd: a.root, hook_event_name: 'SessionEnd', session_id: 's' } });
+  const r = runNode(hookScript, { cwd: a.root, env: { HOME: a.home, USERPROFILE: a.home }, input: { cwd: a.root, hook_event_name: 'SessionEnd', session_id: 's-ending' } });
   assert.equal(r.status, 0);
   assert.ok(Date.now() - started < 1000, `SessionEnd took ${Date.now() - started} ms`);
   const lock = path.join(a.store, '.git', 'buaflow-usage.lock');
   for (let i = 0; i < 150 && (w.pushed().length < 2 || fs.existsSync(lock)); i++) await new Promise((done) => setTimeout(done, 100));
   assert.equal(w.pushed().length, 2);
+  assert.equal(fs.existsSync(usage.markerFile(a.root)) ? fs.readFileSync(usage.markerFile(a.root), 'utf8') : null, marker, 'an ending session leaves the marker alone');
 });
