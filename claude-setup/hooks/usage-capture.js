@@ -27,12 +27,16 @@ function main() {
   try { input = JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch { return; }
   const usage = loadUsage();
   if (!usage) return;
-  // input.cwd before CLAUDE_PROJECT_DIR: a session inside a worktree must record against that worktree.
-  const root = input.cwd || process.cwd();
+  // Not CLAUDE_PROJECT_DIR: a session inside a worktree must record against that worktree. The cwd follows
+  // every `cd`, so walk up to the folder that holds .git — and resolve a relative file_path from where the session is.
+  const cwd = input.cwd || process.cwd();
+  const root = usage.projectRoot(cwd);
   const consent = usage.readConsent(root).state;
   const notice = input.hook_event_name === 'SessionStart' ? usage.sessionNotice(consent) : null;
   if (consent === 'enabled') {
-    try { usage.handleHook(root, input); } catch { /* the notice below still goes out */ }
+    const filePath = input.tool_input?.file_path;
+    const resolved = typeof filePath === 'string' && filePath ? { ...input, tool_input: { ...input.tool_input, file_path: path.resolve(cwd, filePath) } } : input;
+    try { usage.handleHook(root, resolved); } catch { /* the notice below still goes out */ }
   }
   if (notice) {
     process.stdout.write(JSON.stringify({

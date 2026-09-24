@@ -217,7 +217,7 @@ test('AC-14 record check uses the marker the hook left and falls back to unknown
   t.after(() => cleanup(parent));
   usage.runCommand(root, ['consent', '--enable']);
   usage.runCommand(root, ['record', 'check', '--task', 'T-1', '--verdict', 'pass']);
-  usage.writeState(root, { ...usage.readState(root), marker: { sessionId: 'sess-42', model: 'claude-sonnet-5', at: new Date().toISOString() } });
+  usage.writeMarker(root, { sessionId: 'sess-42', model: 'claude-sonnet-5', at: new Date().toISOString() });
   usage.runCommand(root, ['record', 'check', '--task', 'T-1', '--verdict', 'pass']);
   const [before, after] = events(root);
   assert.equal(before.model, 'unknown');

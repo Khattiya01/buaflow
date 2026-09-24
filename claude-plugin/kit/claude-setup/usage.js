@@ -29,6 +29,7 @@ const consentFile = (root) => path.join(root, '.buaflow', 'usage.json');
 const usageDir = (root) => path.join(root, '.buaflow', 'usage');
 const eventsDir = (root) => path.join(usageDir(root), 'events');
 const stateFile = (root) => path.join(usageDir(root), 'state.json');
+const markerFile = (root) => path.join(usageDir(root), 'marker.json');
 const machineConfigFile = () => path.join(os.homedir(), '.buaflow', 'usage.json');
 
 function git(root, args) {
@@ -116,9 +117,20 @@ function readJsonOr(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; }
 }
 
+// The session's cwd follows every `cd`; the project is the nearest folder with .git above it (a worktree has a .git file).
+function projectRoot(start) {
+  let dir = path.resolve(start);
+  for (;;) {
+    if (fs.existsSync(path.join(dir, '.git'))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) return path.resolve(start);
+    dir = parent;
+  }
+}
+
 function readState(root) {
-  const state = readJsonOr(stateFile(root), {});
-  return { seen: {}, sessions: {}, synced: {}, readinessHash: null, marker: null, ...state };
+  const { marker, ...state } = readJsonOr(stateFile(root), {});
+  return { seen: {}, sessions: {}, synced: {}, readinessHash: null, ...state, marker: readJsonOr(markerFile(root), null) };
 }
 
 function ensureUsageDir(root) {
@@ -128,9 +140,29 @@ function ensureUsageDir(root) {
   if (!fs.existsSync(ignore)) fs.writeFileSync(ignore, '*\n');
 }
 
+// Write then rename: a hook reading at the same moment sees the old file or the new one, never half of one.
+function writeJsonAtomic(file, value) {
+  const temp = `${file}.${process.pid}.tmp`;
+  fs.writeFileSync(temp, `${JSON.stringify(value, null, 2)}\n`);
+  try {
+    fs.renameSync(temp, file);
+  } catch {
+    // Windows refuses the rename while another process has the target open; a plain write beats losing the update.
+    fs.writeFileSync(file, fs.readFileSync(temp));
+    fs.rmSync(temp, { force: true });
+  }
+}
+
+// The marker lives in its own file, so a Bash hook running beside a Write hook never overwrites what the Write saw.
 function writeState(root, state) {
   ensureUsageDir(root);
-  fs.writeFileSync(stateFile(root), `${JSON.stringify(state, null, 2)}\n`);
+  const { marker, ...rest } = state;
+  writeJsonAtomic(stateFile(root), rest);
+}
+
+function writeMarker(root, marker) {
+  ensureUsageDir(root);
+  writeJsonAtomic(markerFile(root), marker);
 }
 
 function readMachineConfig() {
@@ -340,27 +372,26 @@ function recordObserved(root, state, found, { model = 'unknown', sessionId = nul
 }
 
 function modelOf(input) {
-  const given = typeof input.model === 'string' ? input.model : input.model?.id;
-  return given || modelFromTranscript(input.transcript_path) || 'unknown';
+  return (typeof input.model === 'string' && input.model) || modelFromTranscript(input.transcript_path) || 'unknown';
 }
 
 // Everything the usage-capture hook does once the project has said yes. Returns the events it recorded.
+// Only SessionStart and a write to a watched file touch state.json; every other call refreshes the marker alone.
 function handleHook(root, input, now = new Date()) {
   const sessionId = input.session_id || null;
   const model = modelOf(input);
+  writeMarker(root, { sessionId, model, at: now.toISOString() });
+  const found = input.hook_event_name === 'PostToolUse' ? watchedFile(root, input.tool_input?.file_path) : null;
+  if (input.hook_event_name !== 'SessionStart' && !found) return [];
   const state = readState(root);
-  state.marker = { sessionId, model, at: now.toISOString() };
   let recorded = [];
-  if (input.hook_event_name === 'SessionStart') {
+  if (!found) {
     if (!state.baselineAt) baseline(root, state);
     else recorded = recordObserved(root, state, reconcile(root, state));
-  } else if (input.hook_event_name === 'PostToolUse') {
-    const found = watchedFile(root, input.tool_input?.file_path);
-    if (found) {
-      if (!state.baselineAt) baseline(root, state, { except: found.rel });
-      const text = readText(root, found.rel);
-      if (text !== null) recorded = recordObserved(root, state, observeFile(root, state, found.rel, text), { model, sessionId });
-    }
+  } else {
+    if (!state.baselineAt) baseline(root, state, { except: found.rel });
+    const text = readText(root, found.rel);
+    if (text !== null) recorded = recordObserved(root, state, observeFile(root, state, found.rel, text), { model, sessionId });
   }
   writeState(root, state);
   return recorded;
@@ -501,11 +532,13 @@ module.exports = {
   handleHook,
   headCommit,
   machineConfigFile,
+  markerFile,
   markerModel,
   modelFromTranscript,
   observeFile,
   parseArgs,
   pendingEvents,
+  projectRoot,
   readConsent,
   readState,
   reconcile,
@@ -521,5 +554,6 @@ module.exports = {
   validateConsent,
   validateEvent,
   writeConsent,
+  writeMarker,
   writeState,
 };

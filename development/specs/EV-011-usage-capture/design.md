@@ -83,8 +83,13 @@ repo นี้ไม่มี `docs/constitution.md` จึงตรวจกั
 .buaflow/usage/
   .gitignore              ← "*" — สร้างก่อนเขียนไฟล์แรก (AC-20 โดยไม่ต้องแก้ .gitignore ของโปรเจกต์)
   events/2026-09-24.jsonl ← เขียนต่อท้ายอย่างเดียว
-  state.json              ← { seen: {path: {status, approvedBy}}, sessions: {task: [sessionId]}, synced: {file: bytes}, readinessHash, marker: {sessionId, model, at} }
+  state.json              ← { seen: {path: {status, approvedBy}}, sessions: {task: [sessionId]}, synced: {file: bytes}, readinessHash, baselineAt }
+  marker.json             ← { sessionId, model, at } — แยกไฟล์เพื่อให้ hook Bash ที่รันขนานกับ hook Write ไม่เขียนทับ `seen`
 ```
+
+- เขียน state/marker แบบเขียนไฟล์ชั่วคราวแล้ว rename จึงไม่มีใครอ่านเจอไฟล์ครึ่งเดียว
+- ข้อจำกัดที่ยอมรับ (EV-011.2 /check): ถ้า PostToolUse 2 ตัวบนไฟล์ใน 3 โฟลเดอร์เกิดพร้อมกันจริง ตัวที่เขียนทีหลังทับ `seen` ของอีกตัว → อาจได้ event ซ้ำ 1 ครั้ง · ไม่ทำ lock เพราะเกิดยากและ report นับรายการซ้ำได้ ดีกว่าให้ hook รอ lock
+- ราก project = โฟลเดอร์ที่ใกล้ที่สุดเหนือ `cwd` ที่มี `.git` (cwd ตาม `cd` ของ session แต่ต้องไม่ใช่ `CLAUDE_PROJECT_DIR` เพราะ session ใน worktree ต้องบันทึกกับ worktree นั้น)
 
 ### 4. Config ต่อเครื่อง `~/.buaflow/usage.json`
 
