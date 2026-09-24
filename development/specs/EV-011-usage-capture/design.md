@@ -89,7 +89,7 @@ repo นี้ไม่มี `docs/constitution.md` จึงตรวจกั
 
 - เขียน state/marker แบบเขียนไฟล์ชั่วคราวแล้ว rename จึงไม่มีใครอ่านเจอไฟล์ครึ่งเดียว
 - ข้อจำกัดที่ยอมรับ (EV-011.2 /check): ถ้า PostToolUse 2 ตัวบนไฟล์ใน 3 โฟลเดอร์เกิดพร้อมกันจริง ตัวที่เขียนทีหลังทับ `seen` ของอีกตัว → อาจได้ event ซ้ำ 1 ครั้ง · ไม่ทำ lock เพราะเกิดยากและ report นับรายการซ้ำได้ ดีกว่าให้ hook รอ lock
-- ราก project = โฟลเดอร์ที่ใกล้ที่สุดเหนือ `cwd` ที่มี `.git` (cwd ตาม `cd` ของ session แต่ต้องไม่ใช่ `CLAUDE_PROJECT_DIR` เพราะ session ใน worktree ต้องบันทึกกับ worktree นั้น)
+- ราก project (ทั้ง hook และ `buaflow usage`) = repo ที่ใกล้ที่สุดเหนือ `cwd` ที่มีไฟล์ยินยอม ถ้าไม่มีเลยใช้ repo ที่ใกล้ที่สุด · cwd ตาม `cd` ของ session แต่ต้องไม่ใช่ `CLAUDE_PROJECT_DIR` เพราะ session ใน worktree ต้องบันทึกกับ worktree นั้น · นับเฉพาะโฟลเดอร์ที่มี `.git` เพราะ `~/.buaflow/usage.json` คือ config ของเครื่อง ไม่ใช่ไฟล์ยินยอม
 
 ### 4. Config ต่อเครื่อง `~/.buaflow/usage.json`
 

@@ -117,13 +117,20 @@ function readJsonOr(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; }
 }
 
-// The session's cwd follows every `cd`; the project is the nearest folder with .git above it (a worktree has a .git file).
+// The session's cwd follows every `cd`. The project is the nearest repository above it that holds a consent file —
+// so a submodule or nested clone inside an opted-in project does not hide it — else the nearest repository.
+// Only folders with .git count: ~/.buaflow/usage.json is the machine config, not a project's consent.
+// A worktree has its own .git file and its own committed consent, so it still records against itself.
 function projectRoot(start) {
   let dir = path.resolve(start);
+  let nearestGit = null;
   for (;;) {
-    if (fs.existsSync(path.join(dir, '.git'))) return dir;
+    if (fs.existsSync(path.join(dir, '.git'))) {
+      if (fs.existsSync(consentFile(dir))) return dir;
+      nearestGit = nearestGit || dir;
+    }
     const parent = path.dirname(dir);
-    if (parent === dir) return path.resolve(start);
+    if (parent === dir) return nearestGit || path.resolve(start);
     dir = parent;
   }
 }
@@ -143,13 +150,13 @@ function ensureUsageDir(root) {
 // Write then rename: a hook reading at the same moment sees the old file or the new one, never half of one.
 function writeJsonAtomic(file, value) {
   const temp = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(temp, `${JSON.stringify(value, null, 2)}\n`);
+  const text = `${JSON.stringify(value, null, 2)}\n`;
+  fs.writeFileSync(temp, text);
   try {
     fs.renameSync(temp, file);
   } catch {
     // Windows refuses the rename while another process has the target open; a plain write beats losing the update.
-    fs.writeFileSync(file, fs.readFileSync(temp));
-    fs.rmSync(temp, { force: true });
+    try { fs.writeFileSync(file, text); } finally { fs.rmSync(temp, { force: true }); }
   }
 }
 
@@ -476,7 +483,9 @@ function readFindings(source) {
 }
 
 // Result shape matches the CLI envelope fields: { code, summary, data, warnings, errors }.
-function runCommand(root, args) {
+function runCommand(start, args) {
+  // /check calls `usage record check` from wherever the session has cd-ed to — same root as the hook uses.
+  const root = projectRoot(start);
   let options;
   try { options = parseArgs(args); } catch (error) { return { code: 2, summary: 'invalid usage input', data: {}, warnings: [], errors: [error.message] }; }
 

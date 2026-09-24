@@ -230,6 +230,27 @@ test('a session that has cd-ed into a subfolder still records against the projec
   assert.equal(fs.existsSync(path.join(sub, '.buaflow')), false);
 });
 
+test('a nested repository inside an opted-in project does not hide the project, and neither does /check from a subfolder', (t) => {
+  const p = project(t);
+  const nested = path.join(p.root, 'vendor', 'lib');
+  fs.mkdirSync(nested, { recursive: true });
+  spawnSync('git', ['init', '-q'], { cwd: nested });
+  write(path.join(p.root, 'docs/intents/I-001-a.md'), '# a\n');
+  runNode(hookScript, { cwd: nested, env: p.env, input: { cwd: nested, hook_event_name: 'PostToolUse', tool_name: 'Write', tool_input: { file_path: path.join(p.root, 'docs/intents/I-001-a.md') } } });
+  const r = runNode(cli, { cwd: nested, env: p.env, args: ['usage', 'record', 'check', '--task', 'T-001', '--verdict', 'fail', '--json'] });
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(p.events().map((e) => e.type), ['intent.opened', 'check.result']);
+  assert.equal(fs.existsSync(path.join(nested, '.buaflow')), false);
+});
+
+test('a consent-shaped file outside any repository (the machine config in ~/.buaflow) is never taken for consent', (t) => {
+  const p = project(t, { consent: null });
+  // The project lives under a folder that has .buaflow/usage.json, as a project under the home directory does.
+  writeJson(path.join(p.root, '..', '.buaflow', 'usage.json'), { schemaVersion: '1.0', store: 'D:/elsewhere', machine: 'm', lastReviewAt: null });
+  assert.equal(p.start().stdout, '');
+  assert.equal(usage.projectRoot(path.join(p.root, 'docs')), p.root);
+});
+
 test('a Bash hook running beside a Write hook cannot overwrite what the Write saw: it only touches the marker', (t) => {
   const p = project(t);
   p.start();
