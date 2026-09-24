@@ -745,7 +745,9 @@ function readFindings(source) {
 // Reading the store is kit-only: usage-report.js is never installed into a project, so .claude/usage.js says so.
 function readStoreCommand(start, options) {
   let reader;
-  try { reader = require('./usage-report.js'); } catch {
+  try { reader = require('./usage-report.js'); } catch (error) {
+    // Only the file being absent means "a project"; a broken reader inside the kit must show its own error.
+    if (error.code !== 'MODULE_NOT_FOUND' || !String(error.message).includes('usage-report.js')) throw error;
     return { code: 1, summary: `usage ${options.sub} runs from the Buaflow kit, not from a project`, data: {}, warnings: [], errors: [`run buaflow usage ${options.sub} in the Buaflow repository; the store is read there`] };
   }
   return options.sub === 'report'
