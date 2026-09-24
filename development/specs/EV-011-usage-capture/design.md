@@ -177,6 +177,12 @@ evals/drafts/                                   ← ผลของ eval-draft
 4. `git add` + `git commit -m "usage: <project> <n> events"` → บันทึก `state.synced` **หลัง commit สำเร็จ**
 5. `git push` · ล้ม → commit ค้างอยู่ใน clone และถูก push รอบหน้า (AC-17)
 - ถ้าตาย ระหว่างข้อ 3–4 อาจ append ซ้ำ → ไม่เป็นไร เพราะ report ตัดตัวซ้ำด้วย `id` (AC-19)
+- ตัดสินตอนทำ EV-011.4:
+  - `synced` แยกไปไฟล์ `synced.json` ที่ sync เขียนคนเดียว (เหตุผลเดียวกับ `marker.json`: hook ที่เขียน state พร้อมกันจะไม่ย้อน offset)
+  - commit ล้ม (เช่น store ไม่มี user.name) → ตัดไฟล์ที่เพิ่ง append กลับขนาดเดิม ไม่ให้รอบหน้า append ซ้ำบนของที่ค้าง
+  - ส่งเฉพาะบรรทัดที่จบด้วย `\n` · lock อยู่ใน `git rev-parse --absolute-git-dir` (ใช้ได้กับ store ที่เป็น worktree) · git ที่ออกเน็ตตั้ง `GIT_TERMINAL_PROMPT=0` และ timeout 60 วินาที
+  - push ทุกรอบแม้ไม่มีอะไรใหม่ เพื่อส่ง commit ที่ค้างจากรอบที่ push ล้ม · sync เฉพาะเมื่อยินยอม `enabled`
+  - ข้อความตอนเปิด session ยังเป็น 1 บรรทัด: แจ้งว่ากำลังเก็บ + ยังไม่ได้ตั้งค่าที่เก็บกลาง (ถ้าไม่มี) + ค้าง sync n event (ถ้ามี)
 - spawn แบบ detached: `spawn(process.execPath, [usage.js, 'sync', '--root', root], {detached: true, stdio: 'ignore', windowsHide: true}).unref()`
 
 ## การเปลี่ยนแปลงใน skill และ template

@@ -75,6 +75,18 @@
       }
     ],
 
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/usage-capture.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+
     "PreToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit|NotebookEdit",

@@ -18,6 +18,7 @@ const EVENT_TYPES = Object.freeze(['intent.opened', 'plan.approved', 'task.creat
 const EVENT_FIELDS = Object.freeze(['schemaVersion', 'id', 'type', 'at', 'project', 'task', 'model', 'kitVersion', 'commit', 'sessionId', 'machine', 'data']);
 const NAME_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 const TASK_PATTERN = /^[A-Za-z0-9._-]{1,64}$/;
+const SETUP_HINT = 'buaflow usage setup --store <path to your clone>';
 const SECRET_PATTERNS = Object.freeze([
   /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,
   /AKIA[0-9A-Z]{16}/g,
@@ -30,6 +31,7 @@ const usageDir = (root) => path.join(root, '.buaflow', 'usage');
 const eventsDir = (root) => path.join(usageDir(root), 'events');
 const stateFile = (root) => path.join(usageDir(root), 'state.json');
 const markerFile = (root) => path.join(usageDir(root), 'marker.json');
+const syncedFile = (root) => path.join(usageDir(root), 'synced.json');
 const machineConfigFile = () => path.join(os.homedir(), '.buaflow', 'usage.json');
 
 function git(root, args) {
@@ -136,8 +138,8 @@ function projectRoot(start) {
 }
 
 function readState(root) {
-  const { marker, ...state } = readJsonOr(stateFile(root), {});
-  return { seen: {}, sessions: {}, synced: {}, readinessHash: null, ...state, marker: readJsonOr(markerFile(root), null) };
+  const { marker, synced, ...state } = readJsonOr(stateFile(root), {});
+  return { seen: {}, sessions: {}, readinessHash: null, ...state, synced: readJsonOr(syncedFile(root), {}), marker: readJsonOr(markerFile(root), null) };
 }
 
 function ensureUsageDir(root) {
@@ -160,11 +162,17 @@ function writeJsonAtomic(file, value) {
   }
 }
 
-// The marker lives in its own file, so a Bash hook running beside a Write hook never overwrites what the Write saw.
+// The marker and the sync offsets live in their own files, each with one writer: a Bash hook beside a Write hook
+// never overwrites what the Write saw, and a hook never rolls back an offset a background sync just saved.
 function writeState(root, state) {
   ensureUsageDir(root);
-  const { marker, ...rest } = state;
+  const { marker, synced, ...rest } = state;
   writeJsonAtomic(stateFile(root), rest);
+}
+
+function writeSynced(root, synced) {
+  ensureUsageDir(root);
+  writeJsonAtomic(syncedFile(root), synced);
 }
 
 function writeMarker(root, marker) {
@@ -389,6 +397,8 @@ function handleHook(root, input, now = new Date()) {
   const model = modelOf(input);
   writeMarker(root, { sessionId, model, at: now.toISOString() });
   const found = input.hook_event_name === 'PostToolUse' ? watchedFile(root, input.tool_input?.file_path) : null;
+  // Session start and end are the two moments a sync goes out (R6); it never runs inside the gate.
+  if (input.hook_event_name === 'SessionEnd' && readMachineConfig()?.store) startBackgroundSync(root);
   if (input.hook_event_name !== 'SessionStart' && !found) return [];
   const state = readState(root);
   let recorded = [];
@@ -401,11 +411,19 @@ function handleHook(root, input, now = new Date()) {
     if (text !== null) recorded = recordObserved(root, state, observeFile(root, state, found.rel, text), { model, sessionId });
   }
   writeState(root, state);
+  if (!found && readMachineConfig()?.store) startBackgroundSync(root);
   return recorded;
 }
 
-function sessionNotice(consentState) {
-  if (consentState === 'enabled') return 'โปรเจกต์นี้เก็บข้อมูลการใช้งาน Buaflow — ปิดได้ที่ .buaflow/usage.json (enabled: false) หรือ buaflow usage consent --disable';
+// One line at session start (AC-5), plus what needs doing on this machine (AC-18) and what is still waiting.
+function sessionNotice(consentState, root) {
+  if (consentState === 'enabled') {
+    const parts = ['โปรเจกต์นี้เก็บข้อมูลการใช้งาน Buaflow — ปิดได้ที่ .buaflow/usage.json (enabled: false) หรือ buaflow usage consent --disable'];
+    if (!readMachineConfig()?.store) parts.push(`เครื่องนี้ยังไม่ได้ตั้งค่าที่เก็บกลาง: ${SETUP_HINT}`);
+    const pending = root ? pendingEvents(root) : 0;
+    if (pending) parts.push(`ค้าง sync ${pending} event`);
+    return parts.join(' · ');
+  }
   if (consentState === 'invalid') return 'ไฟล์ยินยอม .buaflow/usage.json อ่านไม่ได้ — ไม่ได้เก็บข้อมูลการใช้งาน (buaflow usage status บอกสาเหตุ)';
   return null;
 }
@@ -440,9 +458,125 @@ function status(root) {
   };
 }
 
+function result(code, summary, data = {}, warnings = [], errors = []) {
+  return { code, summary, data, warnings, errors };
+}
+
+// Network git never waits on a prompt: a background sync has nobody to answer it.
+function gitRemote(store, args) {
+  try {
+    return execFileSync('git', args, { cwd: store, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true, timeout: 60 * 1000, env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } }).trim();
+  } catch {
+    return null;
+  }
+}
+
+function setup(start, { store, machine }) {
+  const dir = path.resolve(start, store);
+  if (!fs.existsSync(dir) || git(dir, ['rev-parse', '--is-inside-work-tree']) !== 'true') {
+    return result(1, 'the store is not a git work tree', {}, [], [`${dir}: clone the private store repository first, then point --store at the clone`]);
+  }
+  const previous = readMachineConfig() || {};
+  const config = {
+    schemaVersion: SCHEMA_VERSION,
+    store: path.resolve(git(dir, ['rev-parse', '--show-toplevel'])),
+    machine: sanitizeName(machine || previous.machine || os.hostname()),
+    lastReviewAt: previous.lastReviewAt ?? null,
+  };
+  fs.mkdirSync(path.dirname(machineConfigFile()), { recursive: true });
+  fs.writeFileSync(machineConfigFile(), `${JSON.stringify(config, null, 2)}\n`);
+  return result(0, `central store for this machine: ${config.store} (machine ${config.machine})`, { file: machineConfigFile(), config });
+}
+
+// A lock older than this belongs to a sync that died; waiting on it forever would stop every later sync.
+const LOCK_STALE_MS = 5 * 60 * 1000;
+
+function takeLock(file, now) {
+  try { fs.writeFileSync(file, String(process.pid), { flag: 'wx' }); return true; } catch { /* held — maybe stale */ }
+  try {
+    if (now - fs.statSync(file).mtimeMs <= LOCK_STALE_MS) return false;
+    fs.rmSync(file, { force: true });
+    fs.writeFileSync(file, String(process.pid), { flag: 'wx' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Appends each day file's complete, unsynced lines to the same day file under target; returns what to undo.
+function copyPending(root, target) {
+  const synced = readState(root).synced;
+  const out = { offsets: {}, appended: [], count: 0 };
+  const names = fs.existsSync(eventsDir(root)) ? fs.readdirSync(eventsDir(root)).filter((name) => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(name)).sort() : [];
+  for (const name of names) {
+    const bytes = fs.readFileSync(path.join(eventsDir(root), name));
+    const end = bytes.lastIndexOf(0x0a) + 1; // a line still being written stays for the next round
+    if (end <= (synced[name] || 0)) continue;
+    const chunk = bytes.subarray(synced[name] || 0, end);
+    const dest = path.join(target, name);
+    fs.mkdirSync(target, { recursive: true });
+    out.appended.push({ dest, size: fs.existsSync(dest) ? fs.statSync(dest).size : null });
+    fs.appendFileSync(dest, chunk);
+    out.offsets[name] = end;
+    out.count += chunk.toString('utf8').split('\n').filter(Boolean).length;
+  }
+  return out;
+}
+
+// A failed commit undoes the appends: left uncommitted, the next round would append the same lines again.
+function commitOrUndo(store, rel, appended, message) {
+  if (git(store, ['add', '--', rel]) !== null && git(store, ['commit', '-q', '-m', message, '--', rel]) !== null) return true;
+  git(store, ['reset', '-q', '--', rel]);
+  for (const { dest, size } of appended) {
+    if (size === null) fs.rmSync(dest, { force: true }); else fs.truncateSync(dest, size);
+  }
+  return false;
+}
+
+// Copies complete lines past the saved offset into <store>/events/<project>/<machine>/, commits, then pushes.
+// The offset moves only after the commit, so a crash in between re-sends lines and the report drops them by id.
+function sync(root, now = Date.now()) {
+  const consent = readConsent(root);
+  if (consent.state !== 'enabled') return result(0, `not synced (consent ${consent.state})`, { synced: 0 });
+  const config = readMachineConfig();
+  if (!config?.store) return result(0, 'not synced: no central store on this machine', { synced: 0, pending: pendingEvents(root) }, [SETUP_HINT]);
+  const store = config.store;
+  const gitDir = fs.existsSync(store) ? git(store, ['rev-parse', '--absolute-git-dir']) : null;
+  if (!gitDir) return result(3, 'the central store is not a git repository — events stay here', { synced: 0, pending: pendingEvents(root) }, [], [`${store}: ${SETUP_HINT}`]);
+  const lock = path.join(gitDir, 'buaflow-usage.lock');
+  if (!takeLock(lock, now)) return result(0, 'another sync is running', { synced: 0, locked: true });
+  try {
+    gitRemote(store, ['pull', '--rebase', '--quiet']); // may fail offline; this machine's files are only ever written here
+    const project = consent.consent.project;
+    const machine = sanitizeName(config.machine || os.hostname());
+    const target = path.join(store, 'events', project, machine);
+    const rel = path.relative(store, target).split(path.sep).join('/');
+    const { offsets, appended, count } = copyPending(root, target);
+    if (count) {
+      if (!commitOrUndo(store, rel, appended, `usage: ${project} ${count} events`)) {
+        return result(3, 'could not commit in the central store — events stay here', { synced: 0, pending: pendingEvents(root) }, [], [`git commit failed in ${store} (is user.name set there?)`]);
+      }
+      writeSynced(root, { ...readState(root).synced, ...offsets });
+    }
+    // Push even with nothing new: a commit left by an earlier failed push goes out now.
+    if (gitRemote(store, ['push', '--quiet']) === null) {
+      return result(3, `${count} event(s) committed in the store; push failed — it retries on the next sync`, { synced: count, pushed: false });
+    }
+    return result(0, `synced ${count} event(s) to ${store}`, { synced: count, pushed: true, file: rel });
+  } finally {
+    fs.rmSync(lock, { force: true });
+  }
+}
+
+// Detached and unref'd: the session's hook returns at once and the sync finishes on its own.
+function startBackgroundSync(root) {
+  const { spawn } = require('node:child_process');
+  spawn(process.execPath, [__filename, 'sync', '--root', root], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+}
+
 function parseArgs(args) {
   const [sub, ...rest] = args;
-  const options = { sub, kind: null, enable: false, disable: false, project: null, task: null, verdict: null, findings: null, level: null };
+  const options = { sub, kind: null, enable: false, disable: false, project: null, task: null, verdict: null, findings: null, level: null, store: null, machine: null };
   let index = 0;
   if (sub === 'record') options.kind = rest[index++];
   for (; index < rest.length; index++) {
@@ -459,9 +593,12 @@ function parseArgs(args) {
     else if (arg === '--verdict') options.verdict = value();
     else if (arg === '--findings') options.findings = value();
     else if (arg === '--level') options.level = value();
+    else if (arg === '--store') options.store = value();
+    else if (arg === '--machine') options.machine = value();
     else throw new Error(`unknown usage option: ${arg}`);
   }
-  if (!['consent', 'status', 'record'].includes(sub)) throw new Error('usage needs a subcommand: consent, status or record');
+  if (!['consent', 'status', 'record', 'setup', 'sync'].includes(sub)) throw new Error('usage needs a subcommand: consent, status, record, setup or sync');
+  if (sub === 'setup' && !options.store) throw new Error('usage setup needs --store <path to your clone of the central store>');
   if (sub === 'consent' && options.enable === options.disable) throw new Error('usage consent needs exactly one of --enable or --disable');
   if (sub === 'record') {
     if (options.kind !== 'check') throw new Error('usage record supports: check');
@@ -493,9 +630,12 @@ function runCommand(start, args) {
     const s = status(root);
     const warnings = [];
     if (s.consent === 'invalid') warnings.push(`.buaflow/usage.json cannot be read, so nothing is recorded: ${s.errors.join('; ')}`);
-    if (s.consent === 'enabled' && !s.store) warnings.push('no central store on this machine yet: buaflow usage setup --store <path to your clone>');
+    if (s.consent === 'enabled' && !s.store) warnings.push(`no central store on this machine yet: ${SETUP_HINT}`);
     return { code: 0, summary: `consent ${s.consent}${s.project ? ` (${s.project})` : ''} · ${s.pending} event(s) not synced`, data: s, warnings, errors: [] };
   }
+
+  if (options.sub === 'setup') return setup(start, options);
+  if (options.sub === 'sync') return sync(root);
 
   if (options.sub === 'consent') {
     if (git(root, ['rev-parse', '--is-inside-work-tree']) !== 'true') return { code: 1, summary: 'not a git repository', data: {}, warnings: [], errors: ['consent is stored in the project and committed; run it inside the project repository'] };
@@ -552,6 +692,7 @@ if (require.main === module) process.exit(main());
 module.exports = {
   EVENT_FIELDS,
   EVENT_TYPES,
+  LOCK_STALE_MS,
   MARKER_MAX_AGE_MS,
   SCHEMA_VERSION,
   WATCHED,
@@ -580,8 +721,11 @@ module.exports = {
   runCommand,
   sanitizeName,
   sessionNotice,
+  setup,
   stateFile,
   status,
+  sync,
+  syncedFile,
   usageDir,
   watchedFile,
   validateConsent,

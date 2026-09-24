@@ -5,6 +5,7 @@
  *   SessionStart  อัปเดต marker ของ model · reconcile สิ่งที่เปลี่ยนนอก session · แจ้ง 1 บรรทัดว่ากำลังเก็บ
  *   PostToolUse   (Write|Edit|MultiEdit) ไฟล์ใน docs/intents, docs/plans, docs/backlog/tasks → event
  *   PreToolUse    (Bash) อัปเดต marker เท่านั้น ให้ `buaflow usage record` รู้ว่า session ไหนใช้ model อะไร
+ *   SessionEnd    เริ่ม sync เบื้องหลัง (SessionStart ก็เริ่มด้วย) เมื่อเครื่องนี้ตั้งค่าที่เก็บกลางแล้ว
  *
  * ยังไม่ยินยอม = อ่านไฟล์ยินยอมแล้วออก ไม่สร้างไฟล์หรือโฟลเดอร์ใด ๆ
  * ทุกกรณีล้มเหลว exit 0 — การเก็บข้อมูลห้ามขวางงาน (R7)
@@ -32,12 +33,12 @@ function main() {
   const cwd = input.cwd || process.cwd();
   const root = usage.projectRoot(cwd);
   const consent = usage.readConsent(root).state;
-  const notice = input.hook_event_name === 'SessionStart' ? usage.sessionNotice(consent) : null;
   if (consent === 'enabled') {
     const filePath = input.tool_input?.file_path;
     const resolved = typeof filePath === 'string' && filePath ? { ...input, tool_input: { ...input.tool_input, file_path: path.resolve(cwd, filePath) } } : input;
     try { usage.handleHook(root, resolved); } catch { /* the notice below still goes out */ }
   }
+  const notice = input.hook_event_name === 'SessionStart' ? usage.sessionNotice(consent, root) : null;
   if (notice) {
     process.stdout.write(JSON.stringify({
       systemMessage: notice,

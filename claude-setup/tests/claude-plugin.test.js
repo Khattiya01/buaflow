@@ -54,6 +54,7 @@ test('EV-011 usage-capture is wired where it listens and finds usage.js inside t
   assert.ok(wired('SessionStart', 'startup|resume|clear'));
   assert.ok(wired('PostToolUse', 'Edit|Write|MultiEdit'));
   assert.ok(wired('PreToolUse', 'Bash'));
+  assert.ok(wired('SessionEnd', undefined), 'SessionEnd has no matcher: every way a session ends starts a sync');
   assert.ok(files.has('hooks/usage-capture.js'));
   assert.ok(files.has('kit/claude-setup/usage.js') && files.has('kit/claude-setup/convergence.js'), 'the hook resolves ../kit/claude-setup/usage.js');
 });
