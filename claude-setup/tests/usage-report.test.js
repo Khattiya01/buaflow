@@ -213,3 +213,65 @@ test('report and show from a project say they run from the kit instead of failin
     assert.match(JSON.parse(r.stdout).summary, /runs from the Buaflow kit/);
   }
 });
+
+// A throwaway Buaflow repository: the skills a draft points at, and cases up to EV-005 already taken.
+function buaflowRepo(f) {
+  const repo = path.join(f.base, 'buaflow-repo');
+  writeJson(path.join(repo, 'package.json'), { name: 'buaflow' });
+  writeJson(path.join(repo, 'development', 'state.json'), {});
+  for (const skill of ['check', 'plan', 'task']) write(path.join(repo, 'core', 'skills', `${skill}.md`), `# ${skill}\n`);
+  writeJson(path.join(repo, 'claude-setup', 'evals', 'EV-005.json'), {});
+  return repo;
+}
+
+test('AC-21 eval-draft turns a real task into a case the harness accepts, pointing back at where it came from', (t) => {
+  const f = fixture(t);
+  const repo = buaflowRepo(f);
+  const r = f.run(() => report.evalDraft(repo, 'alpha/T-1', { pull: false, author: 'Case Author' }));
+  assert.equal(r.code, 0, r.errors.join('\n'));
+  const draft = JSON.parse(fs.readFileSync(r.data.file, 'utf8'));
+  assert.equal(path.relative(f.store, r.data.file).split(path.sep).join('/'), 'evals/drafts/EV-006.json');
+  assert.deepEqual(require('../eval-harness.js').validateCase(draft, { root: repo, expectedId: 'EV-006' }), { ok: true, errors: [] });
+  assert.equal(draft.origin, 'observed-failure');
+  assert.equal(draft.observedIn, 'alpha/T-1');
+  assert.equal(draft.authoredBy, 'Case Author');
+  assert.match(draft.prompt, /# intent/, 'the prompt starts from the intent the task names');
+  assert.deepEqual(draft.criteria.map((c) => [c.id, c.kind]), [['C1', 'must-happen'], ['C2', 'must-not-happen']]);
+  assert.match(draft.criteria[0].statement, /AC-1/);
+  assert.match(draft.criteria[1].statement, /must-fix: x/, 'what /check found becomes what must not happen again');
+  assert.deepEqual(draft.tests, ['core/skills/check.md', 'core/skills/plan.md'], 'failed /check and fixed later → check; moved back → plan');
+  assert.ok(draft.setup.some((s) => s.includes('buaflow usage show alpha/T-1')));
+  assert.equal(draft.passWhen.minScore, 0.8);
+  assert.match(draft._, /แก้ prompt และ criteria/);
+  const second = f.run(() => report.evalDraft(repo, 'alpha/T-1', { pull: false }));
+  assert.equal(second.data.id, 'EV-007', 'a second draft never overwrites the first');
+});
+
+test('eval-draft on a task with no AC and no failed /check leaves plain placeholders to fill in', (t) => {
+  const f = fixture(t);
+  const repo = buaflowRepo(f);
+  const r = f.run(() => report.evalDraft(repo, 'alpha/T-2', { pull: false }));
+  assert.equal(r.code, 0, r.errors.join('\n'));
+  const statements = r.data.draft.criteria.map((c) => c.statement);
+  assert.ok(statements.every((s) => s.startsWith('<แก้ก่อนใช้')));
+  assert.deepEqual(r.data.draft.tests, ['core/skills/task.md']);
+});
+
+test('eval-draft says why it cannot draft: an unknown task, or a place that is not the Buaflow repository', (t) => {
+  const f = fixture(t);
+  const repo = buaflowRepo(f);
+  assert.equal(f.run(() => report.evalDraft(repo, 'alpha/T-99', { pull: false })).code, 1);
+  const elsewhere = f.run(() => report.evalDraft(f.base, 'alpha/T-1', { pull: false }));
+  assert.equal(elsewhere.code, 1);
+  assert.match(elsewhere.summary, /Buaflow repository/);
+});
+
+test('AC-26 the eval-draft command a report prints runs as printed', (t) => {
+  const f = fixture(t);
+  const repo = buaflowRepo(f);
+  const text = f.run(() => report.report({ now: NOW, pull: false })).data.text;
+  const command = text.match(/`(buaflow usage eval-draft --task alpha\/T-1)`/)[1];
+  const r = runNode(cli, { cwd: repo, env: f.env, args: [...command.split(' ').slice(1), '--json'] });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.equal(JSON.parse(r.stdout).data.id, 'EV-006');
+});

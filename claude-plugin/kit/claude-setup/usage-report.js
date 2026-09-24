@@ -1,10 +1,10 @@
 'use strict';
 
 /**
- * EV-011 — reading the central store: `buaflow usage report | show` and the review notice (AC-22..27).
+ * EV-011 — reading the central store: `buaflow usage report | show | eval-draft` and the review notice (AC-21..27).
  * Runs in the Buaflow repository only, so it is kit-only: install.js never copies it into a project.
- * Reads the store clone as it is; it never writes there, and the only file it changes is the machine
- * config's lastReviewAt.
+ * Reads the store clone as it is. It writes only a draft eval case (evals/drafts/, never events/) and the
+ * machine config's review fields.
  */
 const fs = require('node:fs');
 const path = require('node:path');
@@ -243,6 +243,105 @@ function show(target, { pull = true } = {}) {
   return { code: 0, summary: `${timeline.length} event(s) for ${target}`, data: { target, events: timeline, text }, warnings: [], errors: [] };
 }
 
+// The text under one "## heading" of a document, up to the next "## ".
+function section(markdown, heading) {
+  const lines = String(markdown || '').split(/\r?\n/);
+  const start = lines.findIndex((line) => line.startsWith(`## ${heading}`));
+  if (start === -1) return '';
+  const end = lines.findIndex((line, index) => index > start && line.startsWith('## '));
+  return lines.slice(start + 1, end === -1 ? undefined : end).join('\n').trim();
+}
+
+function nextCaseId(dirs) {
+  const numbers = dirs.flatMap((dir) => (fs.existsSync(dir) ? fs.readdirSync(dir) : []))
+    .map((name) => /^EV-(\d+)\.json$/.exec(name)?.[1]).filter(Boolean).map(Number);
+  return `EV-${String(Math.max(0, ...numbers) + 1).padStart(3, '0')}`;
+}
+
+// Where the task went wrong decides which skill the case exercises (design: ร่าง eval case).
+function skillsUnderTest(task) {
+  const tests = new Set();
+  if (task?.fails || task?.fixedBy.size) tests.add('core/skills/check.md');
+  if (task?.backward) tests.add('core/skills/plan.md');
+  if (!tests.size) tests.add('core/skills/task.md');
+  return [...tests];
+}
+
+function gitUser(root) {
+  try {
+    return execFileSync('git', ['config', 'user.name'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true }).trim();
+  } catch {
+    return '';
+  }
+}
+
+// Short AC ids alone ("AC-1") would fail the harness's 10-character floor; say what they are instead.
+const atLeastTen = (text, lead) => (String(text).length >= 10 ? String(text) : `${lead}: ${text}`);
+const findingText = (finding) => (typeof finding === 'string' ? finding : JSON.stringify(finding));
+
+// AC-21: a real task becomes a draft eval case. Structurally valid on purpose, and plainly a draft on purpose:
+// a person edits the prompt and criteria, then moves it into claude-setup/evals/ (EV-006 cycle).
+function evalDraft(start, target, { out = null, pull = true, author = null } = {}) {
+  if (!isBuaflowRepo(start)) {
+    return { code: 1, summary: 'eval-draft runs in the Buaflow repository', data: {}, warnings: [], errors: ['a draft\'s tests point at core/skills/…, which only the Buaflow repository has'] };
+  }
+  const config = machineConfig();
+  if (!config?.store) return { code: 1, summary: 'no central store on this machine', data: {}, warnings: [], errors: ['buaflow usage setup --store <path to your clone>'] };
+  if (pull) pullQuietly(config.store);
+  const [project, taskId] = target.split('/');
+  const { events } = readStore(config.store);
+  const own = events.filter((e) => e.project === project && e.task === taskId);
+  if (!own.length) return { code: 1, summary: `no events for ${target}`, data: { target }, warnings: [], errors: [`${target} is not in ${config.store}`] };
+
+  const created = own.find((e) => e.type === 'task.created');
+  const meta = frontmatter(created?.data?.content || '') || {};
+  const intentPath = String(meta.intent || '').trim();
+  const intent = intentPath ? events.find((e) => e.project === project && e.type === 'intent.opened' && e.data?.path === intentPath) : null;
+  const plan = own.find((e) => e.type === 'plan.approved');
+  const summary = summarizeTasks(events).find((t) => t.key === target);
+
+  const mustHappen = (created?.data?.acceptance || []).map((ac) => atLeastTen(ac, 'ต้องครบตามเกณฑ์'));
+  const mustNot = own.filter((e) => e.type === 'check.result' && e.data?.verdict === 'fail')
+    .flatMap((e) => e.data?.findings || []).map((f) => `ห้ามเกิดซ้ำ: ${findingText(f)}`);
+  const criteria = [
+    ...(mustHappen.length ? mustHappen : ['<แก้ก่อนใช้: สิ่งที่ต้องเกิด — task นี้ไม่มี AC ที่บันทึกไว้>']).map((statement) => ({ kind: 'must-happen', statement })),
+    ...(mustNot.length ? mustNot : ['<แก้ก่อนใช้: สิ่งที่ห้ามเกิดในงานนี้ — ไม่มี /check ที่ตกให้คัดมา>']).map((statement) => ({ kind: 'must-not-happen', statement })),
+  ].slice(0, 99).map((criterion, index) => ({ id: `C${index + 1}`, ...criterion }));
+
+  const dir = out ? path.resolve(start, out) : path.join(config.store, 'evals', 'drafts');
+  const id = nextCaseId([path.join(start, 'claude-setup', 'evals'), dir]);
+  const evalCase = {
+    $schema: 'https://buaflow.dev/schemas/eval-case-v1.json',
+    schemaVersion: '1.0',
+    _: `ร่างจากงานจริง ${target} (buaflow usage eval-draft) — แก้ prompt และ criteria ให้เป็นคำถามที่ทดสอบ skill ได้จริง แทนข้อความ <แก้ก่อนใช้…> ทุกจุด แล้วค่อยย้ายไป claude-setup/evals/ · คนเขียนเคสห้ามเป็นคนตรวจ`,
+    id,
+    title: atLeastTen(`ร่างจาก ${target}: ${meta.title || taskId}`, 'ร่างจากงานจริง'),
+    authoredBy: author || gitUser(start) || 'unknown author',
+    origin: 'observed-failure',
+    observedIn: target,
+    tests: skillsUnderTest(summary),
+    setup: [
+      ...(plan ? [`plan ที่อนุมัติแล้ว: ${plan.data?.path || 'ดูใน usage show'} (โดย ${plan.data?.approvedBy || 'ไม่ทราบ'})`] : []),
+      `บริบทเต็มของงานนี้: buaflow usage show ${target}`,
+    ],
+    prompt: atLeastTen(intent?.data?.content || section(created?.data?.content, 'ทำอะไร') || meta.title || taskId, 'งานจริงจาก'),
+    criteria,
+    passWhen: { minScore: 0.8 },
+  };
+  const checked = require('./eval-harness.js').validateCase(evalCase, { root: start, expectedId: id });
+  if (!checked.ok) return { code: 1, summary: `the draft for ${target} does not validate`, data: { draft: evalCase }, warnings: [], errors: checked.errors };
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, `${id}.json`);
+  fs.writeFileSync(file, `${JSON.stringify(evalCase, null, 2)}\n`);
+  return {
+    code: 0,
+    summary: `draft ${id} for ${target} → ${file}`,
+    data: { id, file, draft: evalCase },
+    warnings: ['a draft, not a case: edit the prompt and criteria, then move it to claude-setup/evals/'],
+    errors: [],
+  };
+}
+
 function isBuaflowRepo(root) {
   try {
     return JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).name === 'buaflow' && fs.existsSync(path.join(root, 'development', 'state.json'));
@@ -266,4 +365,4 @@ function reviewNotice(root) {
   return `มี event ใหม่ ${fresh} รายการในที่เก็บกลางตั้งแต่ review ล่าสุด (${last}) — buaflow usage report`;
 }
 
-module.exports = { report, reviewNotice, show };
+module.exports = { evalDraft, report, reviewNotice, show };

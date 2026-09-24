@@ -160,6 +160,11 @@ evals/drafts/                                   ← ผลของ eval-draft
 - `tests` = ไฟล์ skill ของขั้นที่มีปัญหา (`skills/check/SKILL.md` ถ้า check fail, `skills/plan/SKILL.md` ถ้าสถานะย้อนจาก review เป็นต้น)
 - `authoredBy` = `git config user.name` ของคนที่สั่ง — ต้องไม่เป็นคนเดียวกับคนตรวจ ตามกติกา EV-004 เดิม
 - `passWhen: { minScore: 0.8 }` · ไฟล์ลงที่ `evals/drafts/` ไม่ได้ลงโฟลเดอร์เคสจริง คนต้องย้ายเองหลังแก้
+- ตัดสินตอนทำ EV-011.6:
+  - ไม่มี `/check` ที่ตก หรือ task ไม่มี AC → ใส่ criteria ที่ขึ้นต้นด้วย `<แก้ก่อนใช้…>` แทน เพราะ schema บังคับให้มีทั้ง must-happen และ must-not-happen และร่างต้องดูออกทันทีว่ายังต้องแก้
+  - `id` = EV ถัดจากเลขมากสุดใน `claude-setup/evals/` และในโฟลเดอร์ร่าง · ชื่อไฟล์ = id ตามที่ harness ตรวจ · ร่างซ้ำได้เลขใหม่ ไม่ทับของเดิม
+  - `tests` ชี้ `core/skills/*.md` (ต้นทางของ skill) จึงสั่งได้เฉพาะใน repo Buaflow · check ตกหรือถูก `fixes:` ชี้ → `check.md` · สถานะย้อน → `plan.md` · ไม่มีสัญญาณ → `task.md`
+  - ร่างผ่าน `validateCase()` ของ `eval-harness.js` ก่อนเขียน ไม่ผ่าน = ไม่เขียน
 
 ## Hook (แทนหัวข้อ UI — feature นี้ไม่มี UI)
 

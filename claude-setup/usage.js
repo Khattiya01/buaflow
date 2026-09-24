@@ -18,6 +18,7 @@ const EVENT_TYPES = Object.freeze(['intent.opened', 'plan.approved', 'task.creat
 const EVENT_FIELDS = Object.freeze(['schemaVersion', 'id', 'type', 'at', 'project', 'task', 'model', 'kitVersion', 'commit', 'sessionId', 'machine', 'data']);
 const NAME_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 const TASK_PATTERN = /^[A-Za-z0-9._-]{1,64}$/;
+const PROJECT_TASK = /^[a-z0-9][a-z0-9._-]*\/[A-Za-z0-9._-]+$/;
 const SETUP_HINT = 'buaflow usage setup --store <path to your clone>';
 const SECRET_PATTERNS = Object.freeze([
   /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,
@@ -718,8 +719,9 @@ function parseArgs(args) {
     else if (arg === '--since') options.since = value();
     else throw new Error(`unknown usage option: ${arg}`);
   }
-  if (!['consent', 'status', 'record', 'setup', 'sync', 'report', 'show'].includes(sub)) throw new Error('usage needs a subcommand: consent, status, record, setup, sync, report or show');
-  if (sub === 'show' && !/^[a-z0-9][a-z0-9._-]*\/[A-Za-z0-9._-]+$/.test(options.target || '')) throw new Error('usage show needs <project>/<task>, e.g. bluepeak-hub/T-012');
+  if (!['consent', 'status', 'record', 'setup', 'sync', 'report', 'show', 'eval-draft'].includes(sub)) throw new Error('usage needs a subcommand: consent, status, record, setup, sync, report, show or eval-draft');
+  if (sub === 'eval-draft' && !PROJECT_TASK.test(options.task || '')) throw new Error('usage eval-draft needs --task <project>/<task>, e.g. bluepeak-hub/T-012');
+  if (sub === 'show' && !PROJECT_TASK.test(options.target || '')) throw new Error('usage show needs <project>/<task>, e.g. bluepeak-hub/T-012');
   if (options.since && !/^\d{4}-\d{2}-\d{2}$/.test(options.since)) throw new Error('--since must be YYYY-MM-DD');
   if (sub === 'setup' && !options.store) throw new Error('usage setup needs --store <path to your clone of the central store>');
   if (sub === 'consent' && options.enable === options.disable) throw new Error('usage consent needs exactly one of --enable or --disable');
@@ -750,6 +752,7 @@ function readStoreCommand(start, options) {
     if (error.code !== 'MODULE_NOT_FOUND' || !String(error.message).includes('usage-report.js')) throw error;
     return { code: 1, summary: `usage ${options.sub} runs from the Buaflow kit, not from a project`, data: {}, warnings: [], errors: [`run buaflow usage ${options.sub} in the Buaflow repository; the store is read there`] };
   }
+  if (options.sub === 'eval-draft') return reader.evalDraft(start, options.task, { out: options.out });
   return options.sub === 'report'
     ? reader.report({ out: options.out && path.resolve(start, options.out), since: options.since })
     : reader.show(options.target);
@@ -772,7 +775,7 @@ function runCommand(start, args) {
 
   if (options.sub === 'setup') return setup(start, options);
   if (options.sub === 'sync') return sync(root);
-  if (options.sub === 'report' || options.sub === 'show') return readStoreCommand(start, options);
+  if (['report', 'show', 'eval-draft'].includes(options.sub)) return readStoreCommand(start, options);
 
   if (options.sub === 'consent') {
     if (git(root, ['rev-parse', '--is-inside-work-tree']) !== 'true') return { code: 1, summary: 'not a git repository', data: {}, warnings: [], errors: ['consent is stored in the project and committed; run it inside the project repository'] };
