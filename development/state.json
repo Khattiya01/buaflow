@@ -4,8 +4,10 @@
   "product": "buaflow",
   "updatedAt": "2026-09-24",
   "current": {
-    "milestone": "M9",
-    "focus": []
+    "milestone": "M5",
+    "focus": [
+      "EV-011"
+    ]
   },
   "workItems": [
     {
@@ -1449,6 +1451,31 @@
       "notes": "Dropped by the D-013 audit. Telemetry for time, cost, retry, rework and gate results is meaningful once other people run Buaflow; today the only source would be this repository measuring itself, which the north-star metric already suffers from. Keeping the row also invites building the collection path before the privacy contract has any real content to protect. If EV-009 leads to actual adopters, a fresh item written against their needs will be better than this one."
     },
     {
+      "id": "EV-011",
+      "title": "Internal opt-in usage capture across adopted projects",
+      "milestone": "M5",
+      "status": "in_progress",
+      "dependsOn": [
+        "EV-009"
+      ],
+      "acceptance": [
+        "A project is asked once, when Buaflow is started in it, whether to record usage; the answer is stored in the project and nothing is recorded, written or sent before a yes or after it is switched off",
+        "Lifecycle events are recorded without anyone typing them — intent opened, plan approved, /check result, verifier audit, /done merged — each carrying a schema version, the project, the task, the model that did the work and the kit version",
+        "Full content is kept (intent, spec, plan, acceptance criteria and check findings), because the owner accepts it for internal projects and the eval corpus is useless without it",
+        "Records from every opted-in project reach one private git repository; a failed sync never blocks, slows or fails a task, a commit or the gate — it waits and retries",
+        "From that repository alone, without opening any project: real intent/plan/AC can be turned into eval cases for the skills, /check outcomes can be compared by model, and every project's readiness and evidence freshness appear in one view",
+        "At least two internal projects other than this repository have opted in and produced records before this is called done"
+      ],
+      "artifacts": [
+        "development/specs/EV-011-usage-capture/requirements.md",
+        "development/specs/EV-011-usage-capture/design.md",
+        "development/specs/EV-011-usage-capture/tasks.md"
+      ],
+      "verification": [],
+      "notes": "Opened 2026-09-24 under D-028 as the fresh item EV-005 asked for once real adopters existed. The owner uses Buaflow internally on 2-5 projects through the plugin and wants their real work to feed Buaflow's development: reference cases, an eval corpus built from real intents and plans, a measure of how much the model changes AC coverage and rework, and one dashboard across projects. EV-009 already measured Bluepeak Hub by hand with ev-009-measurement-protocol.md; this item is that protocol recorded automatically on every opted-in project. Owner answers: internal only, confidentiality is not a concern, one-time consent per project, storage in a private git repository, all four benefits wanted from the first round. Open before spec: [NEEDS CLARIFICATION (data): what counts as rework — a /check that fails, a reopened task, or a follow-up fix task that points back — this decides which events must exist]. [NEEDS CLARIFICATION (architecture): does sync run from a hook at the end of a session or from buaflow ci/pre-push — decides whether it works for people who never push]. Default chosen, not asked: records are JSONL in the project until synced, one file per day. 2026-09-24: open questions resolved (rework = raw events for all three signals, definition in analysis; sync = local append, non-blocking sync at session start/end plus a manual command, never in the gate). Spec approved in three steps: 27 EARS acceptance criteria, design, and nine subtasks EV-011.1..9 tracked here. Progress: EV-011.1 in progress.",
+      "startedAt": "2026-09-24"
+    },
+    {
       "id": "EV-003",
       "title": "Failure taxonomy",
       "milestone": "M4",
@@ -2188,12 +2215,19 @@
       "decision": "Buaflow is adopted plugin-first (PE-008, kit 3.12.0): the plugin carries the whole kit and /buaflow:start, and buaflow install writes what must live in the project. The buaflow/ folder route stays supported.",
       "reason": "The user asked why the plugin still needed the folder, and whether the parts a plugin cannot carry reduce effectiveness. They do not when they are written into the project in Phase 7, which is what install does deterministically; they do when a project stops at the plugin, which doctor and check-config now report. Same D-011 line: Claude Code owns installation of the session layer, Buaflow keeps the gate that runs without it.",
       "impact": "README, QUICKSTART, UPGRADE, START-HERE, Phase 6/7 and CLI.md lead with the plugin. The UPGRADE fast path is two commands. Milestone M9 holds PE-008 and is complete."
+    },
+    {
+      "id": "D-028",
+      "date": "2026-09-24",
+      "decision": "Reopen usage capture as a new item, EV-011, rather than reviving EV-005, scoped to internal projects the owner runs with one-time consent per project and a private git repository as the store.",
+      "reason": "D-013 dropped EV-005 because the only source was this repository measuring itself, and wrote the reopening condition down: real adopters, and an item written against their needs. Both now hold. EV-009 closed today on Bluepeak Hub, and the owner reports 2-5 internal projects using Buaflow through the plugin (PE-008). The privacy concern that made D-013 wary of building a collection path first does not apply: the projects are the owner's, the owner accepts full content, and consent is still asked once per project.",
+      "impact": "EV-011 sits in M5 as backlog awaiting the owner's go-ahead to spec. EV-005 stays dropped with its reason, so the history of why it was not built is kept. If EV-011 produces enough real eval runs to compare models, MT-006 (model routing) meets its own reopening condition and should be written as a new item from that data. current moves from the completed M9 to M5 with EV-011 in focus."
     }
   ],
   "lastSession": {
     "date": "2026-09-24",
-    "summary": "D-025/D-026 dropped M7 (domain packs) and M8 (parallel build). Docs rewritten for 3.x. Then PE-008 (kit 3.12.0): the plugin carries the whole kit under kit/, /buaflow:start starts, resumes or upgrades a project, buaflow install writes the gate and checkers into .claude/ without overwriting team changes, and check-config/doctor understand plugin mode. Also fixed CHECKSUMS ordering that made GitHub Actions fail on Linux. Suite 406/406.",
-    "next": "No open items. Parked until asked: MT-003/004. Open in Bluepeak Hub: T-012 (needs a session allowed to edit .claude/); merging buaflow/phase-a-adoption is the owner's call. Worth doing on the next real adoption: take the plugin route end to end and record what /buaflow:start gets wrong — PE-008 was verified by a throwaway install, not by a real project.",
+    "summary": "D-025/D-026 dropped M7 (domain packs) and M8 (parallel build). Docs rewritten for 3.x. Then PE-008 (kit 3.12.0): the plugin carries the whole kit under kit/, /buaflow:start starts, resumes or upgrades a project, buaflow install writes the gate and checkers into .claude/ without overwriting team changes, and check-config/doctor understand plugin mode. Also fixed CHECKSUMS ordering that made GitHub Actions fail on Linux. Suite 406/406. Then D-028: opened EV-011 (internal opt-in usage capture) as the fresh item D-013 asked for, now that real adopters exist.",
+    "next": "EV-011 in progress: working EV-011.1 (usage.js core + schemas + consent/status/record CLI). Spec: development/specs/EV-011-usage-capture/. Parked until asked: MT-003/004. Open in Bluepeak Hub: T-012 (needs a session allowed to edit .claude/); merging buaflow/phase-a-adoption is the owner's call. Worth doing on the next real adoption: take the plugin route end to end and record what /buaflow:start gets wrong — PE-008 was verified by a throwaway install, not by a real project.",
     "verifiedAt": "2026-09-23T17:29:11.223Z"
   }
 }
