@@ -133,3 +133,22 @@ test('docs-lint (IC-002) warns on untagged clarification questions and on a file
     cleanup(root);
   }
 });
+
+// EV-011 AC-15: `fixes:` links a task to the closed task it repairs; docs-lint must accept it as it is.
+test('docs-lint (EV-011) accepts a task that carries fixes:, and the task template offers the line', () => {
+  const root = temporaryProject();
+  try {
+    const task = (id, extra) => ['---', `id: ${id}`, 'title: demo', 'type: fix', 'milestone: M1', 'status: todo', 'priority: P1', 'estimate: 1', ...extra, '---', '', '## Acceptance Criteria', '- [ ] **AC-1** WHEN x THE SYSTEM SHALL y', ''].join('\n');
+    write(path.join(root, 'docs', 'backlog', 'tasks', 'T-003.md'), task('T-003', []));
+    write(path.join(root, 'docs', 'backlog', 'tasks', 'T-004.md'), task('T-004', ['fixes: T-003']));
+    const withFixes = runNode(docsLint, { args: [root] });
+    write(path.join(root, 'docs', 'backlog', 'tasks', 'T-004.md'), task('T-004', []));
+    const without = runNode(docsLint, { args: [root] });
+    assert.equal(withFixes.status, without.status, withFixes.stdout);
+    assert.equal(withFixes.stdout.replace(/T-004/g, ''), without.stdout.replace(/T-004/g, ''), 'fixes: adds no finding');
+    const template = require('node:fs').readFileSync(path.join(repositoryRoot, 'templates', 'task.tpl.md'), 'utf8');
+    assert.match(template, /^fixes: T-000\s+#.+ลบบรรทัดนี้$/m);
+  } finally {
+    cleanup(root);
+  }
+});

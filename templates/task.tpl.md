@@ -10,6 +10,7 @@ track: full | trivial          # trivial = อธิบาย diff ได้ใ�
 priority: P0 | P1 | P2 | P3
 estimate: 0.5 | 1 | 2 | 3   # หน่วยเป็น session ของ AI
 depends_on: [T-000]
+fixes: T-000                        # task ที่ปิดไปแล้วซึ่งงานนี้มาแก้ — ถ้าไม่ใช่งานแก้ให้ลบบรรทัดนี้
 intent: docs/intents/I-000-....md   # ถ้ามี
 spec: docs/specs/<feature>/         # ถ้ามี
 plan: docs/plans/T-000.md           # เติมเมื่อทำ plan แล้ว

@@ -525,6 +525,30 @@ function runCommand(start, args) {
   }
 }
 
+// `node .claude/usage.js <subcommand>` — the same commands as `buaflow usage`, for skills and hooks in a project,
+// where .claude/usage.js is installed in both modes but the buaflow CLI lives wherever the kit is.
+function main(argv = process.argv.slice(2)) {
+  const args = [];
+  let root = process.cwd();
+  let json = false;
+  for (let index = 0; index < argv.length; index++) {
+    if (argv[index] === '--root') root = argv[++index] || root;
+    else if (argv[index] === '--json') json = true;
+    else args.push(argv[index]);
+  }
+  const result = runCommand(path.resolve(root), args);
+  const out = { schemaVersion: '1.0', command: 'usage', status: result.code === 0 ? 'ok' : 'error', ...result };
+  if (json) process.stdout.write(`${JSON.stringify(out, null, 2)}\n`);
+  else {
+    console.log(`buaflow usage: ${out.status.toUpperCase()} — ${out.summary}`);
+    for (const warning of out.warnings) console.log(`  warn: ${warning}`);
+    for (const error of out.errors) console.log(`  fail: ${error}`);
+  }
+  return result.code;
+}
+
+if (require.main === module) process.exit(main());
+
 module.exports = {
   EVENT_FIELDS,
   EVENT_TYPES,

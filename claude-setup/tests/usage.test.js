@@ -301,3 +301,26 @@ test('the CLI routes usage flags to usage.js and keeps shared options', () => {
   assert.equal(result.status, 0, result.stderr);
   assert.equal(JSON.parse(result.stdout).command, 'usage');
 });
+
+// EV-011.7: /check runs `node .claude/usage.js record check … --findings -` — installed in both modes, unlike the CLI.
+test('usage.js runs as a command: record check reads findings from stdin, and is silent without consent', (t) => {
+  isolatedHome(t);
+  const { root, parent } = gitProject();
+  t.after(() => cleanup(parent));
+  const script = path.join(repositoryRoot, 'claude-setup', 'usage.js');
+  const env = { HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE };
+  const run = (...args) => spawnSync(process.execPath, [script, ...args], { cwd: root, env: { ...process.env, ...env }, input: 'src/a.js:3 — null deref\nsrc/b.js:9 — missing test\n', encoding: 'utf8' });
+  const quiet = run('record', 'check', '--task', 'T-001', '--verdict', 'fail', '--findings', '-', '--json');
+  assert.equal(quiet.status, 0, quiet.stderr);
+  assert.equal(JSON.parse(quiet.stdout).data.recorded, false);
+  assert.equal(fs.existsSync(usage.usageDir(root)), false);
+
+  assert.equal(run('consent', '--enable').status, 0);
+  const recorded = run('record', 'check', '--task', 'T-001', '--verdict', 'fail', '--level', 'medium', '--findings', '-', '--json');
+  const out = JSON.parse(recorded.stdout);
+  assert.equal(out.command, 'usage');
+  assert.equal(out.status, 'ok');
+  const [event] = events(root);
+  assert.deepEqual(event.data, { verdict: 'fail', findings: ['src/a.js:3 — null deref', 'src/b.js:9 — missing test'], level: 'medium' });
+  assert.equal(run('record', 'check', '--task', 'T-001').status, 2, 'a bad call is still reported as one');
+});

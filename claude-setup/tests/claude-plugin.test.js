@@ -8,6 +8,7 @@ const test = require('node:test');
 
 const { repositoryRoot, runNode, temporaryProject, cleanup } = require('./helpers.js');
 const { build, verifyChecksums } = require(path.join(repositoryRoot, 'scripts', 'generate-claude-plugin.js'));
+const usage = require('../usage.js');
 
 const script = path.join(repositoryRoot, 'scripts', 'generate-claude-plugin.js');
 const hasClaude = spawnSync('claude', ['--version'], { shell: process.platform === 'win32' }).status === 0;
@@ -86,4 +87,28 @@ test('Claude Code itself accepts the plugin and the marketplace in strict mode',
     const r = spawnSync('claude', ['plugin', 'validate', '--strict', target], { cwd: repositoryRoot, encoding: 'utf8', shell: process.platform === 'win32' });
     assert.equal(r.status, 0, `${target}: ${r.stdout}${r.stderr}`);
   }
+});
+
+// EV-011 AC-1, AC-3, AC-7, AC-10: what the skills people actually get say about usage capture.
+test('EV-011 skills: start asks once and only on a machine with a store, check records its result, plan names the approver', () => {
+  const { files } = build(repositoryRoot);
+  const start = files.get('skills/start/SKILL.md');
+  const consent = start.slice(start.indexOf('## 4. Usage capture'), start.indexOf('## 5.'));
+  assert.match(consent, /new, resume and upgrade/);
+  assert.match(consent, /usage status --json/);
+  assert.match(consent, /\| `null` \| anything \| Say nothing/);
+  assert.match(consent, /\| set \| `unset` \| Ask once/);
+  assert.match(consent, /\| set \| `enabled` or `disabled` \| Do not ask/);
+  assert.match(consent, /usage consent --enable` or `usage consent --disable/);
+  assert.match(consent, /never ask again once there is an answer/);
+
+  const check = files.get('skills/check/SKILL.md');
+  const command = check.match(/^node \.claude\/usage\.js (record check .+)$/m);
+  assert.ok(command, 'check calls .claude/usage.js, which is installed in plugin and .claude mode alike');
+  const args = command[1].replace('<ID>', 'T-001').replace('pass|fail', 'fail').replace('<code-review level>', 'medium').split(/\s+/).filter((a) => a !== '<<\'EOF\'');
+  assert.equal(usage.parseArgs(args).verdict, 'fail', 'the command the skill shows parses');
+  assert.match(check, /Recording must never change or fail `\/check`/);
+
+  const plan = files.get('skills/plan/SKILL.md');
+  assert.match(plan, /Set `approved_by:`.+Never your own name, and never leave the `<ใครอนุมัติ>` placeholder/);
 });

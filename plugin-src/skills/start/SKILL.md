@@ -37,7 +37,26 @@ Run `doctor` and read what exists before asking anything:
 
 Every rule in START-HERE.md applies unchanged. In particular: one phase at a time, stop at the end of each phase, and never guess.
 
-## 4. Installing the project-side controls (Phase 6 gate, Phase 7 handoff)
+## 4. Usage capture: ask once per project, on internal machines only
+
+This applies on every path above: new, resume and upgrade. Run `usage status --json` and read `data.store` and `data.consent`.
+
+| `data.store` | `data.consent` | Do |
+|---|---|---|
+| `null` | anything | Say nothing. This machine has no central store, so it is not an internal Buaflow machine. |
+| set | `unset` | Ask once, as below. |
+| set | `enabled` or `disabled` | Do not ask. The project has already answered. |
+| set | `invalid` | Do not ask. Tell the user that `.buaflow/usage.json` cannot be read, so nothing is recorded, and show the reason from `data.errors`. |
+
+The question, in Thai, covers:
+
+- what is recorded: the full intent, plan and task documents, status changes, `/check` results, the model and the kit version;
+- where it goes: `.buaflow/usage/` in the project, which git ignores, and then the private store repository set on this machine;
+- that the answer applies to everyone who works on this project, and can be switched off later in `.buaflow/usage.json`.
+
+Then run `usage consent --enable` or `usage consent --disable` as the user answered, and tell them to commit `.buaflow/usage.json`. If it reports `not a git repository`, tell the user it will be asked again at the next `/buaflow:start` once the project is in git. Never answer for the user, and never ask again once there is an answer.
+
+## 5. Installing the project-side controls (Phase 6 gate, Phase 7 handoff)
 
 The plugin already gives this session the skills, agents and hooks. It cannot carry these, so they must live in the project:
 
@@ -58,7 +77,7 @@ Then do the project-specific parts of Phase 7 from `<KIT>/phases/07-handoff.md`:
 
 Do not copy `skills/`, `agents/` or `hooks/` into `.claude/`, and do not add a `hooks` block to `settings.json`. The plugin provides them, and a second copy makes every hook run twice.
 
-## 5. Phase 7 is not done until the project can enforce without the plugin
+## 6. Phase 7 is not done until the project can enforce without the plugin
 
 Before reporting Phase 7 complete, all of these must hold:
 
