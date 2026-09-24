@@ -275,3 +275,24 @@ test('AC-26 the eval-draft command a report prints runs as printed', (t) => {
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.equal(JSON.parse(r.stdout).data.id, 'EV-006');
 });
+
+test('eval-draft runs from anywhere inside the Buaflow repository, not only its root', (t) => {
+  const f = fixture(t);
+  const repo = buaflowRepo(f);
+  const sub = path.join(repo, 'claude-setup');
+  const r = runNode(cli, { cwd: sub, env: f.env, args: ['usage', 'eval-draft', '--task', 'alpha/T-1', '--json'] });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.equal(JSON.parse(r.stdout).data.id, 'EV-006', 'numbered after the cases at the repository root, not the subfolder');
+});
+
+test('a task with a very long AC list still gets something that must not happen, so the draft stays valid', (t) => {
+  const f = fixture(t);
+  const repo = buaflowRepo(f);
+  const long = ev({ type: 'task.created', project: 'alpha', task: 'T-50', at: '2026-09-18T10:00:00.000Z', data: { acceptance: Array.from({ length: 120 }, (_, i) => `AC-${i + 1} something observable`), content: '' } });
+  write(path.join(f.store, 'events', 'alpha', 'm1', '2026-09-18.jsonl'), lines([long]));
+  const r = f.run(() => report.evalDraft(repo, 'alpha/T-50', { pull: false }));
+  assert.equal(r.code, 0, r.errors.join('\n'));
+  const kinds = r.data.draft.criteria.map((c) => c.kind);
+  assert.equal(kinds.length, 99);
+  assert.equal(kinds.at(-1), 'must-not-happen');
+});

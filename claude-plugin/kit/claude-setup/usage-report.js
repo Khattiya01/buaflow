@@ -282,7 +282,8 @@ const findingText = (finding) => (typeof finding === 'string' ? finding : JSON.s
 // AC-21: a real task becomes a draft eval case. Structurally valid on purpose, and plainly a draft on purpose:
 // a person edits the prompt and criteria, then moves it into claude-setup/evals/ (EV-006 cycle).
 function evalDraft(start, target, { out = null, pull = true, author = null } = {}) {
-  if (!isBuaflowRepo(start)) {
+  const repo = buaflowRoot(start);
+  if (!repo) {
     return { code: 1, summary: 'eval-draft runs in the Buaflow repository', data: {}, warnings: [], errors: ['a draft\'s tests point at core/skills/…, which only the Buaflow repository has'] };
   }
   const config = machineConfig();
@@ -300,7 +301,8 @@ function evalDraft(start, target, { out = null, pull = true, author = null } = {
   const plan = own.find((e) => e.type === 'plan.approved');
   const summary = summarizeTasks(events).find((t) => t.key === target);
 
-  const mustHappen = (created?.data?.acceptance || []).map((ac) => atLeastTen(ac, 'ต้องครบตามเกณฑ์'));
+  // At most 98, so a task with a very long AC list still leaves room for what must not happen (the schema needs both).
+  const mustHappen = (created?.data?.acceptance || []).slice(0, 98).map((ac) => atLeastTen(ac, 'ต้องครบตามเกณฑ์'));
   const mustNot = own.filter((e) => e.type === 'check.result' && e.data?.verdict === 'fail')
     .flatMap((e) => e.data?.findings || []).map((f) => `ห้ามเกิดซ้ำ: ${findingText(f)}`);
   const criteria = [
@@ -309,14 +311,14 @@ function evalDraft(start, target, { out = null, pull = true, author = null } = {
   ].slice(0, 99).map((criterion, index) => ({ id: `C${index + 1}`, ...criterion }));
 
   const dir = out ? path.resolve(start, out) : path.join(config.store, 'evals', 'drafts');
-  const id = nextCaseId([path.join(start, 'claude-setup', 'evals'), dir]);
+  const id = nextCaseId([path.join(repo, 'claude-setup', 'evals'), dir]);
   const evalCase = {
     $schema: 'https://buaflow.dev/schemas/eval-case-v1.json',
     schemaVersion: '1.0',
     _: `ร่างจากงานจริง ${target} (buaflow usage eval-draft) — แก้ prompt และ criteria ให้เป็นคำถามที่ทดสอบ skill ได้จริง แทนข้อความ <แก้ก่อนใช้…> ทุกจุด แล้วค่อยย้ายไป claude-setup/evals/ · คนเขียนเคสห้ามเป็นคนตรวจ`,
     id,
     title: atLeastTen(`ร่างจาก ${target}: ${meta.title || taskId}`, 'ร่างจากงานจริง'),
-    authoredBy: author || gitUser(start) || 'unknown author',
+    authoredBy: author || gitUser(repo) || 'unknown author',
     origin: 'observed-failure',
     observedIn: target,
     tests: skillsUnderTest(summary),
@@ -328,7 +330,7 @@ function evalDraft(start, target, { out = null, pull = true, author = null } = {
     criteria,
     passWhen: { minScore: 0.8 },
   };
-  const checked = require('./eval-harness.js').validateCase(evalCase, { root: start, expectedId: id });
+  const checked = require('./eval-harness.js').validateCase(evalCase, { root: repo, expectedId: id });
   if (!checked.ok) return { code: 1, summary: `the draft for ${target} does not validate`, data: { draft: evalCase }, warnings: [], errors: checked.errors };
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `${id}.json`);
@@ -340,6 +342,17 @@ function evalDraft(start, target, { out = null, pull = true, author = null } = {
     warnings: ['a draft, not a case: edit the prompt and criteria, then move it to claude-setup/evals/'],
     errors: [],
   };
+}
+
+// The command a report prints is run from wherever the owner stands inside the Buaflow repository.
+function buaflowRoot(start) {
+  let dir = path.resolve(start);
+  for (;;) {
+    if (isBuaflowRepo(dir)) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) return null;
+    dir = parent;
+  }
 }
 
 function isBuaflowRepo(root) {
