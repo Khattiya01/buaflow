@@ -30,7 +30,7 @@ repo นี้ไม่มี `docs/constitution.md` จึงตรวจกั
 
 ```json
 {
-  "$schema": "https://buaflow.dev/schemas/usage-consent.schema.json",
+  "$schema": "https://buaflow.dev/schemas/usage-consent-v1.json",
   "schemaVersion": "1.0",
   "enabled": true,
   "project": "bluepeak-hub",
