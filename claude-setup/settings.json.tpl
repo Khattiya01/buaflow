@@ -65,6 +65,11 @@
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-context.js\"",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/usage-capture.js\"",
+            "timeout": 5
           }
         ]
       }
@@ -88,6 +93,11 @@
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-bash.js\"",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/usage-capture.js\"",
+            "timeout": 5
           }
         ]
       },
@@ -112,6 +122,11 @@
             "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/format-changed.js\"",
             "timeout": 60,
             "statusMessage": "format + lint ไฟล์ที่แก้..."
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/usage-capture.js\"",
+            "timeout": 5
           }
         ]
       }

@@ -9,6 +9,7 @@ const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { execFileSync } = require('node:child_process');
+const { frontmatter } = require('./convergence.js');
 
 const SCHEMA_VERSION = '1.0';
 const MARKER_MAX_AGE_MS = 60 * 1000;
@@ -36,6 +37,25 @@ function git(root, args) {
   } catch {
     return null;
   }
+}
+
+// Read from .git on disk: a hook runs on every Write/Edit and spawning git costs more than the whole budget on Windows.
+function headCommit(root) {
+  try {
+    let dir = path.join(root, '.git');
+    if (fs.statSync(dir).isFile()) dir = path.resolve(root, fs.readFileSync(dir, 'utf8').match(/^gitdir:\s*(.+)$/m)[1].trim());
+    let head = fs.readFileSync(path.join(dir, 'HEAD'), 'utf8').trim();
+    const ref = head.match(/^ref:\s*(.+)$/)?.[1];
+    if (ref) {
+      // A worktree keeps HEAD in its own gitdir but refs in the common one.
+      const common = fs.existsSync(path.join(dir, 'commondir')) ? path.resolve(dir, fs.readFileSync(path.join(dir, 'commondir'), 'utf8').trim()) : dir;
+      const loose = path.join(common, ref);
+      head = fs.existsSync(loose) ? fs.readFileSync(loose, 'utf8').trim()
+        : fs.readFileSync(path.join(common, 'packed-refs'), 'utf8').split('\n').find((line) => line.endsWith(` ${ref}`))?.split(' ')[0];
+    }
+    if (/^[0-9a-f]{40,64}$/.test(head || '')) return head.slice(0, 7);
+  } catch { /* fall through to git */ }
+  return git(root, ['rev-parse', '--short=7', 'HEAD']);
 }
 
 function sanitizeName(value) {
@@ -158,7 +178,7 @@ function redact(value) {
   return value;
 }
 
-function buildEvent(root, { type, task = null, data = {}, model = 'unknown', sessionId = null, project, now = new Date() }) {
+function buildEvent(root, { type, task = null, data = {}, model = 'unknown', sessionId = null, project, commit, now = new Date() }) {
   const machine = readMachineConfig()?.machine || sanitizeName(os.hostname());
   return {
     schemaVersion: SCHEMA_VERSION,
@@ -169,7 +189,7 @@ function buildEvent(root, { type, task = null, data = {}, model = 'unknown', ses
     task,
     model: model || 'unknown',
     kitVersion: kitVersion(root),
-    commit: git(root, ['rev-parse', '--short', 'HEAD']),
+    commit: commit === undefined ? headCommit(root) : commit,
     sessionId,
     machine,
     data: redact(data),
@@ -209,6 +229,147 @@ function record(root, input) {
   const errors = validateEvent(event);
   if (errors.length) return { recorded: false, reason: 'invalid', errors };
   return { recorded: true, event, file: appendEvent(root, event) };
+}
+
+// The three folders whose files tell the lifecycle; nothing outside them is ever read (design: ความปลอดภัย).
+const WATCHED = Object.freeze({ intent: 'docs/intents', plan: 'docs/plans', task: 'docs/backlog/tasks' });
+
+// Resolves under root or not at all, so `../../.env` never gets read.
+function watchedFile(root, file) {
+  if (typeof file !== 'string' || !file) return null;
+  const rel = path.relative(path.resolve(root), path.resolve(root, file)).split(path.sep).join('/');
+  if (!rel || rel.startsWith('../') || path.isAbsolute(rel)) return null;
+  const name = path.posix.basename(rel);
+  if (!name.endsWith('.md') || name.startsWith('_')) return null;
+  const kind = Object.keys(WATCHED).find((key) => WATCHED[key] === path.posix.dirname(rel));
+  return kind ? { kind, rel } : null;
+}
+
+function watchedFiles(root) {
+  return Object.values(WATCHED).flatMap((dir) => {
+    try { return fs.readdirSync(path.join(root, dir)).filter((name) => name.endsWith('.md') && !name.startsWith('_')).map((name) => `${dir}/${name}`); } catch { return []; }
+  }).sort();
+}
+
+function readText(root, rel) {
+  try { return fs.readFileSync(path.join(root, rel), 'utf8'); } catch { return null; }
+}
+
+// Template placeholders (`<ใครอนุมัติ>`, `YYYY-MM-DD`) are not answers — R8: record null, never the placeholder.
+function real(value) {
+  if (value === undefined || value === null || value === '') return null;
+  return /^<.*>$/.test(String(value)) || /^YYYY/.test(String(value)) ? null : value;
+}
+
+function acceptanceOf(text) {
+  const section = String(text).match(/^##\s+Acceptance Criteria[^\n]*\n([\s\S]*?)(?=^##\s|(?![\s\S]))/m);
+  if (!section) return [];
+  return section[1].split(/\r?\n/).map((line) => line.match(/^\s*-\s*\[[ xX]\]\s*(.+)$/)?.[1]?.trim()).filter(Boolean);
+}
+
+function taskIdOf(kind, rel, meta) {
+  if (kind === 'intent') return null;
+  const fromName = path.posix.basename(rel).match(/^([A-Za-z]+-\d+)/)?.[1] || null;
+  return real(kind === 'task' ? meta.id : meta.task) || fromName;
+}
+
+// Compares one file with what was last seen and returns the events it implies; state.seen is updated in place.
+function observeFile(root, state, rel, text, { source } = {}) {
+  const found = watchedFile(root, rel);
+  if (!found) return [];
+  const { kind } = found;
+  const meta = frontmatter(text) || {};
+  const task = taskIdOf(kind, rel, meta);
+  const now = kind === 'task' ? { status: real(meta.status) } : kind === 'plan' ? { approvedBy: real(meta.approved_by) } : {};
+  const before = state.seen[rel];
+  state.seen[rel] = now;
+  const extra = source ? { source } : {};
+  const out = [];
+  if (!before && kind === 'intent') out.push({ type: 'intent.opened', task, data: { path: rel, content: text, ...extra } });
+  if (!before && kind === 'task') {
+    out.push({ type: 'task.created', task, data: { path: rel, acceptance: acceptanceOf(text), estimate: real(meta.estimate), fixes: real(meta.fixes), content: text, ...extra } });
+  }
+  if (kind === 'plan' && now.approvedBy && !before?.approvedBy) out.push({ type: 'plan.approved', task, data: { path: rel, approvedBy: now.approvedBy, content: text, ...extra } });
+  if (kind === 'task' && before && now.status && now.status !== before.status) {
+    out.push({ type: 'task.status', task, data: { from: before.status || null, to: now.status, ...extra } });
+    if (now.status === 'done') out.push({ type: 'task.done', task, data: { commit: real(meta.commit), started: real(meta.started), closed: real(meta.closed), sessions: null, ...extra } });
+  }
+  return out;
+}
+
+// First contact (consent just given, or state lost): remember what exists without calling it new, so an old
+// project does not replay its history. The file being written right now is judged by its committed version.
+function baseline(root, state, { except = null } = {}) {
+  for (const rel of watchedFiles(root)) {
+    if (rel === except) continue;
+    const text = readText(root, rel);
+    if (text !== null) observeFile(root, state, rel, text);
+  }
+  if (except) {
+    const committed = git(root, ['show', `HEAD:./${except}`]);
+    if (committed !== null) observeFile(root, state, except, committed);
+  }
+  state.baselineAt = new Date().toISOString();
+}
+
+// Changes made outside any session (a pull, an editor) — nobody knows which model made them.
+function reconcile(root, state) {
+  return watchedFiles(root).flatMap((rel) => {
+    const text = readText(root, rel);
+    return text === null ? [] : observeFile(root, state, rel, text, { source: 'reconcile' });
+  });
+}
+
+function rememberSession(state, task, sessionId) {
+  if (!task || !sessionId) return;
+  const list = state.sessions[task] || [];
+  if (!list.includes(sessionId)) state.sessions[task] = [...list, sessionId];
+}
+
+function recordObserved(root, state, found, { model = 'unknown', sessionId = null } = {}) {
+  if (!found.length) return [];
+  const commit = headCommit(root);
+  const recorded = [];
+  for (const input of found) {
+    rememberSession(state, input.task, sessionId);
+    const data = input.type === 'task.done' ? { ...input.data, sessions: state.sessions[input.task]?.length || null } : input.data;
+    const result = record(root, { ...input, data, model, sessionId, commit });
+    if (result.recorded) recorded.push(result.event);
+  }
+  return recorded;
+}
+
+function modelOf(input) {
+  const given = typeof input.model === 'string' ? input.model : input.model?.id;
+  return given || modelFromTranscript(input.transcript_path) || 'unknown';
+}
+
+// Everything the usage-capture hook does once the project has said yes. Returns the events it recorded.
+function handleHook(root, input, now = new Date()) {
+  const sessionId = input.session_id || null;
+  const model = modelOf(input);
+  const state = readState(root);
+  state.marker = { sessionId, model, at: now.toISOString() };
+  let recorded = [];
+  if (input.hook_event_name === 'SessionStart') {
+    if (!state.baselineAt) baseline(root, state);
+    else recorded = recordObserved(root, state, reconcile(root, state));
+  } else if (input.hook_event_name === 'PostToolUse') {
+    const found = watchedFile(root, input.tool_input?.file_path);
+    if (found) {
+      if (!state.baselineAt) baseline(root, state, { except: found.rel });
+      const text = readText(root, found.rel);
+      if (text !== null) recorded = recordObserved(root, state, observeFile(root, state, found.rel, text), { model, sessionId });
+    }
+  }
+  writeState(root, state);
+  return recorded;
+}
+
+function sessionNotice(consentState) {
+  if (consentState === 'enabled') return 'โปรเจกต์นี้เก็บข้อมูลการใช้งาน Buaflow — ปิดได้ที่ .buaflow/usage.json (enabled: false) หรือ buaflow usage consent --disable';
+  if (consentState === 'invalid') return 'ไฟล์ยินยอม .buaflow/usage.json อ่านไม่ได้ — ไม่ได้เก็บข้อมูลการใช้งาน (buaflow usage status บอกสาเหตุ)';
+  return null;
 }
 
 function countLines(file, fromByte = 0) {
@@ -304,7 +465,8 @@ function runCommand(root, args) {
 
   // record check: never fails the caller — /check must not break because recording did.
   try {
-    const marker = markerModel(readState(root));
+    const state = readState(root);
+    const marker = markerModel(state);
     const result = record(root, {
       type: 'check.result',
       task: options.task,
@@ -313,6 +475,10 @@ function runCommand(root, args) {
       data: { verdict: options.verdict, findings: readFindings(options.findings), level: options.level },
     });
     if (!result.recorded) return { code: 0, summary: `not recorded (consent ${result.reason})`, data: { recorded: false, reason: result.reason }, warnings: result.errors || [], errors: [] };
+    if (marker.sessionId) {
+      rememberSession(state, options.task, marker.sessionId);
+      writeState(root, state);
+    }
     return { code: 0, summary: `recorded check.result for ${options.task}`, data: { recorded: true, id: result.event.id, file: path.relative(root, result.file).split(path.sep).join('/') }, warnings: [], errors: [] };
   } catch (error) {
     return { code: 0, summary: 'not recorded (error)', data: { recorded: false, reason: 'error' }, warnings: [error.message], errors: [] };
@@ -324,24 +490,34 @@ module.exports = {
   EVENT_TYPES,
   MARKER_MAX_AGE_MS,
   SCHEMA_VERSION,
+  WATCHED,
+  acceptanceOf,
   appendEvent,
+  baseline,
   buildEvent,
   consentFile,
   defaultProject,
   eventsDir,
+  handleHook,
+  headCommit,
   machineConfigFile,
   markerModel,
   modelFromTranscript,
+  observeFile,
   parseArgs,
   pendingEvents,
   readConsent,
   readState,
+  reconcile,
   record,
   redact,
   runCommand,
   sanitizeName,
+  sessionNotice,
+  stateFile,
   status,
   usageDir,
+  watchedFile,
   validateConsent,
   validateEvent,
   writeConsent,

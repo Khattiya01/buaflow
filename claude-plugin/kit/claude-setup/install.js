@@ -96,7 +96,7 @@ function plan(root, options = {}) {
     if (settings && options.plugin) {
       const merged = { ...settings, ...pluginSettings(settings) };
       if (JSON.stringify(merged) !== JSON.stringify(settings)) entries.push({ kind: 'settings', to: settingsFile, file: rel(settingsFile), content: `${JSON.stringify(merged, null, 2)}\n`, action: 'update', reason: `offer ${PLUGIN_ID} to everyone who opens the project` });
-      if (/\.claude\/hooks\/(guard-bash|guard-edit|session-context|format-changed|guard-new-component)\.js/.test(JSON.stringify(settings.hooks || {}))) {
+      if (/\.claude\/hooks\/(guard-bash|guard-edit|session-context|format-changed|guard-new-component|usage-capture)\.js/.test(JSON.stringify(settings.hooks || {}))) {
         warnings.push('.claude/settings.json still wires Buaflow hooks from .claude/hooks/ — with the plugin enabled every hook runs twice; remove those entries from "hooks"');
       }
     }

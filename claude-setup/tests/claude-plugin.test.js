@@ -46,6 +46,17 @@ test('the plugin carries the whole kit a session needs, without examples or the 
   assert.match(sessionStart[0], /kit-context\.js/, 'the kit path is in context before anything else runs');
 });
 
+test('EV-011 usage-capture is wired where it listens and finds usage.js inside the plugin kit', () => {
+  const { files } = build(repositoryRoot);
+  const hooks = JSON.parse(files.get('hooks/hooks.json')).hooks;
+  const wired = (event, matcher) => hooks[event].some((g) => g.matcher === matcher && g.hooks.some((h) => /usage-capture\.js/.test(h.command)));
+  assert.ok(wired('SessionStart', 'startup|resume|clear'));
+  assert.ok(wired('PostToolUse', 'Edit|Write|MultiEdit'));
+  assert.ok(wired('PreToolUse', 'Bash'));
+  assert.ok(files.has('hooks/usage-capture.js'));
+  assert.ok(files.has('kit/claude-setup/usage.js') && files.has('kit/claude-setup/convergence.js'), 'the hook resolves ../kit/claude-setup/usage.js');
+});
+
 test('the kit inside the plugin runs from there: its CLI installs a project', () => {
   const root = temporaryProject('buaflow-plugin-kit-');
   try {

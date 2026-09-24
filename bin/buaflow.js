@@ -218,7 +218,7 @@ function commandDoctor(root, options) {
   // while nothing guards a push made outside that session.
   else if (pluginMode) warning('controls', 'the Buaflow plugin is enabled here but the gate and checkers are not installed — pre-push and CI have nothing to run; run buaflow install --plugin --write');
   else warning('controls', 'no .claude controls installed yet; this is normal before Phase 7 (buaflow install puts them in)');
-  if (pluginMode && /\.claude\/hooks\/(guard-bash|guard-edit|session-context|format-changed|guard-new-component)\.js/.test(JSON.stringify(settings.hooks || {}))) {
+  if (pluginMode && /\.claude\/hooks\/(guard-bash|guard-edit|session-context|format-changed|guard-new-component|usage-capture)\.js/.test(JSON.stringify(settings.hooks || {}))) {
     warning('hooks', 'the Buaflow plugin is enabled and .claude/settings.json also wires the same hooks from .claude/hooks/ — every hook runs twice; remove those entries from "hooks"');
   }
   if (installed.length) {
