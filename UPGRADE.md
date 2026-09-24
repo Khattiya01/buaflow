@@ -98,6 +98,7 @@ merge การแก้ของทีมเข้ากับไฟล์ใ�
 | `docs/evals/*.md` (eval แบบเก่า) | แปลงเป็น `.json` ทีละเคส · ผลเก่าในตารางทิ้ง | [v3.5.0 → v3.6.0](#v350--v360-minor--คัดลอกไฟล์--แปลง-eval-case) |
 | `Bash(*)` หรือ `bypassPermissions` ใน `settings.json` ที่ commit · secret ใน `.mcp.json` | เอาออก — `check-config` ตกตั้งแต่ 3.11.0 | [v3.10.0 → v3.11.0](#v3100--v3110-minor--คัดลอกไฟล์ทับ-จบ) |
 | เปลี่ยนมาใช้ plugin แทนการคัดลอก | `install --plugin --write` แล้วลบรายการ hook ของ Buaflow ออกจาก block `hooks` ใน `.claude/settings.json` (`install` และ `doctor` เตือนให้) ไม่งั้น hook รันสองรอบ · ลบ `.claude/skills/`, `.claude/agents/`, `.claude/hooks/` ที่มาจาก kit ได้ | [v3.11.1 → v3.12.0](#v3111--v3120-minor--คัดลอกไฟล์ทับ-จบ) |
+| ติดตั้งแบบ `.claude/` (ไม่ใช้ plugin) และจะเปิดการเก็บข้อมูลการใช้งานภายใน | เพิ่ม hook `usage-capture` เองใน 4 จุดของ block `hooks` ใน `.claude/settings.json` — `install` seed ไฟล์นี้ครั้งเดียวจึงไม่เติมให้ · ไม่เพิ่ม = ยินยอมแล้วก็ไม่มีอะไรถูกบันทึก | [v3.12.1 → v3.13.0](#v3121--v3130-minor--คัดลอกไฟล์ทับ-จบ) |
 
 ไม่มีข้อไหนตรง = ข้ามข้อนี้ทั้งข้อ
 

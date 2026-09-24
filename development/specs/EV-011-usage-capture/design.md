@@ -247,7 +247,7 @@ evals/drafts/                                   ← ผลของ eval-draft
 - **breaking change:** ไม่มี
   - โปรเจกต์ที่ไม่ตอบรับได้พฤติกรรมเดิมทุกอย่าง แค่ hook อ่านไฟล์ยินยอม 1 ครั้งต่อ event
   - `fixes:` เป็นช่องเสริม และ docs-lint ไม่ปฏิเสธ key ที่ไม่รู้จัก
-- **hook เพิ่ม 3 จุด:** ต้นทุนเวลาของโปรเจกต์ที่ไม่ได้ยินยอม = spawn node + อ่านไฟล์ 1 ไฟล์ (~50 ms) ต่อ Write/Edit/Bash · วัดจริงในเทส NF
+- **hook เพิ่ม 4 จุด** (SessionStart, SessionEnd ที่เพิ่มใน EV-011.4, PostToolUse, PreToolUse Bash): ต้นทุนเวลาของโปรเจกต์ที่ไม่ได้ยินยอม = spawn node + อ่านไฟล์ 1 ไฟล์ (~50 ms) ต่อ Write/Edit/Bash · วัดจริงในเทส NF
 - **เวอร์ชัน:** kit 3.13.0 (feature ใหม่แบบ additive) พร้อม UPGRADE ส่วน "เปิดการเก็บข้อมูล"
 
 ## ความปลอดภัย
