@@ -292,3 +292,44 @@ test('--write is a flag for lock and a path for assess, and assess refuses it wi
     cleanup(root);
   }
 });
+
+// EV-011 AC-11: an opted-in project records what audit found; the audit itself answers exactly as before.
+test('audit records verifier.audit with the verifier\'s own counts in an opted-in project, and nothing otherwise', { skip: spawnSync('git', ['--version']).status !== 0 }, () => {
+  const root = temporaryProject('buaflow-cli-');
+  const home = temporaryProject('buaflow-home-');
+  try {
+    spawnSync('git', ['init', '-q'], { cwd: root });
+    fs.mkdirSync(path.join(root, '.claude'), { recursive: true });
+    for (const name of ['readiness.js', 'verifier.js']) fs.copyFileSync(path.join(repositoryRoot, 'claude-setup', name), path.join(root, '.claude', name));
+    const value = r0Manifest();
+    value.controls['start-path'].evidence = [{ type: 'command', value: 'exit 7' }];
+    writeJson(path.join(root, 'docs', 'evidence', 'readiness.json'), value);
+    const run = (...args) => runNode(cli, { cwd: root, env: { HOME: home, USERPROFILE: home }, args: [...args, '--json'] });
+    const events = () => {
+      const dir = path.join(root, '.buaflow', 'usage', 'events');
+      return fs.existsSync(dir) ? fs.readdirSync(dir).flatMap((f) => fs.readFileSync(path.join(dir, f), 'utf8').split('\n').filter(Boolean).map(JSON.parse)) : [];
+    };
+
+    const before = run('audit', '--level', 'R0');
+    assert.equal(before.status, 0);
+    assert.equal(fs.existsSync(path.join(root, '.buaflow', 'usage')), false, 'no consent, nothing written');
+
+    writeJson(path.join(root, '.buaflow', 'usage.json'), { schemaVersion: '1.0', enabled: true, project: 'fixture', decidedBy: 'Test', decidedAt: '2026-09-24' });
+    const quiet = run('audit', '--level', 'R0');
+    assert.equal(quiet.status, 0, 'recording changes nothing about the exit code');
+    const executed = run('audit', '--level', 'R0', '--execute');
+    assert.equal(executed.status, 1);
+    const [first, second] = events();
+    assert.equal(first.type, 'verifier.audit');
+    assert.deepEqual(first.data.counts, json(quiet).data.result.counts);
+    assert.equal(first.data.verdicts.length, json(quiet).data.result.verdicts.length);
+    assert.equal(first.data.level, 'R0');
+    assert.equal(first.data.generatedAt, '2026-09-22T12:00:00.000Z');
+    assert.deepEqual([first.data.executed, first.data.ok], [false, true]);
+    assert.deepEqual([second.data.executed, second.data.ok], [true, false]);
+    assert.deepEqual(second.data.counts, json(executed).data.result.counts);
+  } finally {
+    cleanup(root);
+    cleanup(home);
+  }
+});

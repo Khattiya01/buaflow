@@ -417,8 +417,63 @@ function observeSessionStart(root) {
   let recorded = [];
   if (!state.baselineAt) baseline(root, state);
   else recorded = recordObserved(root, state, reconcile(root, state));
+  // Readiness is a state, not history: the first contact records where the project stands, too.
+  recorded = recorded.concat(recordObserved(root, state, readinessSnapshot(root, state)));
   writeState(root, state);
   return recorded;
+}
+
+const READINESS_FILE = path.join('docs', 'evidence', 'readiness.json');
+
+// A changed readiness manifest becomes one snapshot (AC-23), so projects that rarely run `buaflow audit` still
+// show their level. validateManifest without a freshness window runs no git and no evidence commands.
+function readinessSnapshot(root, state) {
+  let text;
+  try { text = fs.readFileSync(path.join(root, READINESS_FILE), 'utf8'); } catch { return []; }
+  const hash = crypto.createHash('sha256').update(text).digest('hex');
+  if (hash === state.readinessHash) return [];
+  state.readinessHash = hash;
+  let manifest = null;
+  try { manifest = JSON.parse(text); } catch { /* recorded as unreadable below */ }
+  let checked = null;
+  try { checked = manifest && require('./readiness.js').validateManifest(manifest, { root }); } catch { /* outcome stays null */ }
+  return [{
+    type: 'readiness.snapshot',
+    task: null,
+    data: {
+      level: manifest?.targetLevel ?? null,
+      generatedAt: manifest?.generatedAt ?? null,
+      commit: manifest?.commit ?? null,
+      outcome: manifest ? checked?.outcome ?? null : 'unreadable',
+      passed: checked?.passed ?? null,
+      required: checked?.required ?? null,
+    },
+  }];
+}
+
+// `buaflow audit` calls this with the verifier's result (AC-11). Never throws: an audit must not fail because recording did.
+function recordAudit(start, { result, file = READINESS_FILE }) {
+  try {
+    const root = projectRoot(start);
+    const marker = markerModel(readState(root));
+    const manifest = readJsonOr(path.resolve(root, file), {});
+    return record(root, {
+      type: 'verifier.audit',
+      task: null,
+      model: marker.model,
+      sessionId: marker.sessionId,
+      data: {
+        level: result?.level ?? null,
+        ok: result?.ok ?? null,
+        executed: Boolean(result?.executed),
+        counts: result?.counts ?? null,
+        verdicts: Array.isArray(result?.verdicts) ? result.verdicts : [],
+        generatedAt: manifest.generatedAt ?? null,
+      },
+    });
+  } catch (error) {
+    return { recorded: false, reason: 'error', errors: [error.message] };
+  }
 }
 
 function observeWrite(root, found, who) {
@@ -764,6 +819,7 @@ module.exports = {
   readState,
   reconcile,
   record,
+  recordAudit,
   redact,
   runCommand,
   sanitizeName,

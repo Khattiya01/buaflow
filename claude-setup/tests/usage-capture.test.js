@@ -174,6 +174,45 @@ test('AC-15 a task that keeps the template\'s fixes: line unedited records fixes
   assert.equal(p.events()[0].data.fixes, null);
 });
 
+test('AC-23 session start records where readiness stands on first contact and again only when readiness.json changes', (t) => {
+  const p = project(t);
+  const { controlsFor, validateManifest } = require('../readiness.js');
+  const manifest = (generatedAt) => {
+    const controls = {};
+    for (const id of controlsFor('R0')) controls[id] = { status: 'pass', evidence: [{ type: 'command', value: `check ${id}` }] };
+    return { schemaVersion: '1.0', project: 'demo', profile: 'test', targetLevel: 'R0', commit: 'WORKTREE', generatedAt, controls };
+  };
+  const file = path.join(p.root, 'docs', 'evidence', 'readiness.json');
+  const snapshots = () => p.events().filter((e) => e.type === 'readiness.snapshot');
+
+  p.start();
+  assert.deepEqual(snapshots(), [], 'no readiness.json, nothing to say');
+  writeJson(file, manifest('2026-09-20T00:00:00.000Z'));
+  p.start();
+  p.start();
+  assert.equal(snapshots().length, 1, 'unchanged since the last look');
+  const expected = validateManifest(manifest('2026-09-20T00:00:00.000Z'), { root: p.root });
+  assert.deepEqual(snapshots()[0].data, { level: 'R0', generatedAt: '2026-09-20T00:00:00.000Z', commit: 'WORKTREE', outcome: expected.outcome, passed: expected.passed, required: expected.required });
+  assert.equal(snapshots()[0].model, 'unknown');
+
+  writeJson(file, manifest('2026-09-24T00:00:00.000Z'));
+  p.start();
+  assert.equal(snapshots().at(-1).data.generatedAt, '2026-09-24T00:00:00.000Z');
+  write(file, '{ not json');
+  p.start();
+  assert.equal(snapshots().at(-1).data.outcome, 'unreadable');
+  assertValid(snapshots());
+});
+
+test('AC-23 a project that already has readiness.json when it opts in is recorded on first contact', (t) => {
+  const p = project(t);
+  writeJson(path.join(p.root, 'docs', 'evidence', 'readiness.json'), { schemaVersion: '1.0', targetLevel: 'R1', generatedAt: '2026-09-01T00:00:00.000Z', controls: {} });
+  p.start();
+  const [snapshot] = p.events().filter((e) => e.type === 'readiness.snapshot');
+  assert.equal(snapshot.data.level, 'R1');
+  assert.equal(snapshot.data.outcome, 'fail', 'a manifest missing its controls is recorded as it stands, not skipped');
+});
+
 test('AC-4 switching consent off stops recording and keeps what was already recorded', (t) => {
   const p = project(t);
   p.start();

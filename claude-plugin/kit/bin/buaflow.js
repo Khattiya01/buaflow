@@ -295,6 +295,10 @@ function commandDelegated(command, root, options) {
   if (emitsJson && result.stdout.trim()) {
     try { childJson = JSON.parse(result.stdout); } catch { /* output is retained below for diagnosis */ }
   }
+  // EV-011: an opted-in project records the verdict; recording never changes what audit returns.
+  if (command === 'audit' && childJson) {
+    try { require(path.join(KIT_ROOT, 'claude-setup', 'usage.js')).recordAudit(root, { result: childJson, file: options.file || 'docs/evidence/readiness.json' }); } catch { /* audit stands as it is */ }
+  }
   return envelope(command, code, code === EXIT.OK ? `${command} passed` : `${command} failed`, {
     delegatedTo: `.claude/${scriptName}`,
     result: childJson,
