@@ -135,6 +135,7 @@ async function shot(browser, url, job) {
   try {
     await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
     await page.addStyleTag({ content: FREEZE });
+    /* global document -- this callback runs in the browser page, not in Node */
     await page.evaluate(() => document.fonts && document.fonts.ready);
     return await page.screenshot({ fullPage: true });
   } finally {

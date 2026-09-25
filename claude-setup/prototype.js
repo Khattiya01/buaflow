@@ -172,6 +172,7 @@ console.log('  เปิดดู: เปิด index.html ในเบราว
 // ═══════════════════════════════════════════════════════════════════════
 // ฝั่งใน iframe — ผูก hotspot + apply mock data ลง DOM ของ artboard
 // ═══════════════════════════════════════════════════════════════════════
+/* global window, document -- PROTO_JS_SRC is serialised into the prototype page and runs in the browser */
 function PROTO_JS_SRC() {
   const cfg = window.__PROTO || {};
   const locale = cfg.locale || 'th-TH'; // ห้ามอ่านจาก parent — file:// ต่างกันเป็น origin null คนละอัน
@@ -185,7 +186,7 @@ function PROTO_JS_SRC() {
       if (f && f.startsWith('currency')) return new Intl.NumberFormat(locale, { style: 'currency', currency: f.split(':')[1] || 'THB' }).format(v);
       if (f === 'date') return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(v));
       if (f === 'datetime') return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
-    } catch (_) { /* ค่าไม่ตรง format → แสดงดิบ */ }
+    } catch { /* ค่าไม่ตรง format → แสดงดิบ */ }
     return String(v);
   };
   const apply = (el, spec, item) => {

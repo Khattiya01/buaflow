@@ -35,3 +35,21 @@ jobs:
       # which is itself part of the contract — `npm run check` must work from a bare checkout.
       - name: npm run check
         run: npm run check
+
+  # A project whose lint command is `eslint .` also lints .claude/, so every script install copies there
+  # must pass eslint:recommended. TRENDY's gate went red after upgrading to 3.14.0 on exactly this.
+  # ESLint is installed here only; the kit's own check stays dependency-free.
+  lint-project-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: install eslint (CI only)
+        run: npm install --no-save --no-package-lock eslint@10 @eslint/js@10 globals@17
+
+      - name: lint the scripts a project receives
+        run: npx eslint --no-config-lookup -c scripts/eslint-project-scripts.config.mjs "claude-setup/*.js" "claude-setup/hooks/*.js" "plugin-src/hooks/*.js"
