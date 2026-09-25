@@ -31,19 +31,19 @@
 
 ---
 
-> **Buaflow พาโปรเจกต์ — ใหม่หรือมีโค้ดอยู่แล้ว — จากโจทย์ไปถึง Production Candidate (R3):**
-> repository ที่ทีม platform นำไปติดตั้งได้โดย**ไม่ต้องแก้ source code** เหลือแค่ใส่ secret และค่าของ infrastructure
-> และตอบได้ทุกเมื่อว่าตอนนี้แอปอยู่ระดับไหน **จากหลักฐานที่เครื่องตรวจซ้ำได้** ไม่ใช่จากคำบอกของ AI
+> **Buaflow นำโปรเจกต์ — ไม่ว่าจะเริ่มใหม่หรือมีโค้ดอยู่แล้ว — จากโจทย์ไปสู่ Production Candidate (R3):**
+> repository ที่ทีม platform สามารถนำไปติดตั้งได้โดย**ไม่ต้องแก้ไข source code** เหลือเพียงกำหนดค่า secret และค่าของ infrastructure
+> และสามารถตอบได้ทุกเมื่อว่าแอปอยู่ในระดับใด **จากหลักฐานที่ตรวจสอบซ้ำได้ด้วยเครื่อง** ไม่ใช่จากคำกล่าวอ้างของ AI
 
-AI เขียนโค้ดได้เร็วและเก่งขึ้นทุกเดือน สิ่งที่ยังขาดคือ**คำตอบที่เชื่อได้ว่างานเสร็จจริงแค่ไหน** Buaflow จึงไม่แข่งกับ AI
-ในการเขียนโค้ด ไม่มี template generator และไม่ลอกเอกสารของ provider มาแช่ไว้ — Claude Code เลือกเครื่องมือ
-อ่าน docs ปัจจุบัน และลงมือเอง ส่วน Buaflow ถือสามอย่างที่ AI ไม่ควรตัดสินให้ตัวเอง:
+AI สามารถเขียนโค้ดได้รวดเร็วและมีประสิทธิภาพสูงขึ้นทุกเดือน แต่สิ่งที่ยังขาดคือ**คำตอบที่เชื่อถือได้ว่างานเสร็จสมบูรณ์มากน้อยเพียงใด** Buaflow จึงไม่ได้แข่งขันกับ AI
+ในการเขียนโค้ด ไม่มี template generator และไม่คัดลอกเอกสารของผู้ให้บริการมาเก็บไว้ล่วงหน้า — Claude Code เป็นผู้เลือกเครื่องมือ
+อ่านเอกสารฉบับปัจจุบัน และดำเนินการเอง ส่วน Buaflow ยึดถือสามหลักการที่ไม่ควรปล่อยให้ AI ตัดสินใจเอง:
 
-1. **ขอบเขตและการตัดสินใจ** — intent, requirement, สิ่งที่ห้ามพัง และการเดาทุกข้อ อยู่ใน Git และมีเจ้าของ
-2. **ประตูที่บังคับจริง** — hook และ gate ที่ exit non-zero ได้ ทั้งในเครื่องและนอก session
-3. **คำตัดสินความพร้อม** — readiness R0–R4 จากหลักฐาน, verifier ที่ไม่เชื่อคำประกาศของผู้สร้าง และคะแนนที่ไม่มีช่องให้ใครพิมพ์
+1. **ขอบเขตและการตัดสินใจ** — intent, requirement, เงื่อนไขที่ต้องไม่ถูกละเมิด และสมมติฐานทุกข้อ จัดเก็บใน Git พร้อมเจ้าของที่ชัดเจน
+2. **กลไกบังคับใช้จริง** — hook และ gate ที่ exit non-zero ได้จริง ทั้งในเครื่องและนอก session
+3. **คำตัดสินความพร้อม** — readiness R0–R4 จากหลักฐาน, verifier ที่ไม่เชื่อคำประกาศของผู้สร้าง และคะแนนที่ไม่มีช่องให้กรอกเอง
 
-## เปลี่ยนอะไรจาก v2.3.4
+## การเปลี่ยนแปลงจาก v2.3.4
 
 v2.x คือ **SDLC workflow สำหรับทำงานกับ AI** — phase, skill, rule, hook และ gate · v3.x เก็บทั้งหมดนั้นไว้
 แล้วเพิ่มคำตอบของคำถามที่ v2 ตอบไม่ได้: **"แล้วตอนนี้พร้อมส่งมอบหรือยัง"**
@@ -59,13 +59,13 @@ v2.x คือ **SDLC workflow สำหรับทำงานกับ AI** �
 | ติดตั้ง | clone โฟลเดอร์ แล้ว AI คัดลอก `claude-setup/` ทีละไฟล์ | Claude Code plugin ที่มี kit ทั้งชุด + `/buaflow:start` · `buaflow install` วางของที่ต้องอยู่ในโปรเจกต์ โดยไม่ทับไฟล์ที่ทีมแก้เอง |
 | พิสูจน์ด้วยอะไร | — | reference app 3 ตัวผ่าน R3 ใน clean environment + trial บนโปรเจกต์จริงที่ kit ไม่ได้เขียน |
 
-อัปเกรดจากรุ่นไหนก็ได้ในรอบเดียว → [UPGRADE.md](UPGRADE.md#fast-path) · รายละเอียดทุกรุ่น → [VERSION.md](VERSION.md)
+อัปเกรดจากรุ่นใดก็ได้ในรอบเดียว → [UPGRADE.md](UPGRADE.md#fast-path) · รายละเอียดทุกรุ่น → [VERSION.md](VERSION.md)
 
 ---
 
-## ภาพรวมใน 30 วินาที
+## ภาพรวมโดยสรุป
 
-| สิ่งที่มีให้ | จำนวน | หน้าที่ |
+| องค์ประกอบ | จำนวน | หน้าที่ |
 |---|:---:|---|
 | **Lifecycle** | Phase 0–8 + Phase A | พาโปรเจกต์ใหม่จากโจทย์ไปถึง scaffold หรือรับช่วงโปรเจกต์เดิม |
 | **Skills** | 11 | workflow ตั้งแต่ `/intent` ถึง `/release` |
@@ -95,8 +95,8 @@ node buaflow/bin/buaflow.js audit --level R3     # verifier ตรวจหล�
 node buaflow/bin/buaflow.js benchmark            # functional · engineering · operations → Production-Qualified ไหม
 ```
 
-กติกาที่ทำให้ระดับเชื่อได้: หลักฐานต้องตรวจซ้ำได้และผูกกับ commit · หลักฐานเก่าเกินหน้าต่างที่ผู้ตรวจกำหนด = `EXPIRED` ·
-ช่องโหว่ที่ยอมรับได้ต้องเป็น exception ที่มีเจ้าของและวันหมดอายุ ไม่ใช่ `pass` · screenshot อย่างเดียวไม่นับ
+หลักเกณฑ์ที่ทำให้ระดับความพร้อมนี้เชื่อถือได้: หลักฐานต้องตรวจสอบซ้ำได้และผูกกับ commit · หลักฐานที่เก่าเกินหน้าต่างเวลาที่ผู้ตรวจกำหนดจะมีสถานะ `EXPIRED` ·
+ช่องโหว่ที่ยอมรับได้ต้องบันทึกเป็น exception ที่มีเจ้าของและวันหมดอายุ ไม่ใช่ระบุเป็น `pass` · การแนบ screenshot เพียงอย่างเดียวไม่ถือเป็นหลักฐานที่เพียงพอ
 รายละเอียดอยู่ใน [standards/readiness-levels.md](standards/readiness-levels.md) และ
 [standards/production-qualified-benchmark.md](standards/production-qualified-benchmark.md)
 (ซึ่งเขียนไว้ด้วยว่าตัวเลขนี้**มองไม่เห็นอะไร**)
@@ -163,7 +163,7 @@ flowchart LR
 **สิ่งที่ต้องมี:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) · Git · Node.js **22+**
 (kit ไม่มี dependency — ไม่ต้อง `npm install`)
 
-### ทางแนะนำ: plugin — ไม่ต้อง clone อะไร
+### วิธีที่แนะนำ: ติดตั้งผ่าน plugin โดยไม่ต้อง clone repository
 
 เปิด Claude Code ที่ root ของโปรเจกต์ แล้วพิมพ์:
 
@@ -173,10 +173,10 @@ flowchart LR
 /buaflow:start
 ```
 
-> **ใช้ Claude Code ใน VS Code?** extension ขึ้นว่า `/plugin isn't available in this environment` — ติดตั้งจาก terminal แทน
+> **หากใช้ Claude Code ภายใน VS Code:** extension จะแสดงข้อความ `/plugin isn't available in this environment` — ให้ติดตั้งจาก terminal แทน
 > (`claude plugin marketplace add Khattiya01/buaflow` แล้ว `claude plugin install buaflow@buaflow`) จากนั้นเปิด session ใหม่แล้วพิมพ์ `/buaflow:start`
 
-`/buaflow:start` ดูสถานะของโปรเจกต์เองแล้วเลือกทางเดียวที่ตรง:
+`/buaflow:start` ตรวจสอบสถานะของโปรเจกต์และเลือกแนวทางที่เหมาะสมให้โดยอัตโนมัติ:
 
 | โปรเจกต์ | สิ่งที่เกิดขึ้น |
 |---|---|
@@ -190,7 +190,7 @@ plugin ถือ kit ทั้งชุด (START-HERE, phases, standards, templ
 เพื่อนร่วมทีมแต่ละคนรัน `/plugin install buaflow@buaflow` ครั้งเดียว (marketplace ถูกเพิ่มให้จาก settings ของโปรเจกต์)
 — [claude-plugin/README.md](claude-plugin/README.md)
 
-### อีกทาง: วางโฟลเดอร์ `buaflow/` ในโปรเจกต์
+### วิธีอื่น: วางโฟลเดอร์ `buaflow/` ในโปรเจกต์
 
 ```text
 your-project/
@@ -206,7 +206,7 @@ your-project/
 มีโค้ดอยู่แล้ว → รัน `node buaflow/bin/buaflow.js assess` ก่อนเพื่อรู้ระดับ R แล้วตอบโหมดเป็น `EXTEND` ·
 ใช้รุ่นเก่าอยู่ → วางเวอร์ชันใหม่ทับแล้วพิมพ์ `อ่าน buaflow/UPGRADE.md แล้วทำตาม` (planning, ADR, spec, task เดิมอยู่ครบ)
 
-### กลับมาทำต่อใน session ใหม่
+### การทำงานต่อใน session ใหม่
 
 `/buaflow:start` (plugin) หรือ:
 
@@ -238,8 +238,8 @@ intent → (elaborate) → spec → plan → task/code → verify → check → 
 | `/hotfix` | production incident | อาการ → สาเหตุ → แก้ → release → postmortem → feedback |
 | `/release <uat\|prd> <M>` | ปิด milestone | gate, build image ครั้งเดียว, tag, release note และ rollback plan |
 
-งานเล็กอย่าง typo, copy หรือ chore ใช้ **trivial track** ได้ ไม่ต้องลาก artifact chain เต็มชุด แต่ยังผ่าน PR ตามระดับความเสี่ยง
-ไม่มี Claude Code? [manual/](manual/README.md) คือ workflow เดียวกันในรูป playbook ธรรมดา พร้อมบอกตรง ๆ ว่าการรับประกันข้อไหนหายไป
+งานขนาดเล็ก เช่น typo, copy หรือ chore สามารถใช้ **trivial track** ได้ โดยไม่ต้องผ่าน artifact chain เต็มรูปแบบ แต่ยังคงต้องผ่าน PR ตามระดับความเสี่ยง
+สำหรับผู้ที่ไม่ได้ใช้ Claude Code: [manual/](manual/README.md) คือ workflow เดียวกันในรูปแบบ playbook พร้อมระบุอย่างชัดเจนว่าการรับประกันส่วนใดขาดหายไป
 
 ---
 
@@ -252,9 +252,9 @@ intent → (elaborate) → spec → plan → task/code → verify → check → 
 | **`.claude/skills/*/SKILL.md`** | ขั้นตอนที่ทำซ้ำและต้องมีลำดับ | เมื่อเรียก skill | workflow ที่ทำซ้ำได้ |
 | **`.claude/hooks/` + gate** | protected files, push เข้า main, คำสั่งอันตราย, config integrity | ตาม event และก่อน push/CI | **บังคับจริงด้วย exit code** |
 
-ถ้าการละเมิดกฎทำให้ระบบเสียหายจริง กฎนั้นไม่ควรอยู่เป็นข้อความอย่างเดียว
+หากการละเมิดกฎอาจทำให้ระบบเสียหายจริง กฎนั้นไม่ควรอยู่ในรูปข้อความเพียงอย่างเดียว
 
-### ประตูเดียวก่อนเข้า main
+### ด่านตรวจเดียวก่อนเข้า main
 
 ```mermaid
 flowchart LR
@@ -346,7 +346,7 @@ click-through prototype จาก artboard เดิมแบบ byte-for-byte �
 
 ---
 
-## รองรับ stack แค่ไหน — และพิสูจน์แล้วแค่ไหน
+## ขอบเขตการรองรับ stack และหลักฐานที่พิสูจน์แล้ว
 
 | ชั้น | ระดับ | รายละเอียด |
 |---|---|---|
@@ -371,7 +371,7 @@ stack อื่น (.NET, Go, Laravel, …) ใช้ [Phase A](phases/A-adopt-e
 
 | ไม่ทำ | เพราะ |
 |---|---|
-| code generator / template ที่ปั๊มโค้ด | แช่ dependency ไว้ที่วันที่เขียน — ใช้ CLI ของเจ้าของ framework เสมอ (D-011) |
+| code generator หรือ template ที่สร้างโค้ดจำนวนมากโดยอัตโนมัติ | ทำให้ dependency ค้างอยู่ที่เวอร์ชัน ณ วันที่เขียน — ใช้ CLI ของเจ้าของ framework เสมอ (D-011) |
 | pack ของ payment, PDPA, PromptPay, LINE | agent อ่าน docs ปัจจุบันเองตอนทำงาน · ส่วนที่ต้องพิสูจน์อยู่ใน requirement, security baseline และ eval (D-025) |
 | scheduler สำหรับหลาย agent พร้อมกัน | Claude Code แยก worktree และแบ่งงานได้เอง · Buaflow พิสูจน์ผลที่ merge รวมแล้ว (D-026) |
 | adapter ของ Codex / Copilot / Kiro | Claude Code อย่างเดียวจนกว่าจะมีคนต้องใช้ · ระหว่างนี้ใช้ `manual/` (D-024) |
@@ -474,7 +474,7 @@ Buaflow ประกอบแนวคิดเหล่านี้เป็น
 
 ---
 
-<h3 align="center">พร้อมเริ่มแล้ว?</h3>
+<h3 align="center">เริ่มต้นใช้งาน</h3>
 
 <p align="center">เปิด Claude Code ที่ root ของโปรเจกต์ แล้วพิมพ์:</p>
 
