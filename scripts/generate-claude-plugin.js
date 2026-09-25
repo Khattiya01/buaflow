@@ -8,8 +8,13 @@
  * ทำไมต้องมี: วันนี้การติดตั้ง Buaflow คือการคัดลอกโฟลเดอร์ตาม Phase 7 ทีละบรรทัด · Claude Code มี plugin
  * กับ marketplace ของตัวเองแล้ว ⇒ ชั้นที่อยู่ใน session (skills, agents, hooks) ติดตั้งได้ด้วยคำสั่งเดียว:
  *
- *   /plugin marketplace add <this repository>
+ *   /plugin marketplace add <marketplaceRepo ใน package.json>
  *   /plugin install buaflow@buaflow
+ *
+ * marketplace **ไม่ใช่ repository นี้** (PE-010): marketplace ที่อยู่บน git ถูก clone ทั้งก้อนลงเครื่องผู้ใช้
+ * ที่นี่มี reference-apps/, development/ และสำเนาของ kit อีกชุดใน claude-plugin/kit/ ซึ่งผู้ใช้ไม่ได้ใช้เลย
+ * และเคยทำให้ test ของโปรเจกต์จริงพังทั้งชุด · scripts/publish-plugin.js เป็นตัว push ของที่ generate ที่นี่
+ * ไปยัง repository ของ marketplace
  *
  * สิ่งที่ plugin **ไม่ได้** ถือ และจงใจไม่ถือ:
  *   - gate และตัวตรวจทั้งหมด (.claude/gate.js, readiness.js …) — ต้อง commit อยู่ในโปรเจกต์ เพราะ pre-push
@@ -103,12 +108,12 @@ function build(root) {
     '# buaflow — Claude Code plugin',
     '',
     '```text',
-    '/plugin marketplace add Khattiya01/buaflow',
+    '/plugin marketplace add Khattiya01/buaflow-plugin',
     '/plugin install buaflow@buaflow',
     '/buaflow:start',
     '```',
     '',
-    'In the VS Code extension `/plugin` is not available — run `claude plugin marketplace add Khattiya01/buaflow` and',
+    'In the VS Code extension `/plugin` is not available — run `claude plugin marketplace add Khattiya01/buaflow-plugin` and',
     '`claude plugin install buaflow@buaflow` in a terminal, then start a new session.',
     '',
     'No `buaflow/` folder is needed in the project: the whole kit ships under `kit/`, and a SessionStart hook tells',

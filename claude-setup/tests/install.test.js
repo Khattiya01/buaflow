@@ -44,7 +44,7 @@ test('plugin mode installs the gate and checkers, not the session layer, and off
     const settings = json(root, '.claude/settings.json');
     assert.equal(settings.hooks, undefined, 'the plugin carries the hooks — a hooks block would run each twice');
     assert.equal(settings.enabledPlugins['buaflow@buaflow'], true);
-    assert.deepEqual(settings.extraKnownMarketplaces.buaflow, { source: { source: 'github', repo: 'Khattiya01/buaflow' } });
+    assert.deepEqual(settings.extraKnownMarketplaces.buaflow, { source: { source: 'github', repo: 'Khattiya01/buaflow-plugin' } });
     assert.ok(settings.permissions.deny.length, 'the template permissions come along');
   } finally {
     cleanup(root);

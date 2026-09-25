@@ -42,8 +42,14 @@ function walk(dir) {
 }
 
 // "github:owner/repo" in package.json → the marketplace source teammates are offered.
+// The marketplace is its own repository, not the one the kit is developed in: a git-hosted
+// marketplace is cloned whole onto the user's machine, and the development repository carries
+// reference apps and a development record that no user of the kit needs. `marketplaceRepo` is the
+// one place that fact is written down; scripts/publish-plugin.js publishes to the same value.
 function marketplaceSource() {
-  const repo = String(PACKAGE.repository?.url || PACKAGE.repository || '').replace(/^github:/, '').replace(/^https:\/\/github\.com\//, '').replace(/\.git$/, '');
+  const declared = String(PACKAGE.marketplaceRepo || '');
+  const fallback = String(PACKAGE.repository?.url || PACKAGE.repository || '').replace(/^github:/, '').replace(/^https:\/\/github\.com\//, '').replace(/\.git$/, '');
+  const repo = declared || fallback;
   return /^[\w.-]+\/[\w.-]+$/.test(repo) ? { source: 'github', repo } : null;
 }
 
