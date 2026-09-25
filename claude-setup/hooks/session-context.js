@@ -117,6 +117,32 @@ if (state) {
   }
 }
 
+/**
+ * กฎที่ hook บังคับอยู่ — ฉีดให้รู้ตั้งแต่ข้อความแรก
+ *
+ * แก้ปัญหา: hook มาจาก plugin (มีทุกโปรเจกต์ทันที) แต่คำอธิบายกฎอยู่ใน CLAUDE.md ซึ่งเขียนตอน
+ * Phase 7 เท่านั้น ⇒ โปรเจกต์ที่ยังไม่ handoff จบ AI ไม่มีทางรู้กฎก่อนถูกบล็อก มันเลยต้อง "ลองยิง
+ * ก่อนถึงรู้" แล้วเสีย token ไปกับการสืบหาสาเหตุ (และถ้า commit ลง main ไปก่อนแล้ว ต้องย้ายย้อนหลัง)
+ * ธรรมนูญมาตรา 8 บอกว่ากฎที่ห้ามพังต้องมีครบทั้งชั้นข้อความและชั้น hook — นี่คือชั้นข้อความที่หายไป
+ *
+ * โปรเจกต์ที่มีตาราง "Active hooks" ใน CLAUDE.md อยู่แล้ว ข้ามไป — Claude Code โหลดไฟล์นั้นให้เอง
+ * ไม่ต้องจ่าย token ซ้ำสอง
+ */
+function guardrails() {
+  const claudeMd = read('CLAUDE.md');
+  if (claudeMd && /Active hooks/.test(claudeMd)) return null;
+  return [
+    '',
+    '## Guardrails (hooks enforce these — do not spend a call finding out)',
+    '- `main` takes changes through a PR only: branch before editing, never merge or push to main.',
+    '- Never `--no-verify` on commit/push, never `git checkout/restore .`, never run the sonar scan.',
+    '- Never edit `components/ui/**`, a test file on a `fix/`/`hotfix/` branch, or the generated `docs/backlog/board.md`.',
+    '- Blocked and you think it is a real exception → tell the user what blocked you. Do not look for a workaround.',
+  ].join('\n');
+}
+const rules = guardrails();
+if (rules) parts.push(rules);
+
 const context = [
   '# Project status at session start (injected by hook)',
   '',

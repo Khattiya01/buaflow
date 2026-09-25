@@ -12,8 +12,8 @@
  *
  * ข้อจำกัดที่ต้องรู้: นี่คือ regex กันอุบัติเหตุของ AI เอง เลี่ยงได้ด้วยตัวแปร/subshell
  * มันไม่ใช่ security boundary — ของที่ต้องกันจริงให้ใช้ branch protection บน git host + CI gate
- * regex ของกฎ git merge เช็คแค่ข้อความคำสั่ง จึงมีโอกาสแมตช์เท็จกับ commit message ที่แค่พูดถึง
- * คำว่า "git merge" เฉยๆ (ไม่ได้รันคำสั่ง merge จริง) — เป็นข้อจำกัดที่ยอมรับได้ ไม่ใช่บั๊ก
+ * กฎ git ทุกข้อผูกกับ CMD_START คือแมตช์เฉพาะตอน `git` อยู่ต้นคำสั่งจริง ๆ ไม่ใช่ตอนชื่อคำสั่ง
+ * ไปโผล่กลาง commit message หรือกลาง pattern ของ grep (ดูคอมเมนต์ที่ CMD_START)
  *
  * exit 2 = บล็อก | exit 0 = ผ่าน
  */
@@ -34,10 +34,32 @@ function currentBranch() {
   }
 }
 
+/**
+ * กฎของ git ต้องแมตช์เฉพาะตอนที่ `git` เป็น **คำสั่งจริง** ไม่ใช่ตอนที่ชื่อคำสั่งไปโผล่กลางสตริงของ
+ * คำสั่งอื่น — `grep -rn "git merge" docs/` คือการ *อ่าน* ไม่ใช่การ merge แต่เดิมโดนบล็อกทุกครั้ง
+ * ซึ่งแพงกว่าที่เห็น: เสียรอบ tool call ฟรี ๆ แล้ว AI ต้องเดาต่อว่าทำไมถึงโดน ทุกครั้งที่ค้นเรื่อง
+ * git workflow ในโปรเจกต์ตัวเอง
+ *
+ * จึงบังคับว่า `git` ต้องอยู่ต้นคำสั่ง: ต้นสตริง หรือหลัง `;` `&&` `||` `|` `(` หรือขึ้นบรรทัดใหม่
+ * (ยอมให้มี env prefix `GIT_DIR=x git ...` และ `sudo` นำหน้า)
+ *
+ * เหมือนเดิมตรงที่นี่ไม่ใช่ security boundary — เลี่ยงได้ด้วยตัวแปร/subshell ของจริงต้องกันที่
+ * branch protection บน git host + CI gate · แต่ false negative ไม่เพิ่มจากการเปลี่ยนนี้ เพราะคำสั่ง
+ * git ที่รันจริงอยู่ต้นคำสั่งเสมอ
+ *
+ * กฎที่ไม่ใช่ git (sonar, shadcn) ไม่ผูกกับ CMD_START เพราะมันรันผ่านตัวเรียกนำหน้าได้หลายแบบ
+ * (`npx` / `pnpm dlx`) การบังคับตำแหน่งจะทำให้หลุดของจริง
+ */
+const CMD_START = String.raw`(?:^|[;&|(]|\n)(?:\s*\w+=\S+)*\s*(?:sudo\s+)?`;
+const gitRule = (rest) => new RegExp(`${CMD_START}git\\s+${rest}`);
+
+const GIT_MERGE = gitRule(String.raw`merge\b`);
+const GIT_PUSH = gitRule(String.raw`push\b`);
+
 const RULES = [
   {
     // git merge <อะไรก็ตาม> ขณะยืนอยู่บน main = เอางานเข้า main โดยไม่ผ่าน PR
-    match: (cmd) => /\bgit\s+merge\b/.test(cmd) && isMainBranch(currentBranch()),
+    match: (cmd) => GIT_MERGE.test(cmd) && isMainBranch(currentBranch()),
     reason: [
       'Blocked: no local merge into main — the AI does not merge its own work (constitution art. 7).',
       'Correct path: push the branch and open a PR (`gh pr create` / `glab mr create`) for a human to merge after the gate passes.',
@@ -47,7 +69,7 @@ const RULES = [
   {
     // git push origin main / git push origin HEAD:main / git push ขณะอยู่บน main
     match: (cmd) =>
-      /\bgit\s+push\b/.test(cmd) &&
+      GIT_PUSH.test(cmd) &&
       !/--force|-f\b/.test(cmd) && // เคส force มีกฎของตัวเองด้านล่าง
       (/\bgit\s+push\b[^|;&]*(:|\s)(main|master)\b/.test(cmd) || (!/\bgit\s+push\b[^|;&]*\s\S+\s+\S+/.test(cmd) && isMainBranch(currentBranch()))),
     reason: [
@@ -56,11 +78,11 @@ const RULES = [
     ].join('\n'),
   },
   {
-    match: /\bgit\s+push\b[^|;&]*--no-verify/,
+    match: gitRule(String.raw`push\b[^|;&]*--no-verify`),
     reason: 'Blocked: push --no-verify — pre-push runs the gate (verify + docs-lint). If it fails, fix the cause; do not skip it.',
   },
   {
-    match: /\bgit\s+commit\b[^|;&]*(--no-verify|\s-n\b)/,
+    match: gitRule(String.raw`commit\b[^|;&]*(--no-verify|\s-n\b)`),
     reason: [
       'Blocked: --no-verify — the git hooks (commitlint / lint-staged) exist to keep bad changes out of the repo.',
       'If a hook rejects the commit, fix the cause; do not skip the check.',
@@ -76,7 +98,7 @@ const RULES = [
     ].join('\n'),
   },
   {
-    match: /\bgit\s+push\b[^|;&]*(--force|-f\b)[^|;&]*\b(main|master)\b/,
+    match: gitRule(String.raw`push\b[^|;&]*(--force|-f\b)[^|;&]*\b(main|master)\b`),
     reason: 'Blocked: force push to main/master — if it is truly necessary, the user must do it themselves.',
   },
   {
@@ -91,7 +113,7 @@ const RULES = [
     ].join('\n'),
   },
   {
-    match: /\bgit\s+(checkout|restore)\s+(--\s+)?\.(\s|$)/,
+    match: gitRule(String.raw`(checkout|restore)\s+(--\s+)?\.(\s|$)`),
     reason: [
       'Blocked: this discards every uncommitted change in the working tree.',
       'To revert a file, name that file path explicitly and tell the user first.',
