@@ -84,6 +84,26 @@ monorepo ที่ `formatCommands` ใช้ `npm --prefix backend exec -- esli
 "args": ["--prefix", "backend", "exec", "--", "eslint", "--config", "backend/eslint.config.mjs", "--fix", "{file}"]
 ```
 
+### test ของโปรเจกต์พังทั้งชุด หลังติดตั้ง plugin ไว้ในโฟลเดอร์โปรเจกต์
+
+อาการ: เทสทุกไฟล์ใน workspace หนึ่งแดงพร้อมกัน ด้วย error เรื่อง resolve path alias ไม่ใช่เรื่อง logic
+ของ diff ที่เพิ่งแก้ · สาเหตุ: เมื่อ plugin directory อยู่ **ใน** โปรเจกต์ (เช่น `CLAUDE_CONFIG_DIR=.claude-local`)
+marketplace จะ clone repository ของ kit ทั้งก้อนลงไปที่ `.claude-local/plugins/marketplaces/buaflow/`
+รวม `reference-apps/` ด้วย · เครื่องมือที่สแกนทั้ง workspace หา `tsconfig*.json` เอง — `vite-tsconfig-paths`,
+`tsc --build`, ESLint type-aware — ไม่เคารพ `.gitignore` จึงเจอ tsconfig ของ reference app เข้า
+แล้วพัง **ทั้งรัน** ไม่ใช่แค่ไฟล์นั้น
+
+ฝั่ง kit: tsconfig ของ reference app ทุกตัวไม่ `extends` ชื่อ package อีกแล้ว (`npm run check` บังคับข้อนี้ไว้)
+ตัวที่ extends `expo/tsconfig.base` เคยทำให้ backend test ของโปรเจกต์จริงแดงทั้งชุด
+
+ฝั่งโปรเจกต์: ยังควรจำกัด scope ของ plugin ที่สแกนเอง ไม่งั้น `paths` ของ reference app
+(เช่น `"@/*"`) จะถูกหยิบไปใช้เงียบ ๆ
+
+```ts
+// vitest.config.ts / vite.config.ts
+tsconfigPaths({ projects: ['./tsconfig.json'] })
+```
+
 ### `check-config .` เตือนเรื่องที่ตั้งไว้แล้วใน `stack.json` (ไม่มี `.husky/pre-push`, ไม่มี CI, formatter ไม่ match) (K-13)
 
 รุ่นก่อน 3.8.0 เมื่อส่ง root เป็น path แบบ relative (`.`) มันอ่าน `stack.json` ของโปรเจกต์ไม่ได้เลย

@@ -49,6 +49,27 @@ for (const file of jsonFiles) {
 }
 console.log(`json: PASS (${jsonFiles.length} files)`);
 
+// The whole repository is cloned into a consumer's plugin directory, so every tsconfig here is
+// a file their tooling may scan. An `extends` that names a package resolves only where that
+// package is installed; where it is not, a tsconfig-scanning tool fails the whole scan rather
+// than this one file. Reference apps therefore carry self-contained tsconfigs.
+const tsconfigFiles = walk(root, (file) => path.basename(file).startsWith('tsconfig') && file.endsWith('.json')).sort();
+for (const file of tsconfigFiles) {
+  const extend = JSON.parse(fs.readFileSync(file, 'utf8')).extends;
+  for (const entry of extend === undefined ? [] : [].concat(extend)) {
+    const relative = path.relative(root, file);
+    if (typeof entry !== 'string' || !entry.startsWith('.')) {
+      console.error(`repository check: tsconfig FAIL ${relative}: extends ${JSON.stringify(entry)} resolves only where that package is installed; inline it instead`);
+      process.exit(1);
+    }
+    if (!fs.existsSync(path.resolve(path.dirname(file), entry))) {
+      console.error(`repository check: tsconfig FAIL ${relative}: extends ${JSON.stringify(entry)} does not exist`);
+      process.exit(1);
+    }
+  }
+}
+console.log(`tsconfig: PASS (${tsconfigFiles.length} files, no unresolvable extends)`);
+
 // EV-008 — every command an onboarding document tells a reader to run must exist and parse.
 run('onboarding documents name only real commands', process.execPath, [path.join(root, 'scripts', 'check-docs-commands.js')]);
 // EV-001 — which kinds of project the kit is proven on; the empty cells are printed every time.

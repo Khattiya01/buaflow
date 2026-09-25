@@ -3,6 +3,20 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.14.3 — 2026-09-26
+
+> ใช้ plugin: อัปเดต plugin จบ · ไม่มีไฟล์ในโปรเจกต์เปลี่ยน · **PATCH:** ไม่มี schema เปลี่ยน
+
+- **tsconfig ของ reference app ไม่พา test ของโปรเจกต์อื่นล้มอีกแล้ว** — marketplace clone repository ของ kit ทั้งก้อนลงไปที่
+  `plugins/marketplaces/buaflow/` รวม `reference-apps/` ด้วย · โปรเจกต์ที่ตั้ง plugin directory ไว้ในโฟลเดอร์ตัวเอง
+  (`CLAUDE_CONFIG_DIR` แบบ project-local) จึงมี tsconfig พวกนี้อยู่ใน workspace และเครื่องมือที่สแกนหา `tsconfig*.json` เอง
+  (`vite-tsconfig-paths`, `tsc --build`, ESLint type-aware) ไม่เคารพ `.gitignore` · `expo-fastapi-postgres-sync/mobile/tsconfig.json`
+  `extends "expo/tsconfig.base"` ซึ่ง resolve ไม่ได้ใน clone ที่ไม่มี node_modules ⇒ **เทสทุกไฟล์ของ backend ในโปรเจกต์จริงแดงพร้อมกัน**
+  โดยที่ error ไม่ได้ชี้มาทางนี้เลย · ตอนนี้ inline ค่าจาก base ไว้ในไฟล์ ไม่ extends ชื่อ package แล้ว
+- **`npm run check` บังคับข้อนี้ไว้** — tsconfig ทุกตัวใน repository ห้าม `extends` ชื่อ package และ path แบบ relative ต้องมีอยู่จริง
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** เพิ่มอาการนี้ พร้อมสิ่งที่โปรเจกต์ต้องทำเอง: จำกัด scope ของ plugin ที่สแกน workspace
+  (`tsconfigPaths({ projects: ['./tsconfig.json'] })`) ไม่งั้น `paths` ของ reference app ถูกหยิบไปใช้เงียบ ๆ
+
 ## v3.14.2 — 2026-09-25
 
 > `buaflow install --write` (ใช้ plugin: อัปเดต plugin แล้ว `/buaflow:start`) จบ · **PATCH:** ไม่มี schema เปลี่ยน
