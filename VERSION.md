@@ -3,6 +3,16 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.14.2 — 2026-09-25
+
+> `buaflow install --write` (ใช้ plugin: อัปเดต plugin แล้ว `/buaflow:start`) จบ · **PATCH:** ไม่มี schema เปลี่ยน
+
+- **สคริปต์ที่ kit วางลง `.claude/` ผ่าน lint ของโปรเจกต์แล้ว** — โปรเจกต์ที่ `lint` คือ `eslint .` (ESLint 9/10 + `eslint:recommended`) lint `.claude/` ไปด้วย ·
+  TRENDY อัปเกรดเป็น 3.14.0 แล้ว gate ตกที่ lint 18 จุดในไฟล์ของ kit ล้วน ๆ: `window`/`document` ในโค้ดที่รันใน browser (`pixel.js`, `prototype.js`),
+  error ที่ throw ซ้ำโดยไม่แนบ `cause` (`evidence-bundle.js`, `stack-config.js`), ตัวแปรที่ไม่ได้ใช้ (`usage.js`, `check-config.js`) · แก้ทั้งหมดรวม
+  `hooks/usage-capture.js` และ `install.js` ที่ตรวจเจอเพิ่ม · พฤติกรรมไม่เปลี่ยน
+- **CI ของ kit lint สคริปต์ชุดนี้ทุก PR** ด้วย ESLint 10 + `eslint:recommended` แบบที่โปรเจกต์เห็น ⇒ ไม่หลุดไปถึงโปรเจกต์อีก · `npm run check` ยังไม่มี dependency เหมือนเดิม
+
 ## v3.14.1 — 2026-09-25
 
 > ใช้ plugin → อัปเดต plugin แล้วเปิด session ใหม่ จบ · ไม่มีไฟล์ในโปรเจกต์เปลี่ยน · **PATCH:** ไม่มี schema เปลี่ยน

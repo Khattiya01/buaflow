@@ -24,7 +24,7 @@ function loadUsage() {
 }
 
 function main() {
-  let input = {};
+  let input;
   try { input = JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch { return; }
   const usage = loadUsage();
   if (!usage) return;

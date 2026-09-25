@@ -2104,6 +2104,40 @@
         "node --test claude-setup/tests/install.test.js"
       ],
       "notes": "Opened from the owner's question after 3.14.0: people on the plugin have to update it by hand. Claude Code docs (discover-plugins): auto-update is on for official marketplaces and off for third-party ones until each person enables it under /plugin > Marketplaces, and an administrator can force it with \"autoUpdate\": true on the extraKnownMarketplaces entry in managed settings. The docs show autoUpdate only in managed settings, so install does not write it into a project's .claude/settings.json: it might be ignored, or might trip settings validation. The part auto-update cannot reach is the project side: .claude/ only changes through install, and the hook already told the model about a stale lock but not the user. The hook now sends the notice as systemMessage as well as additionalContext, which usage-capture already does for its own notice. It also catches a case nothing covered before: a teammate whose plugin is older than what the project installed."
+    },
+    {
+      "id": "BF-009",
+      "title": "Scripts the kit installs pass a project's own lint",
+      "milestone": "M9",
+      "status": "done",
+      "startedAt": "2026-09-25",
+      "completedAt": "2026-09-25",
+      "dependsOn": [
+        "BF-008",
+        "PE-008"
+      ],
+      "acceptance": [
+        "Every script in claude-setup/, claude-setup/hooks/ and plugin-src/hooks/ passes eslint:recommended with Node globals under ESLint 10",
+        "The kit's CI runs that lint on every push and pull request, while npm run check stays dependency-free",
+        "No change in behaviour: the full regression suite passes unchanged"
+      ],
+      "artifacts": [
+        "scripts/eslint-project-scripts.config.mjs",
+        ".github/workflows/kit-check.yml",
+        "claude-setup/check-config.js",
+        "claude-setup/evidence-bundle.js",
+        "claude-setup/stack-config.js",
+        "claude-setup/usage.js",
+        "claude-setup/pixel.js",
+        "claude-setup/prototype.js",
+        "claude-setup/install.js",
+        "claude-setup/hooks/usage-capture.js"
+      ],
+      "verification": [
+        "npm run check",
+        "npx eslint --no-config-lookup -c scripts/eslint-project-scripts.config.mjs \"claude-setup/*.js\" \"claude-setup/hooks/*.js\" \"plugin-src/hooks/*.js\""
+      ],
+      "notes": "Found on the TRENDY upgrade to 3.14.0: its lint is `eslint .` with eslint:recommended and Node globals for .claude/**/*.js, so the gate went red on 18 errors, all in files install had just replaced. Two of them (window/document in browser-side code in pixel.js and prototype.js) had been patched locally with eslint-disable during an earlier upgrade and were lost when install replaced the files; the others came from rules newer ESLint versions added to recommended (preserve-caught-error, no-useless-assignment). The kit had no lint of its own, so nothing caught them. Linting the pre-fix tree with the new CI config reports 22 errors; the fixed tree reports none."
     }
   ],
   "decisions": [
@@ -2313,8 +2347,8 @@
   ],
   "lastSession": {
     "date": "2026-09-25",
-    "summary": "IC-007 built on branch feat/IC-007-elaborate for kit 3.14.0: /elaborate (research the domain, propose what a thin brief leaves out, a person decides in groups), /intent asks brief: open | fixed, /spec cites accepted E-xx, docs-lint warns on undecided or untraced proposals, eval case EV-006 from the dashboard brief that exposed the gap. PR opened for the owner's review, not merged. Then PE-009 (3.14.1): the plugin session hook tells the user when the project or their plugin is behind, and /buaflow:start explains auto-update.",
-    "next": "Owner reviews and merges the IC-007 PR, then updates the plugin. First real use: run /elaborate on the next customer brief in a real project and compare the proposals with what the owner would have added; grade EV-006 in a clean session by someone other than its author. Still watching the usage store for the first model-tagged check.result. Parked until asked: MT-003/004.",
+    "summary": "IC-007 built on branch feat/IC-007-elaborate for kit 3.14.0: /elaborate (research the domain, propose what a thin brief leaves out, a person decides in groups), /intent asks brief: open | fixed, /spec cites accepted E-xx, docs-lint warns on undecided or untraced proposals, eval case EV-006 from the dashboard brief that exposed the gap. PR opened for the owner's review, not merged. Then PE-009 (3.14.1): the plugin session hook tells the user when the project or their plugin is behind, and /buaflow:start explains auto-update. Then BF-009 (3.14.2): kit scripts pass eslint:recommended after TRENDY's gate went red on the 3.14.0 upgrade; CI now lints them.",
+    "next": "TRENDY: after 3.14.2 is merged, update the plugin, rerun /buaflow:start (install --plugin --write), confirm node .claude/gate.js is green, then commit the upgrade and drop the Phase 8 note and the queued bug report. Owner reviews and merges the IC-007 PR, then updates the plugin. First real use: run /elaborate on the next customer brief in a real project and compare the proposals with what the owner would have added; grade EV-006 in a clean session by someone other than its author. Still watching the usage store for the first model-tagged check.result. Parked until asked: MT-003/004.",
     "verifiedAt": "2026-09-25"
   }
 }

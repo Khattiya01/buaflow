@@ -140,7 +140,7 @@ function buildBundle({ root, manifestPath, reportIndexPath, now }) {
   try {
     manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
   } catch (error) {
-    throw new Error(`cannot parse ${manifestPath}: ${error.message}`);
+    throw new Error(`cannot parse ${manifestPath}: ${error.message}`, { cause: error });
   }
   if (typeof manifest.project !== 'string' || !manifest.project.trim()) {
     throw new Error(`${manifestPath}: manifest.project must be a non-empty string`);

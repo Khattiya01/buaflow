@@ -1,2 +1,4 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Auto detect text files, store them as LF, and check them out as LF on every OS.
+# The generators and checksums compare bytes, so a CRLF checkout (core.autocrlf=true on Windows)
+# made npm run check fail on files git itself saw as unchanged.
+* text=auto eol=lf

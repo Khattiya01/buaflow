@@ -146,7 +146,7 @@ function main(argv = process.argv.slice(2)) {
   if (write) report.lock = apply(root, report).kitVersion;
   report.written = write;
   report.counts = summarize(report);
-  const out = { ...report, entries: report.entries.map(({ from, to, content, ...rest }) => rest) };
+  const out = { ...report, entries: report.entries.map(({ kind, file, action, reason }) => ({ kind, file, action, ...(reason ? { reason } : {}) })) };
   if (argv.includes('--json')) console.log(JSON.stringify(out, null, 2));
   else {
     const c = report.counts;
