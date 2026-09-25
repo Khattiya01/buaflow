@@ -59,6 +59,34 @@
 ที่ EV-007 ปิดพอดี ภายใต้นโยบายที่ใช้อยู่ตอนนี้ การเปลี่ยนแบบนั้นต้องมี MINOR release ประกาศก่อน
 และนี่คือครั้งสุดท้ายที่ได้รับอนุญาตให้ข้าม
 
+## ขั้นตอนการออกรีลีส (PE-010)
+
+kit ถูกพัฒนาที่ `Khattiya01/buaflow` แต่ผู้ใช้ติดตั้งจาก `Khattiya01/buaflow-plugin` — marketplace ที่อยู่บน git
+ถูก clone **ทั้ง repository** ลงเครื่องผู้ใช้ ที่นี่จึงส่งไปแค่ `.claude-plugin/` กับ `claude-plugin/` ไม่ใช่ทั้งบ้าน
+(`marketplaceRepo` ใน `package.json` คือที่เดียวที่ปลายทางถูกเขียนไว้)
+
+ยืนบน `main` ที่ tree สะอาด:
+
+1. ขยับเลขใน `package.json` · `schemas/compatibility.json` (entry บนสุด) · `VERSION.md` · `UPGRADE.md`
+2. `node scripts/generate-claude-plugin.js --write` — เลขไหลเข้า `plugin.json` และ `marketplace.json` เอง
+3. `npm run check` — เลขทุกที่ต้องตรงกัน และ dry-run ของ publish ต้องผ่าน
+4. commit เป็น `chore(release): <version>` แล้วขึ้น remote ตามทางปกติของ repo (PR + gate)
+5. `node scripts/publish-plugin.js` — **ขั้นนี้ขั้นเดียวที่ marketplace ขยับ**
+
+**ผู้ใช้ได้ของใหม่ก็ต่อเมื่อสตริงเวอร์ชันเปลี่ยน** (Claude Code อ่านจาก `plugin.json` ก่อน) — เปลี่ยนโค้ดโดยไม่ขยับเลข
+เท่ากับไม่มีใครได้อะไรเลย · และ auto-update ปิดไว้เป็นค่าเริ่มต้นสำหรับ marketplace ของ third-party
+ผู้ใช้เปิดเองครั้งเดียวต่อเครื่อง
+
+### ทำไมขั้นที่ 5 ไม่อัตโนมัติ
+
+ให้ CI ทำเองได้ แต่ต้องมี credential ที่เขียน repository อื่นได้เก็บเป็น secret ถาวร แลกกับการประหยัดคำสั่งเดียว
+— และการส่งของขึ้นเครื่องผู้ใช้ทุกคนควรเป็นจังหวะที่คนกด ไม่ใช่ผลข้างเคียงของการ merge
+
+สิ่งที่อัตโนมัติแทนคือ **การจับได้ว่าลืม**: `scripts/check-published.js` ถาม marketplace ด้วย `git ls-remote` ว่าเสิร์ฟ
+tag `v<version>` แล้วหรือยัง · เป็น job `published` ใน `.github/workflows/kit-check.yml` ที่รันเฉพาะบน `main`
+⇒ ลืมแล้ว main แดงจนกว่าจะส่งจริง · ไม่ต้องใช้ token เพราะ repository ปลายทางเป็น public ·
+ไม่อยู่ใน `npm run check` เพราะอันนั้นต้องรันได้จาก checkout เปล่าโดยไม่มีเน็ต
+
 ## ความสัมพันธ์กับไฟล์ที่มีอยู่แล้ว
 
 | ไฟล์ | หน้าที่ |
@@ -67,6 +95,8 @@
 | `VERSION.md` | changelog สำหรับคน — เกิดอะไรขึ้นและทำไม |
 | `UPGRADE.md` | ขั้นตอนลงมือ ต่อคู่เวอร์ชัน |
 | เอกสารนี้ | กติกาที่ทั้งสามไฟล์ข้างบนต้องเคารพ |
+| `scripts/publish-plugin.js` | ส่งรีลีสถึงผู้ใช้ — ปฏิเสธเมื่อเลขไม่ตรงกันหรือ tree ไม่สะอาด |
+| `scripts/check-published.js` | ถาม marketplace ว่าเสิร์ฟรุ่นไหนอยู่จริง (CI บน `main`) |
 
 ทุก MAJOR ต้องมีหัวข้อใน `UPGRADE.md` เสมอ — MAJOR ที่ไม่มีทางอัปเกรดเขียนไว้ คือ MAJOR
 ที่ผลักภาระให้ผู้ใช้ไปเดาเอง

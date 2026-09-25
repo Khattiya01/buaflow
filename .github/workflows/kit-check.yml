@@ -36,6 +36,23 @@ jobs:
       - name: npm run check
         run: npm run check
 
+  # PE-010 — publishing to the marketplace repository is one command a human runs, and forgetting it
+  # fails silently: main says the new version, every user keeps running the old one. This asks the
+  # marketplace what it actually serves. It reads a public repository with `git ls-remote`, so it
+  # needs no token and no secret. Only on main: a release branch has not been published yet, by design.
+  published:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: the marketplace serves what main says
+        run: node scripts/check-published.js
+
   # A project whose lint command is `eslint .` also lints .claude/, so every script install copies there
   # must pass eslint:recommended. TRENDY's gate went red after upgrading to 3.14.0 on exactly this.
   # ESLint is installed here only; the kit's own check stays dependency-free.
