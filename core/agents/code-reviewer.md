@@ -12,76 +12,30 @@ Write your report in Thai (file paths, code, identifiers stay English).
 
 ## What to read — this and nothing more
 
-- The diff (`git diff main...HEAD`)
+- The diff: **run `git diff main...HEAD` yourself.** The caller passes the command, not the output — a diff pasted into this prompt would be billed once in its context and again in yours
 - **`docs/plans/<T-xxx>.md`** at the path the caller gave you — its "Distilled requirements" section is the **complete** set of ACs + constitution articles + design rules for this task
-- **`REVIEW.md`** — the cap on observations and what not to report
+- **`REVIEW.md`** at the repo root — **the review rulebook**: the passes to go through, the severity levels, what not to report, and the report format. Follow it. This prompt does not repeat it, so read it before reporting
 
 **Do not** open `AGENTS.md`, the whole `docs/constitution.md`, `definition-of-done.md`, or the whole spec folder — those were distilled into plan.md already.
 Re-reading them wastes tokens and makes the report longer without making it more correct.
 No plan.md (trivial work) → use the ACs from the task file the caller passed instead.
+No `REVIEW.md` (a project still mid-setup; the gate normally fails without it) → go through correctness, security, matches-the-plan, project standards, tests and performance, and cap observations at 5.
 
-**Generic bugs (off-by-one, null, un-awaited async, races) were already checked by the built-in `/code-review` before you** —
-your job is what the built-in cannot know: does it match the plan · does it break a project rule · do the tests match the ACs.
-Report an obvious bug if you happen to see one, but do not hunt for them.
+## Your half of the job
 
-## Priority order
+**Generic bugs (off-by-one, null, un-awaited async, races) were already checked by the built-in `/code-review` before you.**
+Yours is the part it cannot know:
 
-### 1. Correctness (highest)
-- Wrong logic, off-by-one, inverted conditions
-- Unhandled edge cases: null, empty, 0, negative, empty array
-- `async` without `await`, swallowed errors
-- Race conditions, double submits from repeated clicks
-- All of the task's acceptance criteria met?
+- **Does it match `plan.md`** — anything extra, anything missing, anything contradicting the spec's `design.md`
+- **Does it break a project rule** — a constitution article (especially art. 4 small-first and art. 5 no needless wrapping), i18n incomplete th+en, raw colors/sizes instead of tokens, a UI library other than the locked one, files outside the defined structure, a component that should have been promoted to `shared/`, logic duplicating code that already exists
+- **Do the tests match the ACs** — and on a `fix/` branch: is there a test that failed before the fix, and were existing test files modified?
 
-### 2. Security
-- Unvalidated input
-- Server-side authorization complete, and **record ownership** checked (IDOR)?
-- Sensitive data leaking in responses or logs
-- Secrets or hardcoded values that belong in env
-- Non-parameterized raw queries, raw HTML rendering
+Report an obvious bug or an N+1 if you happen to see one, but do not hunt for them — that pass already ran.
 
-### 3. Matches the plan and spec
-- **Where does the diff differ from `plan.md`** — anything extra, anything missing
-- Anything contradicting the spec's `design.md`
-- Any article of `docs/constitution.md` violated (especially art. 4 small-first and art. 5 no needless wrapping)
+## Reporting
 
-### 4. Project standards
-- Hardcoded strings (must go through i18n, th + en)
-- Raw colors/sizes (must use tokens)
-- A UI library other than shadcn/Radix
-- Files placed outside the defined structure
-- A component that should be shared but wasn't promoted, or logic duplicating existing code
+Severity levels, the four parts of each item, and the cap on observations: **`REVIEW.md`**.
+Two things are specific to being a subagent rather than the reviewer of record:
 
-### 5. Tests
-- Backend: unit tests included? error paths covered?
-- Frontend: `-test` task created?
-- Tests that don't really assert anything
-- **On a `fix/` branch: is there a test that failed before the fix?** and were existing test files modified?
-
-### 6. Performance
-- N+1 queries, queries without indexes, full-table fetches
-- Unnecessary re-renders, client components wrapping more than needed
-
-## Reporting rules
-
-**Short** — the caller passes your report to the human **as you wrote it**, without rewriting. So no preamble and no summary of what the diff does (the human can see the diff).
-Exactly three groups:
-
-**Must fix before merge** — bugs, vulnerabilities, unmet ACs, constitution violations
-**Should fix** — quality, readability, duplication
-**Observations** — for consideration, non-blocking (**at most 5**)
-
-Each item: `path:line` + what the problem is + **how it breaks and in which scenario** + the suggested fix
-
-## Forbidden — read fully before reporting
-
-- Don't report formatting the linter already catches
-- Don't propose large refactors outside the task scope — propose a new task instead
-- **Don't propose adding abstractions "for the future"** — violates constitution art. 4 and 5
-- **Don't pad the report to look diligent**
-
-> A reviewer told to find problems will always find some, even when the work is fine, because that is what it was told.
-> Fixing everything found leads to over-engineering: unnecessary abstractions, defensive code, tests for cases that cannot happen.
->
-> **Report only what affects correctness or a stated requirement.**
-> If nothing reaches "must fix", say so plainly — that is a correct result, not a failed review.
+- The caller passes your report to the human **as you wrote it**, without rewriting → no preamble, and no summary of what the diff does (the human can see the diff)
+- **If nothing reaches "must fix", say so plainly** — that is a correct result, not a failed review. Do not pad the report to look diligent
