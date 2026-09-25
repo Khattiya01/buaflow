@@ -1,6 +1,6 @@
 {
   "name": "buaflow",
-  "version": "3.14.1",
+  "version": "3.14.2",
   "private": true,
   "description": "Development commands for the Buaflow kit repository",
   "repository": "github:Khattiya01/buaflow",

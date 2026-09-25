@@ -139,7 +139,7 @@ function projectRoot(start) {
 }
 
 function readState(root) {
-  const { marker, synced, ...state } = readJsonOr(stateFile(root), {});
+  const state = readJsonOr(stateFile(root), {});
   return { seen: {}, sessions: {}, readinessHash: null, ...state, synced: readJsonOr(syncedFile(root), {}), marker: readJsonOr(markerFile(root), null) };
 }
 
@@ -167,7 +167,9 @@ function writeJsonAtomic(file, value) {
 // never overwrites what the Write saw, and a hook never rolls back an offset a background sync just saved.
 function writeState(root, state) {
   ensureUsageDir(root);
-  const { marker, synced, ...rest } = state;
+  const rest = { ...state };
+  delete rest.marker;
+  delete rest.synced;
   writeJsonAtomic(stateFile(root), rest);
 }
 

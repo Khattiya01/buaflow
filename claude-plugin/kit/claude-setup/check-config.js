@@ -155,7 +155,7 @@ if (fs.existsSync(rulesDir)) {
     let total = 0;
     const dead = [];
     for (const pat of Array.isArray(patterns) ? patterns : [patterns]) {
-      let hits = [];
+      let hits;
       try {
         hits = fs.globSync(pat, { cwd: ROOT }).map((p) => p.replace(/\\/g, '/')).filter((p) => coverage.has(p));
       } catch (e) {

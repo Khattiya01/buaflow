@@ -120,7 +120,7 @@ function readJson(file, strict = false) {
   try {
     return JSON.parse(fs.readFileSync(file, 'utf8'));
   } catch (error) {
-    if (strict) throw new Error(`${path.basename(file)} is not valid JSON: ${error.message}`);
+    if (strict) throw new Error(`${path.basename(file)} is not valid JSON: ${error.message}`, { cause: error });
     return null;
   }
 }
