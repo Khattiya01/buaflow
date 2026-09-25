@@ -52,8 +52,8 @@ In this order:
 1. **`/code-review`** — level by diff size: ≤ 3 files → `low`, normal → `medium`, touches auth / money / migrations → `high`
 2. **`/security-review`** — **only when** the diff touches `auth`, `api`, `prisma`, `migrations`, uploads, or env/secrets
 3. subagent **`code-reviewer`** — checks what the built-ins cannot know: matches the plan? violates which constitution article? project standards.
-   **Give it exactly three things**: the path to plan.md, the constitution articles distilled in the plan, and `git diff main...HEAD`.
-   Do not let it re-read AGENTS.md / DoD / the whole spec.
+   **Give it exactly three things**: the path to plan.md, the constitution articles distilled in the plan, and the **command** `git diff main...HEAD` — **the command, never the diff itself** (it has `Bash`; a pasted diff is billed in both contexts, and the `--stat` above is all steps 2 and 5 need here).
+   Do not let it re-read AGENTS.md / DoD / the whole spec, and do not copy `REVIEW.md` in — it reads that itself.
 
 > Why split: `/code-review` finds bugs better than a hand-written prompt but doesn't know what this project agreed on.
 > Our subagent knows the project rules but shouldn't waste time hunting off-by-ones again.

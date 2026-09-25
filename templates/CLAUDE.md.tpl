@@ -7,21 +7,17 @@
 > All core rules are in `AGENTS.md` (imported above — never remove the first line).
 > This file holds only Claude Code-specific things. **Do not duplicate rules here.**
 
-## Skills in this project
+## Skills the user types but you never see listed
+
+`/intent` `/elaborate` `/spec` `/plan` `/task` `/ui` `/check` already reach you with their own descriptions — these three do not, because only a human may start them:
 
 ```
-/intent  <topic>    Open new work — capture "why" before "what"
-/spec    <F-xx>     Spec a large feature (requirements -> design -> tasks)
-/plan    <T-xxx>    Plan before touching code; commits plan.md first
-/task    [T-xxx]    Pick a task from the board and work it
-/ui      <name>     Start a UI component (always asks first)
-/check   [T-xxx]    Check the work: verify + compare to plan + /code-review + /security-review (not named /review — that is an alias of the built-in)
-/done    <T-xxx>    Open a PR + update the task file + regenerate the board (never merges)
+/done    <T-xxx>    Open a PR + update the task file + regenerate the board (never merges) — suggest it after /check passes
 /hotfix  <symptom>  Production hotfix procedure
 /release <env> <M>  Release to uat / prd (runs gate --release first)
 ```
 
-**Built-ins used alongside:** `/code-review [level]` `/security-review` `/simplify` (called from `/check`) ·
+**Built-ins used alongside:** `/code-review [level]` `/security-review` (called from `/check`) ·
 `/doctor` `/insights` `/context` `/usage` (Phase 8) · `/rewind` when heading the wrong way
 
 ## Rules loaded automatically by file path
@@ -54,13 +50,11 @@ If a hook blocks you and you believe this is a legitimate exception → **tell t
 
 ## Context management
 
-- **After `/done`, always `/clear`** before the next task — old context does not help the new task but is billed every turn (`/usage` flag "long context" = this rule was skipped)
-- One task at a time — unrelated work gets a `/clear` first
-- Read `plan.md` alone during implementation/check — do not re-read spec / constitution / DoD (already distilled)
-- Paste the **summary line** of verify, not the full log
-- **Same spot fails twice in a row → stop, `/clear`, restart with a sharper prompt.** Do not keep retrying in the same turn — the context fills with failed attempts
-- Work that reads many files (exploring legacy code, hunting a pattern across the repo) → use a subagent, not the main context
-- Every time the user has to repeat the same correction a 2nd time → add it to `AGENTS.md` under "Things the AI gets wrong in this project"
+The rules are in `AGENTS.md`; these are the Claude Code moves that carry them out.
+
+- **After `/done`, always `/clear`** — and again before unrelated work. Old context does not help the new task but is billed every turn (`/usage` flag "long context" = this was skipped)
+- AGENTS.md says stop when the same spot fails twice → `/clear` and restart with a sharper prompt, rather than retrying in the same turn
+- Work that reads many files (exploring legacy code, hunting a pattern across the repo) → a subagent, not this context
 
 ## Reply style (fewer output tokens without losing clarity)
 

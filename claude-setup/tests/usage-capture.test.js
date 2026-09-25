@@ -66,9 +66,11 @@ test('AC-5 an opted-in session opens with one line saying so and how to switch i
   const r = p.start();
   assert.equal(r.status, 0);
   const out = JSON.parse(r.stdout);
-  assert.match(out.hookSpecificOutput.additionalContext, /เก็บข้อมูลการใช้งาน Buaflow/);
+  assert.match(out.systemMessage, /เก็บข้อมูลการใช้งาน Buaflow/);
   assert.match(out.systemMessage, /enabled: false/);
   assert.equal(out.systemMessage.split('\n').length, 1);
+  // The notice is addressed to the person, not the model: it must not be billed as context every session.
+  assert.equal(out.hookSpecificOutput, undefined);
 });
 
 test('an unreadable consent file records nothing and says so at session start', (t) => {

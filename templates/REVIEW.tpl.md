@@ -5,7 +5,7 @@
 > This file is the **decision rules** of review, separate from the **procedure** (which lives in the `/check` skill + built-in `/code-review`).
 > Lives at the repo root as `REVIEW.md` — version-controlled and changed through review like code.
 > Owner: {{tech lead / project owner}}
-> Read by: the `/check` skill and the `code-reviewer` subagent
+> Read by: the `/check` skill and the `code-reviewer` subagent — **this file is the single copy of these rules**; the subagent's own prompt points here instead of repeating them
 
 ## Passes (every pass, every PR, no exceptions)
 
@@ -16,6 +16,7 @@
 | **3. Matches what was agreed** | matches `plan.md`? (anything extra / missing), matches the spec?, violates any article of `docs/constitution.md`? |
 | **4. Project standards** | i18n complete th+en, tokens not raw colors, no other UI library, files in the right place, components that should be shared, logic duplicating existing code |
 | **5. Tests** | backend: unit tests included, error paths covered? / frontend: `-test` task created? / any test that asserts nothing real? |
+| **6. Performance** | N+1 queries, queries without an index, full-table fetches, unnecessary re-renders, client components wrapping more than they need |
 
 ## Severity
 
