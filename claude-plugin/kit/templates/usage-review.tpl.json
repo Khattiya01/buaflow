@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "task": "example-project/T-001",
+  "outcome": "eval",
+  "eval": "EV-001",
+  "decidedAt": "2026-01-01T00:00:00.000Z",
+  "decidedBy": "<ใครตัดสิน — คน ไม่ใช่โมเดล>",
+  "throughEventAt": "2026-01-01T00:00:00.000Z",
+  "note": "<ทำไมตัดสินอย่างนี้ — จำเป็นเมื่อ outcome เป็น none>",
+  "kitVersion": "0.0.0"
+}

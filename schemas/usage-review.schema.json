@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://buaflow.dev/schemas/usage-review-v1.json",
+  "title": "Buaflow usage review decision v1",
+  "description": "What a person decided about one task the usage report raised (EV-012), one file per task in the central store at reviews/<project>/<task>.json. Events are never deleted — an eval case that declares observedIn must stay traceable — so this is what stops a task being raised again: it is decided up to throughEventAt, and only an event after that brings it back.",
+  "type": "object",
+  "required": ["schemaVersion", "task", "outcome", "decidedAt", "decidedBy", "throughEventAt"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "task": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}/[A-Za-z][A-Za-z0-9._-]*$",
+      "description": "<project>/<task>, exactly as the report and `usage show` name it."
+    },
+    "outcome": {
+      "enum": ["eval", "covered", "none"],
+      "description": "eval: an eval case was drafted from it. covered: an existing case already asks this. none: nothing here is Buaflow's to learn — the reason belongs in note."
+    },
+    "eval": {
+      "type": ["string", "null"],
+      "pattern": "^EV-[0-9]{3}$",
+      "description": "The case this became or is covered by; required when outcome is eval or covered."
+    },
+    "decidedAt": { "type": "string", "format": "date-time" },
+    "decidedBy": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The person who decided. Never a model: a model may not close its own signal."
+    },
+    "throughEventAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The time of the newest event this decision looked at. An event after it raises the task again, because something happened that nobody has judged."
+    },
+    "note": {
+      "type": ["string", "null"],
+      "description": "Why, in one or two sentences. Required in practice for outcome none, where the note is the whole record."
+    },
+    "kitVersion": { "type": ["string", "null"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "outcome": { "enum": ["eval", "covered"] } }, "required": ["outcome"] },
+      "then": { "required": ["eval"], "properties": { "eval": { "type": "string" } } }
+    },
+    {
+      "if": { "properties": { "outcome": { "const": "none" } }, "required": ["outcome"] },
+      "then": { "required": ["note"], "properties": { "note": { "type": "string", "minLength": 1 } } }
+    }
+  ]
+}

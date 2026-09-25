@@ -353,3 +353,15 @@ test('the same check result twice moments apart is recorded once; a real second 
   usage.runCommand(root, args);
   assert.equal(events(root).length, 3);
 });
+
+test('review is routed to the store reader, not to record check', (t) => {
+  isolatedHome(t);
+  const { root, parent } = gitProject();
+  t.after(() => cleanup(parent));
+  usage.runCommand(root, ['consent', '--enable']);
+  // From a project this says where it belongs; what it must never do is fall through and answer about consent.
+  const r = usage.runCommand(root, ['review', 'alpha/T-1', '--outcome', 'none', '--note', 'nothing to learn']);
+  assert.equal(r.code, 1);
+  assert.match(`${r.summary} ${r.errors.join(' ')}`, /Buaflow repositor|Buaflow kit/);
+  assert.equal(events(root).length, 0, 'a review is a decision about Buaflow, never an event in a project');
+});

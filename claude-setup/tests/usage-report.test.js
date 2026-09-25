@@ -4,8 +4,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const { spawnSync } = require('node:child_process');
 const { cleanup, repositoryRoot, runNode, temporaryProject, write, writeJson } = require('./helpers');
 const report = require('../usage-report');
+const usage = require('../usage');
 const { parse } = require('../../bin/buaflow');
 
 const hookScript = path.join(repositoryRoot, 'claude-setup', 'hooks', 'usage-capture.js');
@@ -119,7 +121,7 @@ test('AC-26 tasks worth a look: ranked by score, a move reconciled in two clones
   const f = fixture(t);
   const r = f.run(() => report.report({ now: NOW, pull: false }));
   assert.deepEqual(r.data.watch.map((w) => [w.key, w.score]), [['alpha/T-1', 5], ['alpha/T-3', 1], ['alpha/T-4', 1]]);
-  assert.deepEqual(r.data.watch[0], { key: 'alpha/T-1', model: 'claude-opus-5-5', score: 5, mustFix: 1, fails: 1, backward: 1, fixedBy: ['alpha/T-2'] });
+  assert.deepEqual(r.data.watch[0], { key: 'alpha/T-1', model: 'claude-opus-5-5', score: 5, mustFix: 1, fails: 1, backward: 1, fixedBy: ['alpha/T-2'], decided: null });
   for (const w of r.data.watch) {
     const command = r.data.text.match(new RegExp(`\`(buaflow usage eval-draft --task ${w.key})\``))[1];
     const parsed = parse(command.split(' ').slice(1));
@@ -183,8 +185,16 @@ test('AC-27 opening the Buaflow repository says how many events arrived since th
   // A review on 09-15 that saw the 11 events there were then.
   writeJson(path.join(f.home, '.buaflow', 'usage.json'), { ...f.machine(), lastReviewAt: '2026-09-15T00:00:00.000Z', reviewedEvents: 11 });
   assert.match(JSON.parse(start(repo).stdout).systemMessage, /มี event ใหม่ 4 รายการในที่เก็บกลางตั้งแต่ review ล่าสุด \(2026-09-15\)/);
+
+  // Reading everything is not the same as deciding anything (EV-012): with nothing new, the line counts the
+  // tasks still waiting for a decision, and goes quiet only once every one of them has been closed.
   f.run(() => report.report({ now: NOW, pull: false }));
-  assert.equal(start(repo).stdout, '', 'nothing new since this review');
+  assert.match(JSON.parse(start(repo).stdout).systemMessage, /^3 task ที่ยังไม่ตัดสิน — buaflow usage report$/);
+  for (const [task, at] of [['alpha/T-1', '2026-09-13T10:00:00.000Z'], ['alpha/T-3', '2026-09-15T10:00:00.000Z'], ['alpha/T-4', '2026-09-16T11:00:00.000Z']]) {
+    const [project, id] = task.split('/');
+    writeJson(path.join(f.store, 'reviews', project, `${id}.json`), { schemaVersion: '1.0', task, outcome: 'none', decidedAt: NOW.toISOString(), decidedBy: 'Test Owner', throughEventAt: at, note: 'nothing here for Buaflow' });
+  }
+  assert.equal(start(repo).stdout, '', 'nothing new and nothing undecided');
 });
 
 // A laptop that was offline syncs a week late: its events are older than the review but arrived after it.
@@ -352,4 +362,111 @@ test('a must-fix counts whether or not the round that found it could still be me
   const r = run();
   assert.deepEqual(r.data.watch.map((w) => [w.key, w.mustFix, w.score]), [['alpha/T-1', 2, 2]], 'a round with only should-fix is not worth a look');
   assert.equal(r.data.models[0].mustFixTasks, 1);
+});
+
+// The store keeps every event, so what takes a task off the list is a decision written beside them (EV-012).
+function decide(store, task, fields) {
+  const [project, id] = task.split('/');
+  writeJson(path.join(store, 'reviews', project, `${id}.json`), {
+    schemaVersion: '1.0', task, decidedAt: '2026-09-21T00:00:00.000Z', decidedBy: 'Test Owner', ...fields,
+  });
+}
+
+test('a task decided and unchanged since is off the list, --all shows it, and a new event brings it back', (t) => {
+  const base = temporaryProject('buaflow-review-');
+  t.after(() => cleanup(base));
+  const store = path.join(base, 'store');
+  const home = path.join(base, 'home');
+  writeJson(path.join(home, '.buaflow', 'usage.json'), { schemaVersion: '1.0', store, machine: 'm1', lastReviewAt: null });
+  write(path.join(store, 'events', 'alpha', 'm1', '2026-09-20.jsonl'), lines([
+    ev({ task: 'T-1', at: '2026-09-20T10:00:00.000Z', data: { verdict: 'fail', findings: ['must-fix: a'], level: 'high' } }),
+    ev({ task: 'T-2', at: '2026-09-20T10:00:00.000Z', data: { verdict: 'fail', findings: ['must-fix: b'], level: 'high' } }),
+  ]));
+  const run = (options) => {
+    const saved = { HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE };
+    Object.assign(process.env, { HOME: home, USERPROFILE: home });
+    try { return report.report({ now: NOW, pull: false, ...options }); } finally {
+      for (const [key, value] of Object.entries(saved)) {
+        if (value === undefined) delete process.env[key]; else process.env[key] = value;
+      }
+    }
+  };
+
+  assert.deepEqual(run().data.watch.map((w) => w.key), ['alpha/T-1', 'alpha/T-2']);
+
+  decide(store, 'alpha/T-1', { outcome: 'eval', eval: 'EV-009', throughEventAt: '2026-09-20T10:00:00.000Z' });
+  const after = run();
+  assert.deepEqual(after.data.watch.map((w) => w.key), ['alpha/T-2'], 'decided and quiet since: off the list');
+  assert.equal(after.data.counts.decided, 1);
+  assert.match(after.data.text, /1 more already decided/);
+  assert.match(after.summary, /1 already decided/);
+
+  const all = run({ all: true });
+  assert.deepEqual(all.data.watch.map((w) => w.key), ['alpha/T-1', 'alpha/T-2']);
+  assert.deepEqual(all.data.watch[0].decided, { outcome: 'eval', eval: 'EV-009', decidedAt: '2026-09-21T00:00:00.000Z', reopened: false });
+
+  // It moved again after the decision: nobody has judged that, so it comes back and says why.
+  write(path.join(store, 'events', 'alpha', 'm1', '2026-09-22.jsonl'), lines([
+    ev({ type: 'task.status', task: 'T-1', at: '2026-09-22T10:00:00.000Z', data: { from: 'done', to: 'in-progress' } }),
+  ]));
+  const reopened = run();
+  assert.deepEqual(reopened.data.watch.map((w) => w.key), ['alpha/T-1', 'alpha/T-2']);
+  assert.equal(reopened.data.watch.find((w) => w.key === 'alpha/T-1').decided.reopened, true);
+  assert.match(reopened.data.text, /eval EV-009 \(moved since\)/);
+});
+
+test('a decision nobody can parse decides nothing, so the task stays on the list', (t) => {
+  const base = temporaryProject('buaflow-review-bad-');
+  t.after(() => cleanup(base));
+  const store = path.join(base, 'store');
+  const home = path.join(base, 'home');
+  writeJson(path.join(home, '.buaflow', 'usage.json'), { schemaVersion: '1.0', store, machine: 'm1', lastReviewAt: null });
+  write(path.join(store, 'events', 'alpha', 'm1', '2026-09-20.jsonl'), lines([
+    ev({ task: 'T-1', at: '2026-09-20T10:00:00.000Z', data: { verdict: 'fail', findings: ['must-fix: a'], level: 'high' } }),
+  ]));
+  write(path.join(store, 'reviews', 'alpha', 'T-1.json'), '{ not json');
+  const saved = { HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE };
+  Object.assign(process.env, { HOME: home, USERPROFILE: home });
+  try {
+    assert.deepEqual(report.report({ now: NOW, pull: false }).data.watch.map((w) => w.key), ['alpha/T-1']);
+  } finally {
+    for (const [key, value] of Object.entries(saved)) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    }
+  }
+});
+
+test('review writes the decision beside the events, names the person, and stamps how far it looked', (t) => {
+  const f = fixture(t);
+  const repo = buaflowRepo(f);
+  spawnSync('git', ['init', '-q'], { cwd: repo });
+  spawnSync('git', ['config', 'user.name', 'Case Owner'], { cwd: repo });
+
+  const r = f.run(() => report.review(repo, 'alpha/T-1', { outcome: 'eval', evalCase: 'EV-009', pull: false, now: NOW }));
+  assert.equal(r.code, 0, r.errors.join());
+  const written = JSON.parse(fs.readFileSync(path.join(f.store, 'reviews', 'alpha', 'T-1.json'), 'utf8'));
+  assert.equal(written.decidedBy, 'Case Owner', 'a person decides, never a model');
+  assert.deepEqual([written.task, written.outcome, written.eval], ['alpha/T-1', 'eval', 'EV-009']);
+  assert.equal(written.throughEventAt, '2026-09-13T10:00:00.000Z', 'the newest event this decision looked at');
+  assert.match(r.warnings.join(' '), /commit and push reviews\/alpha\/T-1\.json/, 'the task keeps its own case, so the file matches what the report prints');
+
+  // It must not invent a decision about something the store has never seen.
+  assert.equal(f.run(() => report.review(repo, 'alpha/T-99', { outcome: 'none', note: 'x', pull: false })).code, 1);
+  // And, like eval-draft, it belongs where the skills it judges live.
+  const elsewhere = f.run(() => report.review(f.base, 'alpha/T-1', { outcome: 'none', note: 'x', pull: false }));
+  assert.equal(elsewhere.code, 1);
+  assert.match(elsewhere.summary, /Buaflow repository/);
+});
+
+test('review refuses a decision that says nothing: an outcome it does not know, a case it cannot name, a none with no reason', (t) => {
+  const bad = [
+    ['alpha/T-1', '--outcome', 'maybe'],
+    ['alpha/T-1', '--outcome', 'eval'],
+    ['alpha/T-1', '--outcome', 'covered', '--eval', 'nope'],
+    ['alpha/T-1', '--outcome', 'none'],
+    ['T-1', '--outcome', 'none', '--note', 'x'],
+  ];
+  for (const args of bad) assert.throws(() => usage.parseArgs(['review', ...args]), /usage review|--eval|--outcome none/, args.join(' '));
+  const ok = usage.parseArgs(['review', 'alpha/T-1', '--outcome', 'none', '--note', 'sandbox has no dev server']);
+  assert.deepEqual([ok.sub, ok.target, ok.outcome, ok.note], ['review', 'alpha/T-1', 'none', 'sandbox has no dev server']);
 });

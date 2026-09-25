@@ -766,10 +766,10 @@ function startBackgroundSync(root) {
 
 function parseArgs(args) {
   const [sub, ...rest] = args;
-  const options = { sub, kind: null, enable: false, disable: false, project: null, task: null, verdict: null, findings: null, level: null, store: null, machine: null, target: null, out: null, since: null };
+  const options = { sub, kind: null, enable: false, disable: false, project: null, task: null, verdict: null, findings: null, level: null, store: null, machine: null, target: null, out: null, since: null, outcome: null, evalCase: null, note: null, all: false };
   let index = 0;
   if (sub === 'record') options.kind = rest[index++];
-  if (sub === 'show') options.target = rest[index++];
+  if (sub === 'show' || sub === 'review') options.target = rest[index++];
   for (; index < rest.length; index++) {
     const arg = rest[index];
     const value = () => {
@@ -788,11 +788,21 @@ function parseArgs(args) {
     else if (arg === '--machine') options.machine = value();
     else if (arg === '--out') options.out = value();
     else if (arg === '--since') options.since = value();
+    else if (arg === '--outcome') options.outcome = value();
+    else if (arg === '--eval') options.evalCase = value();
+    else if (arg === '--note') options.note = value();
+    else if (arg === '--all') options.all = true;
     else throw new Error(`unknown usage option: ${arg}`);
   }
-  if (!['consent', 'status', 'record', 'setup', 'sync', 'report', 'show', 'eval-draft'].includes(sub)) throw new Error('usage needs a subcommand: consent, status, record, setup, sync, report, show or eval-draft');
+  if (!['consent', 'status', 'record', 'setup', 'sync', 'report', 'show', 'eval-draft', 'review'].includes(sub)) throw new Error('usage needs a subcommand: consent, status, record, setup, sync, report, show, eval-draft or review');
   if (sub === 'eval-draft' && !PROJECT_TASK.test(options.task || '')) throw new Error('usage eval-draft needs --task <project>/<task>, e.g. bluepeak-hub/T-012');
   if (sub === 'show' && !PROJECT_TASK.test(options.target || '')) throw new Error('usage show needs <project>/<task>, e.g. bluepeak-hub/T-012');
+  if (sub === 'review') {
+    if (!PROJECT_TASK.test(options.target || '')) throw new Error('usage review needs <project>/<task>, e.g. bluepeak-hub/T-012');
+    if (!['eval', 'covered', 'none'].includes(options.outcome)) throw new Error('usage review needs --outcome eval|covered|none');
+    if (options.outcome !== 'none' && !/^EV-\d{3}$/.test(options.evalCase || '')) throw new Error(`--eval EV-0xx is required for --outcome ${options.outcome}`);
+    if (options.outcome === 'none' && !String(options.note || '').trim()) throw new Error('--outcome none needs --note: why there is nothing here for Buaflow to learn');
+  }
   if (options.since && !/^\d{4}-\d{2}-\d{2}$/.test(options.since)) throw new Error('--since must be YYYY-MM-DD');
   if (sub === 'setup' && !options.store) throw new Error('usage setup needs --store <path to your clone of the central store>');
   if (sub === 'consent' && options.enable === options.disable) throw new Error('usage consent needs exactly one of --enable or --disable');
@@ -824,8 +834,9 @@ function readStoreCommand(start, options) {
     return { code: 1, summary: `usage ${options.sub} runs from the Buaflow kit, not from a project`, data: {}, warnings: [], errors: [`run buaflow usage ${options.sub} in the Buaflow repository; the store is read there`] };
   }
   if (options.sub === 'eval-draft') return reader.evalDraft(start, options.task, { out: options.out });
+  if (options.sub === 'review') return reader.review(start, options.target, { outcome: options.outcome, evalCase: options.evalCase, note: options.note });
   return options.sub === 'report'
-    ? reader.report({ out: options.out && path.resolve(start, options.out), since: options.since })
+    ? reader.report({ out: options.out && path.resolve(start, options.out), since: options.since, all: options.all })
     : reader.show(options.target);
 }
 
@@ -846,7 +857,7 @@ function runCommand(start, args) {
 
   if (options.sub === 'setup') return setup(start, options);
   if (options.sub === 'sync') return sync(root);
-  if (['report', 'show', 'eval-draft'].includes(options.sub)) return readStoreCommand(start, options);
+  if (['report', 'show', 'eval-draft', 'review'].includes(options.sub)) return readStoreCommand(start, options);
 
   if (options.sub === 'consent') {
     if (git(root, ['rev-parse', '--is-inside-work-tree']) !== 'true') return { code: 1, summary: 'not a git repository', data: {}, warnings: [], errors: ['consent is stored in the project and committed; run it inside the project repository'] };
@@ -933,6 +944,7 @@ module.exports = {
   recordAudit,
   redact,
   runCommand,
+  kitVersion,
   sanitizeName,
   sessionNotice,
   setup,

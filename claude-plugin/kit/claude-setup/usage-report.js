@@ -157,9 +157,33 @@ function summarizeTasks(events) {
   for (const task of tasks.values()) {
     task.model = modelOf(task.events);
     task.score = task.mustFix + task.fails + task.backward + 2 * task.fixedBy.size;
+    // What a decision about this task would have looked at; an event after it means nobody has judged that yet.
+    task.lastEventAt = task.events.reduce((latest, e) => (String(e.at) > latest ? String(e.at) : latest), '') || null;
   }
   return [...tasks.values()];
 }
+
+// What a person decided about a task the report raised, one file per task in the store (EV-012). Reading it is
+// best effort: a decision nobody can parse must not hide a task, so the task comes back instead.
+function readReviews(store) {
+  const dir = path.join(store, 'reviews');
+  const out = new Map();
+  for (const file of walk(dir).filter((f) => f.endsWith('.json'))) {
+    try {
+      const review = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (review?.schemaVersion === '1.0' && typeof review.task === 'string') out.set(review.task, review);
+    } catch { /* an unreadable decision decides nothing */ }
+  }
+  return out;
+}
+
+// Path-safe without touching case: a task id is already [A-Za-z0-9._-] in practice, and anything else cannot
+// reach the file system through it.
+const safeFileName = (value) => String(value).replace(/[^A-Za-z0-9._-]/g, '-').replace(/^[.-]+/, '').slice(0, 64) || 'task';
+
+// Decided, and nothing has happened since: that is what takes a task off the list. A task that moved again is
+// raised once more, because the decision was made about a story that has since gone on.
+const isDecided = (review, task) => Boolean(review) && !(task.lastEventAt && String(review.throughEventAt) < task.lastEventAt);
 
 function byModel(tasks) {
   const rows = new Map();
@@ -205,6 +229,7 @@ function byProject(events, now) {
 const evalDraftCommand = (key) => `buaflow usage eval-draft --task ${key}`;
 
 const cell = (value) => (value === null || value === undefined ? '—' : String(value).replace(/\|/g, '\\|'));
+const decidedCell = (decided) => (!decided ? null : `${decided.outcome}${decided.eval ? ` ${decided.eval}` : ''} ${decided.reopened ? '(moved since)' : `(${decided.decidedAt.slice(0, 10)})`}`);
 const table = (head, rows) => [`| ${head.join(' | ')} |`, `|${head.map(() => '---').join('|')}|`, ...rows.map((r) => `| ${r.map(cell).join(' | ')} |`)].join('\n');
 
 function renderReport(result) {
@@ -232,10 +257,17 @@ function renderReport(result) {
     '',
     'Score = must-fix raised + failed /check + moves backward + 2 × tasks that name it in `fixes:`.',
     'A move the worktree made — a reconciled move a later reconcile puts straight back — is not a move backward.',
+    counts.decided ? `${counts.decided} more already decided and unchanged since — \`buaflow usage report --all\` shows them.` : null,
     '',
-    watch.length ? table(['score', 'task', 'model', 'must-fix', 'failed /check', 'backward', 'fixed by', 'eval draft'], watch.map((t) => [t.score, t.key, t.model, t.mustFix, t.fails, t.backward, t.fixedBy.join(', ') || null, `\`${evalDraftCommand(t.key)}\``])) : '_None: no must-fix, no backward move, no fixes: link._',
+    watch.length
+      ? table(['score', 'task', 'model', 'must-fix', 'failed /check', 'backward', 'fixed by', 'decided', 'eval draft'], watch.map((t) => [t.score, t.key, t.model, t.mustFix, t.fails, t.backward, t.fixedBy.join(', ') || null, decidedCell(t.decided), `\`${evalDraftCommand(t.key)}\``]))
+      : '_None: nothing raised, or everything raised has been decided and has not moved since._',
     '',
-  ].join('\n');
+    'Close one with `buaflow usage review <project>/<task> --outcome eval|covered|none`, and it stays closed',
+    'until that task records something new. Events are never deleted: an eval case that names `observedIn` has',
+    'to stay traceable back to them.',
+    '',
+  ].filter((line) => line !== null).join('\n');
 }
 
 function machineConfig() {
@@ -249,7 +281,7 @@ function pullQuietly(store) {
   } catch { /* read what is here */ }
 }
 
-function report({ out = null, since = null, now = new Date(), pull = true } = {}) {
+function report({ out = null, since = null, now = new Date(), pull = true, all: showAll = false } = {}) {
   const config = machineConfig();
   if (!config?.store) return { code: 1, summary: 'no central store on this machine', data: {}, warnings: [], errors: ['buaflow usage setup --store <path to your clone>'] };
   if (pull) pullQuietly(config.store);
@@ -257,14 +289,25 @@ function report({ out = null, since = null, now = new Date(), pull = true } = {}
   const all = readStore(config.store);
   const read = since ? { ...all, events: all.events.filter((e) => String(e.at) >= since) } : all;
   const tasks = summarizeTasks(read.events);
-  const watch = tasks.filter((t) => t.score > 0)
-    .sort((a, b) => b.score - a.score || a.key.localeCompare(b.key))
-    .map((t) => ({ key: t.key, model: t.model, score: t.score, mustFix: t.mustFix, fails: t.fails, backward: t.backward, fixedBy: [...t.fixedBy].sort() }));
+  const reviews = readReviews(config.store);
+  const raised = tasks.filter((t) => t.score > 0).sort((a, b) => b.score - a.score || a.key.localeCompare(b.key));
+  const open = raised.filter((t) => showAll || !isDecided(reviews.get(t.key), t));
+  const watch = open.map((t) => ({
+    key: t.key,
+    model: t.model,
+    score: t.score,
+    mustFix: t.mustFix,
+    fails: t.fails,
+    backward: t.backward,
+    fixedBy: [...t.fixedBy].sort(),
+    // Present only when --all shows a task that has already been decided, or when new events reopened it.
+    decided: reviews.get(t.key) ? { outcome: reviews.get(t.key).outcome, eval: reviews.get(t.key).eval ?? null, decidedAt: reviews.get(t.key).decidedAt, reopened: !isDecided(reviews.get(t.key), t) } : null,
+  }));
   const result = {
     store: config.store,
     since,
     now: now.toISOString(),
-    counts: { events: read.events.length, projects: new Set(read.events.map((e) => e.project)).size, duplicates: read.duplicates, repeats: read.repeats, skipped: read.skipped, unreadable: read.unreadable },
+    counts: { events: read.events.length, projects: new Set(read.events.map((e) => e.project)).size, duplicates: read.duplicates, repeats: read.repeats, skipped: read.skipped, unreadable: read.unreadable, decided: raised.length - open.length },
     models: byModel(tasks),
     projects: byProject(read.events, now.getTime()),
     watch,
@@ -277,7 +320,52 @@ function report({ out = null, since = null, now = new Date(), pull = true } = {}
   // Reviewing is what the session notice counts from (AC-27): how many events existed, not when they happened.
   fs.writeFileSync(usage.machineConfigFile(), `${JSON.stringify({ ...config, lastReviewAt: result.now, reviewedEvents: all.events.length }, null, 2)}\n`);
   const skippedNote = read.skipped ? ` · skipped ${read.skipped} with an unknown schema version` : '';
-  return { code: 0, summary: `${read.events.length} event(s), ${watch.length} task(s) worth a look${skippedNote}${out ? ` → ${out}` : ''}`, data: { ...result, text: out ? undefined : text, out }, warnings: [], errors: [] };
+  const decidedNote = result.counts.decided ? ` (${result.counts.decided} already decided)` : '';
+  return { code: 0, summary: `${read.events.length} event(s), ${watch.length} task(s) worth a look${decidedNote}${skippedNote}${out ? ` → ${out}` : ''}`, data: { ...result, text: out ? undefined : text, out }, warnings: [], errors: [] };
+}
+
+// Close one task the report raised. The store keeps every event — an eval case that declares observedIn has to
+// stay traceable — so a decision is what stops the task being raised again, not a delete.
+function review(start, target, { outcome, evalCase = null, note = null, pull = true, now = new Date() } = {}) {
+  const repo = buaflowRoot(start);
+  if (!repo) return { code: 1, summary: 'review runs in the Buaflow repository', data: {}, warnings: [], errors: ['a decision closes a signal about Buaflow\'s own skills; make it where they live'] };
+  const config = machineConfig();
+  if (!config?.store) return { code: 1, summary: 'no central store on this machine', data: {}, warnings: [], errors: ['buaflow usage setup --store <path to your clone>'] };
+  if (pull) pullQuietly(config.store);
+  const [project, taskId] = target.split('/');
+  const { events } = readStore(config.store);
+  const task = summarizeTasks(events).find((t) => t.key === target);
+  if (!task?.lastEventAt) return { code: 1, summary: `no events for ${target}`, data: { target }, warnings: [], errors: [`${target} is not in ${config.store}`] };
+
+  // A person decides, never a model: the same rule that keeps an eval's author out of its grading.
+  const decidedBy = gitUser(repo);
+  if (!decidedBy) return { code: 1, summary: 'no name to record the decision under', data: {}, warnings: [], errors: ['set git config user.name — a decision has to name the person who made it'] };
+
+  const record = {
+    schemaVersion: '1.0',
+    task: target,
+    outcome,
+    ...(outcome === 'none' ? {} : { eval: evalCase }),
+    decidedAt: now.toISOString(),
+    decidedBy,
+    throughEventAt: task.lastEventAt,
+    ...(note ? { note } : {}),
+    kitVersion: usage.kitVersion(repo),
+  };
+  // The project folder is named the way the event folders are; the task keeps its own case, because T-221 and
+  // t-221 are one task and a lowercased file name no longer matches what the report and `usage show` print.
+  const file = path.join(config.store, 'reviews', usage.sanitizeName(project), `${safeFileName(taskId)}.json`);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, `${JSON.stringify(record, null, 2)}\n`);
+  const note2 = outcome === 'none' ? 'nothing to learn' : `${outcome} · ${evalCase}`;
+  return {
+    code: 0,
+    summary: `${target} decided: ${note2} — through ${task.lastEventAt}`,
+    data: { file, review: record },
+    // The store is a git repository like any other: the decision reaches the other machines when it is pushed.
+    warnings: [`commit and push ${path.relative(config.store, file).split(path.sep).join('/')} in ${config.store}`],
+    errors: [],
+  };
 }
 
 function describe(e) {
@@ -440,10 +528,18 @@ function reviewNotice(root) {
   const config = machineConfig();
   if (!config?.store) return null;
   const reviewed = Number.isInteger(config.reviewedEvents) ? config.reviewedEvents : 0;
-  const fresh = Math.max(0, readStore(config.store).events.length - reviewed);
-  if (!fresh) return null;
+  const { events } = readStore(config.store);
+  const fresh = Math.max(0, events.length - reviewed);
+  // Tasks still waiting for a decision, counted even when no event has arrived since the last report: the work
+  // the loop owes is what is undecided, not what is unread.
+  const reviews = readReviews(config.store);
+  const open = summarizeTasks(events).filter((t) => t.score > 0 && !isDecided(reviews.get(t.key), t)).length;
+  if (!fresh && !open) return null;
   const last = config.lastReviewAt ? config.lastReviewAt.slice(0, 10) : 'ยังไม่เคย review';
-  return `มี event ใหม่ ${fresh} รายการในที่เก็บกลางตั้งแต่ review ล่าสุด (${last}) — buaflow usage report`;
+  const parts = [];
+  if (fresh) parts.push(`มี event ใหม่ ${fresh} รายการในที่เก็บกลางตั้งแต่ review ล่าสุด (${last})`);
+  if (open) parts.push(`${open} task ที่ยังไม่ตัดสิน`);
+  return `${parts.join(' · ')} — buaflow usage report`;
 }
 
-module.exports = { evalDraft, report, reviewNotice, show };
+module.exports = { evalDraft, report, review, reviewNotice, show };

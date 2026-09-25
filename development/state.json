@@ -2143,7 +2143,7 @@
     },
     {
       "id": "EV-012",
-      "title": "Usage capture records what happened, once, and the report says so",
+      "title": "The usage loop closes: a report worth acting on, and a decision that keeps it closed",
       "milestone": "M5",
       "status": "in_progress",
       "dependsOn": [
@@ -2154,7 +2154,10 @@
         "One thing that happened is one event: two session starts reconciling at the same moment, or a /check that runs its record command twice, record it once and say so instead of failing",
         "The report tells apart a task somebody sent backwards from a status the worktree moved — a reconciled move a later reconcile puts straight back is not a move backward",
         "The report counts, and shows, the repeats already in the store, so a /check fail rate and an eval draft built from it are not doubled by them",
-        "What /check had to catch is measured whether or not the round could still be merged: must-fix findings are counted and ranked on, and the verdict says only whether the work can be merged now"
+        "What /check had to catch is measured whether or not the round could still be merged: must-fix findings are counted and ranked on, and the verdict says only whether the work can be merged now",
+        "A task the report raised is closed by a decision written beside the events — eval, covered, or none with a reason — and stays closed until that task records something new, at which point it comes back marked as having moved since",
+        "Events are never deleted to keep the list short: an eval case that declares observedIn stays traceable back to them, and the session line counts the tasks still undecided rather than the events unread",
+        "The loop is a skill somebody can run — /buaflow:learn in this repository — and it is never shipped in the plugin, because it reads a private store and drafts cases that test core/skills"
       ],
       "artifacts": [
         "claude-setup/usage.js",
@@ -2163,14 +2166,20 @@
         "claude-setup/tests/usage.test.js",
         "claude-setup/tests/usage-capture.test.js",
         "claude-setup/tests/usage-report.test.js",
-        "claude-setup/tests/usage-sync.test.js"
+        "claude-setup/tests/usage-sync.test.js",
+        "schemas/usage-review.schema.json",
+        "templates/usage-review.tpl.json",
+        "schemas/registry.json",
+        ".claude/skills/learn/SKILL.md",
+        "bin/buaflow.js",
+        "CLI.md"
       ],
       "verification": [
         "npm run check",
         "node bin/buaflow.js usage report"
       ],
       "startedAt": "2026-09-26",
-      "notes": "Opened 2026-09-26 from the first real review of the store (115 events, 2 projects, EV-011.9). The review found the report could not be acted on: 6 of its 7 \"tasks worth a look\" were noise. Four causes, all confirmed against the store, not reasoned about. (1) acceptanceOf matched one line at a time, so 6 of T-221's 7 AC were cut at the line wrap and reached the EV-007 draft as half sentences — the cut is in the stored event, so it cannot be recovered from the store. (2) trendy/T-221 held two check.result events 60 ms apart, same session, byte-identical, and trendy/T-204..T-209 held doubled task.status and plan.approved 9 ms apart from two session starts reconciling at once; the report dropped duplicates by id only, so both survived and the fail rate read 50% (2/4) where it was 33% (1/3), and every must-not-happen criterion in the draft appeared twice. (3) All 6 tasks flagged as \"moved backward\" were reconcile pairs — done→review then review→done minutes to hours later — the worktree moving under the task files (a branch checked out before its merge was pulled). The commit on the two halves differs, but so does it on ordinary in-session moves, so the commit cannot tell them apart; a reconciled move a later reconcile puts straight back can. (4) trendy/T-203 recorded verdict pass with two must-fix findings while T-221 recorded fail with three: check.md said fail when the must-fix list has any item, and both readings are defensible once the round fixes them. Decided, not asked: verdict keeps its own question (can this be merged as it stands now) and the rework signal comes from counting must-fix findings, which needs no schema change and no new event type. Score is now must-fix + failed /check + backward + 2 × fixes:, and the watch list on the real store went from 7 rows (6 noise) to 5 rows led by T-221 (3 must-fix) and T-203 (2 must-fix). The repeat guard compares an event with the last one of its kind for that task within 60 s, reading the tail of the day file: outside the window a second round is always recorded, and a miss only means an event is written, never that one is lost. Not done here: /buaflow:learn, the skill that would walk this loop — the Buaflow repository has no .claude/ of its own to put a repository-only skill in, and where it goes is the owner's call (see the open question below)."
+      "notes": "Opened 2026-09-26 from the first real review of the store (115 events, 2 projects, EV-011.9). The review found the report could not be acted on: 6 of its 7 \"tasks worth a look\" were noise. Four causes, all confirmed against the store, not reasoned about. (1) acceptanceOf matched one line at a time, so 6 of T-221's 7 AC were cut at the line wrap and reached the EV-007 draft as half sentences — the cut is in the stored event, so it cannot be recovered from the store. (2) trendy/T-221 held two check.result events 60 ms apart, same session, byte-identical, and trendy/T-204..T-209 held doubled task.status and plan.approved 9 ms apart from two session starts reconciling at once; the report dropped duplicates by id only, so both survived and the fail rate read 50% (2/4) where it was 33% (1/3), and every must-not-happen criterion in the draft appeared twice. (3) All 6 tasks flagged as \"moved backward\" were reconcile pairs — done→review then review→done minutes to hours later — the worktree moving under the task files (a branch checked out before its merge was pulled). The commit on the two halves differs, but so does it on ordinary in-session moves, so the commit cannot tell them apart; a reconciled move a later reconcile puts straight back can. (4) trendy/T-203 recorded verdict pass with two must-fix findings while T-221 recorded fail with three: check.md said fail when the must-fix list has any item, and both readings are defensible once the round fixes them. Decided, not asked: verdict keeps its own question (can this be merged as it stands now) and the rework signal comes from counting must-fix findings, which needs no schema change and no new event type. Score is now must-fix + failed /check + backward + 2 × fixes:, and the watch list on the real store went from 7 rows (6 noise) to 5 rows led by T-221 (3 must-fix) and T-203 (2 must-fix). The repeat guard compares an event with the last one of its kind for that task within 60 s, reading the tail of the day file: outside the window a second round is always recorded, and a miss only means an event is written, never that one is lost. Not done here: /buaflow:learn, the skill that would walk this loop — the Buaflow repository has no .claude/ of its own to put a repository-only skill in, and where it goes is the owner's call (see the open question below). Second round 2026-09-26, owner answers on all three open questions: /buaflow:learn goes in a new .claude/skills/ in this repository (proved by test that nothing named learn is generated into the plugin — the plugin generator never looks at this repository's own .claude/), the decision record is in scope, and EV-012 is committed on a branch. Built: usage-review 1.0 registered as an internal artifact type, reviews/<project>/<task>.json in the store written by buaflow usage review <project>/<task> --outcome eval|covered|none, report hides decided tasks and counts them (--all shows them with the decision and whether it moved since), the AC-27 session line now also counts undecided tasks so reading the store is no longer mistaken for judging it, and /buaflow:learn walks report → show → eval-draft → review → push. Decided: the decision lives in the store, not in ~/.buaflow/usage.json, so two machines agree on what is closed; throughEventAt is the reopen rule; the task id keeps its case in the file name (sanitizeName lowercases, which no longer matched what the report prints). Measured before deciding not to prune: 129 events are 446KB of which 86% is document content from 27 events (plan.approved alone is 69%, 23.7KB each), so growth is roughly 100-120MB of working tree per year at five projects — revisit at 1GB, and note that deleting from a git store frees nothing because history keeps the blobs. Branch renamed fix/ → feat/EV-012-usage-signal: guard-edit blocks editing test files on a fix/ branch, which was right — the decision record is a feature and its tests encode behaviour that did not exist, not a bug someone claimed to fix."
     }
   ],
   "decisions": [
@@ -2380,8 +2389,8 @@
   ],
   "lastSession": {
     "date": "2026-09-26",
-    "summary": "EV-012 opened and built from the first real review of the usage store: acceptanceOf keeps wrapped AC lines, record refuses an event identical to the last of its kind for that task within 60 s (two session starts reconciling at once, /check recording twice), the report drops the repeats already in the store and counts them, a reconciled move a later reconcile puts straight back is no longer a move backward, must-fix findings are counted and ranked on, and check.md says what verdict means. Suite 504/504, npm run check PASS. Not committed to a branch yet.",
-    "next": "Decide where a repository-only /buaflow:learn skill lives (a new .claude/skills in this repository, or a document under development/ the session reads), then write it so the report → show → eval-draft → EV-006 loop is not prose in a spec file.",
-    "verifiedAt": "2026-09-25T19:33:52.173Z"
+    "summary": "EV-012 built in two rounds on feat/EV-012-usage-signal. Round 1 (commit 971896a): acceptanceOf keeps wrapped AC lines, record refuses an event identical to the last of its kind within 60 s, the report drops the repeats the store already holds, a reconciled move a later reconcile puts straight back is not a move backward, must-fix findings are counted and ranked on, check.md says what verdict means. Round 2: usage-review 1.0 artifact type, buaflow usage review writes reviews/<project>/<task>.json in the store, report hides decided tasks (--all shows them) and reopens one that moved since, the session line counts undecided tasks, and /buaflow:learn in .claude/skills/ walks the loop without ever shipping in the plugin. Suite 510/510, npm run check PASS.",
+    "next": "Owner reviews the branch and merges. Then run /buaflow:learn for real on trendy/T-221 and trendy/T-203 — the first two tasks the fixed report raises — and see whether the loop produces an eval case that holds up.",
+    "verifiedAt": "2026-09-25T20:00:54.324Z"
   }
 }

@@ -30,6 +30,7 @@ const expectedSources = {
   'change-proposal': 'templates/change-proposal.tpl.json',
   'usage-consent': 'templates/usage-consent.tpl.json',
   'usage-event': 'templates/usage-event.tpl.json',
+  'usage-review': 'templates/usage-review.tpl.json',
   'control-set': 'standards/control-sets/owasp-asvs-5.0.0-l1.json',
   'product-development-state': 'development/state.json',
 };
