@@ -7,7 +7,7 @@
 <p><strong>Plan อย่างมีหลักฐาน · Build อย่างมีขอบเขต · ตัดสินความพร้อมด้วยเครื่อง · คนเป็นผู้อนุมัติ</strong></p>
 
 <p>
-  <img alt="Buaflow version 3.14.3" src="https://img.shields.io/badge/version-3.14.3-e85aad?style=for-the-badge">
+  <img alt="Buaflow version 3.15.0" src="https://img.shields.io/badge/version-3.15.0-e85aad?style=for-the-badge">
   <img alt="Claude Code" src="https://img.shields.io/badge/Claude_Code-plugin_%2B_kit-D97757?style=for-the-badge">
   <img alt="Readiness R0 to R4" src="https://img.shields.io/badge/readiness-R0–R4-2563EB?style=for-the-badge">
   <img alt="Zero dependencies" src="https://img.shields.io/badge/node_22-zero_dependencies-16A34A?style=for-the-badge">
@@ -48,7 +48,7 @@ AI สามารถเขียนโค้ดได้รวดเร็ว�
 v2.x คือ **SDLC workflow สำหรับทำงานกับ AI** — phase, skill, rule, hook และ gate · v3.x เก็บทั้งหมดนั้นไว้
 แล้วเพิ่มคำตอบของคำถามที่ v2 ตอบไม่ได้: **"แล้วตอนนี้พร้อมส่งมอบหรือยัง"**
 
-| | v2.3.4 | v3.14.3 |
+| | v2.3.4 | v3.15.0 |
 |---|---|---|
 | เป้าหมาย | ทำงานกับ AI อย่างมีระเบียบ | ส่งมอบแอปที่พิสูจน์ความพร้อมได้ถึง R3 |
 | "เสร็จแล้ว" | verify + gate ผ่าน | + readiness manifest ที่ผูกกับ commit และถูก verifier ตรวจซ้ำ |
@@ -168,13 +168,13 @@ flowchart LR
 เปิด Claude Code ที่ root ของโปรเจกต์ แล้วพิมพ์:
 
 ```text
-/plugin marketplace add Khattiya01/buaflow
+/plugin marketplace add Khattiya01/buaflow-plugin
 /plugin install buaflow@buaflow
 /buaflow:start
 ```
 
 > **หากใช้ Claude Code ภายใน VS Code:** extension จะแสดงข้อความ `/plugin isn't available in this environment` — ให้ติดตั้งจาก terminal แทน
-> (`claude plugin marketplace add Khattiya01/buaflow` แล้ว `claude plugin install buaflow@buaflow`) จากนั้นเปิด session ใหม่แล้วพิมพ์ `/buaflow:start`
+> (`claude plugin marketplace add Khattiya01/buaflow-plugin` แล้ว `claude plugin install buaflow@buaflow`) จากนั้นเปิด session ใหม่แล้วพิมพ์ `/buaflow:start`
 
 `/buaflow:start` ตรวจสอบสถานะของโปรเจกต์และเลือกแนวทางที่เหมาะสมให้โดยอัตโนมัติ:
 
@@ -479,7 +479,7 @@ Buaflow ประกอบแนวคิดเหล่านี้เป็น
 <p align="center">เปิด Claude Code ที่ root ของโปรเจกต์ แล้วพิมพ์:</p>
 
 ```text
-/plugin marketplace add Khattiya01/buaflow
+/plugin marketplace add Khattiya01/buaflow-plugin
 /plugin install buaflow@buaflow
 /buaflow:start
 ```

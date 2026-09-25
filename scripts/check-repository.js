@@ -82,6 +82,10 @@ run('workflow skills (core → Claude adapter)', process.execPath, [path.join(ro
 run('workflow manual playbooks (core → any tool, MT-007)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-manual.js'), '--check']);
 run('Claude Code plugin and marketplace (PE-001/006/007)', process.execPath, [path.join(root, 'scripts', 'generate-claude-plugin.js'), '--check']);
 run('plugin conformance and trust tier (PE-005/006)', process.execPath, [path.join(root, 'scripts', 'check-plugin.js'), path.join(root, 'claude-plugin'), '--no-validate']);
+// PE-010 — the marketplace is published from here, so what would be published is checked from here:
+// the plugin in sync with its source, the three version numbers in agreement, and a target that is
+// not this repository. The dry run pushes nothing.
+run('marketplace publish (PE-010)', process.execPath, [path.join(root, 'scripts', 'publish-plugin.js'), '--dry-run']);
 run('workflow agents (core → Claude adapter)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-agents.js'), '--check']);
 run('pack contracts and their binding to reference apps', process.execPath, [
   path.join(root, 'claude-setup', 'pack.js'),

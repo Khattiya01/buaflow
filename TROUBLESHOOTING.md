@@ -122,7 +122,7 @@ AI จะเลือกเชื่อข้างใดข้างหนึ�
 extension ของ Claude Code ใน VS Code ไม่มีคำสั่ง `/plugin` · CLI ของ Claude Code ทำสิ่งเดียวกันได้ รันใน terminal:
 
 ```bash
-claude plugin marketplace add Khattiya01/buaflow
+claude plugin marketplace add Khattiya01/buaflow-plugin
 claude plugin install buaflow@buaflow
 ```
 

@@ -2,12 +2,12 @@
 # buaflow — Claude Code plugin
 
 ```text
-/plugin marketplace add Khattiya01/buaflow
+/plugin marketplace add Khattiya01/buaflow-plugin
 /plugin install buaflow@buaflow
 /buaflow:start
 ```
 
-In the VS Code extension `/plugin` is not available — run `claude plugin marketplace add Khattiya01/buaflow` and
+In the VS Code extension `/plugin` is not available — run `claude plugin marketplace add Khattiya01/buaflow-plugin` and
 `claude plugin install buaflow@buaflow` in a terminal, then start a new session.
 
 No `buaflow/` folder is needed in the project: the whole kit ships under `kit/`, and a SessionStart hook tells

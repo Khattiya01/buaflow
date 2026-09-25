@@ -9,13 +9,13 @@
 ใน Claude Code ที่ root ของโปรเจกต์:
 
 ```text
-/plugin marketplace add Khattiya01/buaflow
+/plugin marketplace add Khattiya01/buaflow-plugin
 /plugin install buaflow@buaflow
 /buaflow:start
 ```
 
 > **ใช้ Claude Code ใน VS Code?** extension ขึ้นว่า `/plugin isn't available in this environment` — ติดตั้งจาก terminal แทน
-> (`claude plugin marketplace add Khattiya01/buaflow` แล้ว `claude plugin install buaflow@buaflow`) จากนั้นเปิด session ใหม่แล้วพิมพ์ `/buaflow:start`
+> (`claude plugin marketplace add Khattiya01/buaflow-plugin` แล้ว `claude plugin install buaflow@buaflow`) จากนั้นเปิด session ใหม่แล้วพิมพ์ `/buaflow:start`
 
 kit ทั้งชุดมากับ plugin — ไม่ต้อง clone อะไร · `/buaflow:start` ดูสถานะโปรเจกต์เอง แล้วเริ่ม Phase 0, ทำต่อจากที่ค้าง หรืออัปเกรด ·
 ถึง Phase 7 มันรัน `buaflow install --plugin --write` วาง gate กับตัวตรวจลง `.claude/` ของโปรเจกต์ เพราะ pre-push และ CI รันนอก

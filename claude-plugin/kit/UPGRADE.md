@@ -1,6 +1,6 @@
 # อัปเกรดโปรเจกต์ที่ใช้ kit เวอร์ชันเก่า
 
-> เวอร์ชันล่าสุด: **v3.14.3** · ไม่รู้ว่าโปรเจกต์ใช้รุ่นไหน → `node buaflow/bin/buaflow.js lock` (ถ้ามี `.buaflow/lock.json`)
+> เวอร์ชันล่าสุด: **v3.15.0** · ไม่รู้ว่าโปรเจกต์ใช้รุ่นไหน → `node buaflow/bin/buaflow.js lock` (ถ้ามี `.buaflow/lock.json`)
 > หรือดูแถวสัญญาณใน [START-HERE.md](START-HERE.md) ข้อ 2.1 · **ใช้ Buaflow จาก plugin?** พิมพ์ `/buaflow:start` — มันพาทำหัวข้อทางลัดนี้ให้
 
 **จาก v2.3.4 ขึ้นไป → ใช้ [ทางลัดรอบเดียว](#fast-path) ได้เลย** ไม่ต้องไล่ทีละรุ่น · ตารางข้างล่างมีไว้สำหรับคนที่อยากขยับทีละขั้น
@@ -8,8 +8,9 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
-| **v2.3.4 – v3.12.1** | [ทางลัด: ไป v3.14.3 ในรอบเดียว](#fast-path) | ~5 นาที + ขั้นที่ต้องลงมือถ้าเข้าเงื่อนไข |
-| **v3.14.2** | [v3.14.2 → v3.14.3](#v3142--v3143-patch--อัปเดต-plugin-จบ) ข้างล่างนี้ | 0 นาที |
+| **v2.3.4 – v3.12.1** | [ทางลัด: ไป v3.15.0 ในรอบเดียว](#fast-path) | ~5 นาที + ขั้นที่ต้องลงมือถ้าเข้าเงื่อนไข |
+| **v3.14.3** | [v3.14.3 → v3.15.0](#v3143--v3150-minor--marketplace-ย้าย-repository) ข้างล่างนี้ | ~1 นาที (ไม่ทำก็ได้) |
+| **v3.14.2** | [v3.14.2 → v3.14.3](#v3142--v3143-patch--อัปเดต-plugin-จบ) แล้วต่อด้วย v3.15.0 | 0 นาที |
 | **v3.14.1** | [v3.14.1 → v3.14.2](#v3141--v3142-patch--คัดลอกไฟล์ทับ-จบ) แล้วต่อด้วย v3.14.3 | ~1 นาที |
 | **v3.14.0** | [v3.14.0 → v3.14.1](#v3140--v3141-patch--อัปเดต-plugin-จบ) แล้วต่อด้วย v3.14.2 | 0 นาที |
 | **v3.13.x** | [v3.13.1 → v3.14.0](#v3131--v3140-minor--คัดลอกไฟล์ทับ-จบ) แล้วต่อด้วย v3.14.1 | ~1 นาที |
@@ -42,7 +43,7 @@
 
 <a id="fast-path"></a>
 
-## ทางลัด: จาก v2.3.4 หรือ 3.x รุ่นไหนก็ได้ → v3.14.3 ในรอบเดียว
+## ทางลัด: จาก v2.3.4 หรือ 3.x รุ่นไหนก็ได้ → v3.15.0 ในรอบเดียว
 
 ทำได้เพราะทุกรุ่นหลัง v3.0.0 เป็น MINOR/PATCH ([release policy](standards/release-policy.md)): ของเดิมทำงานเหมือนเดิม
 และตัวตรวจใหม่ทำงาน**เฉพาะเมื่อโปรเจกต์มีไฟล์หลักฐานนั้น** ⇒ การอัปเกรดคือ "วางไฟล์ควบคุมชุดล่าสุด" บวกขั้นที่ต้องลงมือ
@@ -116,6 +117,29 @@ node .claude/gate.js
 
 gate ผ่านเหมือนก่อนอัปเกรด = จบ · ของใหม่ที่อยากเริ่มใช้ (หลักฐานแต่ละชนิด, `buaflow ci`, `assess`, `benchmark`)
 เริ่มทีละชิ้นได้ตามหัวข้อของรุ่นที่เพิ่มมันเข้ามาข้างล่าง ไม่ต้องทำพร้อมกัน
+
+---
+
+## v3.14.3 → v3.15.0 (MINOR — marketplace ย้าย repository)
+
+**ไม่ทำอะไรเลยก็ได้** — marketplace เดิมยังเสิร์ฟรุ่นใหม่ต่อไป และไม่มีไฟล์ในโปรเจกต์เปลี่ยน · ย้ายเมื่อไหร่ก็ได้ ด้วย 3 คำสั่ง:
+
+```text
+/plugin marketplace remove buaflow
+/plugin marketplace add Khattiya01/buaflow-plugin
+/plugin install buaflow@buaflow
+```
+
+ต้อง `remove` ก่อน เพราะ Claude Code แยก marketplace ด้วย **ชื่อ** ซึ่งทั้งสอง repository ใช้ชื่อ `buaflow` เหมือนกัน ·
+ทำแล้วเปิด session ใหม่ · ไม่ต้องรัน `install` ซ้ำ และไม่ต้องแตะ `.claude/` ของโปรเจกต์ — ยกเว้นอยากให้ทีมได้ marketplace ใหม่
+ผ่าน `.claude/settings.json` ด้วย ให้รัน `install` ตามปกติ (`marketplaceRepo` ใหม่จะถูกเขียนลง `extraKnownMarketplaces` ให้)
+
+**ย้ายไปทำไม:** marketplace ที่อยู่บน git ถูก clone **ทั้ง repository** ลงเครื่อง · ของเดิมคือ repository ที่ใช้พัฒนา kit
+จึงลากเอา `reference-apps/`, `development/`, CI และสคริปต์ dev ไปด้วย รวม 14 MB โดยที่ผู้ใช้ใช้จริง 2.4 MB ·
+และไฟล์พวกนั้นรบกวนเครื่องมือของโปรเจกต์ได้จริง — โปรเจกต์ที่วาง plugin directory ไว้ในโฟลเดอร์ตัวเองเคยเจอ test แดงทั้งชุด
+จาก tsconfig ของ reference app (ดู [TROUBLESHOOTING.md](TROUBLESHOOTING.md)) · repository ใหม่มีแค่ตัว plugin: 1.86 MB
+
+ย้ายแล้วลบของเดิมทิ้งได้เลย — `/plugin marketplace remove buaflow` ลบ clone ก้อนเก่าออกจากเครื่องให้ด้วย
 
 ---
 
@@ -224,7 +248,7 @@ node buaflow/bin/buaflow.js install --write
 **อยากย้ายมาใช้ plugin (ไม่บังคับ):**
 
 ```text
-/plugin marketplace add Khattiya01/buaflow
+/plugin marketplace add Khattiya01/buaflow-plugin
 /plugin install buaflow@buaflow
 ```
 

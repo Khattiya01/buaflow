@@ -3,6 +3,25 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.15.0 — 2026-09-26
+
+> **marketplace ย้ายไป [Khattiya01/buaflow-plugin](https://github.com/Khattiya01/buaflow-plugin)** · ของเดิมยังใช้ได้ ไม่ต้องรีบย้าย ·
+> **MINOR:** ไม่มี schema เปลี่ยน ไม่มีไฟล์ในโปรเจกต์เปลี่ยน
+
+**marketplace ที่อยู่บน git ถูก clone ทั้งก้อนลงเครื่องผู้ใช้** (PE-010) — จนถึงรุ่นนี้ marketplace คือ repository ที่ใช้พัฒนา kit
+ผู้ใช้ทุกคนจึงได้ `reference-apps/`, `development/`, CI, สคริปต์ dev และสำเนาของ kit อีกชุดใน `claude-plugin/kit/` ติดไปด้วย ·
+วัดจากโปรเจกต์จริง: ลงไป **14 MB ใช้จริง 2.4 MB** · และไฟล์ที่ติดไปไม่ได้นอนเฉย ๆ — tsconfig ของ reference app
+ทำให้ test ของโปรเจกต์นั้นแดงทั้งชุดมาแล้วใน 3.14.3
+
+- **repository ใหม่มีแค่ `.claude-plugin/` + `claude-plugin/`** — 219 ไฟล์ 1.86 MB · ทุกไฟล์ generate จาก repository นี้
+  ไม่มีใครแก้ที่ปลายทาง
+- **`scripts/publish-plugin.js`** เป็นตัว push · ปฏิเสธเมื่อ `claude-plugin/` ไม่ sync กับ source, เลขเวอร์ชันสามที่ไม่ตรงกัน
+  หรือ tree ยังมีของค้างไม่ commit (ของที่ผู้ใช้รันต้องย้อนกลับไปหา commit ได้เสมอ) · `--dry-run` อยู่ใน `npm run check`
+- **`install` เขียน `extraKnownMarketplaces` เป็น repository ใหม่** — `marketplaceRepo` ใน `package.json` เป็นที่เดียวที่ข้อเท็จจริงนี้ถูกเขียนไว้
+  ทั้งตัว install และตัว publish อ่านค่าเดียวกัน
+- **session แรกบอกให้ย้ายเอง** — hook ดูว่า plugin มาจาก clone ก้อนเก่าไหม (ดูจาก `reference-apps/` ที่มีเฉพาะ repo พัฒนา)
+  แล้วบอก 3 คำสั่งที่ต้องพิมพ์ · **ไม่ทำก็ได้** ของเดิมยังเสิร์ฟรุ่นใหม่ต่อไป
+
 ## v3.14.3 — 2026-09-26
 
 > ใช้ plugin: อัปเดต plugin จบ · ไม่มีไฟล์ในโปรเจกต์เปลี่ยน · **PATCH:** ไม่มี schema เปลี่ยน
