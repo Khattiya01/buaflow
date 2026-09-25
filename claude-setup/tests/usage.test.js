@@ -216,7 +216,7 @@ test('AC-14 record check uses the marker the hook left and falls back to unknown
   const { root, parent } = gitProject();
   t.after(() => cleanup(parent));
   usage.runCommand(root, ['consent', '--enable']);
-  usage.runCommand(root, ['record', 'check', '--task', 'T-1', '--verdict', 'pass']);
+  usage.runCommand(root, ['record', 'check', '--task', 'T-1', '--verdict', 'fail']);
   usage.writeMarker(root, { sessionId: 'sess-42', model: 'claude-sonnet-5', at: new Date().toISOString() });
   usage.runCommand(root, ['record', 'check', '--task', 'T-1', '--verdict', 'pass']);
   const [before, after] = events(root);
@@ -285,7 +285,7 @@ test('status reports consent, pending events and a missing store', (t) => {
   assert.equal(usage.runCommand(root, ['status']).data.consent, 'unset');
   usage.runCommand(root, ['consent', '--enable']);
   usage.runCommand(root, ['record', 'check', '--task', 'T-1', '--verdict', 'pass']);
-  usage.runCommand(root, ['record', 'check', '--task', 'T-1', '--verdict', 'pass']);
+  usage.runCommand(root, ['record', 'check', '--task', 'T-2', '--verdict', 'pass']);
   const result = usage.runCommand(root, ['status']);
   assert.equal(result.data.pending, 2);
   assert.equal(result.data.store, null);
@@ -323,4 +323,33 @@ test('usage.js runs as a command: record check reads findings from stdin, and is
   const [event] = events(root);
   assert.deepEqual(event.data, { verdict: 'fail', findings: ['src/a.js:3 — null deref', 'src/b.js:9 — missing test'], level: 'medium' });
   assert.equal(run('record', 'check', '--task', 'T-001').status, 2, 'a bad call is still reported as one');
+});
+
+test('the same check result twice moments apart is recorded once; a real second round is not refused', (t) => {
+  isolatedHome(t);
+  const { root, parent } = gitProject();
+  t.after(() => cleanup(parent));
+  usage.runCommand(root, ['consent', '--enable']);
+  const findings = path.join(parent, 'f.json');
+  writeJson(findings, ['must-fix: src/a.js:1 — boom']);
+  const args = ['record', 'check', '--task', 'T-1', '--verdict', 'fail', '--findings', findings];
+
+  assert.equal(usage.runCommand(root, args).data.recorded, true);
+  const again = usage.runCommand(root, args);
+  assert.equal(again.code, 0, 'a refused repeat must never fail /check');
+  assert.deepEqual([again.data.recorded, again.data.reason], [false, 'repeat']);
+  assert.match(again.summary, /already recorded/);
+  assert.equal(events(root).length, 1);
+
+  // A different verdict is a different round, not a repeat.
+  usage.runCommand(root, ['record', 'check', '--task', 'T-1', '--verdict', 'pass']);
+  assert.equal(events(root).length, 2);
+
+  // The same round again hours later — nothing changed but the clock — is kept: only moments apart is a repeat.
+  const file = path.join(usage.eventsDir(root), `${new Date().toISOString().slice(0, 10)}.jsonl`);
+  const older = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  fs.writeFileSync(file, fs.readFileSync(file, 'utf8').split('\n').filter(Boolean)
+    .map((line) => JSON.stringify({ ...JSON.parse(line), at: older })).join('\n') + '\n');
+  usage.runCommand(root, args);
+  assert.equal(events(root).length, 3);
 });

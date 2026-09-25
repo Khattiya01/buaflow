@@ -391,3 +391,37 @@ test('NF the hook stays inside its time budget (median of 5, over a bare node st
   assert.ok(recording < 200, `recording added ${recording.toFixed(0)} ms over node itself`);
   assert.ok(idle < 50, `no consent added ${idle.toFixed(0)} ms over node itself`);
 });
+
+test('an acceptance criterion that wraps onto indented lines is recorded whole, not cut at its first line', (t) => {
+  const p = project(t);
+  p.start();
+  p.put('docs/backlog/tasks/T-005-wrapped.md', [
+    '---', 'id: T-005', 'title: demo', 'type: feat', 'status: todo', '---', '',
+    '## Acceptance Criteria',
+    '- [ ] **AC-1** Given a condition long enough to wrap',
+    '  When the writer breaks the line',
+    '  Then it is still one criterion',
+    '- [ ] **AC-2** short enough to fit',
+    '',
+    '## ขอบเขต', '- x', '',
+  ].join('\n'));
+  const [event] = p.events();
+  assert.deepEqual(event.data.acceptance, [
+    '**AC-1** Given a condition long enough to wrap When the writer breaks the line Then it is still one criterion',
+    '**AC-2** short enough to fit',
+  ]);
+});
+
+test('two session starts reconciling the same change at once record it once', (t) => {
+  const p = project(t);
+  p.start();
+  p.put('docs/backlog/tasks/T-001-demo.md', task({ status: 'todo' }));
+  write(path.join(p.root, 'docs', 'backlog', 'tasks', 'T-001-demo.md'), task({ status: 'review' }));
+  // The second start reads the state the first had not written yet — what two hooks side by side both see.
+  const before = fs.readFileSync(usage.stateFile(p.root), 'utf8');
+  p.start();
+  fs.writeFileSync(usage.stateFile(p.root), before);
+  p.start();
+  const moves = p.events().filter((e) => e.type === 'task.status');
+  assert.deepEqual(moves.map((e) => [e.data.from, e.data.to, e.data.source]), [['todo', 'review', 'reconcile']]);
+});

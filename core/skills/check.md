@@ -91,8 +91,14 @@ Then ask: **fix now** or **approve → `/done`**
 
 ## 6. Record the result (usage capture)
 
-Right after the summary, run this once. Use verdict `fail` when "Must fix before merge" has any item, otherwise `pass`.
-Findings are every item of all three lists in the summary, one per line as written there, each prefixed with its list: `must-fix:`, `should-fix:` or `separate-task:`. No items → pass nothing between the markers.
+Run this once, right after the summary, and **only once** — a second run with the same verdict and findings is refused and says so, so never re-run it to "make sure".
+
+`verdict` answers one question: **can this be merged as it stands now, at the moment you record?**
+
+- `fail` — something in "Must fix before merge" is still open: not fixed, or fixed but unproven (a check only a human can do, a test that cannot run here).
+- `pass` — nothing is left to do before merge, including when this round found must-fix items and fixed them all first.
+
+Do not decide the verdict from how many items the list had. Findings carry that: record every item of all three lists, one per line as written there, each prefixed with its list — `must-fix:`, `should-fix:` or `separate-task:` — including the must-fix items you fixed during this round, with how they were fixed. Those are the whole point of recording: each one is something the plan, the standards or the task description failed to prevent, and the report ranks tasks by how many of them a round had to catch. No items → pass nothing between the markers.
 
 ```bash
 node .claude/usage.js record check --task <ID> --verdict pass|fail --level <code-review level> --findings - <<'EOF'

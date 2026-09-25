@@ -91,10 +91,10 @@ test('AC-22 by model: fail rate, tasks moved backward and tasks fixed later, wit
   const r = f.run(() => report.report({ now: NOW, pull: false }));
   assert.equal(r.code, 0, r.errors.join());
   const row = (model) => r.data.models.find((m) => m.model === model);
-  assert.deepEqual(row('claude-opus-5-5'), { model: 'claude-opus-5-5', tasks: 1, checks: 2, fails: 1, backwardTasks: 1, fixedTasks: 1, failRate: 0.5 });
-  assert.deepEqual(row('claude-sonnet-5'), { model: 'claude-sonnet-5', tasks: 2, checks: 2, fails: 1, backwardTasks: 0, fixedTasks: 0, failRate: 0.5 });
-  assert.deepEqual(row('unknown'), { model: 'unknown', tasks: 1, checks: 0, fails: 0, backwardTasks: 1, fixedTasks: 0, failRate: null });
-  assert.match(r.data.text, /\| claude-opus-5-5 \| 1 \| 50% \(1\/2\) \| 1 \| 1 \|/);
+  assert.deepEqual(row('claude-opus-5-5'), { model: 'claude-opus-5-5', tasks: 1, checks: 2, fails: 1, mustFix: 1, mustFixTasks: 1, backwardTasks: 1, fixedTasks: 1, failRate: 0.5 });
+  assert.deepEqual(row('claude-sonnet-5'), { model: 'claude-sonnet-5', tasks: 2, checks: 2, fails: 1, mustFix: 0, mustFixTasks: 0, backwardTasks: 0, fixedTasks: 0, failRate: 0.5 });
+  assert.deepEqual(row('unknown'), { model: 'unknown', tasks: 1, checks: 0, fails: 0, mustFix: 0, mustFixTasks: 0, backwardTasks: 1, fixedTasks: 0, failRate: null });
+  assert.match(r.data.text, /\| claude-opus-5-5 \| 1 \| 50% \(1\/2\) \| 1 \| 1 \| 1 \| 1 \|/);
 });
 
 test('AC-23 by project: the newer of audit and snapshot, and the evidence age in days', (t) => {
@@ -118,8 +118,8 @@ test('AC-25 and AC-19: an unknown schema version is skipped and counted, a repea
 test('AC-26 tasks worth a look: ranked by score, a move reconciled in two clones counted once, each with a command that parses', (t) => {
   const f = fixture(t);
   const r = f.run(() => report.report({ now: NOW, pull: false }));
-  assert.deepEqual(r.data.watch.map((w) => [w.key, w.score]), [['alpha/T-1', 4], ['alpha/T-3', 1], ['alpha/T-4', 1]]);
-  assert.deepEqual(r.data.watch[0], { key: 'alpha/T-1', model: 'claude-opus-5-5', score: 4, fails: 1, backward: 1, fixedBy: ['alpha/T-2'] });
+  assert.deepEqual(r.data.watch.map((w) => [w.key, w.score]), [['alpha/T-1', 5], ['alpha/T-3', 1], ['alpha/T-4', 1]]);
+  assert.deepEqual(r.data.watch[0], { key: 'alpha/T-1', model: 'claude-opus-5-5', score: 5, mustFix: 1, fails: 1, backward: 1, fixedBy: ['alpha/T-2'] });
   for (const w of r.data.watch) {
     const command = r.data.text.match(new RegExp(`\`(buaflow usage eval-draft --task ${w.key})\``))[1];
     const parsed = parse(command.split(' ').slice(1));
@@ -295,4 +295,61 @@ test('a task with a very long AC list still gets something that must not happen,
   const kinds = r.data.draft.criteria.map((c) => c.kind);
   assert.equal(kinds.length, 99);
   assert.equal(kinds.at(-1), 'must-not-happen');
+});
+
+// A store of its own, so a test can add events without moving the numbers the shared fixture asserts.
+function smallStore(t, events) {
+  const base = temporaryProject('buaflow-report-small-');
+  t.after(() => cleanup(base));
+  const store = path.join(base, 'store');
+  const home = path.join(base, 'home');
+  writeJson(path.join(home, '.buaflow', 'usage.json'), { schemaVersion: '1.0', store, machine: 'm1', lastReviewAt: null });
+  write(path.join(store, 'events', 'alpha', 'm1', '2026-09-20.jsonl'), lines(events));
+  return () => {
+    const saved = { HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE };
+    Object.assign(process.env, { HOME: home, USERPROFILE: home });
+    try { return report.report({ now: NOW, pull: false }); } finally {
+      for (const [key, value] of Object.entries(saved)) {
+        if (value === undefined) delete process.env[key]; else process.env[key] = value;
+      }
+    }
+  };
+}
+
+test('a reconciled move a later reconcile puts straight back is the worktree moving, not a task going backwards', (t) => {
+  const run = smallStore(t, [
+    // T-1: /done set it, then a branch checked out without the merge showed review again, then the pull put it back.
+    ev({ type: 'task.status', task: 'T-1', at: '2026-09-20T10:00:00.000Z', data: { from: 'review', to: 'done' } }),
+    ev({ type: 'task.status', task: 'T-1', at: '2026-09-20T10:05:00.000Z', data: { from: 'done', to: 'review', source: 'reconcile' } }),
+    ev({ type: 'task.status', task: 'T-1', at: '2026-09-20T11:00:00.000Z', data: { from: 'review', to: 'done', source: 'reconcile' } }),
+    // T-2: reconciled back and never returned — somebody really did send it back.
+    ev({ type: 'task.status', task: 'T-2', at: '2026-09-20T10:05:00.000Z', data: { from: 'review', to: 'todo', source: 'reconcile' } }),
+  ]);
+  const r = run();
+  assert.deepEqual(r.data.watch.map((w) => [w.key, w.backward]), [['alpha/T-2', 1]]);
+});
+
+test('an event recorded twice at the same moment counts once, and the report says how many it dropped', (t) => {
+  const twice = (fields) => [ev(fields), ev(fields)];
+  const run = smallStore(t, [
+    ...twice({ task: 'T-1', at: '2026-09-20T10:00:00.000Z', data: { verdict: 'fail', findings: ['must-fix: a'], level: 'high' } }),
+    // The same verdict and findings an hour later is a second round, not a repeat.
+    ev({ task: 'T-1', at: '2026-09-20T11:00:00.000Z', data: { verdict: 'fail', findings: ['must-fix: a'], level: 'high' } }),
+  ]);
+  const r = run();
+  assert.equal(r.data.counts.repeats, 1);
+  assert.equal(r.data.counts.events, 2);
+  assert.deepEqual(r.data.models[0].fails, 2, 'the repeat is gone, the real second round is not');
+  assert.match(r.data.text, /1 repeat\(s\) of an event already recorded/);
+});
+
+test('a must-fix counts whether or not the round that found it could still be merged', (t) => {
+  const run = smallStore(t, [
+    // Found three, fixed them all, merged: the verdict passes and the three still count.
+    ev({ task: 'T-1', at: '2026-09-20T10:00:00.000Z', data: { verdict: 'pass', findings: ['must-fix: a — fixed', 'must-fix: b — fixed', 'should-fix: c'], level: 'high' } }),
+    ev({ task: 'T-2', at: '2026-09-20T11:00:00.000Z', data: { verdict: 'pass', findings: ['should-fix: d'], level: 'high' } }),
+  ]);
+  const r = run();
+  assert.deepEqual(r.data.watch.map((w) => [w.key, w.mustFix, w.score]), [['alpha/T-1', 2, 2]], 'a round with only should-fix is not worth a look');
+  assert.equal(r.data.models[0].mustFixTasks, 1);
 });

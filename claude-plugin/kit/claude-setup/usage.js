@@ -271,6 +271,50 @@ function appendEvent(root, event) {
   return file;
 }
 
+// Enough of the end of a day to hold the last event of its kind; a match further back is simply not found,
+// and the event is written — this guard may miss a repeat, it must never drop something that did happen.
+const REPEAT_SCAN_BYTES = 128 * 1024;
+
+function tailOfDay(file) {
+  let fd;
+  try { fd = fs.openSync(file, 'r'); } catch { return null; }
+  try {
+    const { size } = fs.fstatSync(fd);
+    const from = Math.max(0, size - REPEAT_SCAN_BYTES);
+    const buffer = Buffer.alloc(size - from);
+    fs.readSync(fd, buffer, 0, buffer.length, from);
+    const text = buffer.toString('utf8');
+    // A cut first line is half an event: drop it rather than fail to parse it.
+    return from === 0 ? text : text.slice(text.indexOf('\n') + 1);
+  } catch {
+    return null;
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+// Two processes can see one change at the same moment — two session starts reconciling, a Bash hook beside a
+// Write hook — and /check can run its record command twice. The store then counts one thing as two, which
+// doubles a /check fail rate and repeats every criterion in an eval draft. An event identical to the last one
+// of its kind for that task, moments after it, is one of those. The window is what keeps a real repeat: a
+// second /check round on the same task, minutes or hours later, is recorded even when nothing about it changed.
+const REPEAT_WINDOW_MS = 60 * 1000;
+
+function repeatsLastEvent(root, event) {
+  const text = tailOfDay(path.join(eventsDir(root), `${event.at.slice(0, 10)}.jsonl`));
+  if (!text) return false;
+  const lines = text.split('\n').filter(Boolean);
+  for (let index = lines.length - 1; index >= 0; index--) {
+    let past;
+    try { past = JSON.parse(lines[index]); } catch { continue; }
+    if (past.type !== event.type || past.task !== event.task) continue;
+    if (JSON.stringify(past.data) !== JSON.stringify(event.data)) return false;
+    const gap = Date.parse(event.at) - Date.parse(past.at);
+    return Number.isFinite(gap) && gap >= 0 && gap < REPEAT_WINDOW_MS;
+  }
+  return false;
+}
+
 // Returns { recorded: false } without touching disk unless the project said yes.
 function record(root, input) {
   const consent = readConsent(root);
@@ -278,6 +322,7 @@ function record(root, input) {
   const event = buildEvent(root, { ...input, project: consent.consent.project });
   const errors = validateEvent(event);
   if (errors.length) return { recorded: false, reason: 'invalid', errors };
+  if (repeatsLastEvent(root, event)) return { recorded: false, reason: 'repeat', event };
   return { recorded: true, event, file: appendEvent(root, event) };
 }
 
@@ -311,10 +356,26 @@ function real(value) {
   return /^<.*>$/.test(String(value)) || /^YYYY/.test(String(value)) ? null : value;
 }
 
+// An AC that wraps onto indented lines is one criterion, not a truncated one. Keeping its first line alone
+// cut every wrapped AC mid-sentence, and the halves reached eval drafts as criteria nobody can judge.
 function acceptanceOf(text) {
   const section = String(text).match(/^##\s+Acceptance Criteria[^\n]*\n([\s\S]*?)(?=^##\s|(?![\s\S]))/m);
   if (!section) return [];
-  return section[1].split(/\r?\n/).map((line) => line.match(/^\s*-\s*\[[ xX]\]\s*(.+)$/)?.[1]?.trim()).filter(Boolean);
+  const out = [];
+  let open = false;
+  for (const line of section[1].split(/\r?\n/)) {
+    const start = line.match(/^\s*-\s*\[[ xX]\]\s*(.+)$/);
+    if (start) {
+      out.push(start[1].trim());
+      open = true;
+    } else if (open && /^\s+\S/.test(line)) {
+      // Indented text under a criterion belongs to it; a blank line or anything flush left ends it.
+      out[out.length - 1] += ` ${line.trim()}`;
+    } else {
+      open = false;
+    }
+  }
+  return out;
 }
 
 function taskIdOf(kind, rel, meta) {
@@ -804,6 +865,7 @@ function runCommand(start, args) {
       sessionId: marker.sessionId,
       data: { verdict: options.verdict, findings: readFindings(options.findings), level: options.level },
     });
+    if (result.reason === 'repeat') return { code: 0, summary: `already recorded for ${options.task} — same verdict and findings`, data: { recorded: false, reason: 'repeat' }, warnings: [], errors: [] };
     if (!result.recorded) return { code: 0, summary: `not recorded (consent ${result.reason})`, data: { recorded: false, reason: result.reason }, warnings: result.errors || [], errors: [] };
     if (marker.sessionId) {
       rememberSession(state, options.task, marker.sessionId);
