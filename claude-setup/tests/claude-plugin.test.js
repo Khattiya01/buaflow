@@ -144,3 +144,13 @@ test('/buaflow:start offers every path inside one table, including a plugin olde
   const rows = table[1].trim().split('\n').map((row) => row.split('|')[1].trim());
   assert.deepEqual(rows, ['Installed, and either no lock or a lock older than the plugin kit', 'Installed, with a lock **newer** than the plugin kit', 'Installed, with a lock equal to the plugin kit', 'Not installed']);
 });
+
+// EV-012: /buaflow:learn reads a private store and drafts cases that test core/skills — it only works in this
+// repository, so it lives in .claude/ here and must never reach an adopting project, where it would only error.
+test('the learn skill stays in this repository and is never shipped in the plugin', () => {
+  assert.ok(fs.existsSync(path.join(repositoryRoot, '.claude', 'skills', 'learn', 'SKILL.md')), 'the skill is kept here');
+  assert.ok(!fs.existsSync(path.join(repositoryRoot, 'core', 'skills', 'learn.md')), 'not in core/, or the generators would ship it');
+  const { files } = build(repositoryRoot);
+  const shipped = [...files.keys()].filter((name) => name.includes('learn'));
+  assert.deepEqual(shipped, [], 'nothing named learn is generated into the plugin');
+});

@@ -59,8 +59,11 @@ function world(t) {
     writeJson(usage.consentFile(root), { schemaVersion: '1.0', enabled: true, project: 'demo', decidedBy: 'Test Owner', decidedAt: '2026-09-24' });
     const run = (fn) => asMachine(home, fn);
     const cmd = (...args) => run(() => usage.runCommand(root, args));
+    // Each round carries its own finding: two byte-identical check results moments apart are one repeat
+    // and the recorder refuses the second, so a seed that needs n events has to record n different ones.
+    let round = 0;
     const record = (n, task = 'T-001') => run(() => {
-      for (let i = 0; i < n; i++) usage.record(root, { type: 'check.result', task, data: { verdict: 'pass', findings: [], level: null } });
+      for (let i = 0; i < n; i++) usage.record(root, { type: 'check.result', task, data: { verdict: 'pass', findings: [`round ${++round}`], level: null } });
     });
     return { name, home, store, root, run, cmd, record };
   };

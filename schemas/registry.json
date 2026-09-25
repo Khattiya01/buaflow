@@ -232,6 +232,16 @@
         ".buaflow/usage/events/*.jsonl"
       ],
       "migration": "none"
+    },
+    {
+      "type": "usage-review",
+      "classification": "internal",
+      "latestVersion": "1.0",
+      "schema": "schemas/usage-review.schema.json",
+      "paths": [
+        "reviews/<project>/<task>.json"
+      ],
+      "migration": "none"
     }
   ]
 }
