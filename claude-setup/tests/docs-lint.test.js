@@ -291,3 +291,33 @@ test('the task template offers touches: as a placeholder docs-lint ignores', () 
   const template = require('node:fs').readFileSync(path.join(repositoryRoot, 'templates', 'task.tpl.md'), 'utf8');
   assert.match(template, /^touches: \[<.+>\]\s+#/m);
 });
+
+// A task that grew out of two intents (trendy T-208/T-217) lists both, and every upgrade used to revert the project's local fix.
+test('docs-lint accepts a task whose intent:, spec: and plan: each name several files, and names only the missing one', () => {
+  const root = temporaryProject();
+  try {
+    const task = (id, extra) => ['---', `id: ${id}`, 'title: demo', 'type: feat', 'milestone: M1', 'status: in-progress', 'priority: P1', 'estimate: 1', ...extra, '---', ''].join('\n');
+    const tasksDir = path.join(root, 'docs', 'backlog', 'tasks');
+    write(path.join(root, 'docs', 'intents', 'I-001-a.md'), '---\nstatus: accepted\n---\n');
+    write(path.join(root, 'docs', 'intents', 'I-002-b.md'), '---\nstatus: accepted\n---\n');
+    write(path.join(root, 'docs', 'specs', 'F-01-a', 'requirements.md'), '# a\n');
+    write(path.join(root, 'docs', 'specs', 'F-02-b', 'requirements.md'), '# b [NEEDS CLARIFICATION: who]\n');
+    write(path.join(root, 'docs', 'plans', 'T-001.md'), '## Proof\n');
+    write(path.join(root, 'docs', 'plans', 'T-001-b.md'), '## Steps\n');
+    write(path.join(tasksDir, 'T-001.md'), task('T-001', [
+      'intent: docs/intents/I-001-a.md, docs/intents/I-002-b.md',
+      'spec: [docs/specs/F-01-a/, docs/specs/F-02-b/]',
+      'plan: docs/plans/T-001, docs/plans/T-001-b.md',
+    ]));
+    write(path.join(tasksDir, 'T-002.md'), task('T-002', ['intent: [docs/intents/I-001-a.md, docs/intents/I-009-gone.md]']));
+    const result = runNode(docsLint, { args: [root] });
+    assert.equal(result.status, 1, result.stdout);
+    assert.doesNotMatch(result.stdout, /T-001: (intent|spec|plan): ชี้ไป/, result.stdout);
+    assert.match(result.stdout, /T-001: spec docs\/specs\/F-02-b\/requirements\.md ยังเหลือ \[NEEDS CLARIFICATION\] 1 จุด/);
+    assert.match(result.stdout, /T-001: docs\/plans\/T-001-b\.md ไม่มีหัวข้อ Proof/);
+    assert.doesNotMatch(result.stdout, /docs\/plans\/T-001\.md ไม่มีหัวข้อ Proof/);
+    assert.match(result.stdout, /T-002: intent: ชี้ไป docs\/intents\/I-009-gone\.md แต่ไม่มีไฟล์/);
+  } finally {
+    cleanup(root);
+  }
+});
