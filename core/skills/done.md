@@ -12,6 +12,7 @@ Talk to the user in Thai. The task file notes are in Thai; commit messages and P
 ## Pre-close checks
 
 - [ ] Passed `/check` and **the user approved**
+- [ ] The branch has the latest main: `git fetch origin && git merge-base --is-ancestor origin/main HEAD` — not an ancestor → `git merge origin/main` (never rebase a pushed branch), resolve conflicts, and verify again. A conflict in a file outside the plan → stop and ask
 - [ ] `node .claude/verify.js` passes (run it again; paste the summary line)
 - [ ] Every Proof in the plan/task is done and shown
 - [ ] `node .claude/docs-lint.js` passes
@@ -57,6 +58,12 @@ Update the PR body/description with: the summary from `/check` step 5 (short) + 
   (`docs-lint --release` refuses to release while it is open)
 - Source intent fully done → `status: done` on the intent
 - `git switch main && git pull && git branch -d <branch>`
+- **Other open PRs that change the same files** — they will conflict with what just merged. List them and tell the user to pull main into those branches now, while the conflict is small:
+  ```bash
+  gh pr view <merged PR> --json files --jq '[.files[].path]'
+  gh pr list --state open --json number,title,headRefName,files
+  ```
+  Name each PR and the shared files. None → say nothing. No `gh` → skip
 
 ### 4. Regenerate the board
 

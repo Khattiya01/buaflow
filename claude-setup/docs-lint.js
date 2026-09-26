@@ -23,6 +23,9 @@
  *  10. (IC-007, warn เท่านั้น) docs/elaboration/*.md: ข้อเสนอทุกข้อมีแหล่งที่มา ระดับ และการตัดสิน ·
  *      ข้อที่ accepted อยู่ใน requirements.md ของ spec · intent ที่ brief: open และ accepted ต้องผ่าน /elaborate
  *      (หรือประกาศ elaboration: skipped)
+ *  11. (BC-008, warn เท่านั้น) task ที่ยังไม่ done สองตัวมี touches: ซ้ำกัน (ไฟล์เดียวกัน หรือไฟล์อยู่ใต้โฟลเดอร์ของอีกตัว)
+ *      และไม่มี depends_on ต่อกันเป็นทอดระหว่างกัน = ทำพร้อมกันได้แล้ว conflict ตอน merge ·
+ *      task ที่ไม่มี touches: ไม่ถูกเช็คข้อนี้ — โปรเจกต์เดิมไม่เห็นอะไรเปลี่ยน
  *
  * exit 0 = ผ่าน | exit 1 = มีข้อที่ต้องแก้
  * ไม่มี dependency — Node ล้วน รันได้ทุก OS
@@ -150,6 +153,44 @@ if (!exists(TASKS_DIR)) {
     if (ids.length > 1) bad(`WIP เกิน: ${who} มี in-progress ${ids.length} ตัว (${ids.join(', ')}) — กฎคือทีละ 1`);
   }
   if (![...wip.values()].some((v) => v.length > 1)) ok('WIP: in-progress ไม่เกิน 1 ต่อคน');
+
+  // 11. สอง task ที่เปิดพร้อมกันได้แตะไฟล์เดียวกัน
+  const touching = [...tasks].filter(([, { fm }]) => fm.status !== 'done' && touchesOf(fm).length);
+  if (touching.length) {
+    let collisions = 0;
+    for (let i = 0; i < touching.length; i++) {
+      for (let j = i + 1; j < touching.length; j++) {
+        const [a, { fm: fa }] = touching[i];
+        const [b, { fm: fb }] = touching[j];
+        if (dependsOn(a, b) || dependsOn(b, a)) continue;
+        const shared = touchesOf(fa).filter((p) => touchesOf(fb).some((q) => overlaps(p, q)));
+        if (!shared.length) continue;
+        collisions++;
+        warn(`${a} กับ ${b} แตะที่เดียวกัน (${shared.join(', ')}) และไม่มี depends_on ระหว่างกัน — แยก branch แล้วจะ conflict ตอน merge: รวม task, ใส่ depends_on หรือแตกใหม่ตาม feature`);
+      }
+    }
+    if (!collisions) ok(`touches: task ที่เปิดอยู่ ${touching.length} ตัวไม่แตะไฟล์เดียวกันโดยไม่มีลำดับ`);
+  }
+}
+
+/** touches: เป็น path หรือโฟลเดอร์ — glob ตัดเหลือส่วนหน้าที่ไม่มี wildcard (หยาบแต่ไม่พลาดการชน) */
+function touchesOf(fm) {
+  const list = Array.isArray(fm.touches) ? fm.touches : fm.touches ? [fm.touches] : [];
+  return list
+    .map((p) => String(p).trim().replace(/^[`'"]|[`'"]$/g, '').replace(/^\.\//, '').replace(/[*?[{].*$/, '').replace(/\/+$/, ''))
+    .filter((p) => p && !isPlaceholder(p));
+}
+function overlaps(p, q) {
+  return p === q || p.startsWith(`${q}/`) || q.startsWith(`${p}/`);
+}
+
+/** a รอ b อยู่ไหม — ตาม depends_on ต่อกันเป็นทอด */
+function dependsOn(a, b, seen = new Set()) {
+  if (seen.has(a)) return false;
+  seen.add(a);
+  const deps = tasks.get(a)?.fm.depends_on;
+  const list = (Array.isArray(deps) ? deps : deps ? [deps] : []).filter((d) => !isPlaceholder(d));
+  return list.includes(b) || list.some((d) => dependsOn(d, b, seen));
 }
 
 // ── 7. intents ─────────────────────────────────────────────────────────

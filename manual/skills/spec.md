@@ -64,12 +64,15 @@ Gate report → **stop and wait for approval**
 
 - Tasks that **finish within one session**, with dependencies and the ACs they cover
 - Backend tasks include their unit tests / frontend tasks get a paired `-test` (blocked)
-- `[P]` on tasks whose order can be swapped
+- **The files each task will change** (`touches`), read from design.md and the existing code — real paths or folders, not "backend"
+- `[P]` only on a task that can run beside every other `[P]` task **without a conflict**: no `depends_on` between them **and** no file in common. Swappable order alone is not enough — two tasks that change the same file on separate branches conflict at merge
+- Two tasks share a file → pick one and say which: **merge** them into one task · **order** them with `depends_on` · **re-slice** by feature (one feature through every layer) instead of by layer (all API, then all UI), which is the split that collides most
+- A file every task has to add a line to (route registry, barrel `index.ts`, a single OpenAPI or i18n file) → no split avoids it; tell the user and point to "hot-spot" files in `docs/standards/commit-and-branch.md` — a structural fix is its own `refactor` task, not part of this feature
 - A task for OpenAPI / Postman updates
 - The table "ACs with no covering task" **must be empty**
 
 Then:
-1. Create `docs/backlog/tasks/T-xxx.md` for every task — fill `intent:`, `spec:`, `milestone:`, `priority:`, `depends_on:` (the board sorts on these)
+1. Create `docs/backlog/tasks/T-xxx.md` for every task — fill `intent:`, `spec:`, `milestone:`, `priority:`, `depends_on:` (the board sorts on these) and `touches:` (docs-lint warns when two open tasks share a path with no `depends_on` between them)
 2. Source intent → `status: accepted` + link to this spec
 3. `node .claude/board.js` (**do not hand-edit board.md; there is no import.csv anymore** — task files are the source of truth)
 4. Propose the first task and whether it should go through `/plan` first

@@ -5,7 +5,9 @@
   "updatedAt": "2026-09-26",
   "current": {
     "milestone": "M5",
-    "focus": []
+    "focus": [
+      "BC-008"
+    ]
   },
   "workItems": [
     {
@@ -2184,6 +2186,44 @@
       "startedAt": "2026-09-26",
       "notes": "Opened 2026-09-26 from the first real review of the store (115 events, 2 projects, EV-011.9). The review found the report could not be acted on: 6 of its 7 \"tasks worth a look\" were noise. Four causes, all confirmed against the store, not reasoned about. (1) acceptanceOf matched one line at a time, so 6 of T-221's 7 AC were cut at the line wrap and reached the EV-007 draft as half sentences — the cut is in the stored event, so it cannot be recovered from the store. (2) trendy/T-221 held two check.result events 60 ms apart, same session, byte-identical, and trendy/T-204..T-209 held doubled task.status and plan.approved 9 ms apart from two session starts reconciling at once; the report dropped duplicates by id only, so both survived and the fail rate read 50% (2/4) where it was 33% (1/3), and every must-not-happen criterion in the draft appeared twice. (3) All 6 tasks flagged as \"moved backward\" were reconcile pairs — done→review then review→done minutes to hours later — the worktree moving under the task files (a branch checked out before its merge was pulled). The commit on the two halves differs, but so does it on ordinary in-session moves, so the commit cannot tell them apart; a reconciled move a later reconcile puts straight back can. (4) trendy/T-203 recorded verdict pass with two must-fix findings while T-221 recorded fail with three: check.md said fail when the must-fix list has any item, and both readings are defensible once the round fixes them. Decided, not asked: verdict keeps its own question (can this be merged as it stands now) and the rework signal comes from counting must-fix findings, which needs no schema change and no new event type. Score is now must-fix + failed /check + backward + 2 × fixes:, and the watch list on the real store went from 7 rows (6 noise) to 5 rows led by T-221 (3 must-fix) and T-203 (2 must-fix). The repeat guard compares an event with the last one of its kind for that task within 60 s, reading the tail of the day file: outside the window a second round is always recorded, and a miss only means an event is written, never that one is lost. Not done here: /learn, the skill that would walk this loop — the Buaflow repository has no .claude/ of its own to put a repository-only skill in, and where it goes is the owner's call (see the open question below). Second round 2026-09-26, owner answers on all three open questions: /learn goes in a new .claude/skills/ in this repository (proved by test that nothing named learn is generated into the plugin — the plugin generator never looks at this repository's own .claude/), the decision record is in scope, and EV-012 is committed on a branch. Built: usage-review 1.0 registered as an internal artifact type, reviews/<project>/<task>.json in the store written by buaflow usage review <project>/<task> --outcome eval|covered|none, report hides decided tasks and counts them (--all shows them with the decision and whether it moved since), the AC-27 session line now also counts undecided tasks so reading the store is no longer mistaken for judging it, and /learn walks report → show → eval-draft → review → push. Decided: the decision lives in the store, not in ~/.buaflow/usage.json, so two machines agree on what is closed; throughEventAt is the reopen rule; the task id keeps its case in the file name (sanitizeName lowercases, which no longer matched what the report prints). Measured before deciding not to prune: 129 events are 446KB of which 86% is document content from 27 events (plan.approved alone is 69%, 23.7KB each), so growth is roughly 100-120MB of working tree per year at five projects — revisit at 1GB, and note that deleting from a git store frees nothing because history keeps the blobs. Branch renamed fix/ → feat/EV-012-usage-signal: guard-edit blocks editing test files on a fix/ branch, which was right — the decision record is a feature and its tests encode behaviour that did not exist, not a bug someone claimed to fix. Corrected after merge: the command is /learn, not /buaflow:learn — buaflow: is the plugin namespace and a skill in this repository's own .claude/skills/ is invoked by its bare name. disable-model-invocation keeps it to the owner, so a model cannot close a signal by starting the loop itself. Released as kit 3.16.0 on 2026-09-26 (MINOR; usage-review registered internal, so compatibility reads are unchanged): VERSION.md, UPGRADE.md v3.15.0 → v3.16.0 saying plugin users only update while a .claude-mode project must copy .claude/usage.js or keep recording cut AC and repeats, CLI.md usage row, README version. Why the release could not wait: the hooks that run inside trendy and bluepeak_hub come from the plugin cache, not from this repository, so until 3.16.0 reaches them every task they record keeps losing the second half of every wrapped AC — and that loss is in the stored event, not recoverable later. publish-plugin --dry-run: 221 files, 1.90 MB.",
       "completedAt": "2026-09-26"
+    },
+    {
+      "id": "BC-008",
+      "title": "Tasks split for parallel work stop colliding on the same files",
+      "milestone": "M5",
+      "status": "in_progress",
+      "startedAt": "2026-09-26",
+      "dependsOn": [
+        "BC-007",
+        "IC-005"
+      ],
+      "acceptance": [
+        "A task declares the files it expects to change as touches: in its frontmatter, and the task template offers the line",
+        "/spec marks [P] only on tasks whose touches do not overlap any other task that can be open at the same time; an overlap is resolved by merging the tasks, ordering them with depends_on, or re-slicing them by feature instead of by layer",
+        "/plan brings touches: in line with the plan's files-to-change list",
+        "/task compares the task's touches with the files open pull requests already change and tells the user which PR and which files overlap before the claim, without warning about unrelated WIP",
+        "/check and /done bring the latest main into the branch (merge origin/main into it, never a rebase of a pushed branch) and re-run verify before review and before the PR is marked ready; after a merge /done names the other open PRs that touch the same files",
+        "docs-lint warns (never fails) when two open tasks share a touches: path and neither depends on the other; projects whose tasks carry no touches: see nothing new",
+        "standards/commit-and-branch.md says how to design away hot-spot files every task has to edit (registries, barrel exports, single OpenAPI/i18n files, CHANGELOG)"
+      ],
+      "artifacts": [
+        "templates/task.tpl.md",
+        "templates/spec.tpl.md",
+        "core/skills/spec.md",
+        "core/skills/plan.md",
+        "core/skills/task.md",
+        "core/skills/check.md",
+        "core/skills/done.md",
+        "claude-setup/docs-lint.js",
+        "claude-setup/tests/docs-lint.test.js",
+        "standards/commit-and-branch.md",
+        "phases/05-backlog-and-roadmap.md"
+      ],
+      "verification": [
+        "npm run check",
+        "node --test claude-setup/tests/docs-lint.test.js"
+      ],
+      "notes": "Opened 2026-09-26 from the owner: tasks split by /spec change the same files, each goes on its own branch, and the PRs conflict on merge often. The cause is the kit, not the model: /spec marks [P] on tasks whose order can be swapped, never asking which files they change; depends_on only records logical order; the task template has a files-to-touch section nothing reads; /task is told never to look at other WIP; and nothing brings main into a branch before the end."
     }
   ],
   "decisions": [
@@ -2389,12 +2429,19 @@
       "decision": "Add requirement elaboration (IC-007): /intent asks whether a brief is open or fixed, and a new /elaborate step between /intent and /spec researches the domain and proposes what the brief leaves out, for a person to decide. No cap on the number of proposals; docs-lint checks decisions and traceability as warnings.",
       "reason": "In the owner's first real use after M9, a thin customer brief (a dashboard of sales and invoice tracking) went into the intent and would have gone into the spec as written, on a strong model; the owner had to point out what was missing. The kit caused it: /intent forbids filling gaps and has no web tools, and nothing between intent and spec asked for more. A fixed list of what each kind of feature needs would age like the domain packs D-025 dropped, and would cap a better model at the list; asking the model to use the goal, the domain, research and the existing system does not, so the kit gets better as models do. The owner asked for the open/fixed question up front, because some customers want us to think the rest through and some hand over a contract that must not grow.",
       "impact": "Kit 3.14.0 (MINOR): new skill, new template, a new optional brief: key in intents, and docs-lint warnings that only fire for projects that use brief: or docs/elaboration/. No public schema changes. The roadmap gains IC-007 as done; there are again no open roadmap items."
+    },
+    {
+      "id": "D-030",
+      "date": "2026-09-26",
+      "decision": "Open BC-008 for conflicts between tasks split from one spec. It is not a revival of BC-003: no scheduler and no locking. The skills tell the model to think about which files a task changes when it splits, plans and claims work, and docs-lint proves the declared split does not put two open tasks on the same file without an order between them.",
+      "reason": "D-026 dropped the parallel scheduler because planning parallel work is the model's job and the model is good at it. The owner's projects show the collisions come from the kit's own instructions: /spec defined [P] by swappable order, /task forbade looking at other open work, and no step brought main into a branch before the PR. A stronger model follows those instructions just as faithfully. D-026 also wrote the reopening condition: a new item written from a failure seen in a real project. Under D-011 the AI still does the splitting; Buaflow adds the touches: declaration and a warning that checks it.",
+      "impact": "Task template gains touches:; /spec, /plan, /task, /check and /done change; docs-lint gains a warning that only fires for tasks that declare touches:. No schema change. current.focus is BC-008 while it is open."
     }
   ],
   "lastSession": {
     "date": "2026-09-26",
-    "summary": "EV-012 done and released as kit 3.16.0. PR #22 merged (the report fixes and the decision record); then the command name was corrected to /learn — buaflow: is the plugin namespace and a skill in this repository's own .claude/skills/ is invoked bare, confirmed against the harness, which also refuses to let a model invoke it at all. Release prepared: version in all three places, compatibility entry, VERSION.md, UPGRADE.md, README. Suite 510/510, npm run check PASS, publish-plugin --dry-run 221 files 1.90 MB.",
-    "next": "Merge the release PR, then run node scripts/publish-plugin.js so 3.16.0 reaches the plugin cache the projects actually load. After that, type /learn and take the first real pass at the 6 tasks the report raises — T-221 (3 must-fix) first.",
-    "verifiedAt": "2026-09-25T20:21:27.125Z"
+    "summary": "BC-008 opened (D-030) and built on branch feat/BC-008-parallel-file-overlap, not yet committed: touches: in the task template, /spec splits on file overlap, /plan syncs touches:, /task compares with open PRs before the claim, /check and /done merge origin/main before review and before ready, /done names overlapping open PRs after a merge, docs-lint warning 11, hot-spot table in standards/commit-and-branch.md. Suite 513/513, npm run check PASS.",
+    "next": "Owner reviews the diff; then commit, open the PR, and release as a MINOR (new optional frontmatter key and a new docs-lint warning). Mark BC-008 done with completedAt once merged.",
+    "verifiedAt": "2026-09-26T04:56:51.512Z"
   }
 }

@@ -244,3 +244,50 @@ test('docs-lint (EV-011) accepts a task that carries fixes:, and the task templa
     cleanup(root);
   }
 });
+
+// BC-008: two open tasks that change the same file with no order between them conflict at merge.
+test('docs-lint (BC-008) warns when two open tasks share a touches: path with no depends_on between them', () => {
+  const root = temporaryProject();
+  try {
+    const task = (id, status, extra) => ['---', `id: ${id}`, 'title: demo', 'type: feat', 'milestone: M1', `status: ${status}`, 'priority: P1', 'estimate: 1', ...extra, '---', ''].join('\n');
+    const tasksDir = path.join(root, 'docs', 'backlog', 'tasks');
+    write(path.join(tasksDir, 'T-001.md'), task('T-001', 'todo', ['touches: [src/orders/api.ts, src/routes.ts]']));
+    write(path.join(tasksDir, 'T-002.md'), task('T-002', 'todo', ['touches: [src/orders/, docs/api/]']));
+    write(path.join(tasksDir, 'T-003.md'), task('T-003', 'todo', ['depends_on: [T-001]', 'touches: [src/routes.ts]']));
+    write(path.join(tasksDir, 'T-004.md'), task('T-004', 'done', ['touches: [src/routes.ts]']));
+    write(path.join(tasksDir, 'T-005.md'), task('T-005', 'todo', ['touches: [<path/ไฟล์.ts>, <โฟลเดอร์/>]']));
+    const result = runNode(docsLint, { args: [root] });
+    const warnings = result.stdout.split(/\r?\n/).filter((line) => /แตะที่เดียวกัน/.test(line));
+    assert.equal(warnings.length, 1, result.stdout);
+    assert.match(warnings[0], /T-001 กับ T-002 .*src\/orders\/api\.ts/);
+    assert.doesNotMatch(result.stdout, /FAIL.*แตะที่เดียวกัน/);
+  } finally {
+    cleanup(root);
+  }
+});
+
+test('docs-lint (BC-008) follows depends_on through a chain, and says nothing when no task declares touches:', () => {
+  const root = temporaryProject();
+  try {
+    const task = (id, extra) => ['---', `id: ${id}`, 'title: demo', 'type: feat', 'milestone: M1', 'status: todo', 'priority: P1', 'estimate: 1', ...extra, '---', ''].join('\n');
+    const tasksDir = path.join(root, 'docs', 'backlog', 'tasks');
+    write(path.join(tasksDir, 'T-001.md'), task('T-001', []));
+    write(path.join(tasksDir, 'T-002.md'), task('T-002', []));
+    const bare = runNode(docsLint, { args: [root] });
+    assert.doesNotMatch(bare.stdout, /touches/);
+
+    write(path.join(tasksDir, 'T-001.md'), task('T-001', ['touches: [src/app/orders/*.tsx]']));
+    write(path.join(tasksDir, 'T-002.md'), task('T-002', ['depends_on: [T-001]']));
+    write(path.join(tasksDir, 'T-003.md'), task('T-003', ['depends_on: [T-002]', 'touches: [src/app/orders/page.tsx]']));
+    const chained = runNode(docsLint, { args: [root] });
+    assert.doesNotMatch(chained.stdout, /แตะที่เดียวกัน/, chained.stdout);
+    assert.match(chained.stdout, /ok\s+touches:/);
+  } finally {
+    cleanup(root);
+  }
+});
+
+test('the task template offers touches: as a placeholder docs-lint ignores', () => {
+  const template = require('node:fs').readFileSync(path.join(repositoryRoot, 'templates', 'task.tpl.md'), 'utf8');
+  assert.match(template, /^touches: \[<.+>\]\s+#/m);
+});
