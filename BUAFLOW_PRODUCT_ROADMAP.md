@@ -180,6 +180,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | BC-005 | Contract mismatch detectors | schema/API/migration/UI/requirement drift checks |
 | BC-006 | Independent verifier role | verifier ไม่ใช้ self-report จาก builder เป็นหลักฐานเดียว |
 | BC-007 | Repair loop with limits | ✅ **done** — งบแก้ซ้ำตามชนิดความล้มเหลวใน /task + eval EV-005 |
+| BC-008 | Parallel tasks stop colliding on the same files | ✅ **done (D-030, 3.17.0)** — ไม่ใช่ scheduler (BC-003 ยัง dropped): task ประกาศ `touches:` · `/spec` ติด `[P]` เฉพาะ task ที่ไฟล์ไม่ซ้ำ · `/task` เทียบกับ PR ที่เปิดอยู่ · `/check` `/done` เอา main เข้า branch ก่อน · docs-lint warn · เปิดจากโปรเจกต์จริงที่ PR ชนกันบ่อยเพราะ task ที่แตกจาก spec เดียวแก้ไฟล์เดียวกัน |
 
 > เมื่อดึง BC-* เข้ามาทำจริงที่ M3 ให้อ้างอิงรายละเอียด agent contract (permission/write-scope/budget/stop_when),
 > autonomy/risk tier (A0–A4) และ agent-run-record format จากงานวิจัย "AI-Native SDLC + Agentic Engineering"

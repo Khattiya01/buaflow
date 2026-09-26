@@ -63,7 +63,7 @@ Also state: the point you are least sure about / what you decided on their behal
 
 1. Set `approved_by:` in plan.md to the name of the person who approved it in Step 4 (`git config user.name` when that is the person running this session). Never your own name, and never leave the `<ใครอนุมัติ>` placeholder: an approved plan is what usage capture records as `plan.approved`
 2. Commit `docs/plans/<T-xxx>.md` (`docs: add plan for T-xxx`)
-3. Set `plan:` in the task file
+3. Set `plan:` in the task file, and make its `touches:` match the plan's "Files to change" (paths or folders). The plan found a file another open task also lists → tell the user which task and which file before closing: order them with `depends_on`, or accept that whoever merges second resolves the conflict
 4. Tell the user to leave plan mode and run `/task <T-xxx>`
 
 ## If the plan stops working mid-implementation

@@ -105,6 +105,37 @@ chore/T-003-setup-eslint
 - อย่างน้อย 1 คนอนุมัติ
 - ถ้าทำคนเดียว: ใช้ `/check` แล้ว `/done` เปิด PR → คุณกด merge เองใน UI หลัง gate ผ่าน — flow เหมือนกัน แค่คนอนุมัติคือคุณ (AI ไม่ merge เอง hook บล็อกไว้)
 
+### งานขนานที่แก้ไฟล์เดียวกัน (conflict ตอน merge)
+
+conflict ส่วนใหญ่ไม่ได้มาจากการ merge แต่มาจาก **การแตก task** ที่ให้สอง task แก้ไฟล์เดียวกันแล้วแยก branch กัน
+แก้สามชั้น เรียงจากคุ้มสุด:
+
+**1. แตก task ให้ไม่ชนตั้งแต่ต้น** — ทุก task ใส่ `touches:` (ไฟล์/โฟลเดอร์ที่คาดว่าจะแก้) ใน frontmatter
+- `/spec` ติด `[P]` ได้เฉพาะ task ที่ `touches` ไม่ซ้ำกับ task อื่นที่เปิดพร้อมกันได้
+- ซ้ำ → รวม task · เรียงด้วย `depends_on` · หรือแตกใหม่ **ตาม feature** (หนึ่ง feature ครบทุกชั้น) แทน **ตามชั้น**
+  (task "API ทั้งหมด" กับ task "UI ทั้งหมด" ชนกันที่ไฟล์กลางแทบทุกครั้ง)
+- `/task` เทียบ `touches` กับไฟล์ที่ PR ที่เปิดอยู่แก้ ก่อนจองงาน · `docs-lint` เตือนเมื่อสอง task เปิดพร้อมกันแตะที่เดียวกันโดยไม่มี `depends_on` ระหว่างกัน
+
+**2. เอา main ล่าสุดเข้า branch บ่อย ๆ** — conflict เล็กหลายครั้งแก้ง่ายกว่าก้อนใหญ่ตอนท้าย
+- `/check` และ `/done` รัน `git fetch origin && git merge origin/main` แล้วรัน verify ใหม่
+- ใช้ **merge ไม่ใช่ rebase** กับ branch ที่ push ไปแล้ว (มี draft PR ตั้งแต่ `/task`) — rebase ต้อง force push ทับ PR
+  ส่วน merge commit ในนั้นหายไปเองตอน squash merge
+- PR หนึ่ง merge แล้ว → branch อื่นที่แตะไฟล์เดียวกันเอา main เข้าทันที ไม่รอจนถึงตอนเปิด PR
+
+**3. ลดไฟล์ที่ทุกงานต้องแก้ (hot-spot)** — ไฟล์ที่ทุก task ต้องไปเติมบรรทัด คือจุดที่ชนแน่นอนไม่ว่าแตก task ดีแค่ไหน
+
+| ไฟล์ที่ชนบ่อย | ทางแก้ |
+|---|---|
+| route registry / เมนู / DI container ที่ลงทะเบียนมือ | ค้นหาอัตโนมัติ: file-based routing, glob import (`import.meta.glob`), แต่ละ module ลงทะเบียนตัวเอง |
+| `index.ts` ที่รวม export ทุกตัว (barrel) | import จาก path ของไฟล์ตรง ๆ หรือ barrel ต่อ feature ไม่ใช่ barrel เดียวทั้งโปรเจกต์ |
+| `openapi.yaml` ไฟล์เดียว | แยกไฟล์ต่อ path/tag แล้ว `$ref` หรือ generate จากโค้ด (ไม่มีใครแก้มือ) |
+| i18n json ไฟล์เดียว | แยกไฟล์ต่อ feature (`locales/th/orders.json`) |
+| CHANGELOG ที่เขียนมือ | generate จาก Conventional Commits (ข้อ 5) หรือแต่ละงานเขียนไฟล์เล็กของตัวเองแล้วรวมตอน release (แบบ changesets) |
+| migration ที่ตั้งเลขลำดับ | ใช้ timestamp เป็นชื่อ (Prisma/Alembic ทำอยู่แล้ว) ไม่ใช่ `0001`, `0002` |
+| ไฟล์ข้อความที่มีแต่การเติมบรรทัดท้าย และลำดับไม่สำคัญ | `.gitattributes`: `<path> merge=union` — **ห้ามใช้กับ JSON/YAML/โค้ด** (union เก็บทั้งสองฝั่ง ได้ไฟล์พังที่ git ไม่เตือน) |
+
+> ย้ายโครงสร้างพวกนี้เป็นงานของมันเอง (task `refactor` แยก) ไม่ใช่ทำแทรก "ระหว่างทาง" ใน task feature
+
 ---
 
 ## 5. Tag และ CHANGELOG

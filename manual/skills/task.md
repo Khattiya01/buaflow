@@ -28,6 +28,13 @@ Run first: `git status --short || true`
   - Requested task is already `in-progress` → tell the user who has it (board's "ใครทำ" column / the
     task file's `assignee:`, if set) and stop — do not start a second claim on the same task.
   - Anything else `in-progress`, yours or anyone else's → not relevant here, proceed.
+- **The one exception: the same files.** Another open PR changing a file this task will change means one of the two will conflict at merge. Compare the task's `touches:` (or its "files to touch" section) with what the open PRs change:
+  ```bash
+  gh pr list --state open --json number,title,headRefName,files --jq '.[] | {number, title, headRefName, files: [.files[].path]}'
+  ```
+  (no `gh` → `git fetch origin` and `git diff --name-only origin/main...origin/<branch>` for each open branch; no remote → skip this check)
+  - Overlap → tell the user the PR and the exact files, then offer: **take another task** (name one with deps met and no overlap) · **wait** until that PR merges · **go ahead** knowing it, and pull main in as soon as that PR merges. The user decides; never refuse
+  - No overlap, or the task has no `touches:` → proceed without comment
 
 ## 2. Read enough, not the whole chain
 
@@ -61,8 +68,9 @@ Briefly:
 
 ## 5. Implement
 
-- Branch `<type>/<ID>-<short-english-description>`
-- Task file: `status: in-progress`, `started: <date>`, `branch:`, **`assignee:` = `git config user.name`
+- Branch `<type>/<ID>-<short-english-description>`, **from the latest main**: `git switch main && git pull` first
+  (resuming a task whose branch already exists → switch to it and `git fetch origin && git merge origin/main`, then run verify before writing more)
+- Task file: `status: in-progress`, `started: <date>`, `branch:`, `touches:` (if empty — the files from step 4), **`assignee:` = `git config user.name`
   (fallback `user.email`)** → `node .claude/board.js`
   (`assignee:` fills the board's "ใครทำ" column and is what `docs-lint`'s WIP-per-person gate keys off — left empty it collapses everyone into one bucket and breaks that gate)
 - **Claim it immediately — before writing any real code:**

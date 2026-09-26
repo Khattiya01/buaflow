@@ -42,6 +42,7 @@ Milestone  (M0-M3)     ก้อนที่ส่งมอบได้ / demo �
 
 ### `docs/backlog/tasks/T-001.md` — **source of truth ตัวเดียว**
 ใช้ template `buaflow/templates/task.tpl.md` — frontmatter ต้องครบ: `id status type milestone priority estimate depends_on` (board ใช้เรียง)
+และใส่ `touches:` (ไฟล์/โฟลเดอร์ที่คาดว่าจะแก้) — สอง task ที่ไม่มี `depends_on` ระหว่างกันแต่แตะไฟล์เดียวกันจะ conflict ตอน merge; docs-lint เตือน (ดู `docs/standards/commit-and-branch.md` ข้อ 4)
 สถานะ: `backlog` → `todo` → `in-progress` → `review` → `done` (+ `blocked` ต้องมี `blocked_reason:`)
 
 ### `docs/backlog/board.md` — view ที่ generate

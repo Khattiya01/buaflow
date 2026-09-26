@@ -178,16 +178,19 @@ zod schema / DTO ที่เกี่ยวข้อง:
 ```markdown
 # <F-xx> <ชื่อ feature> — Tasks
 
-| ID | งาน | ประเภท | ขึ้นกับ | ประมาณ | AC ที่ครอบ | ขนานได้ |
-|---|---|---|---|---|---|---|
-| T-0xx | Prisma model + migration | db | - | 0.5 | - | |
-| T-0xx | POST /api/v1/... + unit test | api | T-0xx | 1 | AC-1, AC-2 | |
-| T-0xx | หน้า ... (UI) | ui | T-0xx | 1 | AC-3 | [P] |
-| T-0xx | อัปเดต OpenAPI + Postman | docs | T-0xx | 0.5 | - | [P] |
-| T-0xx-test | unit test ของหน้า ... | test | ผ่าน review แล้ว | 0.5 | AC-3 | |
+| ID | งาน | ประเภท | ขึ้นกับ | ประมาณ | AC ที่ครอบ | ไฟล์ที่แตะ (touches) | ขนานได้ |
+|---|---|---|---|---|---|---|---|
+| T-0xx | Prisma model + migration | db | - | 0.5 | - | `prisma/schema.prisma`, `prisma/migrations/` | |
+| T-0xx | POST /api/v1/... + unit test | api | T-0xx | 1 | AC-1, AC-2 | `src/server/orders/` | |
+| T-0xx | หน้า ... (UI) | ui | T-0xx | 1 | AC-3 | `src/app/orders/` | [P] |
+| T-0xx | อัปเดต OpenAPI + Postman | docs | T-0xx | 0.5 | - | `docs/api/` | [P] |
+| T-0xx-test | unit test ของหน้า ... | test | ผ่าน review แล้ว | 0.5 | AC-3 | `src/app/orders/*.test.tsx` | |
 
-- `[P]` = ไม่ชนกับตัวอื่นในแถวเดียวกัน ทำสลับลำดับได้
-  (แต่กติกาของโปรเจกต์ยังคือ **ทำทีละ 1 task** เครื่องหมายนี้ใช้บอกลำดับที่ยืดหยุ่นได้เท่านั้น)
+- `[P]` = ทำพร้อมกับ task `[P]` อื่นได้โดย **ไม่ชนกัน** — ต้องครบสองข้อ: ไม่มี `depends_on` ระหว่างกัน **และ** ไฟล์ที่แตะไม่ซ้ำกันเลย
+  (สลับลำดับได้อย่างเดียวไม่พอ — สอง task ที่แก้ไฟล์เดียวกันแยก branch กันแล้วจะ conflict ตอน merge)
+- ไฟล์ซ้ำกัน → เลือกหนึ่ง: **รวม** เป็น task เดียว · **เรียง** ด้วย `depends_on` · **แตกใหม่ตาม feature** (หนึ่ง feature ครบทุกชั้นใน task เดียว) แทนการแตกตามชั้น db / api / ui
+- ไฟล์ที่ทุก task ต้องเติมบรรทัด (route registry, `index.ts` รวม export, openapi/i18n ไฟล์เดียว) → ดู "ไฟล์ที่ทุกงานต้องแก้" ใน `docs/standards/commit-and-branch.md`
+- กติกา WIP ยังคือ **ทีละ 1 task ต่อคน** — `[P]` บอกว่าคนละคน/คนละ agent ทำพร้อมกันได้
 - แต่ละ task ต้อง **จบได้ใน 1 session** ถ้าไม่จบ → แตกอีก
 - backend task รวม unit test ในตัว
 - frontend task ต้องมี task `-test` คู่เสมอ (สถานะ blocked)

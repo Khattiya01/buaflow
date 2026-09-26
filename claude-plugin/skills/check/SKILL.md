@@ -28,9 +28,16 @@ Read `track:` in the task file (`docs/backlog/tasks/<ID>.md`)
 
 ## 1. Run the real thing first — never review broken code
 
+Bring in what merged since the branch started, so the review sees the code that will actually merge:
+
 ```
+git fetch origin && git merge origin/main
 node .claude/verify.js
 ```
+
+- **merge, never rebase** — the branch was pushed as a draft PR at claim time, and a rebase would need a force push over it; the merge commit disappears in the squash merge
+- Conflicts → resolve them as part of this task; a conflict in a file outside the plan, or one where you cannot tell which side is right → **stop and ask**, show the file and both sides
+- No remote (`git fetch` fails) → skip the merge and say so in the summary
 
 - Fails → **stop, fix first**, then start over
 - Passes → paste the summary line `verify` prints (not the full log — it is in `.verify.log` if anyone wants it)
@@ -72,6 +79,7 @@ Extra things that usually slip and no linter catches:
 
 ```
 T-xxx <title>
+main:   up to date / merged <n> commits (conflicts: <files> or none) / skipped — no remote
 verify: <summary line from verify>
 plan:   complete / missing <..> / extra <..>
 review: /code-review <n> findings · /security-review <n> · code-reviewer <n>
