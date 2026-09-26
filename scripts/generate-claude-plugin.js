@@ -87,7 +87,7 @@ function build(root) {
       put(path.join('kit', inside), fs.readFileSync(file, 'utf8'));
     }
   }
-  // Plugin-only pieces: the /buaflow:start skill and the hook that tells a session where kit/ is.
+  // Plugin-only pieces: the /buaflow:start and /buaflow:upgrade skills and the hook that tells a session where kit/ is.
   for (const file of walk(path.join(root, 'plugin-src'))) put(path.relative(path.join(root, 'plugin-src'), file), fs.readFileSync(file, 'utf8'));
 
   const settings = JSON.parse(fs.readFileSync(path.join(setup, 'settings.json.tpl'), 'utf8'));
@@ -117,11 +117,12 @@ function build(root) {
     '`claude plugin install buaflow@buaflow` in a terminal, then start a new session.',
     '',
     'No `buaflow/` folder is needed in the project: the whole kit ships under `kit/`, and a SessionStart hook tells',
-    'each session where it is. `/buaflow:start` starts Phase 0, resumes a project, or upgrades one.',
+    'each session where it is. `/buaflow:start` starts Phase 0 or resumes a project; `/buaflow:upgrade` brings the controls',
+    'installed in a project up to this kit, from any earlier version.',
     '',
     '| Carried by the plugin | Written into the project by `buaflow install --plugin --write` in Phase 7 |',
     '|---|---|',
-    '| skills (/intent /elaborate /spec /plan /task /check /done /hotfix /release /ui /prototype, and /buaflow:start) | `.claude/gate.js` and every checker it runs — pre-push and CI run them outside any session |',
+    '| skills (/intent /elaborate /spec /plan /task /check /done /hotfix /release /ui /prototype, and /buaflow:start, /buaflow:upgrade) | `.claude/gate.js` and every checker it runs — pre-push and CI run them outside any session |',
     '| agents (code-reviewer, legacy-explorer, test-writer) | `.claude/settings.json` permissions — a plugin cannot ship permissions |',
     '| hooks (guard-edit, guard-bash, guard-new-component, format-changed, session-context, usage-capture, kit-context) | `.claude/rules/*.md` — their paths are fitted to each project in Phase A.5 |',
     '| the kit: START-HERE, phases, standards, templates, schemas, packs and the `buaflow` CLI | `.claude/stack.json` — the hooks read it from the project |',

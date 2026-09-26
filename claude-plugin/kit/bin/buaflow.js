@@ -17,7 +17,7 @@ const { spawnSync } = require('node:child_process');
 const KIT_ROOT = path.resolve(__dirname, '..');
 const PACKAGE = JSON.parse(fs.readFileSync(path.join(KIT_ROOT, 'package.json'), 'utf8'));
 const EXIT = Object.freeze({ OK: 0, FAILED: 1, INPUT: 2, UNAVAILABLE: 3 });
-const COMMANDS = Object.freeze(['init', 'doctor', 'intake', 'assess', 'ci', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'assumptions', 'security', 'supply', 'operations', 'budgets', 'evals', 'changes', 'install', 'lock', 'resume', 'usage']);
+const COMMANDS = Object.freeze(['init', 'doctor', 'intake', 'assess', 'ci', 'benchmark', 'verify', 'readiness', 'audit', 'requirements', 'assumptions', 'security', 'supply', 'operations', 'budgets', 'evals', 'changes', 'install', 'upgrade', 'lock', 'resume', 'usage']);
 
 function usage() {
   return [
@@ -43,6 +43,7 @@ function usage() {
     '  evals         check eval cases and the runs that claim to have passed them',
     '  changes       check that each AI-config change names its evidence and was kept or rolled back on eval results (EV-006)',
     '  install       copy the gate, checkers and project seeds into .claude/ (--plugin, --write, --force)',
+  '  upgrade       one report for upgrading an installed project: its version, the route, files, manual steps (--plugin, --write, --force)',
   '  lock          record which kit version and files are installed, or report files changed since (--write)',
     '  resume        summarize persisted project state for any human or AI tool',
     '  usage         internal opt-in usage capture (EV-011): consent --enable|--disable, status,',
@@ -426,6 +427,24 @@ function commandInstall(root, options) {
   return out;
 }
 
+// PE-011: an upgrade decided from the project's files, so a session reads one report instead of UPGRADE.md.
+function commandUpgrade(root, options) {
+  const upgrade = require(path.join(KIT_ROOT, 'claude-setup', 'upgrade.js'));
+  const out = upgrade.run(root, { plugin: options.plugin, force: options.force, write: options.write === true });
+  const code = upgrade.exitCode(out);
+  const c = out.install?.counts;
+  const summary = out.state === 'upgrade'
+    ? `${out.installed.version || 'unknown version'} → ${out.kitVersion} by the ${out.route}: ${c.create} create, ${c.update} update, ${c.conflict} conflict, ${out.manual.length} manual step(s)${out.written ? '' : ' — dry run, add --write'}`
+    : out.state === 'current' ? `already at kit ${out.kitVersion}`
+      : out.state === 'plugin-behind' ? `installed from ${out.installed.version}, newer than this kit ${out.kitVersion}`
+        : 'Buaflow is not installed here';
+  const errors = (out.install?.conflicts || []).map((x) => `conflict: ${x.file} — ${x.reason}; merge it by hand or re-run with --force to take the kit's version`);
+  if (out.refused) errors.push(`refused to write: ${out.next.join(' ')}`);
+  const result = envelope('upgrade', code === 0 ? EXIT.OK : code === 2 ? EXIT.INPUT : EXIT.FAILED, summary, { result: out }, out.install?.warnings || [], errors);
+  Object.defineProperty(result, 'text', { value: upgrade.text(out), enumerable: false });
+  return result;
+}
+
 // EV-011: in-process so the hook and the CLI share one implementation.
 function commandUsage(root, options) {
   const result = require(path.join(KIT_ROOT, 'claude-setup', 'usage.js')).runCommand(root, options.args);
@@ -493,6 +512,7 @@ function main(argv = process.argv.slice(2)) {
       : command === 'resume' ? commandResume(options.root)
         : command === 'lock' ? commandLock(options.root, options)
         : command === 'install' ? commandInstall(options.root, options)
+        : command === 'upgrade' ? commandUpgrade(options.root, options)
         : command === 'assess' ? commandAssess(options.root, options)
           : command === 'intake' ? commandIntake(options.root, options)
           : command === 'benchmark' ? commandBenchmark(options.root)
@@ -505,4 +525,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { COMMANDS, EXIT, commandInstall, commandLock, commandAssess, commandIntake, commandBenchmark, commandCi, commandDoctor, commandInit, commandResume, commandUsage, main, parse };
+module.exports = { COMMANDS, EXIT, commandInstall, commandLock, commandAssess, commandIntake, commandBenchmark, commandCi, commandDoctor, commandInit, commandResume, commandUpgrade, commandUsage, main, parse };

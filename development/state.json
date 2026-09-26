@@ -2227,6 +2227,51 @@
       ],
       "notes": "Opened 2026-09-26 from the owner: tasks split by /spec change the same files, each goes on its own branch, and the PRs conflict on merge often. The cause is the kit, not the model: /spec marks [P] on tasks whose order can be swapped, never asking which files they change; depends_on only records logical order; the task template has a files-to-touch section nothing reads; /task is told never to look at other WIP; and nothing brings main into a branch before the end. Released as kit 3.17.0 on 2026-09-26 (MINOR; touches: is an optional key and docs-lint 11 only warns, so compatibility reads are unchanged). Merge, not rebase, because /task pushes the branch as a draft PR at claim time and guard-bash only blocks a merge made while on main. Globs in touches: are cut to their static prefix, so the warning can over-report but does not miss a real overlap.",
       "completedAt": "2026-09-26"
+    },
+    {
+      "id": "PE-011",
+      "title": "Upgrading is one command and one report, from any earlier version, without the kit being a git checkout",
+      "milestone": "M9",
+      "status": "done",
+      "startedAt": "2026-09-26",
+      "completedAt": "2026-09-26",
+      "dependsOn": [
+        "PE-002",
+        "PE-008",
+        "PE-009"
+      ],
+      "acceptance": [
+        "A project installed before the lock existed, upgraded from the plugin's kit (not a git checkout), sees an old kit file as an update from the release it shipped in, not as a conflict; only files no kit release ever shipped are conflicts",
+        "buaflow upgrade answers from the project's files alone: the installed version (lock, else the newest release any installed file matches, else the signal table), fast path or stepwise with the UPGRADE.md section to start from, what each file becomes, and the manual steps whose condition the project meets, each naming its UPGRADE.md section",
+        "With --plugin the report sorts .claude/skills, agents and hooks into kit copies the plugin replaces, kit files the team changed, and the team's own files",
+        "--write only does what install does; it refuses when the project was installed from a newer kit",
+        "/buaflow:start opens or resumes a project without reading UPGRADE.md or START-HERE.md section 2.1, and points a project that is behind at /buaflow:upgrade; /buaflow:upgrade works from the report and reads only the UPGRADE.md sections it names",
+        "A team's own skill in .claude/skills/ is not taken for a Buaflow install by the session hook or by upgrade"
+      ],
+      "artifacts": [
+        "scripts/generate-kit-history.js",
+        "claude-setup/kit-history.json",
+        "claude-setup/kit-lock.js",
+        "claude-setup/install.js",
+        "claude-setup/upgrade.js",
+        "bin/buaflow.js",
+        "plugin-src/skills/upgrade/SKILL.md",
+        "plugin-src/skills/start/SKILL.md",
+        "plugin-src/hooks/kit-context.js",
+        "scripts/check-repository.js",
+        "claude-setup/tests/upgrade.test.js",
+        "claude-setup/tests/install.test.js",
+        "claude-setup/tests/claude-plugin.test.js",
+        "UPGRADE.md",
+        "CLI.md",
+        "QUICKSTART.md"
+      ],
+      "verification": [
+        "npm run check",
+        "node --test claude-setup/tests/upgrade.test.js",
+        "node scripts/generate-kit-history.js --check"
+      ],
+      "notes": "Opened 2026-09-26 from the owner: /buaflow:start was slow and token-heavy, and it was also how a project is opened. The upgrade path read UPGRADE.md (1006 lines) and the START-HERE.md signal table, then checked each condition of the fast path by hand. Checking whether it was right for a project on an older version found a real defect: shippedEarlier() asked git log in the kit folder, and the plugin's kit lives in ~/.claude/plugins/cache/, which is not a git checkout, so a project installed before 3.11 (no lock) saw every old kit file as a conflict. Reproduced on a project copied from the 3.9.0 kit: 10 conflicts without the manifest, 0 with it, version detected as 3.9.0 from the files. kit-history.json is built from this repository's history (49 files, 185 contents, 18 KB) and is append-only, so a shallow CI checkout only has to prove the current content of each file is recorded. Version labels are the kit version current when a content was first committed: a file first seen at X shipped in X or in the release after it, which errs toward the stepwise route, never away from it. Also found: the session hook treated any .claude/skills/ as a Buaflow install, so this repository (whose only skill is /learn) was told it had Buaflow from a kit older than 3.11; only a skill the kit ships counts now. Decided, not asked: /buaflow:start no longer upgrades, it says one line and resumes, because the older gate keeps working until the upgrade; upgrade --write deletes nothing and leaves settings hooks to the person."
     }
   ],
   "decisions": [
@@ -2443,8 +2488,8 @@
   ],
   "lastSession": {
     "date": "2026-09-26",
-    "summary": "docs-lint multi-file refs fixed (PR #25, merged): refExists() splits `a, b` and `[a, b]`, FAIL names only the missing file, a multi-folder spec: is checked for markers and a multi-file plan: for Proof. Found in trendy, whose local patch the 3.17.0 upgrade overwrote with 0 conflict because an earlier lock sync had recorded the patched file as the baseline. Released as kit 3.17.1 (PATCH).",
-    "next": "Owner merges the release PR, then runs node scripts/publish-plugin.js so 3.17.1 reaches the plugin cache. Open an intent for the installer: a lock sync taken to accept Prettier drift on .claude/*.js also records real local edits, and the next install overwrites them silently.",
+    "summary": "PE-011 on feat/PE-011-upgrade-command: buaflow upgrade (one report), /buaflow:upgrade (plugin skill), /buaflow:start no longer upgrades, and claude-setup/kit-history.json so a project with no lock upgraded from the plugin cache stops seeing old kit files as conflicts. Not released yet.",
+    "next": "Owner reviews and merges PE-011, then releases it (MINOR: new command and skill, nothing in a project to change) and publishes the plugin. Still open from before: an intent for the installer — a lock sync taken to accept Prettier drift on .claude/*.js also records real local edits, and the next install overwrites them silently.",
     "verifiedAt": "2026-09-26T11:05:31.196Z"
   }
 }

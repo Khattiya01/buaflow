@@ -80,6 +80,9 @@ run('release compatibility matrix', process.execPath, [path.join(root, 'scripts'
 run('workflow rules (core → Claude adapter)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-rules.js'), '--check']);
 run('workflow skills (core → Claude adapter)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-skills.js'), '--check']);
 run('workflow manual playbooks (core → any tool, MT-007)', process.execPath, [path.join(root, 'scripts', 'generate-workflow-manual.js'), '--check']);
+// PE-011 — install tells an old kit file from a project's change by this manifest when there is no
+// lock and no git history to ask (the plugin cache): every file the kit installs today must be in it.
+run('kit history of installed files (PE-011)', process.execPath, [path.join(root, 'scripts', 'generate-kit-history.js'), '--check']);
 run('Claude Code plugin and marketplace (PE-001/006/007)', process.execPath, [path.join(root, 'scripts', 'generate-claude-plugin.js'), '--check']);
 run('plugin conformance and trust tier (PE-005/006)', process.execPath, [path.join(root, 'scripts', 'check-plugin.js'), path.join(root, 'claude-plugin'), '--no-validate']);
 // PE-010 — the marketplace is published from here, so what would be published is checked from here:

@@ -29,7 +29,7 @@ const { sha, shippedEarlier, writeLock } = require('./kit-lock.js');
 const KIT = path.resolve(__dirname, '..');
 const PACKAGE = JSON.parse(fs.readFileSync(path.join(KIT, 'package.json'), 'utf8'));
 // Scripts that run from the kit itself and never belong in a project.
-const KIT_ONLY = new Set(['assess.js', 'benchmark.js', 'install.js', 'intake.js', 'kit-lock.js', 'local-ci.js', 'usage-report.js']);
+const KIT_ONLY = new Set(['assess.js', 'benchmark.js', 'install.js', 'intake.js', 'kit-lock.js', 'local-ci.js', 'upgrade.js', 'usage-report.js']);
 const PLUGIN_ID = 'buaflow@buaflow';
 // The kit's scripts are CommonJS. Node picks the module type from the nearest package.json, so in a
 // project whose own package.json says "type": "module" every .claude/*.js (and the plugin's hooks)
@@ -165,4 +165,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { COMMONJS_PACKAGE, KIT_ONLY, main, plan };
+module.exports = { COMMONJS_PACKAGE, KIT_ONLY, apply, main, plan };

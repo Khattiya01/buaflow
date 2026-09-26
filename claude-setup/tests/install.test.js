@@ -205,6 +205,10 @@ test('the plugin session hook tells a session where the kit is and what state th
     assert.match(context(), /Buaflow kit \d+\.\d+\.\d+ \(from the buaflow plugin\) is at: /);
     assert.ok(context().includes(kit), 'the path is the kit folder next to hooks/');
     assert.match(context(), /has not started Buaflow\. \/buaflow:start begins it/);
+    // PE-011: a team keeps its own skills in .claude/skills/ too; only a skill the kit ships means the kit was copied in.
+    write(path.join(root, '.claude', 'skills', 'our-own', 'SKILL.md'), '---\nname: our-own\n---\n');
+    assert.match(context(), /has not started Buaflow/, 'a team skill alone is not an install');
+    fs.rmSync(path.join(root, '.claude'), { recursive: true });
     write(path.join(root, 'docs', 'planning', '_state.md'), '# state\n');
     assert.match(context(), /gate and checkers are not installed yet .* install --plugin --write/);
     run(root, '--plugin', '--write');
@@ -231,13 +235,13 @@ test('the plugin session hook tells the user, not only the model, when the proje
     const setLock = (v) => write(path.join(root, '.buaflow', 'lock.json'), JSON.stringify({ ...json(root, '.buaflow/lock.json'), kitVersion: v }));
 
     setLock('3.0.0');
-    assert.match(out().systemMessage, new RegExp(`plugin เป็น ${version.replace(/\./g, '\\.')} แล้ว แต่ gate และตัวตรวจในโปรเจกต์นี้ยังเป็น 3\\.0\\.0 → พิมพ์ /buaflow:start`));
+    assert.match(out().systemMessage, new RegExp(`plugin เป็น ${version.replace(/\./g, '\\.')} แล้ว แต่ gate และตัวตรวจในโปรเจกต์นี้ยังเป็น 3\\.0\\.0 → พิมพ์ /buaflow:upgrade`));
 
     setLock('99.0.0');
     const ahead = out();
     assert.match(ahead.systemMessage, /plugin ของคุณ .* เก่ากว่าที่โปรเจกต์นี้ติดตั้งไว้ \(99\.0\.0\) → รัน claude plugin marketplace update buaflow .*Enable auto-update/);
     assert.match(ahead.hookSpecificOutput.additionalContext, /newer than this plugin/);
-    assert.doesNotMatch(ahead.hookSpecificOutput.additionalContext, /\/buaflow:start upgrades/, 'an older plugin must not offer to install over newer files');
+    assert.doesNotMatch(ahead.hookSpecificOutput.additionalContext, /\/buaflow:upgrade upgrades/, 'an older plugin must not offer to install over newer files');
 
     fs.rmSync(path.join(root, '.buaflow', 'lock.json'));
     assert.match(out().systemMessage, /เก่ากว่า 3\.11/);
