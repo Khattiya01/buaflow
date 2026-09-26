@@ -2443,8 +2443,8 @@
   ],
   "lastSession": {
     "date": "2026-09-26",
-    "summary": "BC-008 done and released as kit 3.17.0 in one PR with two commits (the feature, then the release). touches: in tasks, /spec splits on file overlap, /plan syncs touches:, /task checks open PRs before the claim, /check and /done merge origin/main first, /done names overlapping PRs after a merge, docs-lint 11 warns, hot-spot table in standards/commit-and-branch.md. Suite 513/513, npm run check PASS.",
-    "next": "Owner merges the PR, then runs node scripts/publish-plugin.js so 3.17.0 reaches the plugin cache the projects load. Watch the next spec split in a real project: does docs-lint 11 flag the pairs that used to conflict, and does /task catch an overlap with an open PR?",
-    "verifiedAt": "2026-09-26T08:18:08.628Z"
+    "summary": "docs-lint multi-file refs fixed (PR #25, merged): refExists() splits `a, b` and `[a, b]`, FAIL names only the missing file, a multi-folder spec: is checked for markers and a multi-file plan: for Proof. Found in trendy, whose local patch the 3.17.0 upgrade overwrote with 0 conflict because an earlier lock sync had recorded the patched file as the baseline. Released as kit 3.17.1 (PATCH).",
+    "next": "Owner merges the release PR, then runs node scripts/publish-plugin.js so 3.17.1 reaches the plugin cache. Open an intent for the installer: a lock sync taken to accept Prettier drift on .claude/*.js also records real local edits, and the next install overwrites them silently.",
+    "verifiedAt": "2026-09-26T11:05:31.196Z"
   }
 }
