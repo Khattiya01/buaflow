@@ -4,6 +4,72 @@
   "_": "Support matrix ของ kit (EV-007) · newest release อยู่บนสุดเสมอ · scripts/check-compatibility.js บังคับให้ตรงกับ package.json และ schemas/registry.json · อธิบายที่ standards/release-policy.md",
   "releases": [
     {
+      "version": "3.17.1",
+      "releasedAt": "2026-09-26",
+      "change": "patch",
+      "summary": "docs-lint accepts a task whose intent:, spec: or plan: names several files, as `a, b` or `[a, b]`, and fails only when one of them is missing, naming just that one. Before, the whole value was checked as a single path, so a task that grew out of two intents failed the gate although both files existed; a multi-folder spec: skipped the [NEEDS CLARIFICATION] check and a multi-file plan: crashed docs-lint. No schema changes and no project file has to change by hand.",
+      "reads": {
+        "stack-config": [
+          "1.0"
+        ],
+        "readiness-manifest": [
+          "1.0"
+        ],
+        "prototype-flow": [
+          "1.0"
+        ],
+        "pixel-config": [
+          "1.0"
+        ],
+        "project-manifest": [
+          "1.0"
+        ],
+        "product-graph": [
+          "1.0"
+        ],
+        "application-profile": [
+          "1.0",
+          "1.1"
+        ],
+        "pack": [
+          "2.0"
+        ],
+        "evidence-bundle": [
+          "1.0"
+        ],
+        "failure-record": [
+          "1.0"
+        ],
+        "requirement-coverage": [
+          "1.0"
+        ],
+        "security-baseline": [
+          "1.0"
+        ],
+        "supply-chain": [
+          "1.0"
+        ],
+        "operational-readiness": [
+          "1.0"
+        ],
+        "budget-evidence": [
+          "1.0"
+        ],
+        "eval-case": [
+          "1.0"
+        ],
+        "eval-run": [
+          "1.0"
+        ],
+        "assumption-ledger": [
+          "1.0"
+        ],
+        "change-proposal": [
+          "1.0"
+        ]
+      }
+    },
+    {
       "version": "3.17.0",
       "releasedAt": "2026-09-26",
       "change": "minor",
