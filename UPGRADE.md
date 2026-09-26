@@ -81,7 +81,7 @@ dry run — ไม่เขียนอะไร · บอกทุกไฟล�
 | `create` | ยังไม่มีในโปรเจกต์ (ของที่รุ่นใหม่เพิ่มเข้ามา) |
 | `update` | เป็นไฟล์ของ kit รุ่นเก่า — ตรงกับ `.buaflow/lock.json` หรือหาเจอในประวัติ git ของ kit → ทับได้ปลอดภัย |
 | `unchanged` / `kept` | ตรงแล้ว · หรือเป็นของโปรเจกต์ที่ kit แค่ seed ให้ (`stack.json`, `rules/`, `settings.json`, `docs/templates/`) ซึ่งไม่ถูกแตะ |
-| **`conflict`** | ไม่เคยเป็นไฟล์ของ kit รุ่นไหน = **ทีมแก้เอง** → ไม่ถูกทับ |
+| **`conflict`** | ไม่เคยเป็นไฟล์ของ kit รุ่นไหน = **ทีมแก้เอง** → ไม่ถูกทับ · reason `accepted into the lock` = lock เคยรับไว้ (มักหลัง Prettier จัด format) → ดู diff ทีละไฟล์ ต่างแค่ format ให้ `--force` ได้ |
 
 > ถ้า `buaflow/` ไม่ใช่ git checkout และโปรเจกต์ยังไม่มี lock ไฟล์เก่าของ kit จะขึ้น `conflict` ด้วย —
 > ดูว่าไฟล์ไหนทีมแก้จริงด้วย `git log --oneline -- .claude/<ไฟล์>` ของโปรเจกต์

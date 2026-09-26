@@ -116,20 +116,70 @@ test('a control the project changed is a conflict and is kept, unless --force', 
   }
 });
 
-test('a control still as it was installed is an old kit file and is updated', () => {
+// PE-012: trendy re-locked to accept prettier's rewrite, a local docs-lint.js patch went into the lock with it,
+// and the next install overwrote the patch without a conflict. The lock says what was on disk, not whose it is.
+test('content accepted into the lock that no kit release shipped is a conflict, not a silent update', () => {
   const root = temporaryProject('buaflow-install-');
   try {
     run(root, '--plugin', '--write');
-    // Simulate an older kit: the file differs from today's kit but matches what the lock recorded.
     const file = path.join(root, '.claude', 'verify.js');
-    fs.writeFileSync(file, '// verify.js from an older kit\n');
+    fs.writeFileSync(file, '// verify.js reformatted, or patched, and then re-locked\n');
     const lock = json(root, '.buaflow/lock.json');
     lock.files['.claude/verify.js'] = require(path.join(repositoryRoot, 'claude-setup', 'kit-lock.js')).sha(file);
     write(path.join(root, '.buaflow', 'lock.json'), JSON.stringify(lock));
-    const { report } = run(root, '--plugin');
+    const { status, report } = run(root, '--plugin');
     const entry = report.entries.find((e) => e.file === '.claude/verify.js');
-    assert.equal(entry.action, 'update');
-    assert.match(entry.reason, /unchanged since installed/);
+    assert.equal(status, 1);
+    assert.equal(entry.action, 'conflict');
+    assert.match(entry.reason, /accepted into the lock at .*no kit release shipped this content.*--force/);
+    assert.equal(run(root, '--plugin', '--force').report.entries.find((e) => e.file === '.claude/verify.js').action, 'update');
+  } finally {
+    cleanup(root);
+  }
+});
+
+// PE-012: lint-staged ran prettier on .claude/*.js at every commit, so the kit's files never matched the lock again.
+test('a project with prettier gets the kit\'s files in .prettierignore, once, and one without prettier gets nothing', () => {
+  const root = temporaryProject('buaflow-install-');
+  try {
+    run(root, '--plugin', '--write');
+    assert.ok(!has(root, '.prettierignore'), 'no prettier, no file');
+
+    write(path.join(root, '.prettierrc.json'), '{}\n');
+    write(path.join(root, '.prettierignore'), 'dist/');
+    const dry = run(root, '--plugin').report.entries.find((e) => e.file === '.prettierignore');
+    assert.equal(dry.action, 'update');
+    run(root, '--plugin', '--write');
+    const text = fs.readFileSync(path.join(root, '.prettierignore'), 'utf8');
+    assert.match(text, /^dist\/\n\n# Buaflow kit files.*\n\.claude\/\*\.js\n\.claude\/control-sets\/\n$/, 'appended after what the project had, without the .claude-mode folders');
+    assert.equal(run(root, '--plugin').report.entries.find((e) => e.file === '.prettierignore'), undefined, 'a second run adds nothing');
+
+    const other = temporaryProject('buaflow-install-');
+    try {
+      write(path.join(other, 'package.json'), JSON.stringify({ devDependencies: { prettier: '^3' } }));
+      write(path.join(other, '.prettierignore'), '.claude/\n');
+      assert.equal(run(other, '--write').report.entries.find((e) => e.file === '.prettierignore'), undefined, 'ignoring all of .claude/ already covers it');
+      fs.rmSync(path.join(other, '.prettierignore'));
+      run(other, '--write');
+      assert.match(fs.readFileSync(path.join(other, '.prettierignore'), 'utf8'), /\.claude\/skills\//, '.claude mode also keeps prettier off skills, agents and hooks');
+    } finally {
+      cleanup(other);
+    }
+  } finally {
+    cleanup(root);
+  }
+});
+
+test('doctor names a formatter that will rewrite the kit\'s files', () => {
+  const root = temporaryProject('buaflow-install-');
+  try {
+    run(root, '--plugin', '--write');
+    const doctor = () => JSON.parse(runNode(cli, { args: ['doctor', '--root', root, '--json'] }).stdout).data.checks.find((c) => c.name === 'formatter');
+    assert.equal(doctor(), undefined);
+    write(path.join(root, '.prettierrc'), '{}\n');
+    assert.match(doctor().detail, /\.prettierignore does not cover \.claude\/\*\.js, \.claude\/control-sets\//);
+    run(root, '--plugin', '--write');
+    assert.equal(doctor(), undefined);
   } finally {
     cleanup(root);
   }

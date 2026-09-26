@@ -178,6 +178,8 @@ function report(root, options = {}) {
       creates: plan.entries.filter((e) => e.action === 'create').map((e) => e.file),
       warnings: plan.warnings,
     },
+    // PE-012: written by --write with the rest; said out loud because it is a file of the project's own.
+    formatter: plan.entries.filter((e) => e.kind === 'ignore').map(({ file, action, reason }) => ({ file, action, reason }))[0] || null,
     manual,
     ...(migration ? { migration } : {}),
     _plan: plan,
@@ -206,6 +208,7 @@ function text(out) {
   lines.push(`  files: ${c.create} create, ${c.update} update, ${c.unchanged} unchanged, ${c.keep} kept, ${c.conflict} conflict`);
   for (const x of out.install.conflicts) lines.push(`  conflict ${x.file}  (${x.reason})`);
   for (const w of out.install.warnings) lines.push(`  warn     ${w}`);
+  if (out.formatter) lines.push(`  ${out.formatter.action.padEnd(8)} ${out.formatter.file}  (${out.formatter.reason})`);
   for (const m of out.manual) lines.push(`  manual   ${m.id}${m.required ? '' : ' (optional)'}: ${m.what} — ${m.files.join(', ')} · UPGRADE.md "${m.read}"`);
   if (out.migration) {
     const m = out.migration;

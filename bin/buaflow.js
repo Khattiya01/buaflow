@@ -232,8 +232,11 @@ function commandDoctor(root, options) {
     let report = null;
     try { report = JSON.parse(lock.stdout); } catch { /* no report */ }
     if (!report || report.error) warning('kit-lock', 'no .buaflow/lock.json — run buaflow lock --write so later upgrades can tell your changes from the kit\'s');
-    else if (report.counts.drifted) warning('kit-lock', `${report.counts.drifted} installed file(s) changed since the lock without being accepted — run buaflow lock`);
+    else if (report.counts.drifted) warning('kit-lock', `${report.counts.drifted} installed file(s) changed since the lock without being accepted — buaflow lock lists them; lock --write only for changes somebody meant, never to silence a formatter`);
     else pass('kit-lock', `locked at ${report.lockedVersion}: ${report.counts.outdated} outdated, ${report.counts.customized} customized`);
+    // PE-012: a formatter on every commit rewrites the kit's files, so the lock drifts forever.
+    const ignore = require(path.join(KIT_ROOT, 'claude-setup', 'install.js')).prettierIgnore(root, { plugin: pluginMode });
+    if (ignore.missing.length) warning('formatter', `prettier is set up here and .prettierignore does not cover ${ignore.missing.join(', ')} — a reformatted kit file no longer matches the lock; buaflow install --write adds them`);
   }
   if (fs.existsSync(path.join(root, 'docs', 'planning', '_state.md'))) pass('planning-state', 'docs/planning/_state.md found');
   else warning('planning-state', 'missing docs/planning/_state.md; start or resume the lifecycle before implementation');

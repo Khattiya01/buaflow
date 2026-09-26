@@ -35,6 +35,8 @@ In one message: the version found and the kit version, how many files are create
 
 - **`route: stepwise`** (older than 2.3.4): open `<KIT>/UPGRADE.md`, find the heading `## <stepwise.read>`, and do that section and each one after it up to `## v2.3.3 → v2.3.4`, reading one section at a time. Then run the report again.
 - **Each conflict** is a file the team changed, or one no kit release ever shipped. Show the difference with `git diff --no-index "<KIT>/claude-setup/<name>" .claude/<name>` (control sets live in `<KIT>/standards/control-sets/`). The user chooses: keep theirs and merge the kit's change in by hand after writing, or take the kit's with `--force`.
+- **A conflict whose reason says `accepted into the lock`** was accepted by an earlier `lock --write`, usually after a formatter such as Prettier rewrote the kit's files. Look at every diff. If a file differs only in formatting, taking the kit's version loses nothing. If any file holds a real change, say so, because that change would be lost.
+- **`formatter`** in the report means the project runs Prettier and `.prettierignore` does not yet keep it off the kit's files. `--write` adds the lines. Tell the user why: without them, the next commit reformats the files and the lock drifts again.
 
 ## 4. Write
 

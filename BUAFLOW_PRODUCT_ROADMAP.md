@@ -228,6 +228,7 @@ Independent Gates ──► Evidence Bundle ──► Readiness R0–R4
 | PE-009 | Plugin and project stay current | ✅ **done** (3.14.1) — hook ตอนเปิด session แจ้ง**ผู้ใช้**เมื่อ gate ในโปรเจกต์ตามหลัง plugin หรือ plugin ของคนนั้นเก่ากว่าที่โปรเจกต์ติดตั้ง · `/buaflow:start` ไม่ install จาก plugin ที่เก่ากว่า และบอกวิธีเปิด auto-update · ไม่เขียน `autoUpdate` ลง settings ของโปรเจกต์ เพราะเอกสาร Claude Code ระบุไว้เฉพาะ managed settings |
 | PE-008 | Plugin-first adoption | ✅ **done** (M9, D-027) — kit ทั้งชุดอยู่ใน plugin · `/buaflow:start` · `buaflow install` วาง gate ลงโปรเจกต์โดยไม่ทับไฟล์ที่ทีมแก้ · ไม่ต้อง clone `buaflow/` |
 | PE-011 | Upgrade in one command | ✅ **done** (3.18.0) — `buaflow upgrade` ตอบจากไฟล์ของโปรเจกต์: รุ่นที่ติดตั้ง · ทางลัดหรือทีละรุ่น · ไฟล์ที่จะเปลี่ยน · ขั้นที่ต้องลงมือเฉพาะข้อที่เข้าเงื่อนไข · สำเนา kit ที่ลบได้เมื่อย้ายมา plugin · `/buaflow:upgrade` แยกจาก `/buaflow:start` · `claude-setup/kit-history.json` ทำให้โปรเจกต์ที่ไม่มี lock อัปเกรดจาก plugin ได้โดยไม่ขึ้น conflict ปลอม |
+| PE-012 | Kit files stay verbatim | ✅ **done** — `install` ทับเงียบ ๆ เฉพาะเนื้อหาที่ kit เคยส่ง (lock ที่รับ format ของ Prettier ไม่พอ → conflict) · โปรเจกต์ที่ใช้ Prettier ได้ไฟล์ของ kit ใน `.prettierignore` · `doctor` เตือน · จาก trendy |
 
 ### Evaluation, Learning and Product Operations
 
