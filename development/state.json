@@ -2264,14 +2264,17 @@
         "claude-setup/tests/claude-plugin.test.js",
         "UPGRADE.md",
         "CLI.md",
-        "QUICKSTART.md"
+        "QUICKSTART.md",
+        "VERSION.md",
+        "schemas/compatibility.json"
       ],
       "verification": [
         "npm run check",
         "node --test claude-setup/tests/upgrade.test.js",
-        "node scripts/generate-kit-history.js --check"
+        "node scripts/generate-kit-history.js --check",
+        "node scripts/publish-plugin.js --dry-run"
       ],
-      "notes": "Opened 2026-09-26 from the owner: /buaflow:start was slow and token-heavy, and it was also how a project is opened. The upgrade path read UPGRADE.md (1006 lines) and the START-HERE.md signal table, then checked each condition of the fast path by hand. Checking whether it was right for a project on an older version found a real defect: shippedEarlier() asked git log in the kit folder, and the plugin's kit lives in ~/.claude/plugins/cache/, which is not a git checkout, so a project installed before 3.11 (no lock) saw every old kit file as a conflict. Reproduced on a project copied from the 3.9.0 kit: 10 conflicts without the manifest, 0 with it, version detected as 3.9.0 from the files. kit-history.json is built from this repository's history (49 files, 185 contents, 18 KB) and is append-only, so a shallow CI checkout only has to prove the current content of each file is recorded. Version labels are the kit version current when a content was first committed: a file first seen at X shipped in X or in the release after it, which errs toward the stepwise route, never away from it. Also found: the session hook treated any .claude/skills/ as a Buaflow install, so this repository (whose only skill is /learn) was told it had Buaflow from a kit older than 3.11; only a skill the kit ships counts now. Decided, not asked: /buaflow:start no longer upgrades, it says one line and resumes, because the older gate keeps working until the upgrade; upgrade --write deletes nothing and leaves settings hooks to the person."
+      "notes": "Opened 2026-09-26 from the owner: /buaflow:start was slow and token-heavy, and it was also how a project is opened. The upgrade path read UPGRADE.md (1006 lines) and the START-HERE.md signal table, then checked each condition of the fast path by hand. Checking whether it was right for a project on an older version found a real defect: shippedEarlier() asked git log in the kit folder, and the plugin's kit lives in ~/.claude/plugins/cache/, which is not a git checkout, so a project installed before 3.11 (no lock) saw every old kit file as a conflict. Reproduced on a project copied from the 3.9.0 kit: 10 conflicts without the manifest, 0 with it, version detected as 3.9.0 from the files. kit-history.json is built from this repository's history (49 files, 185 contents, 18 KB) and is append-only, so a shallow CI checkout only has to prove the current content of each file is recorded. Version labels are the kit version current when a content was first committed: a file first seen at X shipped in X or in the release after it, which errs toward the stepwise route, never away from it. Also found: the session hook treated any .claude/skills/ as a Buaflow install, so this repository (whose only skill is /learn) was told it had Buaflow from a kit older than 3.11; only a skill the kit ships counts now. Decided, not asked: /buaflow:start no longer upgrades, it says one line and resumes, because the older gate keeps working until the upgrade; upgrade --write deletes nothing and leaves settings hooks to the person. Released as kit 3.18.0 on 2026-09-26 (MINOR: a new command and skill, nothing in a project to change; compatibility reads are unchanged)."
     }
   ],
   "decisions": [
@@ -2488,8 +2491,8 @@
   ],
   "lastSession": {
     "date": "2026-09-26",
-    "summary": "PE-011 on feat/PE-011-upgrade-command: buaflow upgrade (one report), /buaflow:upgrade (plugin skill), /buaflow:start no longer upgrades, and claude-setup/kit-history.json so a project with no lock upgraded from the plugin cache stops seeing old kit files as conflicts. Not released yet.",
-    "next": "Owner reviews and merges PE-011, then releases it (MINOR: new command and skill, nothing in a project to change) and publishes the plugin. Still open from before: an intent for the installer — a lock sync taken to accept Prettier drift on .claude/*.js also records real local edits, and the next install overwrites them silently.",
+    "summary": "PE-011 merged (PR #27): buaflow upgrade, /buaflow:upgrade, /buaflow:start no longer upgrades, claude-setup/kit-history.json ends false conflicts for no-lock projects upgraded from the plugin cache. Released as kit 3.18.0 (MINOR).",
+    "next": "Owner merges the release PR, then runs node scripts/publish-plugin.js so 3.18.0 reaches the plugin cache, and updates the local plugin (still 3.13.1). Watch the first real /buaflow:upgrade on a project behind the plugin: tokens and time versus the old /buaflow:start path. Still open: an intent for the installer — a lock sync taken to accept Prettier drift on .claude/*.js also records real local edits, and the next install overwrites them silently.",
     "verifiedAt": "2026-09-26T11:05:31.196Z"
   }
 }

@@ -4,6 +4,72 @@
   "_": "Support matrix ของ kit (EV-007) · newest release อยู่บนสุดเสมอ · scripts/check-compatibility.js บังคับให้ตรงกับ package.json และ schemas/registry.json · อธิบายที่ standards/release-policy.md",
   "releases": [
     {
+      "version": "3.18.0",
+      "releasedAt": "2026-09-26",
+      "change": "minor",
+      "summary": "Upgrading is one command and one report: buaflow upgrade decides from the project's files the installed version, the route, what each file becomes, the manual steps that apply and which .claude/ copies the plugin replaces, and /buaflow:upgrade works from it while /buaflow:start only starts and resumes. claude-setup/kit-history.json ships every content the kit ever installed, so a project with no lock upgraded from the plugin cache (not a git checkout) no longer sees old kit files as conflicts. No schema changes and no project file has to change by hand.",
+      "reads": {
+        "stack-config": [
+          "1.0"
+        ],
+        "readiness-manifest": [
+          "1.0"
+        ],
+        "prototype-flow": [
+          "1.0"
+        ],
+        "pixel-config": [
+          "1.0"
+        ],
+        "project-manifest": [
+          "1.0"
+        ],
+        "product-graph": [
+          "1.0"
+        ],
+        "application-profile": [
+          "1.0",
+          "1.1"
+        ],
+        "pack": [
+          "2.0"
+        ],
+        "evidence-bundle": [
+          "1.0"
+        ],
+        "failure-record": [
+          "1.0"
+        ],
+        "requirement-coverage": [
+          "1.0"
+        ],
+        "security-baseline": [
+          "1.0"
+        ],
+        "supply-chain": [
+          "1.0"
+        ],
+        "operational-readiness": [
+          "1.0"
+        ],
+        "budget-evidence": [
+          "1.0"
+        ],
+        "eval-case": [
+          "1.0"
+        ],
+        "eval-run": [
+          "1.0"
+        ],
+        "assumption-ledger": [
+          "1.0"
+        ],
+        "change-proposal": [
+          "1.0"
+        ]
+      }
+    },
+    {
       "version": "3.17.1",
       "releasedAt": "2026-09-26",
       "change": "patch",
