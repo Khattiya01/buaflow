@@ -5,9 +5,7 @@
   "updatedAt": "2026-09-26",
   "current": {
     "milestone": "M5",
-    "focus": [
-      "BC-008"
-    ]
+    "focus": []
   },
   "workItems": [
     {
@@ -2191,7 +2189,7 @@
       "id": "BC-008",
       "title": "Tasks split for parallel work stop colliding on the same files",
       "milestone": "M5",
-      "status": "in_progress",
+      "status": "done",
       "startedAt": "2026-09-26",
       "dependsOn": [
         "BC-007",
@@ -2217,13 +2215,18 @@
         "claude-setup/docs-lint.js",
         "claude-setup/tests/docs-lint.test.js",
         "standards/commit-and-branch.md",
-        "phases/05-backlog-and-roadmap.md"
+        "phases/05-backlog-and-roadmap.md",
+        "VERSION.md",
+        "UPGRADE.md",
+        "schemas/compatibility.json"
       ],
       "verification": [
         "npm run check",
-        "node --test claude-setup/tests/docs-lint.test.js"
+        "node --test claude-setup/tests/docs-lint.test.js",
+        "node scripts/publish-plugin.js --dry-run"
       ],
-      "notes": "Opened 2026-09-26 from the owner: tasks split by /spec change the same files, each goes on its own branch, and the PRs conflict on merge often. The cause is the kit, not the model: /spec marks [P] on tasks whose order can be swapped, never asking which files they change; depends_on only records logical order; the task template has a files-to-touch section nothing reads; /task is told never to look at other WIP; and nothing brings main into a branch before the end."
+      "notes": "Opened 2026-09-26 from the owner: tasks split by /spec change the same files, each goes on its own branch, and the PRs conflict on merge often. The cause is the kit, not the model: /spec marks [P] on tasks whose order can be swapped, never asking which files they change; depends_on only records logical order; the task template has a files-to-touch section nothing reads; /task is told never to look at other WIP; and nothing brings main into a branch before the end. Released as kit 3.17.0 on 2026-09-26 (MINOR; touches: is an optional key and docs-lint 11 only warns, so compatibility reads are unchanged). Merge, not rebase, because /task pushes the branch as a draft PR at claim time and guard-bash only blocks a merge made while on main. Globs in touches: are cut to their static prefix, so the warning can over-report but does not miss a real overlap.",
+      "completedAt": "2026-09-26"
     }
   ],
   "decisions": [
@@ -2440,8 +2443,8 @@
   ],
   "lastSession": {
     "date": "2026-09-26",
-    "summary": "BC-008 opened (D-030) and built on branch feat/BC-008-parallel-file-overlap, not yet committed: touches: in the task template, /spec splits on file overlap, /plan syncs touches:, /task compares with open PRs before the claim, /check and /done merge origin/main before review and before ready, /done names overlapping open PRs after a merge, docs-lint warning 11, hot-spot table in standards/commit-and-branch.md. Suite 513/513, npm run check PASS.",
-    "next": "Owner reviews the diff; then commit, open the PR, and release as a MINOR (new optional frontmatter key and a new docs-lint warning). Mark BC-008 done with completedAt once merged.",
-    "verifiedAt": "2026-09-26T04:56:51.512Z"
+    "summary": "BC-008 done and released as kit 3.17.0 in one PR with two commits (the feature, then the release). touches: in tasks, /spec splits on file overlap, /plan syncs touches:, /task checks open PRs before the claim, /check and /done merge origin/main first, /done names overlapping PRs after a merge, docs-lint 11 warns, hot-spot table in standards/commit-and-branch.md. Suite 513/513, npm run check PASS.",
+    "next": "Owner merges the PR, then runs node scripts/publish-plugin.js so 3.17.0 reaches the plugin cache the projects load. Watch the next spec split in a real project: does docs-lint 11 flag the pairs that used to conflict, and does /task catch an overlap with an open PR?",
+    "verifiedAt": "2026-09-26T08:18:08.628Z"
   }
 }
