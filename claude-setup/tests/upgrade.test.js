@@ -201,3 +201,21 @@ test('buaflow upgrade wraps the report in the CLI envelope', () => {
     cleanup(root);
   }
 });
+
+test('the report says when .prettierignore will gain the kit\'s files, and --write adds them', () => {
+  const kit = kitCopy();
+  const root = temporaryProject('buaflow-upgrade-');
+  try {
+    write(path.join(root, '.claude', 'gate.js'), '// x\n');
+    write(path.join(root, '.prettierrc.json'), '{}\n');
+    const { out } = upgrade(kit, root, '--plugin');
+    assert.equal(out.formatter.file, '.prettierignore');
+    assert.equal(out.formatter.action, 'create');
+    upgrade(kit, root, '--plugin', '--write', '--force');
+    assert.match(fs.readFileSync(path.join(root, '.prettierignore'), 'utf8'), /\.claude\/\*\.js/);
+    assert.equal(upgrade(kit, root, '--plugin').out.formatter, null);
+  } finally {
+    cleanup(root);
+    cleanup(kit);
+  }
+});

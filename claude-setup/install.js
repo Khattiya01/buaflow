@@ -24,7 +24,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { sha, shippedEarlier, writeLock } = require('./kit-lock.js');
+const { kitHistory, sha, shippedEarlier, writeLock } = require('./kit-lock.js');
 
 const KIT = path.resolve(__dirname, '..');
 const PACKAGE = JSON.parse(fs.readFileSync(path.join(KIT, 'package.json'), 'utf8'));
@@ -68,9 +68,16 @@ function plan(root, options = {}) {
     if (!fs.existsSync(to)) return entries.push({ kind: 'control', from, to, file: target, action: 'create' });
     const now = sha(to);
     if (now === sha(from)) return entries.push({ kind: 'control', from, to, file: target, action: 'unchanged' });
-    if (lock?.files?.[target] === now) return entries.push({ kind: 'control', from, to, file: target, action: 'update', reason: `unchanged since installed at ${lock.kitVersion}` });
     const shippedIn = shippedEarlier(from, now);
     if (shippedIn) return entries.push({ kind: 'control', from, to, file: target, action: 'update', reason: `kit file from ${shippedIn}` });
+    // PE-012: a lock records whatever was on disk when it was written. `lock --write` taken to accept a
+    // formatter's rewrite also accepts any real edit made alongside it, and trusting the lock alone let the
+    // next install overwrite that edit with no conflict (trendy lost a docs-lint.js patch this way). With
+    // the kit's history at hand, only content some kit release shipped is overwritten without asking.
+    if (lock?.files?.[target] === now) {
+      if (!kitHistory()) return entries.push({ kind: 'control', from, to, file: target, action: 'update', reason: `unchanged since installed at ${lock.kitVersion}` });
+      return entries.push({ kind: 'control', from, to, file: target, action: options.force ? 'update' : 'conflict', reason: `accepted into the lock at ${lock.kitVersion}, but no kit release shipped this content — reformatted or edited here; if the difference is formatting only, take the kit's with --force` });
+    }
     return entries.push({ kind: 'control', from, to, file: target, action: options.force ? 'update' : 'conflict', reason: 'changed by the project — not part of any kit release' });
   };
   const seed = (from, to, content) => {
@@ -95,6 +102,9 @@ function plan(root, options = {}) {
   if (!fs.existsSync(path.join(claude, 'rules'))) for (const file of walk(path.join(setup, 'rules'))) seed(file, path.join(claude, 'rules', path.basename(file)));
   for (const file of walk(path.join(KIT, 'templates')).filter((f) => /\.tpl\.(md|json)$/.test(f))) seed(file, path.join(root, 'docs', 'templates', path.basename(file)));
 
+  const ignore = prettierIgnore(root, options);
+  if (ignore.missing.length) entries.push({ kind: 'ignore', to: ignore.file, file: rel(ignore.file), content: ignore.content, action: fs.existsSync(ignore.file) ? 'update' : 'create', reason: 'keep prettier off the kit\'s files: a reformatted file no longer matches its lock hash' });
+
   const settingsFile = path.join(claude, 'settings.json');
   const warnings = [];
   if (!fs.existsSync(settingsFile)) {
@@ -113,6 +123,36 @@ function plan(root, options = {}) {
     }
   }
   return { kitVersion: PACKAGE.version, plugin: !!options.plugin, entries, warnings };
+}
+
+// PE-012: a project whose formatter runs on every commit (lint-staged) rewrites the kit's files, so they never
+// match .buaflow/lock.json again: every upgrade sees drift, and re-locking to accept it hides real edits.
+const PRETTIER_CONFIGS = ['.prettierrc', '.prettierrc.json', '.prettierrc.json5', '.prettierrc.yaml', '.prettierrc.yml', '.prettierrc.toml',
+  '.prettierrc.js', '.prettierrc.cjs', '.prettierrc.mjs', '.prettierrc.ts', 'prettier.config.js', 'prettier.config.cjs', 'prettier.config.mjs', 'prettier.config.ts'];
+const IGNORE_HEADER = '# Buaflow kit files: `buaflow install` copies them verbatim and .buaflow/lock.json compares them by sha256';
+
+function usesPrettier(root) {
+  if (PRETTIER_CONFIGS.some((name) => fs.existsSync(path.join(root, name)))) return true;
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+    return pkg.prettier !== undefined || !!pkg.devDependencies?.prettier || !!pkg.dependencies?.prettier;
+  } catch { return false; }
+}
+
+// What .prettierignore still needs so prettier leaves every file install copies alone. Nothing for a
+// project without prettier. A line that ignores all of .claude/ already covers the rest.
+function prettierIgnore(root, options = {}) {
+  const file = path.join(root, '.prettierignore');
+  if (!usesPrettier(root)) return { file, missing: [], content: null };
+  const wanted = ['.claude/*.js', '.claude/control-sets/', ...(options.plugin ? [] : ['.claude/hooks/', '.claude/agents/', '.claude/skills/'])];
+  const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+  const lines = new Set(existing.split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.startsWith('#')));
+  if (['.claude', '.claude/', '.claude/**', '/.claude', '/.claude/'].some((l) => lines.has(l))) return { file, missing: [], content: null };
+  const missing = wanted.filter((w) => !lines.has(w) && !lines.has(`/${w}`));
+  if (!missing.length) return { file, missing, content: null };
+  const block = `${existing.includes(IGNORE_HEADER) ? '' : `${IGNORE_HEADER}\n`}${missing.join('\n')}\n`;
+  const content = existing ? `${existing}${existing.endsWith('\n') ? '' : '\n'}\n${block}` : block;
+  return { file, missing, content };
 }
 
 function pluginSettings(settings) {
@@ -165,4 +205,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { COMMONJS_PACKAGE, KIT_ONLY, apply, main, plan };
+module.exports = { COMMONJS_PACKAGE, KIT_ONLY, apply, main, plan, prettierIgnore };
