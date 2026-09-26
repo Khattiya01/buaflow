@@ -77,11 +77,15 @@ const isPlaceholder = (v) => !v || /^<|T-000|I-000|F-xx|xxx|\.\.\./.test(String(
 /** `intent: legacy` = งานที่เกิดก่อนมีระบบ intent (โปรเจกต์ที่อัปเกรดจาก v1.0 — UPGRADE.md ข้อ 7) ไม่ต้องย้อนเขียน */
 const isLegacy = (v) => String(v ?? '').trim() === 'legacy';
 
-/** path ที่อ้างในไฟล์ task/intent อาจเป็นไฟล์หรือโฟลเดอร์ (spec เป็นโฟลเดอร์) */
+/** ค่าที่อ้างได้หลายไฟล์ (เช่น task ที่มาจาก 2 intent) — `key: a, b` หรือ `key: [a, b]` ที่ frontmatter() แตกเป็น array ให้แล้ว */
+const refsOf = (p) => (Array.isArray(p) ? p : String(p ?? '').split(',')).map((s) => String(s).trim().replace(/\/$/, '')).filter(Boolean);
+/** path ที่อ้างอาจเป็นไฟล์หรือโฟลเดอร์ (spec เป็นโฟลเดอร์) และอาจละ .md — คืน path ที่มีจริง หรือ null */
+const resolveRef = (r) => (exists(r) ? r : exists(r + '.md') ? r + '.md' : null);
+/** ตัวที่อ้างไว้แต่ไม่มีไฟล์ */
+const missingRefs = (p) => refsOf(p).filter((r) => !resolveRef(r));
+/** มีไฟล์จริงครบทุกตัวที่อ้างไว้ */
 function refExists(p) {
-  if (!p) return false;
-  const clean = String(p).replace(/\/$/, '');
-  return exists(clean) || exists(clean + '.md');
+  return refsOf(p).length > 0 && missingRefs(p).length === 0;
 }
 
 // ── 1-6. tasks ─────────────────────────────────────────────────────────
@@ -109,16 +113,15 @@ if (!exists(TASKS_DIR)) {
 
     // 2. intent / spec ต้องมีจริงเมื่อ task ทำงานแล้ว
     if (active) {
-      if (!isPlaceholder(fm.intent) && !refExists(fm.intent)) bad(`${id}: intent: ชี้ไป ${fm.intent} แต่ไม่มีไฟล์`);
-      if (!isPlaceholder(fm.spec) && !refExists(fm.spec)) bad(`${id}: spec: ชี้ไป ${fm.spec} แต่ไม่มีโฟลเดอร์`);
+      if (!isPlaceholder(fm.intent) && !refExists(fm.intent)) bad(`${id}: intent: ชี้ไป ${missingRefs(fm.intent).join(', ')} แต่ไม่มีไฟล์`);
+      if (!isPlaceholder(fm.spec) && !refExists(fm.spec)) bad(`${id}: spec: ชี้ไป ${missingRefs(fm.spec).join(', ')} แต่ไม่มีโฟลเดอร์`);
       if (isPlaceholder(fm.intent) && !isLegacy(fm.intent) && !/^(chore|docs|test)$/.test(fm.type || '') && !/^T-\d+-test$/.test(id) && fm.track !== 'trivial')
         warn(`${id}: ไม่มี intent: ต้นทาง — งานลอยที่ไม่มีใครรู้ว่าทำไมถึงทำ (ยกเว้น track: trivial)`);
     }
 
     // 3. spec แม่ต้องไม่เหลือ marker
     if (active && !isPlaceholder(fm.spec) && refExists(fm.spec)) {
-      const dir = String(fm.spec).replace(/\/$/, '');
-      const files = exists(dir) && fs.statSync(rel(dir)).isDirectory() ? listMd(dir).map((x) => `${dir}/${x}`) : [dir + '.md'];
+      const files = refsOf(fm.spec).flatMap((dir) => (exists(dir) && fs.statSync(rel(dir)).isDirectory() ? listMd(dir).map((x) => `${dir}/${x}`) : [resolveRef(dir)]));
       for (const sf of files) {
         if (!exists(sf)) continue;
         const left = (read(sf).match(NEEDS) || []).length;
@@ -134,8 +137,10 @@ if (!exists(TASKS_DIR)) {
 
     // 5. plan ต้องมีจริง + มี Proof
     if (!isPlaceholder(fm.plan)) {
-      if (!refExists(fm.plan)) bad(`${id}: plan: ชี้ไป ${fm.plan} แต่ไม่มีไฟล์`);
-      else if (!/##\s*Proof/.test(read(String(fm.plan)))) bad(`${id}: ${fm.plan} ไม่มีหัวข้อ Proof — plan ที่ไม่บอกว่าอะไรพิสูจน์ว่าเสร็จใช้ไม่ได้`);
+      if (!refExists(fm.plan)) bad(`${id}: plan: ชี้ไป ${missingRefs(fm.plan).join(', ')} แต่ไม่มีไฟล์`);
+      else for (const pf of refsOf(fm.plan).map(resolveRef)) {
+        if (!/##\s*Proof/.test(read(pf))) bad(`${id}: ${pf} ไม่มีหัวข้อ Proof — plan ที่ไม่บอกว่าอะไรพิสูจน์ว่าเสร็จใช้ไม่ได้`);
+      }
     } else if (fm.status === 'in-progress' && fm.track !== 'trivial') {
       warn(`${id}: in-progress โดยไม่มี plan: — โอเคเฉพาะงานที่อธิบาย diff ได้ใน 1 ประโยค`);
     }

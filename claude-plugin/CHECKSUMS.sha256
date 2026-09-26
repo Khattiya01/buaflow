@@ -38,7 +38,7 @@ c81319582bad06b0301ca51bac58619751d51fcfaa33bcfa835d43510b9b94c2  kit/claude-set
 8475cc054d56a9b7db4b70b5c497500746a50dba53ddce24d45684e70091e2d1  kit/claude-setup/ci/post-merge.tpl
 cbe4f8bd1de010f6e8f9c7d83e59a19be8ee4b3be9c620c35ff699d26a5a0ffd  kit/claude-setup/ci/pre-push.tpl
 19fa091e58db1340d4ca5634e6e38b9f63085e128e382c00419309d0ce6c921f  kit/claude-setup/convergence.js
-2bded4fc25972ef940173a0138c1dcdf514854dc0ebef20650a16c57bae8507c  kit/claude-setup/docs-lint.js
+e2ab832dd797f28828c1032d537c98f4d427f065f40cd61e85910a3da4a39520  kit/claude-setup/docs-lint.js
 6b6f681c348321f009632964a66d7f7abcb060d982e3ee7a1da57259a7a1c4ef  kit/claude-setup/eval-harness.js
 0e062ed16927084d62d36674f475b27f8dd36382247c25d51f5151fa530a32e3  kit/claude-setup/evals/EV-001.json
 2e586cd9c32b846d02103d92d5add28f9305209eafc26699b35e544a24daa572  kit/claude-setup/evals/EV-002.json
