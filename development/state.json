@@ -2301,13 +2301,16 @@
         "claude-setup/tests/install.test.js",
         "claude-setup/tests/upgrade.test.js",
         "CLI.md",
-        "UPGRADE.md"
+        "UPGRADE.md",
+        "VERSION.md",
+        "schemas/compatibility.json"
       ],
       "verification": [
         "npm run check",
-        "node --test claude-setup/tests/install.test.js claude-setup/tests/upgrade.test.js"
+        "node --test claude-setup/tests/install.test.js claude-setup/tests/upgrade.test.js",
+        "node scripts/publish-plugin.js --dry-run"
       ],
-      "notes": "Opened 2026-09-26 from trendy's 3.17.1 upgrade log: lint-staged runs prettier --write on .claude/*.js at every commit, so all 28 kit files stopped matching the lock; the session first misread them as stale 3.13.1 files, then re-locked against the formatted bytes. Re-locking records whatever is on disk, which is how trendy lost its docs-lint.js patch in the 3.17.0 upgrade with 0 conflict. Fixed in trendy by hand first (SanayuWin/TRENDY#213): all 28 files checked against kit 3.17.1 run through trendy's prettier config were formatting only, restored to the kit's bytes, .prettierignore extended; after a commit through husky and lint-staged, lock reports 28 current, 0 drifted without re-locking. In the kit, install now asks the history before the lock: with kit-history.json present a lock match alone is never enough to overwrite, and without it (a kit older than 3.18) the old behaviour stays. Not done: eslint --fix in lint-staged can also rewrite a kit file; the kit's scripts pass eslint:recommended (BF-009) and no case of a fix rewriting one has been seen, so it is left until one is."
+      "notes": "Opened 2026-09-26 from trendy's 3.17.1 upgrade log: lint-staged runs prettier --write on .claude/*.js at every commit, so all 28 kit files stopped matching the lock; the session first misread them as stale 3.13.1 files, then re-locked against the formatted bytes. Re-locking records whatever is on disk, which is how trendy lost its docs-lint.js patch in the 3.17.0 upgrade with 0 conflict. Fixed in trendy by hand first (SanayuWin/TRENDY#213): all 28 files checked against kit 3.17.1 run through trendy's prettier config were formatting only, restored to the kit's bytes, .prettierignore extended; after a commit through husky and lint-staged, lock reports 28 current, 0 drifted without re-locking. In the kit, install now asks the history before the lock: with kit-history.json present a lock match alone is never enough to overwrite, and without it (a kit older than 3.18) the old behaviour stays. Not done: eslint --fix in lint-staged can also rewrite a kit file; the kit's scripts pass eslint:recommended (BF-009) and no case of a fix rewriting one has been seen, so it is left until one is. Released as kit 3.19.0 on 2026-09-26 (MINOR: install's conflict rule tightens and it may add lines to .prettierignore; no control file or schema changes)."
     }
   ],
   "decisions": [
@@ -2524,7 +2527,7 @@
   ],
   "lastSession": {
     "date": "2026-09-26",
-    "summary": "PE-012 on feat/PE-012-kit-files-stay-verbatim: install trusts kit history before the lock (an accepted-but-never-shipped content is a conflict), adds the kit files to .prettierignore in prettier projects, doctor and upgrade say so. trendy fixed by hand in SanayuWin/TRENDY#213 (prettierignore + raw kit bytes) and #evals-json (EV-001..004 to JSON; push waits on an untracked T-232 from another session).",
+    "summary": "PE-012 released as kit 3.19.0 (feat/PE-012-kit-files-stay-verbatim): install trusts kit history before the lock (an accepted-but-never-shipped content is a conflict), adds the kit files to .prettierignore in prettier projects, doctor and upgrade say so. trendy fixed by hand in SanayuWin/TRENDY#213 (prettierignore + raw kit bytes) and chore/evals-json (EV-001..004 to JSON; push waits on an untracked T-232 from another session).",
     "next": "Owner reviews and merges PE-012 with its 3.19.0 release, then runs node scripts/publish-plugin.js. In trendy: merge #213, and push chore/evals-json once T-232 is on the board.",
     "verifiedAt": "2026-09-26T11:05:31.196Z"
   }
