@@ -1,6 +1,6 @@
 ---
 name: start
-description: Start, resume or upgrade Buaflow in this project from the plugin — a new project, an existing codebase, or one that already has Buaflow installed. Use when the user asks to start Buaflow, set it up, or continue it.
+description: Start or resume Buaflow in this project from the plugin — a new project, an existing codebase, or one that already has Buaflow installed. Use when the user asks to start Buaflow, set it up, or continue it. Upgrading the installed controls is /buaflow:upgrade.
 disable-model-invocation: true
 ---
 
@@ -21,34 +21,22 @@ If that line is missing, the plugin's SessionStart hook did not run. Tell the us
 
 ## 2. Read the project's state
 
-Run `doctor` and read what exists before asking anything:
-
-- `.claude/gate.js`, `.claude/skills/`, `.claude/commands/` or `.buaflow/lock.json`: Buaflow is installed.
-- `docs/planning/_state.md`: a lifecycle is in progress.
-- Source code but none of the above: an existing codebase that has not adopted Buaflow.
-
-An installed project with no `.buaflow/lock.json` was installed by a kit older than 3.11, which had no lock. Treat it as an older version, never as current. Find its version from the signal table in `<KIT>/START-HERE.md` section 2.1.
+The session context already says which state the project is in: the SessionStart hook compared the project's `.buaflow/lock.json` with the plugin kit before this skill ran. Take the state from that line. Do not run `doctor` or read `UPGRADE.md` to find it.
 
 ## 3. Take exactly one path
 
 | State | Do |
 |---|---|
-| Installed, and either no lock or a lock older than the plugin kit | Upgrade. Tell the user which version you found. Follow `<KIT>/UPGRADE.md`: first the sections that bring a version older than 2.3.4 up to 2.3.4, then the "fast path". Run `install --plugin` as a dry run and show the user the result, especially any `conflict`. Run it with `--write` only after the user agrees. Then move the project to the plugin, as in the paragraph after this table. |
+| Installed, and either no lock or a lock older than the plugin kit | Tell the user in one line that the project's controls are behind the plugin, and that `/buaflow:upgrade` upgrades them. Do not upgrade here: it is a separate command, so opening a project stays quick. Then resume, as in the row for a lock equal to the plugin kit. The older gate keeps working until they upgrade. |
 | Installed, with a lock **newer** than the plugin kit | The user's plugin is out of date, not the project. Tell them to update it (section 7) and start a new session, then stop. Never run `install` from an older plugin: it would put older files over newer ones. |
 | Installed, with a lock equal to the plugin kit | Resume. Run `resume`, read `docs/planning/_state.md`, and continue from where it stopped. |
-| Not installed | Read `<KIT>/START-HERE.md` and do Phase 0 exactly as it says. For an existing codebase, also run `assess` and give the user its result with the Phase 0 questions. |
-
-Moving a project that copied the kit into `.claude/` over to the plugin takes three steps. Do each one only after the user agrees, then tell them to commit and push:
-
-1. Remove Buaflow's entries from the `hooks` block in `.claude/settings.json`. `install` and `doctor` name them.
-2. Delete `.claude/skills/`, `.claude/agents/` and `.claude/hooks/` only where the files came from the kit. Keep any skill, agent or hook the team wrote.
-3. The project's `buaflow/` folder is no longer needed.
+| Not installed | Read `<KIT>/START-HERE.md` and do Phase 0 exactly as it says. For an existing codebase, also run `doctor` and `assess` and give the user their result with the Phase 0 questions. |
 
 Every rule in START-HERE.md applies unchanged. In particular: one phase at a time, stop at the end of each phase, and never guess.
 
 ## 4. Usage capture: ask once per project, on internal machines only
 
-This applies on every path above: new, resume and upgrade. Run `usage status --json` and read `data.store` and `data.consent`.
+This applies on every path above: new and resume, including a project that still needs /buaflow:upgrade. Run `usage status --json` and read `data.store` and `data.consent`.
 
 | `data.store` | `data.consent` | Do |
 |---|---|---|
@@ -103,7 +91,7 @@ Two things update separately, and both can fall behind without anything failing:
 | What | How it updates |
 |---|---|
 | The plugin: skills, agents, hooks and the kit | Claude Code. Auto-update is **off** for a third-party marketplace until each person turns it on once: `/plugin` → **Marketplaces** → `buaflow` → **Enable auto-update**. Updates then arrive in the background after a session starts and load at the next session or on `/reload-plugins`. Without it: `claude plugin marketplace update buaflow` then `claude plugin update buaflow@buaflow`, then a new session. In the VS Code extension, where `/plugin` is unavailable, use those two commands in a terminal. |
-| The project: gate, checkers and templates in `.claude/` and `docs/templates/` | Only `install --plugin --write`, run from the upgrade path in section 3, then committed. |
+| The project: gate, checkers and templates in `.claude/` and `docs/templates/` | Only `/buaflow:upgrade`, which runs `upgrade --plugin --write`, then committed. |
 
 The plugin's SessionStart hook compares the two at every session start and shows the user a one-line notice when either is behind.
 

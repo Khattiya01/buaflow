@@ -38,7 +38,7 @@ test('the plugin carries the whole kit a session needs, without examples or the 
   const { files } = build(repositoryRoot);
   for (const rel of ['kit/START-HERE.md', 'kit/bin/buaflow.js', 'kit/package.json', 'kit/phases/07-handoff.md', 'kit/claude-setup/install.js', 'kit/claude-setup/gate.js',
     'kit/standards/control-sets/owasp-asvs-5.0.0-l1.json', 'kit/templates/intent.tpl.md', 'kit/schemas/registry.json', 'kit/scripts/migrate-artifact.js',
-    'skills/start/SKILL.md', 'hooks/kit-context.js']) {
+    'skills/start/SKILL.md', 'skills/upgrade/SKILL.md', 'kit/claude-setup/upgrade.js', 'kit/claude-setup/kit-history.json', 'hooks/kit-context.js']) {
     assert.ok(files.has(rel), rel);
   }
   const keys = [...files.keys()];
@@ -114,7 +114,7 @@ test('EV-011 skills: start asks once and only on a machine with a store, check r
   const { files } = build(repositoryRoot);
   const start = files.get('skills/start/SKILL.md');
   const consent = start.slice(start.indexOf('## 4. Usage capture'), start.indexOf('## 5.'));
-  assert.match(consent, /new, resume and upgrade/);
+  assert.match(consent, /new and resume, including a project that still needs \/buaflow:upgrade/);
   assert.match(consent, /usage status --json/);
   assert.match(consent, /\| `null` \| anything \| Say nothing/);
   assert.match(consent, /\| set \| `unset` \| Ask once/);
@@ -153,4 +153,22 @@ test('the learn skill stays in this repository and is never shipped in the plugi
   const { files } = build(repositoryRoot);
   const shipped = [...files.keys()].filter((name) => name.includes('learn'));
   assert.deepEqual(shipped, [], 'nothing named learn is generated into the plugin');
+});
+
+// PE-011: opening a project stays quick. /buaflow:start points at /buaflow:upgrade instead of reading
+// UPGRADE.md itself, and /buaflow:upgrade reads the report of one command instead of the documents.
+test('/buaflow:start leaves upgrading to /buaflow:upgrade, which works from the upgrade report', () => {
+  const { files } = build(repositoryRoot);
+  const start = files.get('skills/start/SKILL.md');
+  assert.doesNotMatch(start, /<KIT>\/UPGRADE\.md|section 2\.1/, 'start never opens the upgrade guide or the version signal table');
+  assert.match(start, /\/buaflow:upgrade/);
+
+  const skill = files.get('skills/upgrade/SKILL.md');
+  assert.match(skill, /^disable-model-invocation: true$/m, 'an upgrade writes files: the user starts it');
+  assert.match(skill, /upgrade --plugin --json/);
+  assert.match(skill, /upgrade --plugin --write/);
+  const states = [...skill.matchAll(/^\| `([a-z-]+)` \|/gm)].map((m) => m[1]).filter((s) => s !== 'state');
+  assert.deepEqual(states, ['not-installed', 'plugin-behind', 'current', 'upgrade'], 'the skill handles every state the command reports');
+  for (const key of ['kitCopies', 'changedCopies', 'teamFiles', 'hooksInSettings', 'buaflowFolder', 'stepwise.read', 'install.conflicts']) assert.ok(skill.includes(key), key);
+  assert.doesNotMatch(skill, /START-HERE\.md/, 'the version comes from the command, not the signal table');
 });

@@ -44,12 +44,25 @@ function installedFiles(root) {
   return pairs;
 }
 
-// Did this exact content ever ship from the kit? If the kit is a git checkout, look back through
-// the source file's history. Without this, the first lock of a project installed from an older
-// kit reports every stale file as "customized" — found on the first outside trial.
+// PE-011: every content the kit ever installed, shipped with the kit — see scripts/generate-kit-history.js.
+let history;
+function kitHistory() {
+  if (history === undefined) {
+    try { history = JSON.parse(fs.readFileSync(path.join(KIT, 'claude-setup', 'kit-history.json'), 'utf8')).files || null; } catch { history = null; }
+  }
+  return history;
+}
+
+// Did this exact content ever ship from the kit? Answers with the kit version it first appeared in,
+// from kit-history.json, which the plugin's kit carries even though it is not a git checkout; a git
+// checkout of the kit can still answer from its own history (a commit). Without this, the first lock
+// of a project installed from an older kit reports every stale file as "customized" — found on the
+// first outside trial — and a project with no lock sees every old kit file as a conflict.
 function shippedEarlier(source, digest) {
-  const { spawnSync } = require('node:child_process');
   const rel = path.relative(KIT, source).replace(/\\/g, '/');
+  const known = kitHistory()?.[rel]?.[digest];
+  if (known) return known;
+  const { spawnSync } = require('node:child_process');
   const log = spawnSync('git', ['log', '--format=%h', '-n', '60', '--', rel], { cwd: KIT, encoding: 'utf8' });
   if (log.status !== 0) return null;
   for (const commit of log.stdout.split(/\r?\n/).filter(Boolean)) {
@@ -134,4 +147,4 @@ function main(argv = process.argv.slice(2)) {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { compare, installedFiles, sha, shippedEarlier, writeLock };
+module.exports = { compare, installedFiles, kitHistory, sha, shippedEarlier, writeLock };

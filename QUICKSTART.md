@@ -17,7 +17,7 @@
 > **ใช้ Claude Code ใน VS Code?** extension ขึ้นว่า `/plugin isn't available in this environment` — ติดตั้งจาก terminal แทน
 > (`claude plugin marketplace add Khattiya01/buaflow-plugin` แล้ว `claude plugin install buaflow@buaflow`) จากนั้นเปิด session ใหม่แล้วพิมพ์ `/buaflow:start`
 
-kit ทั้งชุดมากับ plugin — ไม่ต้อง clone อะไร · `/buaflow:start` ดูสถานะโปรเจกต์เอง แล้วเริ่ม Phase 0, ทำต่อจากที่ค้าง หรืออัปเกรด ·
+kit ทั้งชุดมากับ plugin — ไม่ต้อง clone อะไร · `/buaflow:start` ดูสถานะโปรเจกต์เอง แล้วเริ่ม Phase 0 หรือทำต่อจากที่ค้าง · อัปเกรดโปรเจกต์ที่ติดตั้งรุ่นเก่าคือ `/buaflow:upgrade` ·
 ถึง Phase 7 มันรัน `buaflow install --plugin --write` วาง gate กับตัวตรวจลง `.claude/` ของโปรเจกต์ เพราะ pre-push และ CI รันนอก
 Claude และต้องมีของพวกนี้อยู่ในโปรเจกต์ · ข้างล่างคือเส้นทางแบบโฟลเดอร์ ซึ่งเห็นทุกคำสั่งด้วยตัวเอง
 
