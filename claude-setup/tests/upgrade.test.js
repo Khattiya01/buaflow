@@ -146,8 +146,10 @@ test('manual steps appear only where the project meets their condition, each nam
     writeJson(path.join(root, '.claude', 'settings.json'), { permissions: { allow: ['Bash(*)'] }, hooks: { PreToolUse: [] } });
     writeJson(path.join(root, '.mcp.json'), { mcpServers: { db: { command: 'x', env: { DB_PASSWORD: 'hunter2', HOST: 'localhost' } } } });
     writeJson(path.join(root, '.buaflow', 'usage.json'), { enabled: true });
+    write(path.join(root, '.husky', 'pre-push'), '#!/usr/bin/env sh\nnode .claude/gate.js\n');
     const plugin = upgrade(kit, root, '--plugin').out.manual;
-    assert.deepEqual(plugin.map((m) => m.id), ['pack-1.0', 'profile-1.0', 'eval-markdown', 'unsafe-permissions']);
+    assert.deepEqual(plugin.map((m) => m.id), ['pack-1.0', 'profile-1.0', 'eval-markdown', 'unsafe-permissions', 'pre-push-deletes']);
+    assert.equal(plugin.find((m) => m.id === 'pre-push-deletes').required, false);
     assert.equal(plugin.find((m) => m.id === 'profile-1.0').required, false);
     assert.ok(plugin.find((m) => m.id === 'unsafe-permissions').files.some((f) => /DB_PASSWORD/.test(f)));
     ids = upgrade(kit, root).out.manual.map((m) => m.id);
@@ -156,6 +158,13 @@ test('manual steps appear only where the project meets their condition, each nam
     const headings = fs.readFileSync(path.join(repositoryRoot, 'UPGRADE.md'), 'utf8').split('\n').filter((l) => l.startsWith('## '));
     const sections = [...upgrade(kit, root).out.manual.map((m) => m.read), ...STEPWISE.map(([, s]) => s)];
     for (const section of sections) assert.ok(headings.some((h) => h.startsWith(`## ${section}`)), `UPGRADE.md has "## ${section}"`);
+
+    // The current template, at a path stack.json names, is not a step.
+    fs.rmSync(path.join(root, '.husky'), { recursive: true });
+    writeJson(path.join(root, '.claude', 'stack.json'), { preflightHookPath: '.git/hooks/pre-push' });
+    fs.mkdirSync(path.join(root, '.git', 'hooks'), { recursive: true });
+    fs.copyFileSync(path.join(kit, 'claude-setup', 'ci', 'pre-push.tpl'), path.join(root, '.git', 'hooks', 'pre-push'));
+    assert.ok(!upgrade(kit, root, '--plugin').out.manual.some((m) => m.id === 'pre-push-deletes'));
   } finally {
     cleanup(root);
     cleanup(kit);

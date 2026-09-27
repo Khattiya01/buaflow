@@ -114,6 +114,13 @@ function manualSteps(root, options) {
   if (!options.plugin && usage?.enabled === true && settings?.hooks && !/usage-capture\.js/.test(JSON.stringify(settings.hooks))) {
     steps.push({ id: 'usage-capture-hook', required: true, files: ['.claude/settings.json'], what: 'wire the usage-capture hook in the 4 places of "hooks" by hand — install seeds settings.json once and never adds to it; without it consent records nothing', read: 'v3.12.1 → v3.13.0' });
   }
+
+  // install never writes the pre-push hook (it is copied by hand at scaffold), so a template fix reaches no project on its own.
+  const hookPath = readJson(path.join(claude, 'stack.json'))?.preflightHookPath || '.husky/pre-push';
+  const hook = (() => { try { return fs.readFileSync(path.join(root, hookPath), 'utf8'); } catch { return ''; } })();
+  if (/\.claude\/gate\.js/.test(hook) && !/local_sha/.test(hook)) {
+    steps.push({ id: 'pre-push-deletes', required: false, files: [hookPath], what: 'copy claude-setup/ci/pre-push.tpl over it — a push that only deletes a branch then skips the gate instead of running all of it', read: 'v3.19.0 → v3.19.1' });
+  }
   return steps;
 }
 
