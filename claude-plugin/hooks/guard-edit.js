@@ -16,7 +16,7 @@
  */
 const fs = require('node:fs');
 const path = require('node:path');
-const { execSync } = require('node:child_process');
+const { execSync, spawnSync } = require('node:child_process');
 
 const ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
@@ -79,6 +79,17 @@ function currentBranch() {
   }
 }
 
+/** ไฟล์นี้มีอยู่แล้วและ git track อยู่ไหม · รันในโฟลเดอร์ของไฟล์เอง (ถูก checkout แม้อยู่ใน worktree แยก) */
+function isTracked(absolutePath) {
+  if (!fs.existsSync(absolutePath)) return false;
+  const result = spawnSync('git', ['ls-files', '--error-unmatch', '--', path.basename(absolutePath)], {
+    cwd: path.dirname(absolutePath),
+    stdio: 'ignore',
+  });
+  // 1 = git บอกว่ายังไม่ track (ไฟล์ใหม่) · อย่างอื่น (ไม่ใช่ repo / ไม่มี git) ถือว่าเป็นของเดิม กันไว้ก่อน
+  return result.status !== 1;
+}
+
 let raw = '';
 process.stdin.on('data', (c) => (raw += c));
 process.stdin.on('end', () => {
@@ -104,7 +115,9 @@ process.stdin.on('end', () => {
     }
   }
 
-  if (new RegExp(cfg.testFilePattern).test(p)) {
+  // เทสที่เพิ่งเขียนใหม่ (ยังไม่มีไฟล์ หรือยังไม่เคย commit) ไม่ใช่หลักฐานเดิม — ข้อความบล็อกเองก็บอก
+  // ให้ "สร้างไฟล์เทสใหม่" แต่เดิมบล็อกไฟล์ใหม่ด้วย จึงทำตามคำแนะนำของตัวเองไม่ได้
+  if (new RegExp(cfg.testFilePattern).test(p) && isTracked(path.resolve(ROOT, filePath))) {
     const branch = currentBranch();
     if (new RegExp(cfg.bugfixBranchPattern).test(branch)) {
       process.stderr.write(
