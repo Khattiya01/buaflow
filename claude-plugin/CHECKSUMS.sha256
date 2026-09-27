@@ -36,7 +36,7 @@ eb6ce55ff6729a4e6cc5e255068c00cce0110c9b8f44391894ca833efce98a24  kit/claude-set
 c81319582bad06b0301ca51bac58619751d51fcfaa33bcfa835d43510b9b94c2  kit/claude-setup/ci/gitlab-ci.yml.tpl
 067b77fe1996dda3f262b854fad35217be85e6e3489fbfff2abf56db5fb9bd3a  kit/claude-setup/ci/post-checkout.tpl
 8475cc054d56a9b7db4b70b5c497500746a50dba53ddce24d45684e70091e2d1  kit/claude-setup/ci/post-merge.tpl
-cbe4f8bd1de010f6e8f9c7d83e59a19be8ee4b3be9c620c35ff699d26a5a0ffd  kit/claude-setup/ci/pre-push.tpl
+d806d2bbfe7cb45a91b139bcba872365649624d0f0cbcbd1d3f43ef2661efdda  kit/claude-setup/ci/pre-push.tpl
 19fa091e58db1340d4ca5634e6e38b9f63085e128e382c00419309d0ce6c921f  kit/claude-setup/convergence.js
 e2ab832dd797f28828c1032d537c98f4d427f065f40cd61e85910a3da4a39520  kit/claude-setup/docs-lint.js
 6b6f681c348321f009632964a66d7f7abcb060d982e3ee7a1da57259a7a1c4ef  kit/claude-setup/eval-harness.js
