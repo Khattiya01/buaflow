@@ -52,6 +52,21 @@ function currentBranch() {
  */
 const CMD_START = String.raw`(?:^|[;&|(]|\n)(?:\s*\w+=\S+)*\s*(?:sudo\s+)?`;
 const gitRule = (rest) => new RegExp(`${CMD_START}git\\s+${rest}`);
+// อาร์กิวเมนต์ของคำสั่งหนึ่งจบที่ | ; & หรือขึ้นบรรทัดใหม่ — เดิมไม่หยุดที่ \n เลยกวาดเข้าไปในเนื้อ heredoc
+const ARGS = String.raw`[^|;&\n]*`;
+
+/**
+ * เนื้อความไม่ใช่อาร์กิวเมนต์: commit message ที่ *พูดถึง* `--no-verify` หรือ main ใน heredoc
+ * (`git commit -F - <<'EOF'`) หรือใน `-m "..."` เดิมโดนบล็อกทั้งคำสั่ง ก่อนแมตช์กฎ git จึงลบ
+ * เนื้อ heredoc และเนื้อสตริงในเครื่องหมายคำพูดที่มีช่องว่าง · สตริงที่ไม่มีช่องว่างคือชื่อ branch/flag
+ * จึงแค่ถอดเครื่องหมายคำพูดออกเหมือนที่ shell ทำ (`git push origin 'main'` เดิมหลุด ตอนนี้โดนกัน)
+ */
+function argumentsOnly(cmd) {
+  return cmd
+    .replace(/\\\r?\n/g, ' ')
+    .replace(/<<-?[ \t]*(['"]?)(\w+)\1([^\n]*)\n[\s\S]*?(?:\n[ \t]*\2[ \t]*(?=\n|$)|$)/g, '<<$2$3\n')
+    .replace(/"(?:[^"\\]|\\[\s\S])*"|'[^']*'/g, (s) => (/\s/.test(s) ? '""' : s.slice(1, -1)));
+}
 
 const GIT_MERGE = gitRule(String.raw`merge\b`);
 const GIT_PUSH = gitRule(String.raw`push\b`);
@@ -71,18 +86,18 @@ const RULES = [
     match: (cmd) =>
       GIT_PUSH.test(cmd) &&
       !/--force|-f\b/.test(cmd) && // เคส force มีกฎของตัวเองด้านล่าง
-      (/\bgit\s+push\b[^|;&]*(:|\s)(main|master)\b/.test(cmd) || (!/\bgit\s+push\b[^|;&]*\s\S+\s+\S+/.test(cmd) && isMainBranch(currentBranch()))),
+      (/\bgit\s+push\b[^|;&\n]*(:|\s)(main|master)\b/.test(cmd) || (!/\bgit\s+push\b[^|;&\n]*\s\S+\s+\S+/.test(cmd) && isMainBranch(currentBranch()))),
     reason: [
       'Blocked: no direct push to main — main only accepts changes through a PR + gate.',
       'Correct path: `git push -u origin <current branch>` then open a PR.',
     ].join('\n'),
   },
   {
-    match: gitRule(String.raw`push\b[^|;&]*--no-verify`),
+    match: gitRule(String.raw`push\b${ARGS}--no-verify`),
     reason: 'Blocked: push --no-verify — pre-push runs the gate (verify + docs-lint). If it fails, fix the cause; do not skip it.',
   },
   {
-    match: gitRule(String.raw`commit\b[^|;&]*(--no-verify|\s-n\b)`),
+    match: gitRule(String.raw`commit\b${ARGS}(--no-verify|\s-n\b)`),
     reason: [
       'Blocked: --no-verify — the git hooks (commitlint / lint-staged) exist to keep bad changes out of the repo.',
       'If a hook rejects the commit, fix the cause; do not skip the check.',
@@ -90,6 +105,7 @@ const RULES = [
     ].join('\n'),
   },
   {
+    wholeCommand: true,
     match: /\b(sonar-scanner|sonar\.sh)\b|\b(pnpm|npm|yarn)\s+(run\s+)?sonar\b/,
     reason: [
       'Blocked: the AI does not run the SonarQube scan — the user runs it and hands over the results.',
@@ -98,13 +114,14 @@ const RULES = [
     ].join('\n'),
   },
   {
-    match: gitRule(String.raw`push\b[^|;&]*(--force|-f\b)[^|;&]*\b(main|master)\b`),
+    match: gitRule(String.raw`push\b${ARGS}(--force|-f\b)${ARGS}\b(main|master)\b`),
     reason: 'Blocked: force push to main/master — if it is truly necessary, the user must do it themselves.',
   },
   {
     // EV-009 K-8: shadcn is copy-in-you-own-it, not a dependency. With --overwrite, `add`
     // replaces a component wholesale — on a customised component that silently deletes the
     // project's design tokens and variants. Without the flag the CLI asks first, which is fine.
+    wholeCommand: true,
     match: /\bshadcn(-ui)?(@\S+)?\s+add\b[^|;&]*(\s--overwrite\b|\s-o\b|\s-[a-z]*o[a-z]*\b)/,
     reason: [
       'Blocked: `shadcn add --overwrite` replaces the whole file; it does not merge.',
@@ -132,8 +149,11 @@ process.stdin.on('end', () => {
   }
   if (!cmd) process.exit(0);
 
+  const args = argumentsOnly(cmd);
   for (const rule of RULES) {
-    const hit = typeof rule.match === 'function' ? rule.match(cmd) : rule.match.test(cmd);
+    // sonar/shadcn รันผ่าน `bash -c "..."` / npx ได้ จึงแมตช์ทั้งข้อความเหมือนเดิม
+    const text = rule.wholeCommand ? cmd : args;
+    const hit = typeof rule.match === 'function' ? rule.match(text) : rule.match.test(text);
     if (hit) {
       process.stderr.write(`[hook: guard-bash] ${rule.reason}\n`);
       process.exit(2);
