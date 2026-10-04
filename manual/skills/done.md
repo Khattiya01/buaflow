@@ -10,7 +10,7 @@ Close: <argument>
 
 Talk to the user in Thai. The task file notes are in Thai; commit messages and PR titles are English (Conventional Commits); the PR body is Thai.
 
-**Merge mode** — read `mergeMode` in `.claude/stack.json` (missing → `direct`). It decides step 2.
+**Merge mode** — read `mergeMode` in `.claude/stack.json` (missing → `pr`). It decides step 2.
 
 ## Pre-close checks
 

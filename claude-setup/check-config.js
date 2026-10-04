@@ -268,7 +268,7 @@ const preflight = stack.preflightHookPath;
 const ciMode = stack.ciMode || 'required';
 const localOnly = ciMode === 'local-only';
 // mergeMode direct = AI push main เองโดยไม่มีคนกด merge -> pre-push คือด่านเดียวก่อนงานถึง main เหมือน local-only
-const mergeMode = stack.mergeMode === 'pr' ? 'pr' : 'direct';
+const mergeMode = stack.mergeMode === 'direct' ? 'direct' : 'pr';
 const preflightRequired = localOnly || mergeMode === 'direct';
 const requiredBy = localOnly ? 'ciMode = local-only' : 'mergeMode = direct (AI push main เอง)';
 

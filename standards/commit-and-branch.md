@@ -99,7 +99,7 @@ chore/T-003-setup-eslint
 - **Squash merge** เป็นค่าเริ่มต้น — ประวัติบน `main` สะอาด 1 task = 1 commit
 - ข้อความ commit ตอน squash ต้องเป็น Conventional Commit และอ้าง task id
 - ก่อน merge ต้อง: typecheck + lint + test ผ่าน และผ่าน review
-- ใครเป็นคน merge ขึ้นกับ `mergeMode` ใน `.claude/stack.json`: `direct` (ค่าเริ่มต้น) — `/done` squash ลง `origin/main` แล้ว
+- ใครเป็นคน merge ขึ้นกับ `mergeMode` ใน `.claude/stack.json`: `direct` (โปรเจกต์ใหม่ · ไม่มีคีย์ = `pr`) — `/done` squash ลง `origin/main` แล้ว
   `git push origin HEAD:main` เอง pre-push gate คือด่าน · `pr` — คนกด merge PR
 
 ### ถ้าทำงานหลายคน

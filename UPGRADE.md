@@ -1,6 +1,6 @@
 # อัปเกรดโปรเจกต์ที่ใช้ kit เวอร์ชันเก่า
 
-> เวอร์ชันล่าสุด: **v3.19.1** · ไม่รู้ว่าโปรเจกต์ใช้รุ่นไหน → `node buaflow/bin/buaflow.js lock` (ถ้ามี `.buaflow/lock.json`)
+> เวอร์ชันล่าสุด: **v3.20.0** · ไม่รู้ว่าโปรเจกต์ใช้รุ่นไหน → `node buaflow/bin/buaflow.js lock` (ถ้ามี `.buaflow/lock.json`)
 > หรือดูแถวสัญญาณใน [START-HERE.md](START-HERE.md) ข้อ 2.1 · **ใช้ Buaflow จาก plugin?** พิมพ์ `/buaflow:upgrade` — มันพาทำหัวข้อทางลัดนี้ให้
 > **ไม่อยากอ่านทั้งไฟล์:** `node buaflow/bin/buaflow.js upgrade` ตอบจากไฟล์ของโปรเจกต์ว่าติดตั้งรุ่นไหน ไปทางลัดได้ไหม ไฟล์ไหนจะถูกทับ
 > และขั้นที่ต้องลงมือ (ข้อ 4 ของทางลัด) ข้อไหนเข้าเงื่อนไข พร้อมชื่อหัวข้อที่ต้องอ่าน — อ่านเฉพาะหัวข้อนั้น
@@ -10,8 +10,9 @@
 
 | ใช้อยู่ | ไปที่ | ใช้เวลา |
 |---|---|---|
-| **v2.3.4 – v3.12.1** | [ทางลัด: ไป v3.19.1 ในรอบเดียว](#fast-path) | ~5 นาที + ขั้นที่ต้องลงมือถ้าเข้าเงื่อนไข |
-| **v3.19.0** | [v3.19.0 → v3.19.1](#v3190--v3191-patch--อัปเดต-plugin--คัดลอก-pre-push-ทับ) ข้างล่างนี้ | ~1 นาที |
+| **v2.3.4 – v3.12.1** | [ทางลัด: ไป v3.20.0 ในรอบเดียว](#fast-path) | ~5 นาที + ขั้นที่ต้องลงมือถ้าเข้าเงื่อนไข |
+| **v3.19.1** | [v3.19.1 → v3.20.0](#v3191--v3200-minor--อัปเดต-plugin-จบ--เปิด-direct-ได้ถ้าต้องการ) ข้างล่างนี้ | 0 นาที (+ ~2 นาทีถ้าจะเปิด `direct`) |
+| **v3.19.0** | [v3.19.0 → v3.19.1](#v3190--v3191-patch--อัปเดต-plugin--คัดลอก-pre-push-ทับ) แล้วต่อด้วย v3.20.0 | ~1 นาที |
 | **v3.18.0** | [v3.18.0 → v3.19.0](#v3180--v3190-minor--อัปเดต-plugin-แล้ว-buaflowupgrade) แล้วต่อด้วย v3.19.1 | ~1 นาที (+ ดู diff ถ้ามี conflict) |
 | **v3.17.1** | [v3.17.1 → v3.18.0](#v3171--v3180-minor--อัปเดต-plugin-จบ) แล้วต่อด้วย v3.19.0 | 0 นาที |
 | **v3.17.0** | [v3.17.0 → v3.17.1](#v3170--v3171-patch--คัดลอกไฟล์ทับ-จบ) แล้วต่อด้วย v3.18.0 | ~1 นาที |
@@ -51,7 +52,7 @@
 
 <a id="fast-path"></a>
 
-## ทางลัด: จาก v2.3.4 หรือ 3.x รุ่นไหนก็ได้ → v3.19.1 ในรอบเดียว
+## ทางลัด: จาก v2.3.4 หรือ 3.x รุ่นไหนก็ได้ → v3.20.0 ในรอบเดียว
 
 ทำได้เพราะทุกรุ่นหลัง v3.0.0 เป็น MINOR/PATCH ([release policy](standards/release-policy.md)): ของเดิมทำงานเหมือนเดิม
 และตัวตรวจใหม่ทำงาน**เฉพาะเมื่อโปรเจกต์มีไฟล์หลักฐานนั้น** ⇒ การอัปเกรดคือ "วางไฟล์ควบคุมชุดล่าสุด" บวกขั้นที่ต้องลงมือ
@@ -112,6 +113,8 @@ merge การแก้ของทีมเข้ากับไฟล์ใ�
 | `docs/evals/*.md` (eval แบบเก่า) | แปลงเป็น `.json` ทีละเคส · ผลเก่าในตารางทิ้ง | [v3.5.0 → v3.6.0](#v350--v360-minor--คัดลอกไฟล์--แปลง-eval-case) |
 | `Bash(*)` หรือ `bypassPermissions` ใน `settings.json` ที่ commit · secret ใน `.mcp.json` | เอาออก — `check-config` ตกตั้งแต่ 3.11.0 | [v3.10.0 → v3.11.0](#v3100--v3110-minor--คัดลอกไฟล์ทับ-จบ) |
 | เปลี่ยนมาใช้ plugin แทนการคัดลอก | `install --plugin --write` แล้วลบรายการ hook ของ Buaflow ออกจาก block `hooks` ใน `.claude/settings.json` (`install` และ `doctor` เตือนให้) ไม่งั้น hook รันสองรอบ · ลบ `.claude/skills/`, `.claude/agents/`, `.claude/hooks/` ที่มาจาก kit ได้ | [v3.11.1 → v3.12.0](#v3111--v3120-minor--คัดลอกไฟล์ทับ-จบ) |
+| `.claude/stack.json` ไม่มี `mergeMode` | ไม่ต้องทำอะไร — ยังเป็น `pr` เหมือนเดิม · อยากให้ `/done` merge เข้า main เอง (สั่งงานยาว/ข้ามคืน) → เพิ่ม `"mergeMode": "direct"` (ไม่บังคับ) | [v3.19.1 → v3.20.0](#v3191--v3200-minor--อัปเดต-plugin-จบ--เปิด-direct-ได้ถ้าต้องการ) |
+| `deny: Bash(git merge *)` ใน `.claude/settings.json` | ลบออก — บังคับเมื่อ `mergeMode` เป็น `direct` (ไม่งั้น `/done` merge ไม่ได้) · โหมด `pr` ไม่บังคับ แต่มันบล็อก `git merge origin/main` ของ `/check` อยู่ | [v3.19.1 → v3.20.0](#v3191--v3200-minor--อัปเดต-plugin-จบ--เปิด-direct-ได้ถ้าต้องการ) |
 | `.husky/pre-push` (หรือ `preflightHookPath`) ที่รัน `node .claude/gate.js` ทุก push | คัดลอก `claude-setup/ci/pre-push.tpl` ทับ (ไม่บังคับ) — `install` ไม่เคยเขียนไฟล์นี้ · ไม่ทำ = การลบ branch ยังรัน gate ทั้งชุด | [v3.19.0 → v3.19.1](#v3190--v3191-patch--อัปเดต-plugin--คัดลอก-pre-push-ทับ) |
 | ติดตั้งแบบ `.claude/` (ไม่ใช้ plugin) และจะเปิดการเก็บข้อมูลการใช้งานภายใน | เพิ่ม hook `usage-capture` เองใน 4 จุดของ block `hooks` ใน `.claude/settings.json` — `install` seed ไฟล์นี้ครั้งเดียวจึงไม่เติมให้ · ไม่เพิ่ม = ยินยอมแล้วก็ไม่มีอะไรถูกบันทึก | [v3.12.1 → v3.13.0](#v3121--v3130-minor--คัดลอกไฟล์ทับ-จบ) |
 
@@ -126,6 +129,30 @@ node .claude/gate.js
 
 gate ผ่านเหมือนก่อนอัปเกรด = จบ · ของใหม่ที่อยากเริ่มใช้ (หลักฐานแต่ละชนิด, `buaflow ci`, `assess`, `benchmark`)
 เริ่มทีละชิ้นได้ตามหัวข้อของรุ่นที่เพิ่มมันเข้ามาข้างล่าง ไม่ต้องทำพร้อมกัน
+
+---
+
+## v3.19.1 → v3.20.0 (MINOR — อัปเดต plugin จบ · เปิด direct ได้ถ้าต้องการ)
+
+```bash
+node buaflow/bin/buaflow.js install --write     # ใช้ plugin: อัปเดต plugin แล้วเปิด session ใหม่ ไม่ต้องรัน install
+```
+
+ไม่มีไฟล์ในโปรเจกต์ที่ต้องแก้มือ: `stack.json` ของโปรเจกต์ที่ติดตั้งแล้วไม่มี `mergeMode` ซึ่งอ่านเป็น `pr` — flow เดิมทุกอย่าง
+(`install` ไม่แตะ `stack.json` ที่มีอยู่แล้ว) · ไฟล์ของ kit ที่เปลี่ยน: `.claude/hooks/guard-bash.js`, `.claude/hooks/session-context.js`,
+`.claude/check-config.js`, `.claude/stack-config.js`, `.claude/upgrade.js`, skill `task` `check` `done` (ติดตั้งแบบ `.claude/` เท่านั้น)
+
+**เปิดโหมด `direct` (ไม่บังคับ)** — `/check` ผ่านแล้ว `/done` squash-merge เข้า main และ push เองผ่าน pre-push gate · สั่งงานยาวข้ามคืนได้
+
+1. `.claude/stack.json` → `"mergeMode": "direct"` (จะขยับ `"schemaVersion"` เป็น `"1.1"` ด้วยก็ได้ — 1.0 ยังอ่านได้)
+2. ลบ `"Bash(git merge *)"` ออกจาก `permissions.deny` ใน `.claude/settings.json` ถ้ามี — ไม่งั้น `/done` merge ไม่ได้
+3. pre-push ต้องเรียก `node .claude/gate.js` จริง (`check-config` ขึ้น FAIL ถ้าไม่มี — เป็นด่านเดียวก่อน main)
+4. branch protection บน host ต้อง**ไม่บังคับ PR** (บังคับ status check `gate` ต่อได้) · CI ที่คัดลอกจาก template เก่ารันเฉพาะ PR —
+   เพิ่ม `push: { branches: [main] }` (GitHub) หรือ `- if: $CI_COMMIT_BRANCH == 'main'` (GitLab) ตาม `claude-setup/ci/*.tpl`
+5. eval: คัดลอก `claude-setup/evals/EV-007.json` ไป `docs/evals/` แทน EV-004 (EV-004 เป็นของโหมด `pr`)
+
+เช็คว่าได้ผล: `node .claude/check-config.js` ต้องขึ้น `ปล่อย push เข้า main (mergeMode = direct …)` และไม่มี FAIL ·
+อยากกลับ → ลบคีย์หรือตั้ง `"mergeMode": "pr"`
 
 ---
 

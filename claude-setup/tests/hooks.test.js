@@ -102,9 +102,10 @@ test('guard-bash reads flags, not commit message text', () => {
   }
 });
 
-// mergeMode decides who puts work on main. "pr": a human merges a PR, so the hook blocks merge and
-// push into main. "direct" (the default): the AI squash-merges and pushes after /check, and the
-// pre-push gate is the check — so force push and --no-verify stay blocked in both modes.
+// mergeMode decides who puts work on main. "pr" (also what an unset key means, so an upgrade changes
+// nothing): a human merges a PR, so the hook blocks merge and push into main. "direct" (what a new
+// install's stack.json says): the AI squash-merges and pushes after /check, and the pre-push gate is
+// the check — so force push and --no-verify stay blocked in both modes.
 test('guard-bash blocks merging into main only when mergeMode is "pr"', () => {
   const root = temporaryProject();
   const git = (...args) => spawnSync('git', args, { cwd: root, encoding: 'utf8' });
@@ -116,11 +117,12 @@ test('guard-bash blocks merging into main only when mergeMode is "pr"', () => {
     const intoMain = ['git merge --squash feat/T-001-x', 'git push origin HEAD:main', 'git push'];
     const neverAllowed = ['git push --force origin main', 'git push --no-verify origin HEAD:main'];
 
-    for (const command of intoMain) assert.equal(run(command).status, 0, `default (direct): ${command}`);
-    for (const command of neverAllowed) assert.equal(run(command).status, 2, `default (direct): ${command}`);
+    for (const command of intoMain) assert.equal(run(command).status, 2, `no key (pr): ${command}`);
+    for (const command of neverAllowed) assert.equal(run(command).status, 2, `no key (pr): ${command}`);
 
     writeJson(path.join(root, '.claude', 'stack.json'), { mergeMode: 'direct' });
     for (const command of intoMain) assert.equal(run(command).status, 0, `direct: ${command}`);
+    for (const command of neverAllowed) assert.equal(run(command).status, 2, `direct: ${command}`);
 
     writeJson(path.join(root, '.claude', 'stack.json'), { mergeMode: 'pr' });
     for (const command of intoMain) {
@@ -140,9 +142,9 @@ test('session-context states the guardrail for the configured mergeMode', () => 
   try {
     const guardrail = () => JSON.parse(runNode(path.join(hooks, 'session-context.js'), { cwd: root, env: { CLAUDE_PROJECT_DIR: root } }).stdout)
       .hookSpecificOutput.additionalContext;
+    assert.match(guardrail(), /PR only \(mergeMode "pr"\)/, 'no key reads as pr');
+    writeJson(path.join(root, '.claude', 'stack.json'), { mergeMode: 'direct' });
     assert.match(guardrail(), /mergeMode "direct"/);
-    writeJson(path.join(root, '.claude', 'stack.json'), { mergeMode: 'pr' });
-    assert.match(guardrail(), /PR only \(mergeMode "pr"\)/);
   } finally {
     cleanup(root);
   }

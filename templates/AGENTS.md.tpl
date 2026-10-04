@@ -78,7 +78,7 @@ intent -> spec (large feature) -> plan -> code -> verify -> check -> merge (dire
 3. **While working** — one task at a time; write one step, verify one step; small Conventional Commits; anything out of scope → **stop and ask**.
    Same spot fails twice in a row → stop, tell the user; do not keep retrying in the same turn.
 4. **Before claiming done** — actually run `{{VERIFY_COMMAND}}` and paste **its summary line**. Never claim "passes" without running it.
-5. **Finishing** — `/check` → `/done` → `/clear`. How work reaches main is `mergeMode` in `.claude/stack.json` (missing = `direct`):
+5. **Finishing** — `/check` → `/done` → `/clear`. How work reaches main is `mergeMode` in `.claude/stack.json` (missing = `pr`):
    `direct` → `/done` squash-merges into main and pushes it through the pre-push gate · `pr` → the user approves, `/done` opens a PR, **a human merges** (hook blocks merging yourself).
    Never bypass the gate (`--no-verify`) or force-push main, and never hand-edit `board.md` (generated from task files).
 

@@ -3,6 +3,28 @@
 > kit นี้เป็นมาตรฐานที่พัฒนาต่อเนื่อง ไม่ใช่ของใช้แล้วทิ้ง
 > ทุกครั้งที่บทเรียนจากโปรเจกต์จริงถูกย้อนกลับมาที่นี่ (Phase 8.7) ให้เพิ่มบรรทัดในไฟล์นี้
 
+## v3.20.0 — 2026-10-05
+
+> **MINOR:** ไม่มีไฟล์ในโปรเจกต์ที่ต้องแก้มือ — โปรเจกต์ที่ติดตั้งแล้วไม่มีคีย์ `mergeMode` จึงยังเป็น `pr` เหมือนเดิม ·
+> schema `stack-config` 1.1 (เพิ่ม field ไม่บังคับ — 1.0 ยังอ่านได้) · ไฟล์ที่เปลี่ยน: `.claude/hooks/guard-bash.js`, `.claude/hooks/session-context.js`,
+> `.claude/check-config.js`, `.claude/stack-config.js`, `.claude/upgrade.js`, skill `task` `check` `done`, `ci/*.tpl` (คัดลอกเอง)
+
+- **เลือกทางเข้า main ได้ด้วย `mergeMode`** — จากโปรเจกต์จริงที่สั่งงานยาวข้ามคืน: AI แตก branch หลายอันที่แก้ไฟล์เดียวกัน
+  PR กองไว้รอคนกด แล้ว conflict กันเองตอน merge · `direct`: `/check` ไม่เหลือ must-fix แล้ว `/done` squash ลง `origin/main`
+  และ `git push origin HEAD:main` เองผ่าน pre-push gate — งานเข้า main ทีละ task task ถัดไปจึงเริ่มจากโค้ดที่มีงานก่อนหน้าแล้ว ·
+  `pr`: flow เดิม (PR + คนกด merge, hook บล็อก merge/push เข้า main) · ทั้งสองโหมดยังบล็อก `--no-verify` และ force push main
+- **โปรเจกต์ใหม่ได้ `direct`** จาก `stack.json` ที่ `install` seed ให้ · ไม่มีคีย์ = `pr` · Phase 6 ขั้น 10 ถามพร้อม `ciMode`
+- **รอบ unattended** (`direct` เท่านั้น) — "ทำ T-010 ถึง T-020 ต่อกันไป": AI วน `/task` → `/check` → `/done` เอง task ที่ต้องถามคน
+  ถูกข้ามพร้อมโน้ต (ไม่เดา) แล้วรายงานตอนจบ · `/done` จึงไม่จำกัดให้คนเรียกอย่างเดียวแล้ว
+- **conflict ใน `direct` AI แก้เอง** โดยหาต้นเหตุก่อน: `git log HEAD..origin/main -- <file>` → อ่าน task ของ commit นั้น →
+  รวมให้เจตนาทั้งสองฝั่งอยู่ครบ → verify → จดลงไฟล์ task · main ขยับระหว่าง push = merge ใหม่แล้ว squash ซ้ำ (สูงสุด 3 รอบ)
+- `check-config`: `direct` ที่ไม่มี pre-push = **FAIL** (ด่านเดียวก่อน main) · เตือน `deny: Bash(git merge *)` ซึ่ง template เลิกใส่แล้ว —
+  deny เลือกตามโหมดไม่ได้ และมันบล็อก `git merge origin/main` ที่ `/check` ใช้มาตลอด
+- `buaflow upgrade` บอกขั้น `merge-mode` (ไม่บังคับ) และ `git-merge-deny` (บังคับเมื่อเป็น `direct`)
+- CI template รันตอน push เข้า main ด้วย · eval EV-004 จำกัดเป็นโหมด `pr` · เพิ่ม EV-007 สำหรับ `direct` (merge เองได้ ข้าม gate ไม่ได้)
+
+---
+
 ## v3.19.1 — 2026-09-28
 
 > **PATCH:** ไม่มีไฟล์ในโปรเจกต์ที่ต้องแก้มือ · ไม่มี schema เปลี่ยน · ไฟล์ที่เปลี่ยน: `.claude/hooks/guard-bash.js`, `.claude/hooks/guard-edit.js`, `ci/pre-push.tpl` (คัดลอกเอง)

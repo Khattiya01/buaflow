@@ -130,9 +130,9 @@ if (state) {
  */
 function mergeMode() {
   try {
-    return JSON.parse(read('.claude/stack.json') || '{}').mergeMode === 'pr' ? 'pr' : 'direct';
+    return JSON.parse(read('.claude/stack.json') || '{}').mergeMode === 'direct' ? 'direct' : 'pr';
   } catch {
-    return 'direct';
+    return 'pr';
   }
 }
 

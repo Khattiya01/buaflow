@@ -133,7 +133,7 @@ docs/specs/    docs/adr/    docs/design/ docs/standards/  docs/templates/
 >
 > | ตัวเลือก | เหมาะกับ |
 > |---|---|
-> | `direct` (แนะนำ · ค่าเริ่มต้น) | สั่งงานยาว/ข้ามคืน ทีมเล็ก — `/check` ผ่านแล้ว AI squash-merge เข้า main และ push เองผ่าน pre-push gate งานเข้า main ทีละ task ทันที task ถัดไปเริ่มจากโค้ดที่มีงานก่อนหน้าแล้ว conflict จึงเล็กและ AI แก้เอง |
+> | `direct` (แนะนำ · อยู่ใน stack.json ที่ install seed ให้) | สั่งงานยาว/ข้ามคืน ทีมเล็ก — `/check` ผ่านแล้ว AI squash-merge เข้า main และ push เองผ่าน pre-push gate งานเข้า main ทีละ task ทันที task ถัดไปเริ่มจากโค้ดที่มีงานก่อนหน้าแล้ว conflict จึงเล็กและ AI แก้เอง |
 > | `pr` | ต้องมีคนอนุมัติทุก merge (ทีมหลายคน ลูกค้าบังคับ audit) — AI เปิด PR คนกด merge · สั่งงานข้ามคืนแล้วจะได้ PR กองที่ชนกันเอง |
 >
 > เลือก `direct` แล้ว **pre-push ต้องติดตั้งจริง** (เป็นด่านเดียวก่อน main — `check-config.js` ขึ้น FAIL ถ้าไม่มี)

@@ -133,7 +133,7 @@ node .claude/verify.js
 
 ### 3.5 ปิดงาน — `/done`
 Claude จะ (ตาม `mergeMode` ใน `.claude/stack.json`):
-- `direct` (ค่าเริ่มต้น): `status: done` + ปลดล็อก task ที่รอ → merge `origin/main` เข้า branch → squash ลง `origin/main` → `commit:` →
+- `direct` (โปรเจกต์ใหม่ · ไม่มีคีย์ = `pr`): `status: done` + ปลดล็อก task ที่รอ → merge `origin/main` เข้า branch → squash ลง `origin/main` → `commit:` →
   `git push origin HEAD:main` (pre-push gate คือด่าน — ตกก็แก้แล้ว squash ใหม่ main ขยับก็ทำซ้ำ) → ลบ branch
 - `pr`: อัปเดตไฟล์ task → `git push` + **เปิด PR** (hook บล็อก merge เอง) → **คนกด merge** หลัง gate (pre-push/CI) ผ่าน →
   `status: done` + `commit:` → ปลดล็อก task ที่รอ (รวม `-test`)

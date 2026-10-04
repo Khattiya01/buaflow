@@ -65,7 +65,7 @@
 
     subagent ใช้เฉพาะตอนที่ต้อง **แยก context** จริง ๆ — มี 3 ตัวกำหนดไว้แล้วใน `claude-setup/agents/` (ตั้ง `model:` haiku/sonnet ไว้แล้ว)
 
-11. **ทางเข้า main เลือกได้ (`mergeMode`) และ AI ไม่แก้ `board.md` มือ** — `direct` (ค่าเริ่มต้น): `/check` ผ่านแล้ว `/done` squash-merge เข้า main และ push เองผ่าน pre-push gate — สั่งงานยาว/ข้ามคืนได้ งานเข้า main ทีละ task จึงไม่กอง PR ที่ชนกัน ·
+11. **ทางเข้า main เลือกได้ (`mergeMode`) และ AI ไม่แก้ `board.md` มือ** — `direct` (โปรเจกต์ใหม่ได้ค่านี้ · ไม่มีคีย์ = `pr`): `/check` ผ่านแล้ว `/done` squash-merge เข้า main และ push เองผ่าน pre-push gate — สั่งงานยาว/ข้ามคืนได้ งานเข้า main ทีละ task จึงไม่กอง PR ที่ชนกัน ·
     `pr`: `/task` เปิด draft PR ตอน claim, `/done` mark ready ให้คนกด merge (hook บล็อก merge/push เข้า main) · ทั้งสองโหมดห้าม `--no-verify` และ force push main
     board generate จากไฟล์ task ด้วย `node .claude/board.js` แล้วไม่ commit (gitignored — ไม่งั้น conflict ทุกครั้งที่มีหลาย PR พร้อมกัน — ไฟล์ task คือ source of truth ตัวเดียว)
 12. **artifact แต่ละขั้นต้องบีบ ไม่ใช่ส่งต่อ** — `/plan` คัด AC + มาตราธรรมนูญ + กติกา design ลง plan.md

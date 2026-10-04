@@ -5,7 +5,7 @@
     {
       "type": "stack-config",
       "classification": "public",
-      "latestVersion": "1.0",
+      "latestVersion": "1.1",
       "schema": "schemas/stack-config.schema.json",
       "paths": [
         ".claude/stack.json"

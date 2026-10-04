@@ -18,7 +18,7 @@ Talk to the user in Thai. Notes written into the task file are in Thai.
 
 Run first: `git status --short || true`
 
-**Merge mode** — read `mergeMode` in `.claude/stack.json` (missing → `direct`):
+**Merge mode** — read `mergeMode` in `.claude/stack.json` (missing → `pr`):
 - `direct` — you squash-merge into main yourself in `/done` once `/check` passes; the pre-push gate is the check
 - `pr` — you open a PR and a human merges it; the hook blocks merge/push into main
 

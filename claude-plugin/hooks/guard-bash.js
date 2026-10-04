@@ -10,7 +10,7 @@
  *   - git merge / git push ที่ปลายทางเป็น main   เฉพาะ mergeMode "pr" — AI ไม่ merge งานตัวเอง (ธรรมนูญมาตรา 7) เปิด PR แทน
  *   - git push --no-verify                       ข้าม pre-push gate
  *
- * mergeMode ("direct" ค่าเริ่มต้น | "pr") อ่านจาก .claude/stack.json — direct = AI merge + push main เองหลัง
+ * mergeMode ("direct" | "pr" · ไม่มีคีย์ = pr) อ่านจาก .claude/stack.json — direct = AI merge + push main เองหลัง
  * /check ผ่าน โดยมี pre-push gate เป็นด่าน จึงปล่อยสองกฎ "เข้า main" แต่ยังกัน force push และ --no-verify เหมือนเดิม
  * เพราะสองข้อนั้นคือการข้ามด่านเดียวที่เหลือ
  *
@@ -30,12 +30,12 @@ const ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 /** "pr" = main รับของผ่าน PR ที่คนกด merge · "direct" = AI merge เองหลัง /check + gate ผ่าน */
 function mergeMode() {
   try {
-    return require('../stack-config.js').load(ROOT).mergeMode === 'pr' ? 'pr' : 'direct';
+    return require('../stack-config.js').load(ROOT).mergeMode === 'direct' ? 'direct' : 'pr';
   } catch { /* ติดตั้งเก่าที่ยังไม่มี stack-config.js — อ่าน stack.json ตรง ๆ */ }
   try {
-    return JSON.parse(fs.readFileSync(path.join(ROOT, '.claude', 'stack.json'), 'utf8')).mergeMode === 'pr' ? 'pr' : 'direct';
+    return JSON.parse(fs.readFileSync(path.join(ROOT, '.claude', 'stack.json'), 'utf8')).mergeMode === 'direct' ? 'direct' : 'pr';
   } catch {
-    return 'direct';
+    return 'pr';
   }
 }
 

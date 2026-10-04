@@ -42,7 +42,7 @@ node .claude/verify.js
 ```
 
 - **merge, never rebase** — the branch was pushed at claim time, and a rebase would need a force push over it; the merge commit disappears in the squash merge
-- Conflicts → resolve them as part of this task. Read `mergeMode` in `.claude/stack.json` (missing → `direct`):
+- Conflicts → resolve them as part of this task. Read `mergeMode` in `.claude/stack.json` (missing → `pr`):
   - `pr` — a conflict in a file outside the plan, or one where you cannot tell which side is right → **stop and ask**, show the file and both sides
   - `direct` — resolve it yourself, but **find out what caused it first**:
     1. `git log --oneline HEAD..origin/main -- <file>` names the commits on main that changed the file; their messages carry the task id
