@@ -128,13 +128,24 @@ if (state) {
  * โปรเจกต์ที่มีตาราง "Active hooks" ใน CLAUDE.md อยู่แล้ว ข้ามไป — Claude Code โหลดไฟล์นั้นให้เอง
  * ไม่ต้องจ่าย token ซ้ำสอง
  */
+function mergeMode() {
+  try {
+    return JSON.parse(read('.claude/stack.json') || '{}').mergeMode === 'pr' ? 'pr' : 'direct';
+  } catch {
+    return 'direct';
+  }
+}
+
 function guardrails() {
   const claudeMd = read('CLAUDE.md');
   if (claudeMd && /Active hooks/.test(claudeMd)) return null;
+  const main = mergeMode() === 'pr'
+    ? '- `main` takes changes through a PR only (mergeMode "pr"): branch before editing, never merge or push to main.'
+    : '- mergeMode "direct": branch before editing; `/done` squash-merges into main and pushes it after `/check` passes — the pre-push gate is the check, never bypass it.';
   return [
     '',
     '## Guardrails (hooks enforce these — do not spend a call finding out)',
-    '- `main` takes changes through a PR only: branch before editing, never merge or push to main.',
+    main,
     '- Never `--no-verify` on commit/push, never `git checkout/restore .`, never run the sonar scan.',
     '- Never edit `components/ui/**`, a test file on a `fix/`/`hotfix/` branch, or the generated `docs/backlog/board.md`.',
     '- Blocked and you think it is a real exception → tell the user what blocked you. Do not look for a workaround.',

@@ -65,7 +65,8 @@
 
     subagent ใช้เฉพาะตอนที่ต้อง **แยก context** จริง ๆ — มี 3 ตัวกำหนดไว้แล้วใน `claude-setup/agents/` (ตั้ง `model:` haiku/sonnet ไว้แล้ว)
 
-11. **AI ไม่ merge เข้า main และไม่แก้ `board.md` มือ** — `/task` เปิด draft PR ทันทีตอน claim งาน, `/done` mark ready ให้คนกด merge (hook บล็อก merge/push เข้า main)
+11. **ทางเข้า main เลือกได้ (`mergeMode`) และ AI ไม่แก้ `board.md` มือ** — `direct` (ค่าเริ่มต้น): `/check` ผ่านแล้ว `/done` squash-merge เข้า main และ push เองผ่าน pre-push gate — สั่งงานยาว/ข้ามคืนได้ งานเข้า main ทีละ task จึงไม่กอง PR ที่ชนกัน ·
+    `pr`: `/task` เปิด draft PR ตอน claim, `/done` mark ready ให้คนกด merge (hook บล็อก merge/push เข้า main) · ทั้งสองโหมดห้าม `--no-verify` และ force push main
     board generate จากไฟล์ task ด้วย `node .claude/board.js` แล้วไม่ commit (gitignored — ไม่งั้น conflict ทุกครั้งที่มีหลาย PR พร้อมกัน — ไฟล์ task คือ source of truth ตัวเดียว)
 12. **artifact แต่ละขั้นต้องบีบ ไม่ใช่ส่งต่อ** — `/plan` คัด AC + มาตราธรรมนูญ + กติกา design ลง plan.md
     แล้ว `/task` `/check` อ่าน plan.md ไฟล์เดียว · `verify` พิมพ์สรุปสั้น log เต็มลง `.verify.log` · รายงานเฉพาะข้อที่ไม่ผ่าน
@@ -181,8 +182,8 @@
 ### หลังจบ Phase 7 งานเดินยังไง
 
 ```
-intent  →  spec (feature ใหญ่)  →  plan  →  code  →  verify  →  check  →  PR (คนกด merge)  →  done
-  ↑            trivial track: task → code → check low → PR                                    ↓
+intent  →  spec (feature ใหญ่)  →  plan  →  code  →  verify  →  check  →  merge (direct) | PR (pr)  →  done
+  ↑            trivial track: task → code → check low → merge | PR                                       ↓
   └─────────── postmortem / งานนอก scope / finding จาก Sonar / /insights ───────────────────────┘
               gate = verify + audit/secrets + check-config + docs-lint + หลักฐานที่มีไฟล์  (pre-push + CI / buaflow ci)
                               หลักฐานสะสม → readiness R1 → R2 → R3  (buaflow assess / readiness / audit)
@@ -233,7 +234,7 @@ Phase 8 คือรอบที่เอาบทเรียนจากกา
 | Coverage | Backend: เขียน unit test พร้อม module ทุกครั้ง / Frontend: เขียนทีหลังเมื่อ UI นิ่ง |
 | API docs | ต้องมี OpenAPI เสมอเมื่อมี API |
 | คำสั่งตรวจ | ต้องมี **คำสั่งเดียวที่บอกว่างานผ่านหรือไม่** เป้ารันจบใน ~30 วินาที (โปรเจกต์เดิมอาจนานกว่า — ดู Phase A.2) exit non-zero เมื่อพัง **พิมพ์สรุปสั้น** log เต็มลง `.verify.log` — *นโยบายคือ "คำสั่งเดียว" ส่วนคำสั่งจริงเป็นของ stack*: ตั้งที่ `verifyCommand` ใน `.claude/stack.json` แล้วทุกที่เรียกผ่าน `node .claude/verify.js` (JS/TS: `scripts/verify.mjs` จาก template) |
-| Gate | `node .claude/gate.js` = verify + audit/secrets + check-config + docs-lint + ตัวตรวจหลักฐานที่โปรเจกต์มีไฟล์ — รันจาก pre-push และ CI ตัวเดียวกัน main รับของผ่าน PR เท่านั้น |
+| Gate | `node .claude/gate.js` = verify + audit/secrets + check-config + docs-lint + ตัวตรวจหลักฐานที่โปรเจกต์มีไฟล์ — รันจาก pre-push และ CI ตัวเดียวกัน · main รับของตาม `mergeMode`: `direct` AI push เองผ่าน pre-push gate · `pr` ผ่าน PR ที่คนกด merge |
 | ความพร้อม | ตัดสินด้วย readiness manifest (`docs/evidence/readiness.json`) ที่ผูกกับ commit ไม่ใช่คำสรุปของ AI · `buaflow assess` ตอบระดับปัจจุบัน · จะอ้าง R3 ต้องเปลี่ยน `assuranceMode` เป็น `production` |
 | Data model | schema ของ ORM/migration ที่ Phase 2 เลือก (เช่น `prisma/schema.prisma`, Alembic models) เป็น source of truth ตัวเดียว ล็อก core entities ที่ Phase 4.4b ก่อน scaffold |
 | Artifact chain | งานใหม่เข้าทาง `docs/intents/` เสมอ → spec → plan → code → check → PR → done (งานจิ๋ว: trivial track ไม่ต้อง intent/plan) |

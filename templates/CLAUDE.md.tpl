@@ -42,7 +42,8 @@ No need to ask for them, and they cost nothing when not relevant.
 | Editing `components/ui/**` | **Blocked** (shadcn-generated) |
 | Editing a test file while on a `fix/` branch | **Blocked** (prevents fixing the test instead of the bug) |
 | `git commit --no-verify` or running sonar | **Blocked** |
-| `git merge` / `git push` into main, `push --no-verify` | **Blocked** — open a PR for a human |
+| `push --no-verify`, force push to main | **Blocked** in every `mergeMode` — the pre-push gate is the check |
+| `git merge` / `git push` into main | **Blocked** when `mergeMode` is `pr` — open a PR for a human · allowed in `direct` (`/done` does it) |
 | Editing `docs/backlog/board.md` | **Blocked** — generated from task files |
 | After editing a file | format + lint that file only |
 

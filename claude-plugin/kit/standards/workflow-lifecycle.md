@@ -10,8 +10,8 @@
 วางแผน (ครั้งเดียว)        วนทุกงาน                                              ปล่อยของ
 ──────────────────   ─────────────────────────────────────────────────    ──────────────────
 Phase 1-7 ของ kit →  intent → (elaborate) → spec (ถ้าใหญ่) → plan → โค้ด → verify       →  local → uat → prd
-                        ↑      → check → PR (คนกด merge หลัง gate) → done     (ปล่อยเป็นรอบ ไม่ใช่ทีละ task)
-                        │      trivial: task → โค้ด → check low → PR               │
+                        ↑      → check → merge (direct) | PR คนกด (pr) → done (ปล่อยเป็นรอบ ไม่ใช่ทีละ task)
+                        │      trivial: task → โค้ด → check low → merge | PR       │
                         └────── postmortem / งานนอก scope / /insights ────────────┘
 
                      gate = verify + check-config + docs-lint  (pre-push และ CI ตัวเดียวกัน)
@@ -77,8 +77,8 @@ Phase 1-7 ของ kit →  intent → (elaborate) → spec (ถ้าใหญ
 | `backlog` | ยังไม่ถึงคิว | คน | จัดเข้า milestone แล้ว |
 | `todo` | พร้อมทำ dependency ครบแล้ว | คน | มีคนหยิบ |
 | `in-progress` | กำลังทำ | AI (ตอนเริ่ม) | โค้ดเสร็จ + self-check ผ่าน |
-| `review` | รอตรวจ / PR เปิดแล้ว | AI (ตอนเสร็จ) | ผ่าน `/check` + คนกด merge PR หลัง gate ผ่าน |
-| `done` | PR merge แล้ว มี `commit:` | `/done` หลังคนกด merge | — |
+| `review` | รอตรวจ / PR เปิดแล้ว (`mergeMode: pr` เท่านั้น) | AI (ตอนเสร็จ) | ผ่าน `/check` + คนกด merge PR หลัง gate ผ่าน |
+| `done` | อยู่บน main แล้ว มี `commit:` | `/done` — `direct`: หลัง push ผ่าน gate · `pr`: หลังคนกด merge | — |
 | `blocked` | ติดอะไรบางอย่าง | ใครก็ได้ | **ต้องระบุเหตุผลและสิ่งที่รอ** |
 
 **กฎ WIP:** `in-progress` ได้ทีละ **1 task ต่อคน** เท่านั้น
@@ -129,14 +129,19 @@ node .claude/verify.js
 ### 3.4 ตรวจ — `/check`
 - รัน verify (แปะบรรทัดสรุป) → เทียบ diff กับ **plan.md ไฟล์เดียว** → built-in `/code-review` (+ `/security-review` ถ้าแตะ auth/api/db) → subagent `code-reviewer` ตรวจกติกาโปรเจกต์
 - รายงาน**เฉพาะข้อที่ไม่ผ่าน** ส่งผลของ built-in/subagent ผ่านตามที่มันเขียน
-- **คนเป็นผู้อนุมัติเสมอ** AI ไม่อนุมัติงานตัวเอง
+- `mergeMode: pr` — **คนเป็นผู้อนุมัติ** AI ไม่อนุมัติงานตัวเอง · `direct` — ไม่เหลือข้อ must-fix แล้วไป `/done` ต่อเลย (คนอนุมัติโหมดไว้แล้ว ด่านคือ gate)
 
 ### 3.5 ปิดงาน — `/done`
-Claude จะ: อัปเดตไฟล์ task → `git push` + **เปิด PR** (hook บล็อก merge เอง) → **คนกด merge** หลัง gate (pre-push/CI) ผ่าน →
-`status: done` + `commit:` → ปลดล็อก task ที่รอ (รวม `-test`) → `node .claude/board.js` → ป้อนบทเรียนเข้า config → บอกให้ `/clear`
+Claude จะ (ตาม `mergeMode` ใน `.claude/stack.json`):
+- `direct` (ค่าเริ่มต้น): `status: done` + ปลดล็อก task ที่รอ → merge `origin/main` เข้า branch → squash ลง `origin/main` → `commit:` →
+  `git push origin HEAD:main` (pre-push gate คือด่าน — ตกก็แก้แล้ว squash ใหม่ main ขยับก็ทำซ้ำ) → ลบ branch
+- `pr`: อัปเดตไฟล์ task → `git push` + **เปิด PR** (hook บล็อก merge เอง) → **คนกด merge** หลัง gate (pre-push/CI) ผ่าน →
+  `status: done` + `commit:` → ปลดล็อก task ที่รอ (รวม `-test`)
 
-> ทำงานคนเดียว: คุณกด merge เองใน UI หลังอ่านสรุป ใช้ 10 วินาที แต่ได้ประวัติว่าใครอนุมัติ และ gate ได้รันจริง
-> ทำงานหลายคน: เพิ่ม reviewer ใน PR — flow เดียวกัน
+แล้ว `node .claude/board.js` → ป้อนบทเรียนเข้า config → บอกให้ `/clear`
+
+> `pr` ทำงานคนเดียว: คุณกด merge เองใน UI หลังอ่านสรุป ใช้ 10 วินาที แต่ได้ประวัติว่าใครอนุมัติ · ทำงานหลายคน: เพิ่ม reviewer ใน PR
+> `direct` สั่งงานยาว: "ทำ T-010 ถึง T-020 ต่อกันไป" → AI วน `/task` → `/check` → `/done` เอง ข้ามงานที่ต้องถามคนพร้อมโน้ต แล้วรายงานตอนจบ
 
 ### 3.0 trivial track
 งาน typo / copy / log / chore ที่อธิบาย diff ได้ใน 1 ประโยค: สร้างไฟล์ task ตรง (`track: trivial`, "ทำไม" 1 บรรทัด) → `/task` → `/check` (low) → PR

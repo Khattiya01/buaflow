@@ -18,6 +18,7 @@
     "  preflightHookPath  git hook ที่เรียก gate.js (.husky/pre-push หรือ .git/hooks/pre-push)",
     "  ciMode             required | pr-only | local-only — นาที CI มีจำกัด และบางโปรเจกต์ไม่มี remote เลย",
     "                     local-only = pre-push เป็นด่านเดียว ต้องติดตั้งจริง ไม่ใช่แค่มีไฟล์ CI วางไว้",
+    "  mergeMode          direct (ค่าเริ่มต้น: AI merge + push main เองหลัง /check ผ่าน ด่านคือ pre-push gate) | pr (AI เปิด PR คนกด merge)",
     "  auditMode          warn (ค่าเริ่มต้น: รายงานแต่ไม่บล็อก) | required (บล็อก) | off — เริ่มที่ warn กับโปรเจกต์เก่า แล้วสลับเป็น required เมื่อเคลียร์ high/critical หมด",
     "  secretsMode        required (ค่าเริ่มต้น: เจอ secret ใน 50 commit ล่าสุดแล้วบล็อก) | warn | off — ต้องติดตั้ง gitleaks ไม่มีก็ skip",
     "  protected          ไฟล์ที่ guard-edit.js ห้าม AI แก้",
@@ -46,6 +47,7 @@
   "bugfixBranchPattern": "^(fix|hotfix)/",
   "preflightHookPath": ".husky/pre-push",
   "ciMode": "required",
+  "mergeMode": "direct",
 
   "formatCommands": [
     {

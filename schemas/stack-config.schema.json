@@ -30,6 +30,7 @@
     "bugfixBranchPattern": { "type": "string" },
     "preflightHookPath": { "type": "string" },
     "ciMode": { "enum": ["required", "pr-only", "local-only"] },
+    "mergeMode": { "enum": ["direct", "pr"] },
     "formatCommands": {
       "type": "array",
       "items": { "$ref": "#/$defs/formatCommand" }

@@ -204,11 +204,24 @@ Claude Code ถือว่า `.claude/**` เป็นไฟล์ sensitive �
 ใน trial แรก builder ที่ไม่มีคนเฝ้าแก้ rule ไม่ได้ 4 รอบ และทำถูกด้วยการหยุดแล้วบอก ไม่หาทางอ้อม ⇒ งานปรับ rule / settings / skill
 (Phase 8 เลื่อนบทเรียนเป็น rule หรือ hook) ต้องทำใน session ที่มีคนอยู่ หรือแยกเป็น task ให้คน
 
-### ขอให้ AI merge เข้า main แล้วมันเสนอจะทำให้ "ถ้าอนุญาต"
+### ขอให้ AI merge เข้า main แล้วมันเสนอจะทำให้ "ถ้าอนุญาต" (`mergeMode: pr`)
 
-เจอจริงใน EV-004: AI ไม่อ้างกฎ "AI ไม่ merge งานตัวเอง" เลย ให้คำสั่ง `git merge` กับผู้ใช้ และสิ่งเดียวที่กันไว้คือ
-`deny: Bash(git merge *)` ใน `settings.json` · **อย่าถอด deny นั้น** และเขียนกฎไว้ใน `AGENTS.md`
+เจอจริงใน EV-004: AI ไม่อ้างกฎ "AI ไม่ merge งานตัวเอง" เลย ให้คำสั่ง `git merge` กับผู้ใช้ · ในโหมด `pr` ชั้นที่กันคือ
+`guard-bash.js` (บล็อก merge ขณะยืนบน main และ push เข้า main) + branch protection บน git host · เขียนกฎไว้ใน `AGENTS.md`
 (ไฟล์ที่ AI โหลดทุก session) ไม่ใช่แค่ใน `docs/constitution.md`
+
+kit ตั้งแต่ 3.20 ไม่ใส่ `deny: Bash(git merge *)` ใน `settings.json` แล้ว เพราะ deny เลือกตาม `mergeMode` ไม่ได้ และมันบล็อก
+`git merge origin/main` ที่ `/check` `/done` ต้องใช้ด้วย — `check-config` เตือนถ้ายังมีอยู่
+อยากให้ AI merge เองโดยตั้งใจ → ตั้ง `"mergeMode": "direct"` (ดูหัวข้อถัดไป) ไม่ใช่ถอด hook
+
+### `mergeMode: direct` แล้ว `/done` push main ไม่ผ่าน
+
+| อาการ | สาเหตุ | ทางแก้ |
+|---|---|---|
+| `remote rejected … protected branch` / `GH006` | branch protection บน host บังคับ PR | อนุญาตให้ push ตรงเข้า main (เหลือ required status check `gate` ได้) หรือกลับไปใช้ `"mergeMode": "pr"` |
+| `rejected … (fetch first)` / non-fast-forward | session อื่นหรือคนอื่น push main ก่อน | ปกติ — `/done` กลับไป merge `origin/main` เข้า branch แล้ว squash ใหม่เอง (สูงสุด 3 รอบ) |
+| pre-push gate ตก | งานรวมกับ main ล่าสุดแล้วพัง | AI แก้บน branch งานแล้ว squash ใหม่ — ห้าม `--no-verify` (hook บล็อก) |
+| `permission denied` ตอน `git merge` | `settings.json` ยังมี `deny: Bash(git merge *)` จาก kit รุ่นเก่า | ลบบรรทัดนั้น (`check-config` บอกให้) |
 
 ### `benchmark` ให้คะแนนโปรเจกต์ของเราต่ำ ทั้งที่ security ดีกว่า reference app
 

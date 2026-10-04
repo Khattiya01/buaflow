@@ -1,7 +1,6 @@
 ---
-description: Close a task that passed /check and was approved by the user. Marks the PR ready for review (never merges), updates the task file, regenerates the board, unblocks waiting tasks, and feeds lessons back into config.
+description: Close a task that passed /check. In mergeMode direct it squash-merges into main and pushes through the pre-push gate; in mergeMode pr it marks the PR ready for a human to merge (never merges). Then updates the task file, unblocks waiting tasks, regenerates the board, and feeds lessons back into config.
 argumentHint: [T-xxx]
-invocation: human
 claudeAllowedTools: ["Read","Glob","Grep","Edit","Bash(git *)","Bash(gh pr *)","Bash(glab mr *)","Bash(node .claude/*)"]
 ---
 
@@ -9,10 +8,12 @@ Close: {{ARGUMENTS}}
 
 Talk to the user in Thai. The task file notes are in Thai; commit messages and PR titles are English (Conventional Commits); the PR body is Thai.
 
+**Merge mode** — read `mergeMode` in `.claude/stack.json` (missing → `direct`). It decides step 2.
+
 ## Pre-close checks
 
-- [ ] Passed `/check` and **the user approved**
-- [ ] The branch has the latest main: `git fetch origin && git merge-base --is-ancestor origin/main HEAD` — not an ancestor → `git merge origin/main` (never rebase a pushed branch), resolve conflicts, and verify again. A conflict in a file outside the plan → stop and ask
+- [ ] Passed `/check` — `pr`: **and the user approved** · `direct`: the last `/check` had nothing in "Must fix before merge" (that is the approval; the user chose this mode)
+- [ ] The branch has the latest main: `git fetch origin && git merge-base --is-ancestor origin/main HEAD` — not an ancestor → `git merge origin/main` (never rebase a pushed branch), resolve conflicts as `/check` step 1 says for this mode, and verify again
 - [ ] `node .claude/verify.js` passes (run it again; paste the summary line)
 - [ ] Every Proof in the plan/task is done and shown
 - [ ] `node .claude/docs-lint.js` passes
@@ -25,14 +26,14 @@ Anything missing → say what, then stop. **Never close unfinished work.**
 
 Edit the frontmatter of `docs/backlog/tasks/<ID>.md`:
 ```yaml
-status: review          # not done yet — done when the PR is merged
+status: review          # pr: not done yet — done when the PR is merged · direct: step 2 sets done
 branch: <branch>
 ```
 Add to the "notes while working" section anything the next person should know.
 
 If the diff differs materially from `plan.md` → update plan.md to match reality (a plan that lies makes the next estimate wrong).
 
-### 2. Push and mark the PR ready for review — **never merge yourself**
+### 2a. `mergeMode: pr` — push and mark the PR ready for review — **never merge yourself**
 
 `/task` step 5 already opened this PR as a **draft** the moment the task was claimed (so the claim was
 visible on the git host from the start, not just at the end). Push the final commits and undraft it:
@@ -48,9 +49,39 @@ Create one now instead: `gh pr create --base main --fill` (or `glab mr create`).
 Update the PR body/description with: the summary from `/check` step 5 (short) + link to plan.md + the verify summary line.
 **A human merges** after the gate (CI) passes — even solo: it takes 10 seconds and leaves a record of who approved.
 
-> `guard-bash.js` already blocks `git merge` / `git push` into main — if you are blocked, you are doing it wrong; do not look for a way around.
+> `guard-bash.js` blocks `git merge` / `git push` into main in this mode — if you are blocked, you are doing it wrong; do not look for a way around.
 
-### 3. After the PR is merged (the user says so, or `gh pr view` shows merged)
+Then wait for the merge and continue at step 3.
+
+### 2b. `mergeMode: direct` — squash-merge into main and push it yourself
+
+One task = one commit on main, plus a one-line commit that records its hash (`docs-lint` needs `commit:` on a done task, and a commit cannot contain its own hash).
+Work from a detached `origin/main` rather than local `main` — that works the same in a git worktree, where `main` may be checked out elsewhere.
+
+1. On the task branch, do the step-3 task-file updates below (`status: done`, `closed:`, unblock dependants, intent) and commit them: `chore(<ID>): close task`
+2. Squash onto the latest main:
+   ```bash
+   git fetch origin
+   git merge origin/main                 # nothing new → no-op; new commits → resolve as /check step 1, verify again
+   git switch --detach origin/main
+   git merge --squash <branch>
+   git commit -m "<type>(<ID>): <summary>"
+   ```
+   The squash cannot conflict: the branch already contains `origin/main`.
+3. Record the hash: `commit: <git rev-parse --short HEAD>` in the task file → `git commit -am "chore(<ID>): record merge commit"`
+4. Push — **the pre-push gate is the check here; never `--no-verify`**:
+   ```bash
+   git push origin HEAD:main
+   ```
+   - **Gate fails** → `git switch <branch>`, fix it there (repair budget from `/task` step 5), and start again from 2
+   - **Rejected because main moved** (another session or person pushed first) → `git switch <branch>` and start again from 2. Nothing was published, so the detached commits are simply dropped. Third rejection in a row → stop and report
+   - **Rejected by branch protection** (the host requires a PR) → the host and `mergeMode` disagree; stop and tell the user to either allow pushes to main for this repo or set `"mergeMode": "pr"`
+5. Clean up: `git branch -D <branch>` (a squashed branch is never an ancestor of main, so `-d` refuses) and `git push origin --delete <branch>` if it was pushed at claim time. Then `git switch main && git pull --ff-only` — if `main` is checked out in another worktree, stay detached; the next `/task` branches from `origin/main` anyway
+6. **Other in-flight branches that change the same files** (other sessions, teammates) will now conflict with what you pushed — list them with the files, as in step 3. In an unattended run, just note them in the report
+
+Skip step 3's task-file edits (done in 2b.1) and continue at step 4.
+
+### 3. After the PR is merged (`pr`: the user says so, or `gh pr view` shows merged · `direct`: done in 2b.1)
 
 - Task file: `status: done`, `closed: <date>`, `commit: <hash on main>`
 - Tasks with `depends_on` this one → change `blocked` to `todo`
@@ -82,6 +113,8 @@ Ask only about what the diff actually touched:
 - New component → `docs/design/components.md`
 - Architecture decision made mid-way → ADR
 
+Unattended run → do not ask; list them in the run report.
+
 ### 6. Feed back into config (only here — `/check` does not ask)
 
 | Found during the work | Where it goes |
@@ -92,9 +125,11 @@ Ask only about what the diff actually touched:
 
 Nothing qualifies → say so plainly. **Do not invent something to fill the section.**
 (To judge "2nd time", look at `docs/evals/` and the "gets wrong" section in AGENTS.md — unsure → defer to Phase 8)
+Unattended run → propose them in the run report instead of editing config yourself.
 
 ### 7. Close the context
 
 Three lines: what was closed / tasks left in the milestone / 1–2 next tasks.
 Then tell the user to **`/clear`** before the next task — old context does not help the new task but is billed every turn.
+Unattended run → no `/clear` prompt; take the next task (`/task` "Unattended runs").
 Milestone complete → remind them to run SonarQube and look at `/release`.

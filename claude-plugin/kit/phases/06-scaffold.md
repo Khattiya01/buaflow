@@ -129,6 +129,16 @@ docs/specs/    docs/adr/    docs/design/ docs/standards/  docs/templates/
 > ด่านจริงอยู่ที่ pre-push อยู่แล้ว CI เป็นชั้นที่กันคนข้าม hook — เลือก `local-only` ไม่ได้แปลว่าไม่มี gate
 > แต่ถ้าเลือก `local-only` แล้ว **pre-push ต้องติดตั้งจริง** ไม่งั้น `check-config.js` จะขึ้น FAIL เพราะไม่เหลือด่านไหนเลย
 
+> **ถามผู้ใช้เรื่องทางเข้า main ในรอบเดียวกัน** แล้วบันทึกเป็น `mergeMode` ใน `.claude/stack.json` (เปลี่ยนทีหลังได้ตลอด):
+>
+> | ตัวเลือก | เหมาะกับ |
+> |---|---|
+> | `direct` (แนะนำ · ค่าเริ่มต้น) | สั่งงานยาว/ข้ามคืน ทีมเล็ก — `/check` ผ่านแล้ว AI squash-merge เข้า main และ push เองผ่าน pre-push gate งานเข้า main ทีละ task ทันที task ถัดไปเริ่มจากโค้ดที่มีงานก่อนหน้าแล้ว conflict จึงเล็กและ AI แก้เอง |
+> | `pr` | ต้องมีคนอนุมัติทุก merge (ทีมหลายคน ลูกค้าบังคับ audit) — AI เปิด PR คนกด merge · สั่งงานข้ามคืนแล้วจะได้ PR กองที่ชนกันเอง |
+>
+> เลือก `direct` แล้ว **pre-push ต้องติดตั้งจริง** (เป็นด่านเดียวก่อน main — `check-config.js` ขึ้น FAIL ถ้าไม่มี)
+> และ branch protection บน host ต้อง **ไม่บังคับ PR** (บังคับ status check `gate` ได้) · CI template รันตอน push เข้า main ให้แล้ว
+
 ### ขั้น 11 — Commit และปิด M0
 - commit ตาม Conventional Commits ทีละขั้น
 - ไฟล์ task ของ M0 → `status: done` + `commit:` แล้ว `node .claude/board.js`

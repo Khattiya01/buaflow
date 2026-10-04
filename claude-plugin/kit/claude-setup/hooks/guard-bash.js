@@ -7,8 +7,12 @@
  *   - sonar-scanner / pnpm sonar        ผู้ใช้เป็นคนรันเอง ตามที่ตกลงไว้
  *   - git push --force ไปที่ main/master
  *   - git checkout/restore . แบบทิ้งงานทั้ง working tree
- *   - git merge / git push ที่ปลายทางเป็น main   AI ไม่ merge งานตัวเอง (ธรรมนูญมาตรา 7) — เปิด PR แทน
+ *   - git merge / git push ที่ปลายทางเป็น main   เฉพาะ mergeMode "pr" — AI ไม่ merge งานตัวเอง (ธรรมนูญมาตรา 7) เปิด PR แทน
  *   - git push --no-verify                       ข้าม pre-push gate
+ *
+ * mergeMode ("direct" ค่าเริ่มต้น | "pr") อ่านจาก .claude/stack.json — direct = AI merge + push main เองหลัง
+ * /check ผ่าน โดยมี pre-push gate เป็นด่าน จึงปล่อยสองกฎ "เข้า main" แต่ยังกัน force push และ --no-verify เหมือนเดิม
+ * เพราะสองข้อนั้นคือการข้ามด่านเดียวที่เหลือ
  *
  * ข้อจำกัดที่ต้องรู้: นี่คือ regex กันอุบัติเหตุของ AI เอง เลี่ยงได้ด้วยตัวแปร/subshell
  * มันไม่ใช่ security boundary — ของที่ต้องกันจริงให้ใช้ branch protection บน git host + CI gate
@@ -18,6 +22,22 @@
  * exit 2 = บล็อก | exit 0 = ผ่าน
  */
 const { execSync } = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+
+/** "pr" = main รับของผ่าน PR ที่คนกด merge · "direct" = AI merge เองหลัง /check + gate ผ่าน */
+function mergeMode() {
+  try {
+    return require('../stack-config.js').load(ROOT).mergeMode === 'pr' ? 'pr' : 'direct';
+  } catch { /* ติดตั้งเก่าที่ยังไม่มี stack-config.js — อ่าน stack.json ตรง ๆ */ }
+  try {
+    return JSON.parse(fs.readFileSync(path.join(ROOT, '.claude', 'stack.json'), 'utf8')).mergeMode === 'pr' ? 'pr' : 'direct';
+  } catch {
+    return 'direct';
+  }
+}
 
 function isMainBranch(branch) {
   return branch === 'main' || branch === 'master';
@@ -74,7 +94,7 @@ const GIT_PUSH = gitRule(String.raw`push\b`);
 const RULES = [
   {
     // git merge <อะไรก็ตาม> ขณะยืนอยู่บน main = เอางานเข้า main โดยไม่ผ่าน PR
-    match: (cmd) => GIT_MERGE.test(cmd) && isMainBranch(currentBranch()),
+    match: (cmd) => GIT_MERGE.test(cmd) && isMainBranch(currentBranch()) && mergeMode() === 'pr',
     reason: [
       'Blocked: no local merge into main — the AI does not merge its own work (constitution art. 7).',
       'Correct path: push the branch and open a PR (`gh pr create` / `glab mr create`) for a human to merge after the gate passes.',
@@ -85,6 +105,7 @@ const RULES = [
     // git push origin main / git push origin HEAD:main / git push ขณะอยู่บน main
     match: (cmd) =>
       GIT_PUSH.test(cmd) &&
+      mergeMode() === 'pr' &&
       !/--force|-f\b/.test(cmd) && // เคส force มีกฎของตัวเองด้านล่าง
       (/\bgit\s+push\b[^|;&\n]*(:|\s)(main|master)\b/.test(cmd) || (!/\bgit\s+push\b[^|;&\n]*\s\S+\s+\S+/.test(cmd) && isMainBranch(currentBranch()))),
     reason: [

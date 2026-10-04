@@ -99,11 +99,13 @@ chore/T-003-setup-eslint
 - **Squash merge** เป็นค่าเริ่มต้น — ประวัติบน `main` สะอาด 1 task = 1 commit
 - ข้อความ commit ตอน squash ต้องเป็น Conventional Commit และอ้าง task id
 - ก่อน merge ต้อง: typecheck + lint + test ผ่าน และผ่าน review
+- ใครเป็นคน merge ขึ้นกับ `mergeMode` ใน `.claude/stack.json`: `direct` (ค่าเริ่มต้น) — `/done` squash ลง `origin/main` แล้ว
+  `git push origin HEAD:main` เอง pre-push gate คือด่าน · `pr` — คนกด merge PR
 
 ### ถ้าทำงานหลายคน
 - เปิด PR พร้อมคำอธิบาย: ทำอะไร, ทำไม, ทดสอบยังไง, มีอะไรต้องระวัง
 - อย่างน้อย 1 คนอนุมัติ
-- ถ้าทำคนเดียว: ใช้ `/check` แล้ว `/done` เปิด PR → คุณกด merge เองใน UI หลัง gate ผ่าน — flow เหมือนกัน แค่คนอนุมัติคือคุณ (AI ไม่ merge เอง hook บล็อกไว้)
+- `mergeMode: pr` ทำคนเดียว: ใช้ `/check` แล้ว `/done` เปิด PR → คุณกด merge เองใน UI หลัง gate ผ่าน — flow เหมือนกัน แค่คนอนุมัติคือคุณ (AI ไม่ merge เอง hook บล็อกไว้)
 
 ### งานขนานที่แก้ไฟล์เดียวกัน (conflict ตอน merge)
 
@@ -118,9 +120,12 @@ conflict ส่วนใหญ่ไม่ได้มาจากการ merg
 
 **2. เอา main ล่าสุดเข้า branch บ่อย ๆ** — conflict เล็กหลายครั้งแก้ง่ายกว่าก้อนใหญ่ตอนท้าย
 - `/check` และ `/done` รัน `git fetch origin && git merge origin/main` แล้วรัน verify ใหม่
-- ใช้ **merge ไม่ใช่ rebase** กับ branch ที่ push ไปแล้ว (มี draft PR ตั้งแต่ `/task`) — rebase ต้อง force push ทับ PR
+- ใช้ **merge ไม่ใช่ rebase** กับ branch ที่ push ไปแล้ว (push ตั้งแต่ claim ใน `/task`) — rebase ต้อง force push ทับ
   ส่วน merge commit ในนั้นหายไปเองตอน squash merge
 - PR หนึ่ง merge แล้ว → branch อื่นที่แตะไฟล์เดียวกันเอา main เข้าทันที ไม่รอจนถึงตอนเปิด PR
+- **`mergeMode: direct` ลดชั้นนี้ลงเกือบหมด** — งานเข้า main ทันทีที่ `/check` ผ่าน task ถัดไปแตก branch จากโค้ดที่มีงานก่อนหน้าแล้ว
+  conflict ที่เหลือ AI แก้เองตอน `/done`: ดูก่อนว่า commit ไหนบน main แก้ไฟล์นั้น (`git log HEAD..origin/main -- <file>`)
+  อ่าน task ของ commit นั้น แล้วรวมให้ **เจตนาทั้งสองฝั่งอยู่ครบ** จากนั้นรัน verify และจดลงไฟล์ task
 
 **3. ลดไฟล์ที่ทุกงานต้องแก้ (hot-spot)** — ไฟล์ที่ทุก task ต้องไปเติมบรรทัด คือจุดที่ชนแน่นอนไม่ว่าแตก task ดีแค่ไหน
 

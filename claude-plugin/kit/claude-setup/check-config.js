@@ -267,6 +267,10 @@ for (const s of ['stack-config.js', 'verify.js', 'run.js']) {
 const preflight = stack.preflightHookPath;
 const ciMode = stack.ciMode || 'required';
 const localOnly = ciMode === 'local-only';
+// mergeMode direct = AI push main เองโดยไม่มีคนกด merge -> pre-push คือด่านเดียวก่อนงานถึง main เหมือน local-only
+const mergeMode = stack.mergeMode === 'pr' ? 'pr' : 'direct';
+const preflightRequired = localOnly || mergeMode === 'direct';
+const requiredBy = localOnly ? 'ciMode = local-only' : 'mergeMode = direct (AI push main เอง)';
 
 // ใน CI (hosted หรือ buaflow ci) checkout เป็น clone ใหม่ที่ไม่มีวันมี .git/hooks/* เพราะ hook ไม่อยู่ใน git
 // การติดตั้ง hook เป็นคุณสมบัติของเครื่องคน ไม่ใช่ของ checkout — ตรวจตรงนี้ใน CI ตกเสมอโดยไม่บอกอะไร
@@ -278,12 +282,13 @@ if (inCi && untracked && !exists(preflight)) {
 } else if (exists(preflight)) {
   /gate\.js/.test(read(preflight))
     ? ok(`${preflight} เรียก gate.js`)
-    : (localOnly ? bad : warn)(`${preflight} มีอยู่แต่ไม่ได้เรียก gate.js`);
+    : (preflightRequired ? bad : warn)(`${preflight} มีอยู่แต่ไม่ได้เรียก gate.js`);
 } else {
   const how = `ถ้าโปรเจกต์ไม่ได้ใช้ husky ให้ตั้ง "preflightHookPath" ใน .claude/stack.json (เช่น .git/hooks/pre-push)`;
   // ciMode: local-only = ประกาศแล้วว่าไม่มี CI -> hook ตัวนี้คือด่านเดียวที่เหลือ ไม่ใช่ของเสริม
-  localOnly
-    ? bad(`ไม่มี ${preflight} แต่ ciMode = local-only — เท่ากับไม่มีด่านไหนบังคับเลยนอก session ของ Claude · ${how}`)
+  // mergeMode: direct = งานเข้า main โดยไม่มีคนกด merge -> hook ตัวนี้คือด่านเดียวก่อน main เช่นกัน
+  preflightRequired
+    ? bad(`ไม่มี ${preflight} แต่ ${requiredBy} — งานเข้า main ได้โดยไม่ผ่านด่านไหนเลย · ${how} · หรือตั้ง "mergeMode": "pr" ให้คนกด merge`)
     : warn(`ไม่มี ${preflight} — gate จะรันแค่ใน CI (ถ้ามี) คนที่ push จากเครื่องข้ามได้ · ${how}`);
 }
 
@@ -338,6 +343,9 @@ if (settings?.hooks) {
 if (settings) {
   const allow = settings.permissions?.allow || [];
   const deny = settings.permissions?.deny || [];
+  if (deny.some((d) => /^Bash\(git merge\b/.test(d))) {
+    warn(`permissions.deny มี Bash(git merge …) — บล็อก \`git merge origin/main\` ที่ /check และ /done ใช้${mergeMode === 'direct' ? ' และการ squash merge เข้า main ของ mergeMode direct' : ''} · ลบออก (template ไม่มีแล้ว) การกัน main อยู่ที่ guard-bash ตาม mergeMode`);
+  }
   if (!deny.some((d) => /\.env/.test(d))) warn('permissions.deny ไม่มีรายการกันอ่าน .env — AI อ่าน secret ของเครื่องได้ (template มี Read(./.env) ให้แล้ว)');
   const blanket = allow.filter((a) => /^Bash(\(\*\))?$/.test(a) || /^Bash\(\s*\*\s*\)$/.test(a));
   if (blanket.length) bad(`permissions.allow มี ${blanket.join(', ')} — อนุญาตทุกคำสั่ง shell เท่ากับไม่มี permission · ระบุคำสั่งที่ใช้จริง`);
@@ -452,7 +460,10 @@ const cases = [
   ['guard-bash.js', { tool_input: { command: 'git commit --no-verify -m x' } }, 2, 'บล็อก --no-verify'],
   ['guard-bash.js', { tool_input: { command: 'pnpm sonar' } }, 2, 'บล็อกการรัน sonar เอง'],
   ['guard-bash.js', { tool_input: { command: verifyCmd } }, 0, `ปล่อยผ่าน ${verifyCmd}`],
-  ['guard-bash.js', { tool_input: { command: 'git push origin HEAD:main' } }, 2, 'บล็อก push ตรงเข้า main'],
+  mergeMode === 'pr'
+    ? ['guard-bash.js', { tool_input: { command: 'git push origin HEAD:main' } }, 2, 'บล็อก push ตรงเข้า main (mergeMode = pr)']
+    : ['guard-bash.js', { tool_input: { command: 'git push origin HEAD:main' } }, 0, 'ปล่อย push เข้า main (mergeMode = direct — ด่านคือ pre-push gate)'],
+  ['guard-bash.js', { tool_input: { command: 'git push --force origin main' } }, 2, 'บล็อก force push เข้า main ทุก mergeMode'],
   ['guard-bash.js', { tool_input: { command: 'git push --no-verify' } }, 2, 'บล็อก push --no-verify'],
   ['guard-bash.js', { tool_input: { command: 'git push -u origin feat/x' } }, 0, 'ปล่อยผ่าน push branch feature'],
   ['guard-edit.js', { tool_input: { file_path: 'docs/backlog/board.md' } }, ppFile && /board\.md/.test(read(ppFile)) ? 2 : 0, 'board.md (generate) ถูกกันตาม protected'],
@@ -463,9 +474,12 @@ else warn('ข้ามเทส "บล็อกไฟล์ protected" — ไ
 
 if (normalFile) cases.splice(1, 0, ['guard-edit.js', { tool_input: { file_path: normalFile } }, 0, `ปล่อยผ่าน ${normalFile}`]);
 else warn('ข้ามเทส "ปล่อยผ่านไฟล์ปกติ" — ไม่เจอไฟล์โค้ดที่ไม่ใช่ไฟล์เทสและไม่ได้อยู่ในรายการ protected');
-// merge บน main ขึ้นกับ branch ที่ยืนอยู่ — ตรวจให้ตรงกับที่ควรเป็น
-cases.push(['guard-bash.js', { tool_input: { command: 'git merge feat/x' } }, /^(main|master)$/.test(branch) ? 2 : 0,
-  /^(main|master)$/.test(branch) ? 'บล็อก merge ขณะยืนบน main' : `ปล่อย merge เพราะยืนบน ${branch || '?'} (บน main ต้องถูกบล็อก)`]);
+// merge บน main ขึ้นกับ branch ที่ยืนอยู่และ mergeMode — ตรวจให้ตรงกับที่ควรเป็น
+const mergeBlocked = mergeMode === 'pr' && /^(main|master)$/.test(branch);
+cases.push(['guard-bash.js', { tool_input: { command: 'git merge feat/x' } }, mergeBlocked ? 2 : 0,
+  mergeBlocked ? 'บล็อก merge ขณะยืนบน main (mergeMode = pr)'
+    : mergeMode === 'direct' ? 'ปล่อย merge (mergeMode = direct)'
+      : `ปล่อย merge เพราะยืนบน ${branch || '?'} (บน main ต้องถูกบล็อก)`]);
 // การกันแก้ไฟล์เทสขึ้นกับ branch — ตรวจให้ตรงกับที่ควรเป็นบน branch ที่ยืนอยู่จริง
 if (testFile) {
   cases.push([
