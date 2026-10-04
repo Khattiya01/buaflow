@@ -291,7 +291,8 @@ node .claude/eval-harness.js --cases docs/evals --runs docs/evals/runs
 
 1. commit ทั้งหมด
 2. บอกผู้ใช้ว่า **จากนี้ทำงานผ่าน skills ไม่ต้องเปิด `buaflow/` อีก**
-   และ **ทุก merge เข้า main ผ่าน PR** — hook บล็อก merge ในเครื่องแล้ว เหลือแค่เปิด branch protection บน git host ตอนเลือกได้
+   และ **งานเข้า main ตาม `mergeMode`** — `direct`: `/done` merge + push เองผ่าน pre-push gate (สั่งงานยาวข้ามคืนได้: "ทำ T-010 ถึง T-020 ต่อกันไป")
+   · `pr`: hook บล็อก merge ในเครื่องแล้ว เหลือแค่เปิด branch protection บน git host ตอนเลือกได้
    แต่ **อย่าลบ kit** — Phase 8 จะกลับมาใช้ทุกครั้งที่ปรับ config
    (ถ้าไม่อยากให้เกะกะ ย้ายไป `docs/_archive/buaflow/` ได้)
 3. แสดง **3 คำสั่งแรกที่ควรใช้ในวันถัดไป**:

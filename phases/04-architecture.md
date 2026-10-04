@@ -209,6 +209,7 @@ docker/
 ส่วนที่ต้องเติมเองคือ:
 
 - **มาตรา 3** — เติม `{{VERIFY_COMMAND}}` และเวลาที่ยอมรับได้ (จาก Phase 2 รอบ B2)
+- **มาตรา 7** — ไม่ต้องเติมโหมด: ทางเข้า main อยู่ที่ `mergeMode` ใน `.claude/stack.json` (ถามใน Phase 6 ขั้น 10) ธรรมนูญอ้างถึงเท่านั้น
 - **มาตรา 9** — สรุปข้อกำหนดที่ล็อกแล้วจาก Phase 1-4 (UI library, i18n, theme, backlog, docker, CI/CD)
 
 ไฟล์นี้จะกลายเป็นเกณฑ์ที่ `/spec`, `/plan`, `/review` และ subagent `code-reviewer` ใช้ตัดสินจริง

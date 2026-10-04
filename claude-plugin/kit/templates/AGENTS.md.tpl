@@ -68,8 +68,8 @@ verify  ✓ typecheck 4.1s   ✓ lint 2.3s   ✓ test 6.8s   [13.2s]
 ## Workflow (always in this order)
 
 ```
-intent -> spec (large feature) -> plan -> code -> verify -> check -> PR -> done
-                                                 (trivial track: task -> code -> check low -> PR)
+intent -> spec (large feature) -> plan -> code -> verify -> check -> merge (direct) | PR (pr) -> done
+                                                 (trivial track: task -> code -> check low -> merge | PR)
 ```
 
 1. **Starting any task** — `/task` reads the board + task file, then **summarizes its understanding to the user first**. Never start coding immediately.
@@ -78,8 +78,9 @@ intent -> spec (large feature) -> plan -> code -> verify -> check -> PR -> done
 3. **While working** — one task at a time; write one step, verify one step; small Conventional Commits; anything out of scope → **stop and ask**.
    Same spot fails twice in a row → stop, tell the user; do not keep retrying in the same turn.
 4. **Before claiming done** — actually run `{{VERIFY_COMMAND}}` and paste **its summary line**. Never claim "passes" without running it.
-5. **Finishing** — `/check` → the user approves → `/done` opens a PR → **a human merges** after the gate passes → `/clear`.
-   The AI never merges into main (hook blocks it) and never hand-edits `board.md` (generated from task files).
+5. **Finishing** — `/check` → `/done` → `/clear`. How work reaches main is `mergeMode` in `.claude/stack.json` (missing = `pr`):
+   `direct` → `/done` squash-merges into main and pushes it through the pre-push gate · `pr` → the user approves, `/done` opens a PR, **a human merges** (hook blocks merging yourself).
+   Never bypass the gate (`--no-verify`) or force-push main, and never hand-edit `board.md` (generated from task files).
 
 ## Model per step (5–10× cost difference — match the model to the job)
 
@@ -102,7 +103,7 @@ Switch with `/model` · long low-reasoning work can lower `/effort`
 - Running the SonarQube scan yourself (the user runs it and hands you the results)
 - Working outside the task scope without asking
 - Reporting "passes" without actually running it
-- `git merge` / `git push` into main — open a PR for a human
+- `git push --force` to main, `git push --no-verify` — and in `mergeMode: pr`, any `git merge` / `git push` into main (open a PR for a human)
 - Hand-editing `docs/backlog/board.md` — edit the task file, then `node .claude/board.js`
 
 ## Backend

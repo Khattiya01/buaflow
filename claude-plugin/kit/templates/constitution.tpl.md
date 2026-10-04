@@ -53,8 +53,12 @@ intent.md → spec (requirements → design → tasks) → plan.md → diff → 
 - breaking change ต้องประกาศและคุยเรื่อง version ก่อนทำ
 
 ## มาตรา 7 — คนเป็นคนอนุมัติ (Separation of duties)
-- **AI ไม่อนุมัติงานของตัวเอง** ไม่ว่ากรณีใด — ในทางปฏิบัติคือ **AI ไม่ merge เข้า main** `/done` เปิด PR ให้คนกด (hook บล็อก merge/push เข้า main)
-- main รับของผ่าน PR ที่ gate (verify + check-config + docs-lint) ผ่านแล้วเท่านั้น — ทำงานคนเดียวก็ยังกด merge เองใน UI
+- **AI ไม่ตัดสินเองว่างานของตัวเองดีพอ** — ตัวตัดสินว่างานเข้า main ได้คือ gate ที่เครื่องตรวจซ้ำได้ (verify + check-config + docs-lint) ไม่ใช่คำสรุปของ AI
+  ห้ามข้าม gate (`--no-verify`) และห้าม force push main ไม่ว่าโหมดไหน — hook บล็อก
+- **คนเลือกทางเข้า main** ด้วย `mergeMode` ใน `.claude/stack.json` (ค่าในไฟล์นั้นคือความจริง ธรรมนูญไม่ลอกมาเก็บซ้ำ):
+  - `direct` — `/check` ไม่เหลือข้อ must-fix แล้ว AI squash-merge เข้า main และ push เองผ่าน pre-push gate · คนอนุมัติ "โหมด" ครั้งเดียว
+    แล้วตรวจย้อนหลังจากประวัติ main และรายงานท้ายรอบ — เหมาะกับสั่งงานยาว/ข้ามคืน เพราะงานเข้า main ทีละ task ทันที conflict จึงเล็ก
+  - `pr` — AI ไม่ merge เข้า main `/done` เปิด PR ให้คนกดหลัง gate ผ่าน (hook บล็อก merge/push เข้า main) ทำงานคนเดียวก็ยังกด merge เองใน UI
 - AI ทำงานที่ไม่ต้องใช้วิจารณญาณ (เขียน ตรวจ รัน format สรุป)
 - คนตัดสินสิ่งที่ต้องใช้วิจารณญาณ (ยอมรับความเสี่ยงไหม ขึ้น prd ไหม นโยบายชนกันเอาทางไหน)
 

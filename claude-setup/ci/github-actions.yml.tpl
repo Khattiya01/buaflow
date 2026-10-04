@@ -2,8 +2,10 @@
 # ด่านเดียวกับ pre-push hook และ /release — ไม่มีกฎที่ CI รู้แต่เครื่อง dev ไม่รู้
 #
 # ต้องทำเพิ่มบน GitHub หลังวางไฟล์นี้:
-#   Settings → Branches → main → Require status checks: "gate"
-#   (นี่คือสิ่งเดียวที่ทำให้ "AI ไม่ merge เอง" เป็นกฎแข็ง ไม่ใช่คำสัญญา)
+#   mergeMode pr     → Settings → Branches → main → Require a pull request + Require status checks: "gate"
+#                      (นี่คือสิ่งเดียวที่ทำให้ "AI ไม่ merge เอง" เป็นกฎแข็ง ไม่ใช่คำสัญญา)
+#   mergeMode direct → ห้ามติ๊ก "Require a pull request" (AI push main เอง) · ด่านก่อน main คือ pre-push
+#                      และ job นี้รันซ้ำตอน push เข้า main เพื่อจับคนที่ข้าม hook
 #
 # ── เรื่องนาที CI ───────────────────────────────────────────────────────
 # Actions **ฟรีไม่จำกัดบน repo public** โควต้า 2,000 นาที/เดือนนับเฉพาะ repo private
@@ -11,8 +13,8 @@
 # gate ยังบังคับอยู่ที่ pre-push hook เหมือนเดิม — เสียชั้นที่กันคนข้าม hook เท่านั้น ไม่ใช่ gate พัง
 #
 # ไฟล์นี้ตั้งให้ประหยัดไว้แล้ว 2 อย่าง:
-#   1. รันเฉพาะ PR เข้า main (ไม่รันซ้ำตอน push เข้า main เพราะ merge ทุกครั้งผ่าน PR ที่เพิ่งตรวจไปแล้ว)
-#      ถ้ายังไม่ได้เปิด branch protection ให้เพิ่ม `push: { branches: [main] }` กลับมาเพื่อจับ push ตรง
+#   1. รันตอน PR เข้า main และตอน push เข้า main — mergeMode direct ไม่มี PR เลย push คือจุดเดียวที่ CI เห็นงาน
+#      mergeMode pr + เปิด branch protection แล้ว: ลบ `push:` ออกได้ (merge ทุกครั้งผ่าน PR ที่เพิ่งตรวจไปแล้ว ประหยัดนาที)
 #   2. commit ที่แตะแต่ docs/ *.md → ข้าม `pnpm install` และรัน gate แบบ --docs-only
 #      (ยังรันอยู่ ไม่ใช้ paths-ignore เพราะ required check ที่ไม่เคยรัน = PR ค้าง merge ไม่ได้ตลอดไป)
 
@@ -20,6 +22,8 @@ name: gate
 
 on:
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
 
 concurrency:
@@ -50,7 +54,7 @@ jobs:
       - name: ดูว่าคอมมิตนี้แตะอะไรบ้าง
         id: scope
         run: |
-          base='${{ github.event.pull_request.base.sha }}'
+          base='${{ github.event.pull_request.base.sha || github.event.before }}'
           changed=$(git diff --name-only "$base" HEAD 2>/dev/null || true)
           # ไม่รู้ว่าเปลี่ยนอะไร = รันเต็ม (ปลอดภัยไว้ก่อน อย่าเดาว่าเป็น docs)
           if [ -z "$base" ] || [ -z "$changed" ] || echo "$changed" | grep -qvE '^docs/|\.md$'; then

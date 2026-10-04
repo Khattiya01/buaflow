@@ -72,6 +72,14 @@ const DEFAULTS = {
   //   local-only ไม่มี CI โดยตั้งใจ -> pre-push hook เป็นด่านเดียว ต้องติดตั้งจริงเท่านั้น
   ciMode: 'required',
 
+  // main รับงานทางไหน
+  //   direct  AI merge เข้า main + push เองหลัง /check ผ่าน — ด่านคือ pre-push gate ไม่ใช่คน
+  //           เหมาะกับสั่งงานยาวข้ามคืน: งานเข้า main ทีละ task ทันที conflict จึงเล็กและ AI แก้เองตอนนั้น
+  //   pr      AI เปิด PR แล้วคนกด merge (guard-bash บล็อก merge/push เข้า main) — ได้ประวัติผู้อนุมัติ
+  // ไม่มีคีย์ = pr เพื่อให้โปรเจกต์ที่ติดตั้งก่อน 3.20 ทำงานเหมือนเดิมหลัง upgrade · โปรเจกต์ใหม่ได้ direct
+  // จาก stack.json ที่ install seed ให้ (claude-setup/stack.json)
+  mergeMode: 'pr',
+
   // format/lint เฉพาะไฟล์ที่เพิ่งแก้ — เป็น "ข้อมูล" ไม่ใช่ if-chain ในสคริปต์
   //   when         ไฟล์ config ที่ต้องมีอย่างน้อยหนึ่งตัว ถึงจะถือว่าโปรเจกต์ใช้ตัวนี้
   //   match        (ไม่ใส่ = ทุกไฟล์ที่ผ่าน formattablePattern)

@@ -165,6 +165,21 @@ test('manual steps appear only where the project meets their condition, each nam
     fs.mkdirSync(path.join(root, '.git', 'hooks'), { recursive: true });
     fs.copyFileSync(path.join(kit, 'claude-setup', 'ci', 'pre-push.tpl'), path.join(root, '.git', 'hooks', 'pre-push'));
     assert.ok(!upgrade(kit, root, '--plugin').out.manual.some((m) => m.id === 'pre-push-deletes'));
+
+    // A stack.json from before 3.20 has no mergeMode: it stays "pr", and direct is offered, not required.
+    const mergeStep = (id) => upgrade(kit, root, '--plugin').out.manual.find((m) => m.id === id);
+    assert.equal(mergeStep('merge-mode').required, false);
+    assert.equal(mergeStep('git-merge-deny'), undefined, 'no deny, no step');
+    writeJson(path.join(root, '.claude', 'settings.json'), { permissions: { deny: ['Bash(git merge *)'] } });
+    assert.equal(mergeStep('git-merge-deny').required, false, 'in pr mode the deny is in the way, not fatal');
+    writeJson(path.join(root, '.claude', 'stack.json'), { mergeMode: 'direct' });
+    assert.equal(mergeStep('merge-mode'), undefined, 'the project already chose');
+    assert.equal(mergeStep('git-merge-deny').required, true, 'in direct mode the deny stops /done from merging');
+    for (const id of ['merge-mode', 'git-merge-deny']) {
+      writeJson(path.join(root, '.claude', 'stack.json'), {});
+      const step = mergeStep(id);
+      if (step) assert.ok(headings.some((h) => h.startsWith(`## ${step.read}`)), `UPGRADE.md has "## ${step.read}"`);
+    }
   } finally {
     cleanup(root);
     cleanup(kit);

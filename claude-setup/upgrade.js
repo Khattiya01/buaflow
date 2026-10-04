@@ -121,6 +121,16 @@ function manualSteps(root, options) {
   if (/\.claude\/gate\.js/.test(hook) && !/local_sha/.test(hook)) {
     steps.push({ id: 'pre-push-deletes', required: false, files: [hookPath], what: 'copy claude-setup/ci/pre-push.tpl over it — a push that only deletes a branch then skips the gate instead of running all of it', read: 'v3.19.0 → v3.19.1' });
   }
+
+  // install seeds stack.json once, so a project from before 3.20 has no mergeMode — which reads as "pr", the flow it already had.
+  const stack = readJson(path.join(claude, 'stack.json'));
+  if (stack && stack.mergeMode === undefined) {
+    steps.push({ id: 'merge-mode', required: false, files: ['.claude/stack.json'], what: 'optional: add "mergeMode": "direct" so /done squash-merges into main itself once /check passes (long unattended runs); without the key the project stays "pr"', read: 'v3.19.1 → v3.20.0' });
+  }
+  // The deny cannot follow mergeMode, and it also blocks the `git merge origin/main` that /check and /done run.
+  if ((settings?.permissions?.deny || []).some((d) => /^Bash\(git merge\b/.test(d))) {
+    steps.push({ id: 'git-merge-deny', required: stack?.mergeMode === 'direct', files: ['.claude/settings.json'], what: 'remove Bash(git merge …) from permissions.deny — it blocks git merge origin/main in /check and /done (and the squash merge in mergeMode direct); guard-bash guards main per mergeMode', read: 'v3.19.1 → v3.20.0' });
+  }
   return steps;
 }
 

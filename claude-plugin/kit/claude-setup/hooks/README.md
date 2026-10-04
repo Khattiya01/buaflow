@@ -17,7 +17,7 @@ hook ต่างออกไป: มันคือสคริปต์ที�
 |---|---|---|
 | `session-context.js` | `SessionStart` | ฉีด branch ปัจจุบัน + งานที่ค้างจาก board เข้า context ตั้งแต่ข้อความแรก |
 | `guard-edit.js` | `PreToolUse` (Edit/Write) | บล็อกการแก้ไฟล์ตามรายการ `protected` ใน **`.claude/stack.json`** (ค่าเริ่มต้น: `components/ui/**`, `*.generated.*`, lockfile) และบล็อกการแก้ไฟล์เทสขณะอยู่บน branch `fix/` `hotfix/` |
-| `guard-bash.js` | `PreToolUse` (Bash) | บล็อก `--no-verify` (commit และ push), การรัน sonar เอง, force push main, `git checkout .`, **`git merge` ขณะยืนบน main และ `git push` ที่ปลายทางเป็น main** (AI ไม่ merge งานตัวเอง — เปิด PR) |
+| `guard-bash.js` | `PreToolUse` (Bash) | บล็อก `--no-verify` (commit และ push), การรัน sonar เอง, force push main, `git checkout .`, **เฉพาะ `mergeMode: pr`: `git merge` ขณะยืนบน main และ `git push` ที่ปลายทางเป็น main** (AI ไม่ merge งานตัวเอง — เปิด PR) · `direct` (ค่าที่โปรเจกต์ใหม่ได้ · ไม่มีคีย์ = `pr`) ปล่อยสองข้อนี้เพราะ `/done` merge เอง แต่ยังบล็อก force push และ `--no-verify` |
 | `guard-new-component.js` | `PreToolUse` (Write/Edit/MultiEdit) | บล็อกการเขียน/แก้ไฟล์ component ใต้ `components/**` (ยกเว้น `components/ui/**`) ที่เนื้อหาที่กำลังเขียนมีสี hex ดิบ/arbitrary value (`bg-[#...]`) และชื่อไฟล์ไม่ตรงกับแถวไหนใน `docs/design/components.md` แบบเป๊ะ — คือกรณี "คิด design ใหม่เอง" (ข้อ 4-5 ใน `standards/ui-component-rules.md`) เท่านั้น ครอบคลุมทั้งตอนสร้างไฟล์ใหม่และตอนแก้ไฟล์เดิม การประกอบจาก shared/shadcn/primitive เดิมล้วน ๆ (ข้อ 1-3) ผ่านได้เลยไม่ต้องรอ registry — match แบบ exact ต่อแถวตาราง ไม่ใช่ substring (กัน false positive เช่น "Tab" ไป match ติด "DataTable") |
 | `format-changed.js` | `PostToolUse` (Edit/Write) | format + lint เฉพาะไฟล์ที่เพิ่งแก้ ตามรายการ `formatCommands` ใน `stack.json` และส่ง error ที่ autofix ไม่ได้กลับเข้า context |
 | `usage-capture.js` | `SessionStart`, `SessionEnd`, `PostToolUse` (Write/Edit/MultiEdit), `PreToolUse` (Bash) | เฉพาะโปรเจกต์ที่ยินยอมใน `.buaflow/usage.json`: บันทึก event ของ intent/plan/task ลง `.buaflow/usage/` (ไม่ commit) และแจ้ง 1 บรรทัดตอนเปิด session ว่ากำลังเก็บ · ตอนเปิด/จบ session เริ่ม sync ไปที่เก็บกลางเบื้องหลัง ถ้าเครื่องนี้ตั้งค่าไว้ · ไม่ยินยอม = อ่านไฟล์เดียวแล้วออก ไม่สร้างอะไร · ไม่บล็อกอะไรเลย (EV-011) |
@@ -62,12 +62,15 @@ echo $?   # ต้องได้ 2
 echo '{"tool_input":{"command":"git commit --no-verify -m test"}}' | node .claude/hooks/guard-bash.js
 echo $?   # ต้องได้ 2
 
+echo '{"tool_input":{"command":"git push --force origin main"}}' | node .claude/hooks/guard-bash.js
+echo $?   # ต้องได้ 2 — force push main (ทุก mergeMode)
+
 echo '{"tool_input":{"command":"git push origin HEAD:main"}}' | node .claude/hooks/guard-bash.js
-echo $?   # ต้องได้ 2 — push ตรงเข้า main
+echo $?   # mergeMode pr: ต้องได้ 2 — push ตรงเข้า main · direct: ต้องได้ 0
 
 git switch main
 echo '{"tool_input":{"command":"git merge feat/x"}}' | node .claude/hooks/guard-bash.js
-echo $?   # ต้องได้ 2 — merge ขณะยืนบน main (บน branch อื่นต้องได้ 0)
+echo $?   # mergeMode pr: ต้องได้ 2 — merge ขณะยืนบน main (บน branch อื่นต้องได้ 0) · direct: ต้องได้ 0
 git switch -
 
 echo '{"tool_input":{"file_path":"src/components/shared/NewWidget.tsx","content":"<div className=\"bg-[#1e40af]\">x</div>"}}' | node .claude/hooks/guard-new-component.js

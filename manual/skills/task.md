@@ -18,6 +18,10 @@ Talk to the user in Thai. Notes written into the task file are in Thai.
 
 Run first: `git status --short || true`
 
+**Merge mode** — read `mergeMode` in `.claude/stack.json` (missing → `pr`):
+- `direct` — you squash-merge into main yourself in `/done` once `/check` passes; the pre-push gate is the check
+- `pr` — you open a PR and a human merges it; the hook blocks merge/push into main
+
 ---
 
 ## 1. Choose the task
@@ -32,8 +36,9 @@ Run first: `git status --short || true`
   ```bash
   gh pr list --state open --json number,title,headRefName,files --jq '.[] | {number, title, headRefName, files: [.files[].path]}'
   ```
-  (no `gh` → `git fetch origin` and `git diff --name-only origin/main...origin/<branch>` for each open branch; no remote → skip this check)
-  - Overlap → tell the user the PR and the exact files, then offer: **take another task** (name one with deps met and no overlap) · **wait** until that PR merges · **go ahead** knowing it, and pull main in as soon as that PR merges. The user decides; never refuse
+  (`mergeMode: direct` has no PRs, and no `gh` → `git fetch origin` and `git diff --name-only origin/main...origin/<branch>` for each remote task branch; no remote → skip this check)
+  - Overlap → tell the user the PR/branch and the exact files, then offer: **take another task** (name one with deps met and no overlap) · **wait** until that PR merges · **go ahead** knowing it, and pull main in as soon as that PR merges. The user decides; never refuse
+  - Overlap during an unattended run (see the end of this skill) → take a task without overlap if one has deps met; otherwise go ahead — `/done` resolves the conflict when it merges
   - No overlap, or the task has no `touches:` → proceed without comment
 
 ## 2. Read enough, not the whole chain
@@ -78,10 +83,10 @@ Briefly:
   git add docs/backlog/tasks/<ID>.md
   git commit -m "chore(<ID>): claim task"
   git push -u origin <branch>
-  gh pr create --draft --base main --fill      # or glab mr create --draft
+  gh pr create --draft --base main --fill      # mergeMode pr only — or glab mr create --draft
   ```
-  Why: `board.md` is not committed (see `docs-sync.md`), so `main` only shows a task as taken once a PR merges — at the very end. A draft PR makes the claim visible immediately, so two people cannot start the same task unaware.
-  No `gh`/`glab` → tell the user to announce the claim some other way.
+  Why: `board.md` is not committed (see `docs-sync.md`), so `main` only shows a task as taken once it merges — at the very end. The pushed branch (plus the draft PR in `pr` mode) makes the claim visible immediately, so two people or two sessions cannot start the same task unaware.
+  `pr` mode with no `gh`/`glab` → tell the user to announce the claim some other way. No remote → skip the push.
 - Work the ACs one by one in the plan's order — **write one step, run verify, next step**; not everything at once and verify at the end
 - Bug fix: **write the failing test first**, then fix (the hook blocks editing test files on `fix/` branches — that is intended)
 - Small Conventional Commits referencing the task id
@@ -108,7 +113,25 @@ Complete every Proof in the plan and show the result.
 
 ## 7. Next
 
-Suggest `/check <ID>`
+Suggest `/check <ID>` — during an unattended run, run it yourself.
+
+## Unattended runs — `mergeMode: direct` only
+
+The user may hand you a batch to work through without them ("ทำ T-010 ถึง T-020 ข้ามคืน", "ทำ backlog milestone นี้ให้หมด").
+Each task goes onto main as soon as it passes, so the next task starts from code that already contains the last one — that is what keeps conflicts small.
+In `pr` mode, refuse the batch and say why: every task would wait for a human merge, and the open PRs would conflict with each other by morning.
+
+Per task, in order: `/task` → `/check` → `/done` → next task with deps met. What changes when nobody is there to answer:
+
+| Normally you would | Unattended |
+|---|---|
+| Wait for confirmation at step 4 | Write the step-4 summary into the task file notes and proceed |
+| Ask about something unclear that changes the outcome | Do **not** guess: leave the task `todo` with the question in its notes, and take the next task |
+| Stop for `/plan` (step 3) | Skip the task with a note that it needs `/plan`, and take the next task |
+| Stop when the repair budget runs out | Commit what you have on the task branch, leave the task `in-progress` with the failure class and failing line in its notes, and take the next task |
+
+Never widen scope, bypass a hook, or lower a check to keep the run going — a skipped task with a clear note is a good result.
+End the run with a short report: merged (task + commit), skipped (task + the question or failure), and what is next.
 
 ## Without these tool features
 

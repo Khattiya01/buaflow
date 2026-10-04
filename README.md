@@ -7,7 +7,7 @@
 <p><strong>Plan อย่างมีหลักฐาน · Build อย่างมีขอบเขต · ตัดสินความพร้อมด้วยเครื่อง · คนเป็นผู้อนุมัติ</strong></p>
 
 <p>
-  <img alt="Buaflow version 3.19.1" src="https://img.shields.io/badge/version-3.19.1-e85aad?style=for-the-badge">
+  <img alt="Buaflow version 3.20.0" src="https://img.shields.io/badge/version-3.20.0-e85aad?style=for-the-badge">
   <img alt="Claude Code" src="https://img.shields.io/badge/Claude_Code-plugin_%2B_kit-D97757?style=for-the-badge">
   <img alt="Readiness R0 to R4" src="https://img.shields.io/badge/readiness-R0–R4-2563EB?style=for-the-badge">
   <img alt="Zero dependencies" src="https://img.shields.io/badge/node_22-zero_dependencies-16A34A?style=for-the-badge">
@@ -48,7 +48,7 @@ AI สามารถเขียนโค้ดได้รวดเร็ว�
 v2.x คือ **SDLC workflow สำหรับทำงานกับ AI** — phase, skill, rule, hook และ gate · v3.x เก็บทั้งหมดนั้นไว้
 แล้วเพิ่มคำตอบของคำถามที่ v2 ตอบไม่ได้: **"แล้วตอนนี้พร้อมส่งมอบหรือยัง"**
 
-| | v2.3.4 | v3.19.1 |
+| | v2.3.4 | v3.20.0 |
 |---|---|---|
 | เป้าหมาย | ทำงานกับ AI อย่างมีระเบียบ | ส่งมอบแอปที่พิสูจน์ความพร้อมได้ถึง R3 |
 | "เสร็จแล้ว" | verify + gate ผ่าน | + readiness manifest ที่ผูกกับ commit และถูก verifier ตรวจซ้ำ |
@@ -219,7 +219,7 @@ node buaflow/bin/buaflow.js resume
 ## Daily delivery loop หลัง Phase 7
 
 ```text
-intent → (elaborate) → spec → plan → task/code → verify → check → draft PR → human approval → done
+intent → (elaborate) → spec → plan → task/code → verify → check → merge (direct) | PR + human (pr) → done
    ↑                                                                     │
    └──── incident / out-of-scope / postmortem / change proposal + eval ─┘
 ```
@@ -230,7 +230,7 @@ intent → (elaborate) → spec → plan → task/code → verify → check → 
 | `/elaborate I-0xx` | ลูกค้าให้ requirement มาคร่าว ๆ (`brief: open`) | หาเป้าหมายจริง research โดเมน แล้วเสนอสิ่งที่คำขอยังขาด พร้อมแหล่งที่มา ให้คนตัดสินเป็นกลุ่ม · ข้อที่รับเข้า spec โดยอ้าง `E-xx` |
 | `/spec F-xx` | feature ใหญ่ | `requirements.md` (EARS) → `design.md` → `tasks.md` โดยมี approval gate ทุกช่วง · การเดาลง assumption ledger |
 | `/plan T-xxx` | งานหลายไฟล์ หรือเสี่ยง | บีบ AC, constitution และ design rule ที่เกี่ยวลง `plan.md` ไฟล์เดียว |
-| `/task T-xxx` | เริ่มลงมือ | claim งาน เปิด draft PR วน implement/self-check ภายใต้งบ repair loop ตามชนิดความล้มเหลว |
+| `/task T-xxx` | เริ่มลงมือ | claim งาน (push branch · `pr` เปิด draft PR ด้วย) วน implement/self-check ภายใต้งบ repair loop ตามชนิดความล้มเหลว |
 | `/ui <หน้าหรือ component>` | สร้าง UI | ถามก่อนสร้าง แล้วเทียบกับ baseline ตาม viewport/theme |
 | `/prototype` | design พร้อม แต่ยังไม่ควร build | click-through prototype จาก artboard เดิมโดยไม่วาดใหม่ |
 | `/check T-xxx` | โค้ดเสร็จก่อนขออนุมัติ | รัน verify เทียบ diff กับ plan และเรียก code/security review ตามความเสี่ยง |
@@ -268,10 +268,10 @@ flowchart LR
     EVID --> RESULT
     EVAL --> RESULT
     READY --> RESULT
-    RESULT -->|ผ่าน| PR[PR ready for human review]
+    RESULT -->|ผ่าน · mergeMode direct| PR[AI push main]
+    RESULT -->|ผ่าน · mergeMode pr| HUMAN[PR → human merges]
     RESULT -->|ไม่ผ่าน| FIX[แก้แล้วรันใหม่]
     FIX --> GATE
-    PR --> HUMAN[Human merges]
 
     classDef gate fill:#fff1f5,stroke:#e85aad,color:#831843,stroke-width:2px;
     classDef pass fill:#f0fdf4,stroke:#16a34a,color:#14532d,stroke-width:2px;

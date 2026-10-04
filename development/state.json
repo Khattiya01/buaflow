@@ -2,7 +2,7 @@
   "$schema": "./state.schema.json",
   "schemaVersion": "1.0",
   "product": "buaflow",
-  "updatedAt": "2026-09-28",
+  "updatedAt": "2026-10-05",
   "current": {
     "milestone": "M5",
     "focus": []
@@ -2526,9 +2526,9 @@
     }
   ],
   "lastSession": {
-    "date": "2026-09-28",
-    "summary": "Kit 3.19.1 (PATCH) from a real project whose branch deletes ran the whole gate: pre-push.tpl skips the gate when every ref in the push is a delete (#30, merged), and buaflow upgrade names the step pre-push-deletes because install never writes that hook. Fixing it hit three guard false positives; two were bugs and are fixed in #31: guard-bash scanned arguments across newlines into heredoc commit messages (and missed a quoted main), guard-edit blocked creating a new test file on a fix/ branch while telling the AI to create one. The third, a HEAD:main push to a throwaway remote named origin, is the guard working as intended.",
-    "next": "Owner merges #31 and the 3.19.1 release PR (it carries #31 too), then runs node scripts/publish-plugin.js. Projects re-copy claude-setup/ci/pre-push.tpl over .husky/pre-push; buaflow upgrade lists it.",
+    "date": "2026-10-05",
+    "summary": "Kit 3.20.0 (MINOR): mergeMode in .claude/stack.json chooses how work reaches main. direct: /check with no must-fix goes straight to /done, which squash-merges onto origin/main and pushes through the pre-push gate, so long unattended runs land one task at a time instead of piling up PRs that conflict with each other; the AI resolves a conflict after reading the commit and task that caused it. pr: the previous PR flow. An unset key reads as pr so installed projects behave as before (release policy: a change users must act on is MAJOR); new installs get direct from the seeded stack.json. stack-config 1.1 adds the optional field. The settings template drops deny Bash(git merge *), which cannot follow the mode and blocked /check's git merge origin/main. check-config fails direct without pre-push; upgrade names merge-mode and git-merge-deny. EV-007 covers direct.",
+    "next": "Owner merges feat/merge-mode and the 3.20.0 release PR, then runs node scripts/publish-plugin.js. Projects that want overnight runs set \"mergeMode\": \"direct\" (UPGRADE.md v3.19.1 → v3.20.0).",
     "verifiedAt": "2026-09-26T11:05:31.196Z"
   }
 }

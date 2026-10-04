@@ -4,7 +4,8 @@
     "ของส่วนตัวที่ไม่อยากแชร์ให้ใส่ .claude/settings.local.json แทน (gitignore ไว้)",
     "ปรับ path ใน permissions ให้ตรงกับ stack จริงที่เลือกใน Phase 2 ก่อนใช้",
     "อย่านั่งเดา allowlist — หลังใช้งานไป 1-2 สัปดาห์ให้รัน skill fewer-permission-prompts มันสแกน transcript แล้วเสนอรายการให้",
-    "deny ของ git merge/rebase ทำงานคู่กับ hooks/guard-bash.js — main รับของผ่าน PR + gate เท่านั้น",
+    "ไม่ deny git merge — skill ต้อง merge origin/main เข้า branch และ mergeMode direct ต้อง squash-merge เข้า main เอง",
+    "การกัน merge/push เข้า main อยู่ที่ hooks/guard-bash.js ซึ่งอ่าน mergeMode จาก stack.json (deny list เปลี่ยนตาม mode ไม่ได้)",
     "deny การเขียน docs/backlog/board.md เพราะไฟล์นั้น generate จาก board.js — แก้ที่ tasks/*.md แทน"
   ],
 
@@ -49,7 +50,6 @@
       "Bash(rm -rf *)",
       "Bash(git push --force *)",
       "Bash(git reset --hard *)",
-      "Bash(git merge *)",
       "Bash(git rebase *)",
       "Write(docs/backlog/board.md)",
       "Edit(docs/backlog/board.md)"

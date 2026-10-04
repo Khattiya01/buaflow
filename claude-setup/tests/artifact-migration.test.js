@@ -15,9 +15,13 @@ const fixtures = path.join(__dirname, 'fixtures', 'artifacts');
 const types = ['stack-config', 'readiness-manifest', 'prototype-flow', 'pixel-config', 'project-manifest', 'product-graph', 'application-profile', 'evidence-bundle'];
 
 // Not every type sits at 1.0 any more: application-profile went to 1.1 when EP-007 gave it
-// budgets. The expected fixture follows the registry rather than assuming, so the next minor
-// bump fails here loudly instead of quietly comparing against the wrong shape.
-const LATEST = { 'application-profile': { version: '1.1', directory: 'v1_1' } };
+// budgets, and stack-config went to 1.1 when 3.20 added mergeMode. The expected fixture follows
+// the registry rather than assuming, so the next minor bump fails here loudly instead of quietly
+// comparing against the wrong shape.
+const LATEST = {
+  'application-profile': { version: '1.1', directory: 'v1_1' },
+  'stack-config': { version: '1.1', directory: 'v1_1' },
+};
 const latestOf = (type) => LATEST[type] ?? { version: '1.0', directory: 'v1' };
 
 function fixture(version, type) {
@@ -57,6 +61,17 @@ test('application-profile 1.0 -> 1.1 only raises the version and never invents b
   assert.equal(result.toVersion, '1.1');
   assert.equal(result.changed, true);
   assert.equal(result.value.budgets, undefined, 'the migrator must not decide what a profile demands');
+  assert.deepEqual({ ...result.value, schemaVersion: '1.0' }, before);
+});
+
+// mergeMode is optional and an unset key reads as "pr", so the migrator must not pick a mode for
+// the project: choosing direct is a decision about who merges, not a format change.
+test('stack-config 1.0 -> 1.1 only raises the version and never sets mergeMode', () => {
+  const before = fixture('v1', 'stack-config');
+  assert.equal(before.schemaVersion, '1.0');
+  const result = migrateArtifact(before, { type: 'stack-config' });
+  assert.equal(result.toVersion, '1.1');
+  assert.equal(result.value.mergeMode, before.mergeMode);
   assert.deepEqual({ ...result.value, schemaVersion: '1.0' }, before);
 });
 
@@ -115,7 +130,7 @@ test('CLI preview does not modify the source file', () => {
     });
     assert.equal(result.status, 0);
     assert.deepEqual(JSON.parse(fs.readFileSync(file, 'utf8')), before);
-    assert.match(result.stdout, /"schemaVersion": "1\.0"/);
+    assert.match(result.stdout, /"schemaVersion": "1\.1"/);
   } finally {
     cleanup(root);
   }

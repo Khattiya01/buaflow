@@ -6,7 +6,7 @@
   "required": ["schemaVersion"],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": "1.0" },
+    "schemaVersion": { "const": "1.1" },
     "$comment": {
       "oneOf": [
         { "type": "string" },
@@ -30,6 +30,7 @@
     "bugfixBranchPattern": { "type": "string" },
     "preflightHookPath": { "type": "string" },
     "ciMode": { "enum": ["required", "pr-only", "local-only"] },
+    "mergeMode": { "enum": ["direct", "pr"] },
     "formatCommands": {
       "type": "array",
       "items": { "$ref": "#/$defs/formatCommand" }

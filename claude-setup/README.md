@@ -103,7 +103,7 @@ node .claude/readiness.js --file docs/evidence/readiness.json --level R3
 | `/task` | คน + Claude | หยิบงานมาทำ |
 | `/ui` | คน + Claude | สร้าง component (ถามก่อนเสมอ) |
 | `/check` | คน + Claude | ตรวจงาน: verify + เทียบ plan + เรียก built-in `/code-review` `/security-review` + subagent ตรวจกติกาโปรเจกต์ (ชื่อไม่ใช่ `/review` เพราะชนกับ alias ของ built-in) |
-| `/done` | **คนเท่านั้น** | เปิด PR (ไม่ merge เอง) อัปเดตไฟล์ task แล้ว generate board |
+| `/done` | คนหรือ AI (รอบ unattended ของ `mergeMode: direct`) | `direct`: squash-merge + push main ผ่าน pre-push gate · `pr`: เปิด PR (ไม่ merge เอง) · อัปเดตไฟล์ task แล้ว generate board |
 | `/hotfix` | **คนเท่านั้น** | ขั้นตอน hotfix |
 | `/release` | **คนเท่านั้น** | ปล่อยของขึ้น uat/prd |
 
