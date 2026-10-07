@@ -54,11 +54,15 @@ Ask "Are the ACs complete? Any case I missed?" → **stop and wait for approval*
 4. UI: affected screens, components (**existing / shadcn / new**), i18n keys, loading/empty/error states
 5. Impact on existing behavior / breaking changes
 6. Security
-7. **Test plan mapped to each AC** — an AC with no way to prove it is a badly written AC
-8. Alternatives considered and rejected
+7. **Test-case design** (`docs/standards/testing-and-coverage.md` §5) — the techniques are the floor, not the ceiling:
+   - Apply every technique whose trigger is present: **boundary values** from the business rules and validation, a **decision table** from the permissions table and the IF…THEN ACs, **state transitions** from the WHILE ACs and the Flow, **equivalence partitions** from enums and customer/input types. A technique that does not apply gets one line saying why — no filler rows
+   - A cell whose expected result the approved requirements do not state → `[NEEDS CLARIFICATION]`, never a guessed value
+   - **Then go past the tables:** what can still break that no technique surfaced (double submit, concurrent edits, data that existed before the migration, counters/reports/notifications that read this data, bugs this area already had) → `RK-x` with why it is risky. No quota either way
+8. **Test plan mapped to each AC and each designed case** — an AC with no way to prove it is a badly written AC
+9. Alternatives considered and rejected
 
 A new component with no design → **ask the user per `ui-component-rules.md`**
-Gate report → **stop and wait for approval**
+Gate report (include how many cases each technique produced and how many `RK-x`) → **stop and wait for approval**
 
 ## Step 3 — tasks.md (only after Step 2 is approved)
 

@@ -28,6 +28,9 @@ approved_by: <ใครอนุมัติ>
 **AC ที่ task นี้ครอบ** (คัดลอกประโยค EARS จาก requirements.md มาตรง ๆ):
 - AC-x: WHEN … THE SYSTEM SHALL …
 
+**test case ที่ task นี้ต้องพิสูจน์** (id + ผลที่คาดหวัง บรรทัดละข้อ — คัดจาก design.md ถ้ามี · ไม่มี spec ให้ออกแบบตรงนี้จาก AC และโค้ดตาม `testing-and-coverage.md` §5 แล้วคิดต่อนอกเทคนิคเป็น RK-x):
+- BV-x / DT-x / ST-x / EQ-x / RK-x: …
+
 **มาตราธรรมนูญที่ใช้กับงานนี้** (เลข + 1 บรรทัดว่าหมายถึงอะไรในงานนี้ — ปกติ 2-4 มาตรา):
 - ม.4 เล็กก่อน → <เช่น ไม่ทำ generic export ทำเฉพาะ CSV ตาม AC-2>
 - ม.6 สัญญาก่อน → <เช่น เพิ่ม endpoint ต้อง export openapi.json ใน task นี้>

@@ -28,7 +28,7 @@ Yours is the part it cannot know:
 
 - **Does it match `plan.md`** — anything extra, anything missing, anything contradicting the spec's `design.md`
 - **Does it break a project rule** — a constitution article (especially art. 4 small-first and art. 5 no needless wrapping), i18n incomplete th+en, raw colors/sizes instead of tokens, a UI library other than the locked one, files outside the defined structure, a component that should have been promoted to `shared/`, logic duplicating code that already exists
-- **Do the tests match the ACs** — and on a `fix/` branch: is there a test that failed before the fix, and were existing test files modified?
+- **Do the tests match the ACs** and the designed cases the plan or `design.md` lists for this task (`BV-`/`DT-`/`ST-`/`EQ-`/`RK-`) — a designed case with no test is a finding. On a `fix/` branch: is there a test that failed before the fix, and were existing test files modified?
 
 Report an obvious bug or an N+1 if you happen to see one, but do not hunt for them — that pass already ran.
 
