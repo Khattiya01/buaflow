@@ -46,13 +46,24 @@ Five sections, **all required**:
 
 | Section | Required level |
 |---|---|
-| **Distilled requirements** | ACs covered (copy the EARS sentences verbatim) + constitution articles that apply (number + one line) + design.md rules that matter (error codes, i18n keys, components to use) — **this is what /check compares against** |
+| **Distilled requirements** | ACs covered (copy the EARS sentences verbatim) + **the test cases** this task must prove (below) + constitution articles that apply (number + one line) + design.md rules that matter (error codes, i18n keys, components to use) — **this is what /check compares against** |
 | **Files to change** | real paths + what happens to each, not "backend changes" |
 | **Order of work** | arranged so each step can be verified on its own |
 | **Risks** | what can break + **how you would know** |
 | **Proof** | the command / test / screen that, when run, proves it is done |
 
 Can't write the Proof = you don't understand the task yet → back to Step 1.
+
+**Test cases are designed here, not by whoever writes the tests later.** Design them in this session so they get the model the team chose; the `test-writer` subagent only turns the list into code. Method: `docs/standards/testing-and-coverage.md` §5.
+- The spec's `design.md` already has `BV-`/`DT-`/`ST-`/`EQ-`/`RK-` cases → copy the ones this task owns, one line each
+- No spec, or the design has none for this code → design them now from the ACs and the code you read in Step 1:
+  - boundaries
+  - condition combinations
+  - state transitions
+  - partitions
+
+  Then go past those techniques: what else breaks in real use (`RK-x`, each with why it is risky, no quota). Give each case its id and expected result.
+- A case whose expected result nobody has stated → ask in Step 2; never write a guess into the plan
 
 ## Step 4 — Let the user review
 

@@ -12,7 +12,7 @@ Report in Thai; test code in English. For test names, follow whatever the existi
 - The code under test and the code that calls it
 - Existing tests in the project — **follow the existing pattern**; do not invent a new style
 - `docs/standards/testing-and-coverage.md`
-- The feature's spec / acceptance criteria
+- The test cases you were given — from the caller, `docs/plans/<T-xxx>.md`, or the test-case design section of the feature's `design.md`
 
 ## Principles
 - Test **observable behavior**, not implementation details
@@ -22,12 +22,19 @@ Report in Thai; test code in English. For test names, follow whatever the existi
 - Tests are independent — no reliance on run order or state from previous tests
 - Factories/builders for test data instead of giant fixtures
 
-## Must cover
-- Happy path
-- **Every branch of every condition**
-- Edge cases: empty, null, 0, negative, overly long, dates crossing month/year, timezone
-- Error paths and the correct error code
-- Authorization: an unauthorized role is actually rejected
+## What to test — the case list is the floor, not the ceiling
+The cases were designed upstream, in the session the team runs (`/spec` → `design.md`, `/plan` → `plan.md`, or the list the caller gave you). Your job is to turn them into good tests, not to redesign them.
+
+1. **Every case on the list** (`AC-`/`BV-`/`DT-`/`ST-`/`EQ-`/`RK-`) gets a test whose name carries the id, the same way ACs are quoted
+2. **Plus the basics**, where the list does not already have them:
+   - the happy path
+   - empty, null, 0 and negative values where the type allows them
+   - error paths with the correct error code
+   - an unauthorized role actually being rejected
+3. **Something the list missed** that you see while reading the code (a boundary, a branch, a risk) → add the test and report it under your own findings, so it can flow back into the plan
+4. **No list at all** → write tests for the basics and the branches you can see, and say in your report that the cases were not designed upstream; designing them is `/plan`'s job (`docs/standards/testing-and-coverage.md` §5)
+
+**The expected result must come from the spec, the AC or the existing contract — never from what the code happens to do.** A boundary or combination nobody has defined is a question for your report, not a test that locks in a guess.
 
 ## For components (React)
 - Accessible queries: `getByRole`, `getByLabelText`
@@ -45,7 +52,10 @@ Report in Thai; test code in English. For test names, follow whatever the existi
 
 ## Finishing
 Run `node .claude/run.js coverage` and report:
-- Which tests were added and what they cover
+- Which tests were added, grouped by origin:
+  - a designed case (id)
+  - one you added that the list missed, with why it matters
+- Cases you could not give an expected result for, as questions
 - Coverage before → after
 - **What is still not covered and why**
 - Any bugs or suspicious spots found while writing tests

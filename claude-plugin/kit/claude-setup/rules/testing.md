@@ -21,6 +21,9 @@ If the answer is no, the test only makes the coverage number look good — that 
 - Error paths and the correct `error.code`
 - Authorization: an unauthorized role is actually rejected
 - **Every bug ever found** (regression test)
+- Cases designed in the spec's `design.md` (`BV-`/`DT-`/`ST-`/`EQ-`/`RK-` ids)
+  - No spec → derive them from the code: boundaries, condition combinations, state transitions
+  - Then think past them: these techniques are the floor, not the ceiling. See `docs/standards/testing-and-coverage.md` §5
 
 ## Don't test
 

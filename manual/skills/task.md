@@ -66,6 +66,11 @@ Briefly:
 - What it does / what it **does not** do
 - Files to touch
 - **Proof**: which command/test/screen proves it is done
+- **Test cases**: plan.md's list. No plan → list them here using `docs/standards/testing-and-coverage.md` §5:
+  - the techniques that apply
+  - what else breaks beyond them
+
+  A `-test` task hands this list to `test-writer`.
 - UI → components to use (went through `/ui`?) / API → endpoints + error codes
 - What is still unclear
 
