@@ -2523,12 +2523,19 @@
       "decision": "Open BC-008 for conflicts between tasks split from one spec. It is not a revival of BC-003: no scheduler and no locking. The skills tell the model to think about which files a task changes when it splits, plans and claims work, and docs-lint proves the declared split does not put two open tasks on the same file without an order between them.",
       "reason": "D-026 dropped the parallel scheduler because planning parallel work is the model's job and the model is good at it. The owner's projects show the collisions come from the kit's own instructions: /spec defined [P] by swappable order, /task forbade looking at other open work, and no step brought main into a branch before the PR. A stronger model follows those instructions just as faithfully. D-026 also wrote the reopening condition: a new item written from a failure seen in a real project. Under D-011 the AI still does the splitting; Buaflow adds the touches: declaration and a warning that checks it.",
       "impact": "Task template gains touches:; /spec, /plan, /task, /check and /done change; docs-lint gains a warning that only fires for tasks that declare touches:. No schema change. current.focus is BC-008 while it is open."
+    },
+    {
+      "id": "D-031",
+      "date": "2026-10-07",
+      "decision": "Test cases are designed with four techniques as a floor: boundary value, decision table, state transition and equivalence partition. A required step then looks past them, with no quota. The session the team runs does the design: /spec in design.md, /plan or /task when there is no spec. test-writer stays balanced-tier and turns the list into tests.",
+      "reason": "On TRENDY the team wanted to see which test cases a feature had and whether they covered it. Edge cases depended on what the model thought of that day. A closed technique checklist would cap a stronger model at the list, the way D-029 warned about fixed lists. So the techniques give a floor anyone can check, and the open RK- step is where a better model adds more. The design first went into test-writer, but test-writer is pinned to a balanced model by context-budget (\"reads a lot, decides little\"). Upgrading the session model would then not have improved the cases. Moving the design into /spec, /plan and /task keeps the judgement on the model the team picks and the typing on the cheaper one.",
+      "impact": "Kit 3.21.0 (MINOR): standards/testing-and-coverage.md §5, the design.md test-case section and gate item, and plan.md carrying the case list. test-writer and code-reviewer change. No schema or gate changes."
     }
   ],
   "lastSession": {
-    "date": "2026-10-05",
-    "summary": "Kit 3.20.0 (MINOR): mergeMode in .claude/stack.json chooses how work reaches main. direct: /check with no must-fix goes straight to /done, which squash-merges onto origin/main and pushes through the pre-push gate, so long unattended runs land one task at a time instead of piling up PRs that conflict with each other; the AI resolves a conflict after reading the commit and task that caused it. pr: the previous PR flow. An unset key reads as pr so installed projects behave as before (release policy: a change users must act on is MAJOR); new installs get direct from the seeded stack.json. stack-config 1.1 adds the optional field. The settings template drops deny Bash(git merge *), which cannot follow the mode and blocked /check's git merge origin/main. check-config fails direct without pre-push; upgrade names merge-mode and git-merge-deny. EV-007 covers direct.",
-    "next": "Owner merges feat/merge-mode and the 3.20.0 release PR, then runs node scripts/publish-plugin.js. Projects that want overnight runs set \"mergeMode\": \"direct\" (UPGRADE.md v3.19.1 → v3.20.0).",
-    "verifiedAt": "2026-09-26T11:05:31.196Z"
+    "date": "2026-10-07",
+    "summary": "Kit 3.21.0 (MINOR): test cases are designed with boundary value, decision table, state transition and equivalence partition (BV-/DT-/ST-/EQ- ids). A required RK- step then looks past them, with no quota. The session model designs the cases: /spec in design.md, /plan or /task when there is no spec. test-writer turns the list into tests, and code-reviewer flags a designed case with no test. 3.20.0 was never published, so this publish also carries it to marketplace users.",
+    "next": "Projects pick it up by updating the plugin. A follow-up worth considering: a machine check that each AC and designed case id appears in a test file, and a UAT script template for /release.",
+    "verifiedAt": "2026-10-07T04:30:51.735Z"
   }
 }
